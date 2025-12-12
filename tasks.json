@@ -1,0 +1,1300 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Infrastructure & Monorepo Setup",
+      "status": "Planned",
+      "description": "Initialize the monorepo structure with pnpm workspaces, TypeScript configuration, build tooling (tsup), and testing framework (Vitest). This phase establishes the foundation for all subsequent development.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Monorepo Initialization",
+          "status": "Planned",
+          "description": "Set up pnpm workspace with all four packages (@formality/core, @formality/react, @formality/vue, @formality/svelte) and configure package.json files.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Initialize Root Workspace",
+              "status": "Planned",
+              "description": "Create root package.json with pnpm workspace configuration and basic scripts.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Create pnpm-workspace.yaml",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: pnpm 8+ required with workspace:* protocol for internal dependencies.\n2. INPUT: None (greenfield).\n3. LOGIC: Create pnpm-workspace.yaml with packages: ['packages/*'] configuration.\n4. OUTPUT: /pnpm-workspace.yaml file for consumption by P1.M1.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Create root package.json",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Root package must be private:true with packageManager field.\n2. INPUT: Workspace configuration from P1.M1.T1.S1.\n3. LOGIC: Create package.json with name 'formality', private:true, packageManager: 'pnpm@8.15.0', and scripts for build/test/lint/typecheck/changeset.\n4. OUTPUT: /package.json file with devDependencies for typescript, vitest, eslint, prettier, @changesets/cli for consumption by P1.M1.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Create Package Structures",
+              "status": "Planned",
+              "description": "Create directory structure and package.json files for all four packages.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Create @formality/core package structure",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Core package has ZERO runtime dependencies. Must be framework-agnostic.\n2. INPUT: Root workspace from P1.M1.T1.S2.\n3. LOGIC: Create packages/core/package.json with name '@formality/core', type 'module', exports for ESM/CJS/DTS. Create src/ directory with placeholder index.ts. NO dependencies.\n4. OUTPUT: packages/core/package.json and packages/core/src/index.ts for consumption by P1.M2.T1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S2",
+                  "title": "Create @formality/react package structure",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: React package depends on @formality/core via workspace:* protocol. Peer deps: react, react-dom, react-hook-form.\n2. INPUT: Core package structure from P1.M1.T2.S1.\n3. LOGIC: Create packages/react/package.json with dependencies: {'@formality/core': 'workspace:*', 'jsep': '^1.4.0', 'jse-eval': '^1.5.2'}, peerDependencies for react/react-dom/react-hook-form. Create src/ directory with placeholder index.ts.\n4. OUTPUT: packages/react/package.json and packages/react/src/index.ts for consumption by P2.M1.T1."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S3",
+                  "title": "Create Vue and Svelte stub packages",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Vue and Svelte packages are stubs with 'Coming soon' README.\n2. INPUT: Package naming convention from P1.M1.T2.S2.\n3. LOGIC: Create packages/vue/ and packages/svelte/ with minimal package.json (peerDeps only), README.md placeholders, and empty src/index.ts.\n4. OUTPUT: Stub packages for future framework support."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "TypeScript & Build Configuration",
+          "status": "Planned",
+          "description": "Configure TypeScript with project references for incremental builds and tsup for bundling.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Configure TypeScript",
+              "status": "Planned",
+              "description": "Set up TypeScript project references for the monorepo with strict settings.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Create root tsconfig.json",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Use TypeScript 5.5+ with isolatedDeclarations and moduleResolution: 'bundler'.\n2. INPUT: Package structure from P1.M1.T2.\n3. LOGIC: Create tsconfig.json with references to packages/core and packages/react. Enable strict mode, isolatedDeclarations, and composite projects.\n4. OUTPUT: /tsconfig.json with project references for consumption by P1.M2.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Create package-level tsconfig files",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Each package needs tsconfig.json extending root with outDir and specific settings.\n2. INPUT: Root tsconfig from P1.M2.T1.S1.\n3. LOGIC: Create packages/core/tsconfig.json and packages/react/tsconfig.json. Core has no references. React references core package. Both set composite: true.\n4. OUTPUT: Package tsconfig files for consumption by P1.M2.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Configure Build Tooling",
+              "status": "Planned",
+              "description": "Set up tsup for ESM/CJS/DTS generation in each package.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Create tsup configuration for core package",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: tsup 8.0.0 generates ESM/CJS/DTS with zero config for most cases.\n2. INPUT: TypeScript config from P1.M2.T1.S2.\n3. LOGIC: Create packages/core/tsup.config.ts with entry: ['src/index.ts'], format: ['esm', 'cjs'], dts: true, sourcemap: true.\n4. OUTPUT: packages/core/tsup.config.ts for build script consumption."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S2",
+                  "title": "Create tsup configuration for react package",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: React package needs external: ['react', 'react-dom', 'react-hook-form'] to avoid bundling peer deps.\n2. INPUT: Core tsup config pattern from P1.M2.T2.S1.\n3. LOGIC: Create packages/react/tsup.config.ts with external for peer dependencies, JSX support via esbuild.\n4. OUTPUT: packages/react/tsup.config.ts for build script consumption."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S3",
+                  "title": "Verify build pipeline",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Run 'pnpm build' to verify ESM/CJS/DTS output in all packages.\n2. INPUT: tsup configs from P1.M2.T2.S1 and P1.M2.T2.S2.\n3. LOGIC: Execute pnpm install && pnpm build. Verify dist/ directories contain index.js, index.cjs, and index.d.ts.\n4. OUTPUT: Working build pipeline confirmed via P1.M3.T1."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M3",
+          "title": "Testing Infrastructure",
+          "status": "Planned",
+          "description": "Configure Vitest for unit and integration testing across the monorepo.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M3.T1",
+              "title": "Configure Vitest",
+              "status": "Planned",
+              "description": "Set up Vitest with appropriate environments for core (node) and react (jsdom) packages.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S1",
+                  "title": "Create root vitest configuration",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Vitest uses projects feature (not deprecated workspaces) for monorepo support.\n2. INPUT: Build pipeline from P1.M2.T2.S3.\n3. LOGIC: Create vitest.config.ts at root with projects pointing to packages/core and packages/react. Configure coverage at root level.\n4. OUTPUT: /vitest.config.ts for consumption by P1.M3.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S2",
+                  "title": "Create package-level vitest configurations",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Core uses node environment, React uses jsdom. No React imports in core tests.\n2. INPUT: Root vitest config from P1.M3.T1.S1.\n3. LOGIC: Create packages/core/vitest.config.ts with environment: 'node'. Create packages/react/vitest.config.ts with environment: 'jsdom', setupFiles for testing-library.\n4. OUTPUT: Package vitest configs for test execution."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S3",
+                  "title": "Add sample tests and verify runner",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M3.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Validate test infrastructure works before implementing real tests.\n2. INPUT: Vitest configs from P1.M3.T1.S2.\n3. LOGIC: Create packages/core/src/__tests__/sample.test.ts and packages/react/src/__tests__/sample.test.tsx with trivial assertions. Run 'pnpm test' to verify.\n4. OUTPUT: Working test infrastructure for consumption by P2 development."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P2",
+      "title": "@formality/core Implementation",
+      "status": "Planned",
+      "description": "Implement the framework-agnostic core package containing all pure functions for expression evaluation, condition processing, validation, and configuration utilities. This package has ZERO framework dependencies.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P2.M1",
+          "title": "Type System Foundation",
+          "status": "Planned",
+          "description": "Define all TypeScript interfaces that will be used across the entire framework. These types establish the contract between core and framework adapters.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M1.T1",
+              "title": "Define Core Configuration Types",
+              "status": "Planned",
+              "description": "Create TypeScript interfaces for InputConfig, FieldConfig, FormConfig, and Provider configuration.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S1",
+                  "title": "Define InputConfig interface",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M3.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 3.2 - InputConfig defines component, defaultValue, debounce, inputFieldProp, valueField, getSubmitField, parser, formatter, validator, template, props.\n2. INPUT: Project infrastructure from P1.\n3. LOGIC: Create packages/core/src/types/config.ts. Define InputConfig<TValue> interface with all 11 properties. Include JSDoc comments for each property.\n4. OUTPUT: InputConfig interface exported from types/config.ts for consumption by P2.M1.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S2",
+                  "title": "Define FieldConfig interface",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 3.2 - FieldConfig includes type, label, title, disabled, hidden, order, recordKey, rules, validator, props, selectProps, conditions, subscribesTo, provideState, passSubscriptions, passSubscriptionsAs.\n2. INPUT: InputConfig from P2.M1.T1.S1.\n3. LOGIC: Add FieldConfig interface to types/config.ts with all 16 properties. Note that selectProps uses SelectValue<Record<string, unknown>>.\n4. OUTPUT: FieldConfig interface for consumption by P2.M1.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S3",
+                  "title": "Define FormConfig and ProviderConfig interfaces",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Sections 3.3-3.4 - FormConfig has inputs (can be function), groups, defaultFieldProps, selectDefaultFieldProps, title, selectTitle. Provider adds formatters, parsers, validators, errorMessages, templates.\n2. INPUT: FieldConfig from P2.M1.T1.S2.\n3. LOGIC: Add FormConfig, GroupConfig, FormalityProviderConfig interfaces to types/config.ts. Note inputs can be object OR function.\n4. OUTPUT: Complete config types for consumption by P2.M1.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T2",
+              "title": "Define State Types",
+              "status": "Planned",
+              "description": "Create TypeScript interfaces for FormState, FieldState, and related state objects.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S1",
+                  "title": "Define FormState and FieldState interfaces",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 3.5 - FormState has fields, record, errors, defaultValues, touchedFields, dirtyFields, isDirty, isTouched, isValid, isSubmitting, props. FieldState has value, isTouched, isDirty, isValidating, error, invalid, watchers.\n2. INPUT: Config types from P2.M1.T1.S3.\n3. LOGIC: Create packages/core/src/types/state.ts with FormState and FieldState interfaces.\n4. OUTPUT: State interfaces for consumption by P2.M1.T3."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T3",
+              "title": "Define Condition and Validation Types",
+              "status": "Planned",
+              "description": "Create TypeScript interfaces for conditions, validators, and select descriptors.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T3.S1",
+                  "title": "Define SelectValue and ConditionDescriptor types",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 3.1-3.2 - SelectValue is string | SelectFunction | { [key]: SelectValue } | SelectValue[]. ConditionDescriptor has when, selectWhen, is, truthy, disabled, visible, set, selectSet, subscribesTo.\n2. INPUT: State types from P2.M1.T2.S1.\n3. LOGIC: Create packages/core/src/types/conditions.ts with SelectValue, SelectFunction, ConditionDescriptor, ConditionResult interfaces.\n4. OUTPUT: Condition types for consumption by P2.M1.T3.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T3.S2",
+                  "title": "Define validation types",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 3.2 - ValidatorSpec is string | ValidatorFunction | Array. ValidationResult is true | false | string | undefined | { type, message }.\n2. INPUT: Condition types from P2.M1.T3.S1.\n3. LOGIC: Create packages/core/src/types/validation.ts with ValidatorSpec, ValidatorFunction, ValidationResult, ValidatorsConfig, ErrorMessagesConfig interfaces.\n4. OUTPUT: Validation types for consumption by P2.M1.T3.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T3.S3",
+                  "title": "Create types index barrel export",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M1.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All types must be re-exported from a single index.ts for convenient importing.\n2. INPUT: All type files from P2.M1.T1-T3.\n3. LOGIC: Create packages/core/src/types/index.ts that re-exports all types from config.ts, state.ts, conditions.ts, validation.ts.\n4. OUTPUT: types/index.ts barrel export for consumption by P2.M2."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M2",
+          "title": "Expression Engine",
+          "status": "Planned",
+          "description": "Implement the expression parsing, evaluation, and field inference system. This is a foundational component that conditions and selectProps depend on.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M2.T1",
+              "title": "Implement Expression Evaluation",
+              "status": "Planned",
+              "description": "Create the core expression evaluation engine using jsep for parsing and custom evaluation logic.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Implement evaluate function",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T3.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 5.2 - Use jsep for AST parsing, custom evaluator for safe execution. Must handle all operators: ===, !==, &&, ||, >, <, >=, <=, ternary, unary.\n2. INPUT: Type definitions from P2.M1.T3.S3.\n3. LOGIC: Create packages/core/src/expression/evaluate.ts. Import jsep for parsing. Implement recursive evaluate() function that handles Identifier, MemberExpression, BinaryExpression, LogicalExpression, UnaryExpression, ConditionalExpression, Literal. Use jse-eval or implement custom safe evaluator.\n4. OUTPUT: evaluate(expr: string, context: object) => unknown function for consumption by P2.M2.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S2",
+                  "title": "Add unit tests for expression evaluation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 5.2.1 shows all supported expression types.\n2. INPUT: evaluate function from P2.M2.T1.S1.\n3. LOGIC: Create packages/core/src/expression/__tests__/evaluate.test.ts. Test literals ('true', '42', \"'string'\"), property access ('client', 'client.id'), logical operators (&&, ||, ??), equality (===, ==), ternary, and complex expressions.\n4. OUTPUT: Test coverage for expression evaluator for consumption by P2.M2.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M2.T2",
+              "title": "Implement Context Building",
+              "status": "Planned",
+              "description": "Create the context building function that implements dual context mapping for qualified and unqualified paths.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S1",
+                  "title": "Implement buildEvaluationContext function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 5.1.4 - Dual Context Mapping: provide field values at BOTH qualified (fields.client.value) AND unqualified (client) levels.\n2. INPUT: Expression evaluator from P2.M2.T1.\n3. LOGIC: Create packages/core/src/expression/context.ts. Implement buildEvaluationContext(fields, record, props) that creates context with all 7 qualified prefixes (fields, record, errors, defaultValues, touchedFields, dirtyFields, props) AND adds unqualified shortcuts for each field value.\n4. OUTPUT: buildEvaluationContext function for consumption by P2.M2.T3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S2",
+                  "title": "Add unit tests for context building",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Must verify both qualified and unqualified access work.\n2. INPUT: buildEvaluationContext from P2.M2.T2.S1.\n3. LOGIC: Test that context['client'] === context.fields.client.value. Test that qualified paths like 'record.name' resolve correctly. Test name collision handling (qualified takes precedence).\n4. OUTPUT: Test coverage for context building."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M2.T3",
+              "title": "Implement Field Inference",
+              "status": "Planned",
+              "description": "Create the function that extracts field dependencies from expression strings for automatic subscription.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T3.S1",
+                  "title": "Implement inferFieldsFromDescriptor function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 5.3.3 - Scan expressions for unqualified identifiers, skip keywords and qualified prefixes.\n2. INPUT: Context builder from P2.M2.T2.\n3. LOGIC: Create packages/core/src/expression/infer.ts. Implement inferFieldsFromDescriptor(descriptor) that handles string descriptors and object descriptors. Use regex to extract identifiers, filter out KEYWORDS (true, false, null, undefined) and QUALIFIED_PREFIXES (fields, record, errors, etc.).\n4. OUTPUT: inferFieldsFromDescriptor function for consumption by P2.M3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T3.S2",
+                  "title": "Add unit tests for field inference",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M2.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Inference is critical for automatic subscriptions.\n2. INPUT: inferFieldsFromDescriptor from P2.M2.T3.S1.\n3. LOGIC: Test 'client.id' infers ['client']. Test 'client && signed' infers ['client', 'signed']. Test 'record.name' infers [] (qualified path). Test object descriptors with multiple values.\n4. OUTPUT: Test coverage for field inference."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M3",
+          "title": "Condition Evaluation",
+          "status": "Planned",
+          "description": "Implement the pure condition evaluation logic that determines disabled, visible, and setValue states based on field values.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M3.T1",
+              "title": "Implement Condition Evaluation",
+              "status": "Planned",
+              "description": "Create the core condition evaluation function with proper cumulative logic for disabled (OR) and visible (AND).",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S1",
+                  "title": "Implement evaluateConditions function",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M2.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 8.7 - disabled uses OR logic, visible uses AND logic, setValue uses last-match-wins. Actions are INDEPENDENT.\n2. INPUT: Expression engine from P2.M2.\n3. LOGIC: Create packages/core/src/conditions/evaluate.ts. Implement evaluateConditions({ conditions, fieldValues, record, props }). For each condition: check 'when' or 'selectWhen', apply matchers ('is', 'truthy'), then apply actions ('disabled', 'visible', 'set', 'selectSet') with correct cumulative logic. Return ConditionResult with disabled, visible, setValue, and has* flags.\n4. OUTPUT: evaluateConditions function for consumption by P2.M3.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S2",
+                  "title": "Implement condition matching helpers",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 8.1 - Match logic: 'is' for exact match, 'truthy' for boolean check, default to truthy if no matcher.\n2. INPUT: evaluateConditions from P2.M3.T1.S1.\n3. LOGIC: Add evaluateConditionMatch(condition, context) helper. Handle 'when' (simple field reference) vs 'selectWhen' (expression evaluation). Apply 'is' matcher with strict equality, 'truthy' matcher with boolean coercion, default truthy check.\n4. OUTPUT: Complete condition matching for consumption by P2.M3.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T1.S3",
+                  "title": "Add comprehensive condition tests",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 8.3 provides example conditions to test.\n2. INPUT: Complete condition evaluation from P2.M3.T1.S2.\n3. LOGIC: Test disabled OR logic (any true = true), visible AND logic (any false = false), setValue last-match-wins. Test action independence. Test 'when' vs 'selectWhen'. Test all matchers.\n4. OUTPUT: Test coverage for conditions."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M3.T2",
+              "title": "Implement Condition Field Inference",
+              "status": "Planned",
+              "description": "Create function to extract field dependencies from condition descriptors.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M3.T2.S1",
+                  "title": "Implement inferFieldsFromConditions function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to extract 'when' fields and fields from 'selectWhen'/'selectSet' expressions.\n2. INPUT: inferFieldsFromDescriptor from P2.M2.T3.\n3. LOGIC: Create inferFieldsFromConditions(conditions) that iterates conditions, adds 'when' field if string, calls inferFieldsFromDescriptor on 'selectWhen' and 'selectSet' if strings.\n4. OUTPUT: inferFieldsFromConditions for consumption by React hooks."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M4",
+          "title": "Validation & Transformation",
+          "status": "Planned",
+          "description": "Implement validation pipeline and value transformation (parser/formatter) utilities.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M4.T1",
+              "title": "Implement Validation Pipeline",
+              "status": "Planned",
+              "description": "Create validation composition and error message resolution functions.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M4.T1.S1",
+                  "title": "Implement runValidator function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 10 - Validators can be string (named), function, or array. Support async validators.\n2. INPUT: Types from P2.M1.\n3. LOGIC: Create packages/core/src/validation/validate.ts. Implement runValidator(spec, value, formValues, namedValidators) that handles string lookup, inline functions, and arrays. Support async via Promise.resolve().\n4. OUTPUT: runValidator function for consumption by P2.M4.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M4.T1.S2",
+                  "title": "Implement resolveErrorMessage function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M4.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 10.4 - ValidationResult can be true/false/string/undefined/{type,message}. Resolve message from errorMessages config.\n2. INPUT: runValidator from P2.M4.T1.S1.\n3. LOGIC: Create packages/core/src/validation/messages.ts. Implement resolveErrorMessage(result, errorMessages) that handles all ValidationResult types and returns string | undefined.\n4. OUTPUT: resolveErrorMessage for consumption by React Field."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M4.T1.S3",
+                  "title": "Add validation tests",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M4.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 10.3 shows all return value types.\n2. INPUT: Validation functions from P2.M4.T1.S1-S2.\n3. LOGIC: Test named validators, inline functions, arrays, async validators. Test all ValidationResult types: true, false, string, undefined, {type}, {type, message}.\n4. OUTPUT: Test coverage for validation."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M4.T2",
+              "title": "Implement Value Transformation",
+              "status": "Planned",
+              "description": "Create parser and formatter pipeline utilities.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M4.T2.S1",
+                  "title": "Implement parse and format functions",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M4.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 11 - Parsers transform input to form value, formatters transform form value to display. Support named (string) and inline (function) transforms.\n2. INPUT: Types from P2.M1.\n3. LOGIC: Create packages/core/src/transform/pipeline.ts. Implement parse(value, parserSpec, namedParsers) and format(value, formatterSpec, namedFormatters). Handle string lookup and inline functions.\n4. OUTPUT: parse and format functions for consumption by React Field."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M4.T2.S2",
+                  "title": "Add transformation tests",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M4.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 11.4 shows decimal field example.\n2. INPUT: Transform functions from P2.M4.T2.S1.\n3. LOGIC: Test named parsers/formatters, inline functions, float parsing, precision formatting.\n4. OUTPUT: Test coverage for transformation."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M5",
+          "title": "Configuration Utilities",
+          "status": "Planned",
+          "description": "Implement configuration merging, default value resolution, field ordering, and label resolution utilities.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M5.T1",
+              "title": "Implement Config Merging",
+              "status": "Planned",
+              "description": "Create functions to merge provider, form, and field configurations.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M5.T1.S1",
+                  "title": "Implement mergeConfigs function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M4.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 7.1 - Priority order: Provider inputs < Provider defaultFieldProps < Provider selectDefaultFieldProps < Form defaultFieldProps < Form selectDefaultFieldProps < Field props < Field selectProps < Component props.\n2. INPUT: Types from P2.M1.\n3. LOGIC: Create packages/core/src/config/merge.ts. Implement mergeConfigs(providerConfig, formConfig, fieldConfig) that respects priority order.\n4. OUTPUT: mergeConfigs for consumption by React Field."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M5.T2",
+              "title": "Implement Default Value Resolution",
+              "status": "Planned",
+              "description": "Create function to resolve initial values from config and record.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M5.T2.S1",
+                  "title": "Implement resolveInitialValue function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M5.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 14 - Priority: inputConfig.defaultValue < record[fieldName] < defaultValues[fieldName]. Handle recordKey mapping.\n2. INPUT: Config merge from P2.M5.T1.S1.\n3. LOGIC: Create packages/core/src/config/defaults.ts. Implement resolveInitialValue(fieldName, fieldConfig, inputConfig, record) that uses recordKey if specified, falls back to fieldName.\n4. OUTPUT: resolveInitialValue for consumption by React Form."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M5.T3",
+              "title": "Implement Label Resolution",
+              "status": "Planned",
+              "description": "Create label resolution pipeline with humanizeLabel auto-generation.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M5.T3.S1",
+                  "title": "Implement resolveLabel and humanizeLabel functions",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M5.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 16 - Priority: component prop < fieldConfig.props.label < selectProps.label < fieldConfig.label < fieldConfig.title < auto-generated. humanizeLabel converts camelCase to 'Title Case'.\n2. INPUT: Types from P2.M1.\n3. LOGIC: Create packages/core/src/labels/resolve.ts. Implement humanizeLabel(fieldName) using regex for camelCase splitting. Implement resolveLabel(fieldName, fieldConfig, evaluatedSelectProps, componentProps).\n4. OUTPUT: Label resolution for consumption by React Field."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M5.T3.S2",
+                  "title": "Add label resolution tests",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M5.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 16.3 shows humanizeLabel examples.\n2. INPUT: Label functions from P2.M5.T3.S1.\n3. LOGIC: Test humanizeLabel('clientContact') -> 'Client Contact', 'minGrossMarginPercent' -> 'Min Gross Margin Percent'. Test priority order.\n4. OUTPUT: Test coverage for labels."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M5.T4",
+              "title": "Create Core Package Index",
+              "status": "Planned",
+              "description": "Create the main index.ts barrel export for @formality/core.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M5.T4.S1",
+                  "title": "Create index barrel export",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M5.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All public APIs must be exported from packages/core/src/index.ts.\n2. INPUT: All modules from P2.M2-M5.\n3. LOGIC: Export all types from types/index.ts, all functions from expression/, conditions/, validation/, transform/, config/, labels/.\n4. OUTPUT: Complete @formality/core package ready for consumption by @formality/react."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P3",
+      "title": "@formality/react Foundation",
+      "status": "Planned",
+      "description": "Implement the React adapter foundation including contexts, the Provider component, and critical hooks like useFormState with proxy pattern.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P3.M1",
+          "title": "React Context System",
+          "status": "Planned",
+          "description": "Create React contexts for configuration, form state, and field groups.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M1.T1",
+              "title": "Implement ConfigContext",
+              "status": "Planned",
+              "description": "Create the ConfigContext that provides global configuration from FormalityProvider.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S1",
+                  "title": "Create ConfigContext definition",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M5.T4.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 4.2 - ConfigContextValue includes inputs, formatters, parsers, validators, errorMessages, templates, defaultFieldProps.\n2. INPUT: Types from @formality/core.\n3. LOGIC: Create packages/react/src/context/ConfigContext.ts. Define ConfigContextValue interface (can re-export from core). Create ConfigContext with React.createContext. Create useConfigContext hook.\n4. OUTPUT: ConfigContext and useConfigContext for consumption by P3.M1.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M1.T2",
+              "title": "Implement FormContext",
+              "status": "Planned",
+              "description": "Create the FormContext that provides form-level state and operations.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S1",
+                  "title": "Create FormContext definition",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 4.1 - FormContextValue includes config, formConfig, record, registry operations, subscription operations, changeField, validation state, submission operations, RHF methods.\n2. INPUT: ConfigContext from P3.M1.T1.S1.\n3. LOGIC: Create packages/react/src/context/FormContext.ts. Define FormContextValue interface matching PRD Section 4.1. Create FormContext and useFormContext hook.\n4. OUTPUT: FormContext and useFormContext for consumption by P3.M1.T3."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M1.T3",
+              "title": "Implement GroupContext",
+              "status": "Planned",
+              "description": "Create the GroupContext for FieldGroup state propagation.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T3.S1",
+                  "title": "Create GroupContext definition with default value",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 4.3 - GroupContextValue has state: { isDisabled, isVisible, conditions, subscriptions }, subscriptions, inferredInputs, config. Default context provided when no FieldGroup.\n2. INPUT: FormContext from P3.M1.T2.S1.\n3. LOGIC: Create packages/react/src/context/GroupContext.ts. Define GroupContextValue interface. Create defaultGroupContext with isDisabled: false, isVisible: true. Create GroupContext and useGroupContext hook.\n4. OUTPUT: GroupContext and useGroupContext for consumption by P3.M2."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M2",
+          "title": "Performance Utilities",
+          "status": "Planned",
+          "description": "Implement the critical proxy state pattern and custom useFormState hook.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M2.T1",
+              "title": "Implement Proxy State Pattern",
+              "status": "Planned",
+              "description": "Create the makeProxyState utility for lazy property access.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S1",
+                  "title": "Implement makeProxyState function",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M1.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 2.1.2 - CRITICAL for performance. Use Object.defineProperty with getter functions to enable lazy property access. Must be enumerable and configurable.\n2. INPUT: Contexts from P3.M1.\n3. LOGIC: Create packages/react/src/utils/makeProxyState.ts. Implement makeProxyState<T>(state: T): T that iterates keys and defines getter properties. Ensure enumerable: true, configurable: true.\n4. OUTPUT: makeProxyState for consumption by P3.M2.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S2",
+                  "title": "Add proxy state tests",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 2.1.5 - Test that Object.getOwnPropertyDescriptor returns getter function, values are accessible, and Object.keys works.\n2. INPUT: makeProxyState from P3.M2.T1.S1.\n3. LOGIC: Test that proxy creates getters, values access correctly, object is enumerable.\n4. OUTPUT: Test coverage for proxy pattern."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M2.T2",
+              "title": "Implement Custom useFormState",
+              "status": "Planned",
+              "description": "Create custom useFormState hook that wraps RHF's useFormState with proxy pattern.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S1",
+                  "title": "Implement useFormState hook",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 2.1.3 - Wrap RHF's useFormState, add record property via Object.defineProperty getter, apply makeProxyState to field states.\n2. INPUT: makeProxyState from P3.M2.T1.\n3. LOGIC: Create packages/react/src/hooks/useFormState.ts. Import useFormState from react-hook-form. Add record property from FormContext. Apply makeProxyState to fields object.\n4. OUTPUT: Custom useFormState for consumption by Form and Field components."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M3",
+          "title": "FormalityProvider Component",
+          "status": "Planned",
+          "description": "Implement the FormalityProvider component that establishes global configuration.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M3.T1",
+              "title": "Implement FormalityProvider",
+              "status": "Planned",
+              "description": "Create the provider component with proper defaults and context provision.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S1",
+                  "title": "Implement Provider component",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.1 - Provider creates ConfigContext with merged defaults. Does NOT render wrapper elements.\n2. INPUT: Contexts and hooks from P3.M1-M2.\n3. LOGIC: Create packages/react/src/components/Provider.tsx. Accept FormalityProviderProps. Apply defaults for formatters: {}, parsers: {}, validators: {}, errorMessages: {}, inputTemplates: {}, defaultSubscriptionPropName: 'state'. Create ConfigContext.Provider with merged value.\n4. OUTPUT: FormalityProvider component for consumption by P3.M3.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S2",
+                  "title": "Add Provider tests",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test that config context is provided to children.\n2. INPUT: FormalityProvider from P3.M3.T1.S1.\n3. LOGIC: Test that useConfigContext returns provided values. Test default values are applied.\n4. OUTPUT: Test coverage for Provider."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P4",
+      "title": "@formality/react Core Components",
+      "status": "Planned",
+      "description": "Implement the Form and Field components with full React Hook Form integration, subscription system, and props pipeline.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P4.M1",
+          "title": "Form Component",
+          "status": "Planned",
+          "description": "Implement the Form component with RHF integration, subscription registry, and submission handling.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M1.T1",
+              "title": "Implement Form Initialization",
+              "status": "Planned",
+              "description": "Create Form component with useForm integration and state registries.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T1.S1",
+                  "title": "Create Form component with RHF integration",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P3.M3.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.2.2 - Initialize useForm with mode: 'onChange', defaultValues from config, values from record prop.\n2. INPUT: Provider and contexts from P3.\n3. LOGIC: Create packages/react/src/components/Form.tsx. Accept FormProps. Extract defaultValues from config using resolveInitialValue from core. Call useForm({ mode: 'onChange', defaultValues, values: record }). Create subscription registries: fieldRegistry, invertedSubscriptions, watcherSetters, pendingWatcherUpdates, validatingFields.\n4. OUTPUT: Form component skeleton for consumption by P4.M1.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T1.S2",
+                  "title": "Implement subscription management functions",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P4.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.2.2 - addSubscription updates invertedSubscriptions and notifies via watcherSetters or queues in pendingWatcherUpdates. registerWatcherSetter processes pending queue.\n2. INPUT: Form skeleton from P4.M1.T1.S1.\n3. LOGIC: Implement addSubscription(target, subscriber), removeSubscription(target, subscriber), registerWatcherSetter(name, setter), unregisterWatcherSetter(name). Handle mount order via pendingWatcherUpdates queue.\n4. OUTPUT: Subscription management for consumption by P4.M1.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T1.S3",
+                  "title": "Implement FormContext provision",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 4.1 - FormContextValue provides all registry operations, changeField, setFieldValidating, RHF methods.\n2. INPUT: Subscription management from P4.M1.T1.S2.\n3. LOGIC: Create FormContextValue object with all properties from PRD Section 4.1. Wrap children with FormContext.Provider and GroupContext.Provider (default context).\n4. OUTPUT: Complete Form context provision for consumption by P4.M1.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M1.T2",
+              "title": "Implement Form Submission",
+              "status": "Planned",
+              "description": "Implement submission flow with validation blocking and value transformation.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T2.S1",
+                  "title": "Implement value transformation for submit",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.2.5 - transformValuesForSubmit extracts valueField and applies getSubmitField name transformation.\n2. INPUT: Form context from P4.M1.T1.S3.\n3. LOGIC: Implement transformValuesForSubmit(values, config, inputs) that iterates fields, extracts valueField from objects, applies getSubmitField for name transformation.\n4. OUTPUT: Value transformation for consumption by P4.M1.T2.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T2.S2",
+                  "title": "Implement handleSubmit with validation blocking",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.2.5 - Check if any subscribed field is validating before allowing submit. Run form-level validation if provided.\n2. INPUT: Value transformation from P4.M1.T2.S1.\n3. LOGIC: Create handleSubmit wrapper that checks isAnySubscribedFieldValidating, runs form-level validate() if provided, transforms values, calls onSubmit.\n4. OUTPUT: Complete submission flow for consumption by P4.M1.T2.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T2.S3",
+                  "title": "Implement title resolution and render API",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.2.1 - Form exposes resolvedTitle via render function API. Resolve from selectTitle or title.\n2. INPUT: Submission flow from P4.M1.T2.S2.\n3. LOGIC: Evaluate formConfig.selectTitle if present, else use formConfig.title. Pass resolvedTitle, unusedFields, formState, methods to render function if children is function.\n4. OUTPUT: Complete Form component for consumption by P4.M1.T3."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M1.T3",
+              "title": "Add Form Tests",
+              "status": "Planned",
+              "description": "Create comprehensive tests for Form component.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M1.T3.S1",
+                  "title": "Add Form integration tests",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P4.M1.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test RHF integration, subscription management, submission flow.\n2. INPUT: Complete Form component from P4.M1.T2.S3.\n3. LOGIC: Test defaultValues extraction, record integration, subscription registration/deregistration, handleSubmit flow, value transformation.\n4. OUTPUT: Test coverage for Form component."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P4.M2",
+          "title": "Field Hooks",
+          "status": "Planned",
+          "description": "Implement hooks for subscriptions, conditions, and props evaluation that Field component will use.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M2.T1",
+              "title": "Implement useSubscriptions Hook",
+              "status": "Planned",
+              "description": "Create hook to manage field subscriptions and watcher state.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T1.S1",
+                  "title": "Implement useSubscriptions hook",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P4.M1.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.3.1 steps 3-5 - Set up watcher state, resolve subscriptions from explicit + inferred + conditions, subscribe/unsubscribe on mount/unmount.\n2. INPUT: Form context from P4.M1.\n3. LOGIC: Create packages/react/src/hooks/useSubscriptions.ts. Accept fieldName, fieldConfig. Use useState for watchers. Call registerWatcherSetter on mount. Combine explicit subscribesTo + inferFieldsFromDescriptor(selectProps) + condition 'when' fields. Call addSubscription for each. Return { watchers, subscriptions }.\n4. OUTPUT: useSubscriptions hook for consumption by P4.M2.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M2.T2",
+              "title": "Implement useConditions Hook",
+              "status": "Planned",
+              "description": "Create hook that evaluates conditions using core's evaluateConditions.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T2.S1",
+                  "title": "Implement useConditions hook",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 13.6 - useConditions evaluates conditions, watches dependencies via useWatch, returns { isDisabled, isVisible, setValue }.\n2. INPUT: useSubscriptions from P4.M2.T1, evaluateConditions from core.\n3. LOGIC: Create packages/react/src/hooks/useConditions.ts. Use inferFieldsFromConditions to get dependencies. Use useWatch to subscribe. Build fieldValues map. Call evaluateConditions from @formality/core. Return result.\n4. OUTPUT: useConditions hook for consumption by P4.M2.T3."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M2.T3",
+              "title": "Implement usePropsEvaluation Hook",
+              "status": "Planned",
+              "description": "Create hook to evaluate selectProps with memoization.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M2.T3.S1",
+                  "title": "Implement usePropsEvaluation hook",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 17 - Evaluate selectProps using buildEvaluationContext with field-level props (including props.name).\n2. INPUT: useConditions from P4.M2.T2, evaluate from core.\n3. LOGIC: Create packages/react/src/hooks/usePropsEvaluation.ts. Accept fieldName, selectProps. Use useWatch on inferred dependencies. Build context with props.name set to fieldName. Evaluate selectProps. Memoize result based on watched values.\n4. OUTPUT: usePropsEvaluation hook for consumption by P4.M3."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P4.M3",
+          "title": "Field Component",
+          "status": "Planned",
+          "description": "Implement the Field component with Controller integration, props pipeline, and value transformation.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P4.M3.T1",
+              "title": "Implement Field Core",
+              "status": "Planned",
+              "description": "Create Field component with registration and type resolution.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T1.S1",
+                  "title": "Implement Field registration and type resolution",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M2.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.3.1 - Register on mount, unregister on unmount. Type resolution: props.type > config[name].type > 'textField'.\n2. INPUT: Hooks from P4.M2.\n3. LOGIC: Create packages/react/src/components/Field.tsx. Accept FieldProps. Call registerField/unregisterField on mount/unmount via useEffect. Resolve type from props > fieldConfig > default.\n4. OUTPUT: Field skeleton for consumption by P4.M3.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T1.S2",
+                  "title": "Implement props resolution pipeline",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P4.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.3.2 - 8 layers of props merging in order: providerDefaults < providerSelectDefaults < formDefaults < formSelectDefaults < inputProps < fieldConfigProps < selectProps < componentProps.\n2. INPUT: Field skeleton from P4.M3.T1.S1, usePropsEvaluation from P4.M2.T3.\n3. LOGIC: Merge props in order. Evaluate selectDefaultFieldProps at provider and form levels. Use usePropsEvaluation for field selectProps. Spread in order with later overriding earlier.\n4. OUTPUT: Props pipeline for consumption by P4.M3.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T1.S3",
+                  "title": "Implement Controller integration",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P4.M3.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.3 - Use RHF Controller for controlled component integration. Apply parse on onChange, format on render.\n2. INPUT: Props pipeline from P4.M3.T1.S2.\n3. LOGIC: Create Controller with name, control, rules (from fieldConfig.rules + validation). Implement handleChange that parses value, calls controller.field.onChange, calls changeField. Apply formatter to value for display. Use inputFieldProp (default 'value') for value prop name.\n4. OUTPUT: Controller integration for consumption by P4.M3.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M3.T2",
+              "title": "Implement Field State & Rendering",
+              "status": "Planned",
+              "description": "Implement disabled state resolution, validation integration, and rendering.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T2.S1",
+                  "title": "Implement disabled and visible state resolution",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M3.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.3.4 - Disabled priority: disabledProp > fieldConfig.disabled > conditionResult.disabled > groupContext.isDisabled > false.\n2. INPUT: Controller integration from P4.M3.T1.S3, useConditions from P4.M2.T2.\n3. LOGIC: Call useConditions with fieldConfig.conditions. Resolve isDisabled using priority chain with nullish coalescing. Handle isVisible for conditional rendering.\n4. OUTPUT: State resolution for consumption by P4.M3.T2.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T2.S2",
+                  "title": "Implement validation integration",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.3.7 - Validation layers: RHF rules > field validator > type validator. Track validating state.\n2. INPUT: State resolution from P4.M3.T2.S1, runValidator from core.\n3. LOGIC: Build rules object with fieldConfig.rules and validate function. In validate: setFieldValidating(true), run fieldConfig.validator, run inputConfig.validator, setFieldValidating(false). Return resolved error message.\n4. OUTPUT: Validation integration for consumption by P4.M3.T2.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T2.S3",
+                  "title": "Implement Field rendering with template support",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P4.M3.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.3.8 - Resolve template from inputConfig.template > inputTemplates[name] > defaultInputTemplate. Support children render prop.\n2. INPUT: Validation integration from P4.M3.T2.S2.\n3. LOGIC: Resolve template. If template exists, render through it with Field, fieldProps, fieldState, formState. Else render component directly. If children is function, call with FieldRenderAPI.\n4. OUTPUT: Complete Field component for consumption by P4.M3.T3."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P4.M3.T3",
+              "title": "Add Field Tests",
+              "status": "Planned",
+              "description": "Create comprehensive tests for Field component.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P4.M3.T3.S1",
+                  "title": "Add Field integration tests",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P4.M3.T2.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test registration, props pipeline, conditions, validation, value transformation.\n2. INPUT: Complete Field component from P4.M3.T2.S3.\n3. LOGIC: Test type resolution, props merging order, condition evaluation, disabled state, validation flow, parse/format pipeline, template rendering, children render prop.\n4. OUTPUT: Test coverage for Field component."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P5",
+      "title": "@formality/react Advanced Components",
+      "status": "Planned",
+      "description": "Implement FieldGroup with nesting support, UnusedFields component, and auto-save system.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P5.M1",
+          "title": "FieldGroup Component",
+          "status": "Planned",
+          "description": "Implement FieldGroup with condition evaluation, context nesting, and state propagation.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P5.M1.T1",
+              "title": "Implement FieldGroup",
+              "status": "Planned",
+              "description": "Create FieldGroup component with proper state merging for nested groups.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P5.M1.T1.S1",
+                  "title": "Implement FieldGroup with condition evaluation",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P4.M3.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.4.1 - FieldGroup gets config from formConfig.groups[name], uses useConditions hook, merges with parent context.\n2. INPUT: Field component from P4.M3, useConditions from P4.M2.T2.\n3. LOGIC: Create packages/react/src/components/FieldGroup.tsx. Get groupConfig from formConfig.groups[name]. Use useInferredInputs for field names. Use useConditions for { isDisabled, isVisible }.\n4. OUTPUT: FieldGroup condition evaluation for consumption by P5.M1.T1.S2."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P5.M1.T1.S2",
+                  "title": "Implement nested state merging",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P5.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 13.3 - isDisabled uses OR (child || parent), isVisible uses AND (child && parent), conditions/subscriptions accumulate.\n2. INPUT: FieldGroup evaluation from P5.M1.T1.S1.\n3. LOGIC: Read parentContext from useGroupContext(). Merge: isDisabled = own || parent, isVisible = own && parent, conditions = [...parent, ...own], subscriptions = [...parent, ...own].\n4. OUTPUT: State merging for consumption by P5.M1.T1.S3."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P5.M1.T1.S3",
+                  "title": "Implement GroupContext provision and visibility wrapper",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P5.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.4.1 - Wrap children with GroupContext.Provider and span with display:none if not visible.\n2. INPUT: State merging from P5.M1.T1.S2.\n3. LOGIC: Create GroupContextValue with merged state. Return GroupContext.Provider wrapping span (display: isVisible ? undefined : 'none') wrapping children.\n4. OUTPUT: Complete FieldGroup component for consumption by P5.M1.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P5.M1.T2",
+              "title": "Add FieldGroup Tests",
+              "status": "Planned",
+              "description": "Create tests for FieldGroup including nesting scenarios.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P5.M1.T2.S1",
+                  "title": "Add FieldGroup integration tests",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P5.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 13.7 shows complete example with nested groups state table.\n2. INPUT: Complete FieldGroup component from P5.M1.T1.S3.\n3. LOGIC: Test single group condition evaluation. Test nested groups with OR disabled / AND visible logic. Test subscribesTo property. Test visibility wrapper.\n4. OUTPUT: Test coverage for FieldGroup."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P5.M2",
+          "title": "UnusedFields & Auto-Save",
+          "status": "Planned",
+          "description": "Implement UnusedFields component and auto-save system.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P5.M2.T1",
+              "title": "Implement UnusedFields",
+              "status": "Planned",
+              "description": "Create UnusedFields component with ordering support.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P5.M2.T1.S1",
+                  "title": "Implement UnusedFields component",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P5.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 6.5 and 15.2 - Render fields not explicitly declared. Sort by order property. Use shouldRegister={false}.\n2. INPUT: Form context from P4.M1.\n3. LOGIC: Create packages/react/src/components/UnusedFields.tsx. Get unusedFields from FormContext. Sort by config[name].order (undefined = Infinity). Render Field for each with shouldRegister={false}.\n4. OUTPUT: UnusedFields component for consumption by P5.M2.T2."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P5.M2.T2",
+              "title": "Implement Auto-Save System",
+              "status": "Planned",
+              "description": "Add debounced auto-save functionality to Form component.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P5.M2.T2.S1",
+                  "title": "Implement debounced auto-save",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P5.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 12 - When autoSave={true}, changeField triggers debounced submit. If field has debounce:false, submit immediately.\n2. INPUT: Form component from P4.M1.\n3. LOGIC: Add useDebouncedFn hook. In Form, create debouncedSubmit. In changeField, check autoSave flag. If inputConfig.debounce === false, submit immediately. Else call debouncedSubmit.\n4. OUTPUT: Auto-save system integrated into Form."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P5.M2.T2.S2",
+                  "title": "Add auto-save tests",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P5.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 12.3 shows debounce behavior examples.\n2. INPUT: Auto-save system from P5.M2.T2.S1.\n3. LOGIC: Test debounced submit timing. Test immediate submit when debounce:false. Test form validity check before submit.\n4. OUTPUT: Test coverage for auto-save."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P5.M3",
+          "title": "Package Finalization",
+          "status": "Planned",
+          "description": "Create React package index and ensure all exports are properly defined.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P5.M3.T1",
+              "title": "Create React Package Index",
+              "status": "Planned",
+              "description": "Create the main index.ts barrel export for @formality/react.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P5.M3.T1.S1",
+                  "title": "Create index barrel export with re-exports from core",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P5.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 1.3.6 - Re-export core types for convenience.\n2. INPUT: All components and hooks from P3-P5.\n3. LOGIC: Export FormalityProvider, Form, Field, FieldGroup, UnusedFields. Export all hooks. Re-export types from @formality/core.\n4. OUTPUT: Complete @formality/react package."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P6",
+      "title": "Integration Testing & Documentation",
+      "status": "Planned",
+      "description": "Create end-to-end integration tests, verify cross-package dependencies, and add documentation.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P6.M1",
+          "title": "Integration Testing",
+          "status": "Planned",
+          "description": "Create comprehensive integration tests that validate the complete system.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P6.M1.T1",
+              "title": "End-to-End Form Tests",
+              "status": "Planned",
+              "description": "Create tests that exercise complete form workflows.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P6.M1.T1.S1",
+                  "title": "Create complex form test scenarios",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P5.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test complete workflows including conditions, subscriptions, validation, submission.\n2. INPUT: Complete packages from P5.\n3. LOGIC: Create packages/react/src/__tests__/integration/. Test form with multiple dependent fields. Test FieldGroup nesting. Test auto-save. Test value transformation end-to-end.\n4. OUTPUT: Integration test coverage."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P6.M1.T1.S2",
+                  "title": "Verify core package has no React imports",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P6.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD Section 1.3.6 - Core must have zero framework imports.\n2. INPUT: Built packages.\n3. LOGIC: Add build-time check or test that scans @formality/core for react, vue, svelte imports. Fail if any found.\n4. OUTPUT: Verified framework independence."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P6.M2",
+          "title": "Documentation",
+          "status": "Planned",
+          "description": "Create README files and API documentation.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P6.M2.T1",
+              "title": "Create Package READMEs",
+              "status": "Planned",
+              "description": "Write README files for each package.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P6.M2.T1.S1",
+                  "title": "Create @formality/core README",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P6.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Document framework-agnostic utilities, exported functions, and usage.\n2. INPUT: Complete core package.\n3. LOGIC: Create packages/core/README.md with overview, installation, API reference for expression, conditions, validation, transform, config utilities.\n4. OUTPUT: Core package documentation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P6.M2.T1.S2",
+                  "title": "Create @formality/react README",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P6.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Document React components, hooks, Provider setup, and usage examples.\n2. INPUT: Complete react package.\n3. LOGIC: Create packages/react/README.md with getting started, Provider setup, Form/Field/FieldGroup usage, configuration reference.\n4. OUTPUT: React package documentation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P6.M2.T1.S3",
+                  "title": "Update root README",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P6.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Root README should link to packages and provide monorepo overview.\n2. INPUT: Package READMEs.\n3. LOGIC: Create root README.md with project overview, package links, development setup instructions.\n4. OUTPUT: Complete documentation suite."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
