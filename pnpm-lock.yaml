@@ -33,7 +33,14 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.27)
 
-  packages/core: {}
+  packages/core:
+    dependencies:
+      jse-eval:
+        specifier: ^1.5.2
+        version: 1.5.2
+      jsep:
+        specifier: ^1.4.0
+        version: 1.4.0
 
   packages/react:
     dependencies:

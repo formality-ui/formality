@@ -20,5 +20,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run"
+  },
+  "dependencies": {
+    "jsep": "^1.4.0",
+    "jse-eval": "^1.5.2"
   }
 }

@@ -226,7 +226,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "@formality/core Implementation",
-      "status": "Planned",
+      "status": "Implementing",
       "description": "Implement the framework-agnostic core package containing all pure functions for expression evaluation, condition processing, validation, and configuration utilities. This package has ZERO framework dependencies.",
       "milestones": [
         {
@@ -703,7 +703,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "@formality/react Foundation",
-      "status": "Planned",
+      "status": "Complete",
       "description": "Implement the React adapter foundation including contexts, the Provider component, and critical hooks like useFormState with proxy pattern.",
       "milestones": [
         {
