@@ -1,6 +1,5 @@
 {
   "name": "formality",
-  "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
   "version": "0.1.0",
@@ -13,7 +12,9 @@
     "typecheck": "tsc --build",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
-    "clean": "pnpm -r exec rm -rf dist"
+    "clean": "pnpm -r exec rm -rf dist",
+    "yalc:publish": "pnpm build && pnpm -r exec yalc publish",
+    "yalc:push": "pnpm build && pnpm -r exec yalc push"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
