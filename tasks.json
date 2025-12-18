@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Monorepo Initialization",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Set up pnpm workspace with all four packages (@formality/core, @formality/react, @formality/vue, @formality/svelte) and configure package.json files.",
           "tasks": [
             {
