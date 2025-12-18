@@ -59,7 +59,7 @@ export interface FieldGroupProps {
  * </Form>
  * ```
  */
-export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element | null {
+export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element {
   const { formConfig } = useFormContext();
   const parentContext = useGroupContext();
 
@@ -133,14 +133,16 @@ export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element | n
     [mergedState, inferredInputs, groupConfig]
   );
 
-  // Don't render if not visible
-  if (!mergedState.isVisible) {
-    return null;
-  }
-
+  // CRITICAL: Use span wrapper with display:none instead of returning null
+  // This preserves children in DOM for state preservation (PRD Section 5.4, 18.10)
   return (
     <GroupContext.Provider value={contextValue}>
-      {children}
+      <span
+        style={{ display: mergedState.isVisible ? undefined : 'none' }}
+        data-formality-group={name}
+      >
+        {children}
+      </span>
     </GroupContext.Provider>
   );
 }

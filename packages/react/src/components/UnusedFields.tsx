@@ -1,7 +1,8 @@
 // @formality/react - UnusedFields Component
 // Renders fields declared in config but not explicitly rendered
 
-import { type ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
+import { sortFieldsByOrder } from '@formality/core';
 import { useFormContext } from '../context/FormContext';
 import { Field } from './Field';
 
@@ -51,16 +52,22 @@ export interface UnusedFieldsProps {
  * ```
  */
 export function UnusedFields({ children }: UnusedFieldsProps): JSX.Element {
-  const { unusedFields } = useFormContext();
+  const { unusedFields, config } = useFormContext();
+
+  // Sort unused fields by order property (PRD Section 15)
+  const sortedFields = useMemo(() => {
+    return sortFieldsByOrder(unusedFields, config);
+  }, [unusedFields, config]);
 
   if (children) {
     // Custom render function
     return (
       <>
-        {unusedFields.map((name) =>
+        {sortedFields.map((name) =>
           children({
             name,
-            component: <Field key={name} name={name} />,
+            // CRITICAL: shouldRegister={false} prevents infinite loop (PRD 5.5, 18.9)
+            component: <Field key={name} name={name} shouldRegister={false} />,
           })
         )}
       </>
@@ -70,8 +77,9 @@ export function UnusedFields({ children }: UnusedFieldsProps): JSX.Element {
   // Default render
   return (
     <>
-      {unusedFields.map((name) => (
-        <Field key={name} name={name} />
+      {sortedFields.map((name) => (
+        // CRITICAL: shouldRegister={false} prevents infinite loop (PRD 5.5, 18.9)
+        <Field key={name} name={name} shouldRegister={false} />
       ))}
     </>
   );
