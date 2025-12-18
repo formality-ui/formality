@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "declarationDir": "dist",
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__/**"],
+  "references": [
+    { "path": "../core" }
+  ]
+}
