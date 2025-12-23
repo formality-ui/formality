@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useState,
+  useRef,
   type ReactNode,
 } from 'react';
 import {
@@ -196,6 +197,45 @@ export function Field({
     subscribesTo: fieldConfig.subscribesTo,
     props: { name },
   });
+
+  // === APPLY SET VALUE FROM CONDITIONS ===
+  // When a condition's set/selectSet evaluates, apply the value to the field
+  // Priority: field-level conditions > group-level conditions
+  // Store methods.setValue in a ref to avoid dependency issues
+  const setValueRef = useRef(methods.setValue);
+  setValueRef.current = methods.setValue;
+  const getValuesRef = useRef(methods.getValues);
+  getValuesRef.current = methods.getValues;
+
+  // Determine effective setValue: field-level takes priority over group-level
+  const effectiveSetValue = useMemo(() => {
+    if (conditionResult.hasSetCondition) {
+      return { hasCondition: true, value: conditionResult.setValue };
+    }
+    if (groupContext.state.hasSetCondition) {
+      return { hasCondition: true, value: groupContext.state.setValue };
+    }
+    return { hasCondition: false, value: undefined };
+  }, [
+    conditionResult.hasSetCondition,
+    conditionResult.setValue,
+    groupContext.state.hasSetCondition,
+    groupContext.state.setValue,
+  ]);
+
+  useEffect(() => {
+    if (effectiveSetValue.hasCondition && effectiveSetValue.value !== undefined) {
+      const currentValue = getValuesRef.current(name);
+      // Only update if the value is actually different to avoid infinite loops
+      if (currentValue !== effectiveSetValue.value) {
+        setValueRef.current(name, effectiveSetValue.value, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: false,
+        });
+      }
+    }
+  }, [effectiveSetValue.hasCondition, effectiveSetValue.value, name]);
 
   // === DISABLED/VISIBLE RESOLUTION ===
 

@@ -103,6 +103,14 @@ export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element {
         ? conditionResult.visible ?? true
         : true) && parentContext.state.isVisible;
 
+    // setValue: This group's setValue takes priority, then parent's
+    // (Child fields can still override with their own field-level conditions)
+    const hasSetCondition =
+      conditionResult.hasSetCondition || parentContext.state.hasSetCondition;
+    const setValue = conditionResult.hasSetCondition
+      ? conditionResult.setValue
+      : parentContext.state.setValue;
+
     // Accumulate conditions and subscriptions
     const conditions = [
       ...parentContext.state.conditions,
@@ -117,6 +125,8 @@ export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element {
     return {
       isDisabled,
       isVisible,
+      hasSetCondition,
+      setValue,
       conditions,
       subscriptions,
     };

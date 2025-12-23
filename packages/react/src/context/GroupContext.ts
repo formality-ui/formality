@@ -17,6 +17,12 @@ export interface GroupState {
   /** Is the group visible (propagates to all child fields) */
   isVisible: boolean;
 
+  /** Whether the group has a setValue condition */
+  hasSetCondition: boolean;
+
+  /** Value to set on all child fields (from group-level set/selectSet) */
+  setValue: unknown;
+
   /** Conditions from group configuration */
   conditions: ConditionDescriptor[];
 
@@ -56,6 +62,8 @@ const defaultGroupContext: GroupContextValue = {
   state: {
     isDisabled: false,
     isVisible: true,
+    hasSetCondition: false,
+    setValue: undefined,
     conditions: [],
     subscriptions: [],
   },

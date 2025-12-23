@@ -91,6 +91,8 @@ const defaultGroupContext = {
   state: {
     isDisabled: false,
     isVisible: true,
+    hasSetCondition: false,
+    setValue: undefined,
     conditions: [],
     subscriptions: [],
   },
