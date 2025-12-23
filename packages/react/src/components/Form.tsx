@@ -186,6 +186,13 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   // Validation state tracking
   const validatingFields = useRef(new Map<string, boolean>());
 
+  // Auto-save tracking
+  // pendingChanges accumulates field changes while debounce is pending
+  const pendingChangedFields = useRef(new Set<string>());
+  const pendingAffectedFields = useRef(new Set<string>());
+  // executionVersion is incremented when a new auto-save starts, used to abort if new changes come in
+  const executionVersionRef = useRef(0);
+
   // === REGISTRY OPERATIONS ===
 
   const registerField = useCallback((name: string) => {
@@ -262,14 +269,49 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
   // === FIELD STATE OPERATIONS ===
 
+  /**
+   * Get all fields affected by a change to the given field.
+   * This traverses the subscription graph to find all dependents,
+   * including transitive dependencies (A -> B -> C).
+   */
+  const getAffectedFields = useCallback((changedField: string): Set<string> => {
+    const affected = new Set<string>();
+    const toProcess = [changedField];
+
+    while (toProcess.length > 0) {
+      const current = toProcess.pop()!;
+      const subscribers = invertedSubscriptions.current.get(current);
+      if (subscribers) {
+        for (const subscriber of subscribers) {
+          if (!affected.has(subscriber)) {
+            affected.add(subscriber);
+            toProcess.push(subscriber); // Check for transitive dependencies
+          }
+        }
+      }
+    }
+
+    return affected;
+  }, []);
+
   const changeField = useCallback(
     (name: string, value: unknown) => {
       // Auto-save trigger
       if (autoSave) {
+        // Accumulate this change
+        pendingChangedFields.current.add(name);
+
+        // Add affected fields (those that depend on this field via conditions)
+        const affected = getAffectedFields(name);
+        for (const field of affected) {
+          pendingAffectedFields.current.add(field);
+        }
+
+        // Trigger debounced auto-save
         debouncedSubmit();
       }
     },
-    [autoSave]
+    [autoSave, getAffectedFields]
   );
 
   const setFieldValidating = useCallback(
@@ -296,9 +338,9 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         isValidating: validatingFields.current.get(name) ?? false,
         error: fieldState.error
           ? {
-              type: fieldState.error.type,
-              message: fieldState.error.message,
-            }
+            type: fieldState.error.type,
+            message: fieldState.error.message,
+          }
           : undefined,
         invalid: fieldState.invalid,
       });
@@ -349,9 +391,113 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   // Debounced submit for auto-save
   const debouncedSubmitRef = useRef<DebouncedFunction>();
 
+  /**
+   * Wait for specific fields to complete their validation.
+   * Returns false if the version changed (new changes came in), true otherwise.
+   */
+  const waitForFieldValidation = useCallback(
+    async (fields: string[], version: number): Promise<boolean> => {
+      const maxWaitMs = 10000; // 10 second timeout
+      const pollIntervalMs = 50;
+      const startTime = Date.now();
+
+      while (Date.now() - startTime < maxWaitMs) {
+        // Check if version changed (new changes came in)
+        if (executionVersionRef.current !== version) {
+          return false;
+        }
+
+        // Check if all fields have completed validation
+        const allDone = fields.every(
+          (field) => !validatingFields.current.get(field)
+        );
+        if (allDone) {
+          return true;
+        }
+
+        // Wait and check again
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+      }
+
+      // Timeout - proceed anyway
+      return true;
+    },
+    []
+  );
+
+  /**
+   * Execute auto-save: validate only changed/affected fields, wait for completion, then submit.
+   * This prevents the issue where handleSubmit() validates ALL fields.
+   */
+  const executeAutoSave = useCallback(async () => {
+    // Capture and increment execution version
+    executionVersionRef.current++;
+    const executionVersion = executionVersionRef.current;
+
+    // Copy and clear pending fields
+    const changedFields = new Set(pendingChangedFields.current);
+    const affectedFields = new Set(pendingAffectedFields.current);
+    pendingChangedFields.current.clear();
+    pendingAffectedFields.current.clear();
+
+    // If no fields changed, nothing to do
+    if (changedFields.size === 0) {
+      return;
+    }
+
+    // Get all fields that need validation (changed + affected by conditions)
+    const fieldsToValidate = [...changedFields, ...affectedFields];
+
+    // Wait for any in-flight validations on these fields to complete
+    const validationsComplete = await waitForFieldValidation(
+      fieldsToValidate,
+      executionVersion
+    );
+
+    // If version changed while waiting, abort (new changes came in)
+    if (!validationsComplete || executionVersionRef.current !== executionVersion) {
+      return;
+    }
+
+    // Trigger validation ONLY on changed and affected fields (not ALL fields)
+    if (fieldsToValidate.length > 0) {
+      const isValid = await methods.trigger(fieldsToValidate as any);
+
+      // Check version again after async validation
+      if (executionVersionRef.current !== executionVersion) {
+        return;
+      }
+
+      if (!isValid) {
+        // Validation failed, don't submit
+        return;
+      }
+    }
+
+    // Wait for validations to complete after trigger
+    const postTriggerComplete = await waitForFieldValidation(
+      fieldsToValidate,
+      executionVersion
+    );
+
+    if (!postTriggerComplete || executionVersionRef.current !== executionVersion) {
+      return;
+    }
+
+    // Check if form is valid (may have other errors)
+    const formState = methods.formState;
+    if (Object.keys(formState.errors).length > 0) {
+      return;
+    }
+
+    // All validations passed, submit
+    const values = methods.getValues();
+    await handleSubmit(values as TFieldValues);
+  }, [methods, handleSubmit, waitForFieldValidation]);
+
   useEffect(() => {
     const debouncedFn = debounce(() => {
-      methods.handleSubmit(handleSubmit as any)();
+      executeAutoSave();
     }, debounceMs);
 
     // Attach lodash-style methods
@@ -364,7 +510,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     return () => {
       debouncedFn.cancel();
     };
-  }, [methods, handleSubmit, debounceMs]);
+  }, [executeAutoSave, debounceMs]);
 
   const debouncedSubmit = useCallback(() => {
     debouncedSubmitRef.current?.();
@@ -451,18 +597,23 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
   // === RENDER ===
 
-  const renderAPI: FormRenderAPI<TFieldValues> = {
-    unusedFields,
-    formState: methods.formState,
-    methods: methods as any,
-    resolvedTitle,
-  };
+  // CRITICAL: Only access methods.formState when children is a function
+  // Accessing formState ANYWHERE creates a subscription to the entire form state
+  // This would cause ALL children to re-render on ANY field change
+  const isRenderFunction = typeof children === 'function';
 
   return (
     <FormProvider {...methods}>
       <FormContext.Provider value={contextValue as any}>
         <GroupContext.Provider value={defaultGroupContext}>
-          {typeof children === 'function' ? children(renderAPI) : children}
+          {isRenderFunction
+            ? children({
+                unusedFields,
+                formState: methods.formState,
+                methods: methods as any,
+                resolvedTitle,
+              })
+            : children}
         </GroupContext.Provider>
       </FormContext.Provider>
     </FormProvider>
