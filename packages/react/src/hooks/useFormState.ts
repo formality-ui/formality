@@ -1,44 +1,53 @@
 // @formality/react - useFormState Hook
-// Custom hook wrapping RHF's useFormState with proxy optimization
+// Custom hook wrapping RHF's useWatch with proxy optimization
+// CRITICAL: This hook is designed for ISOLATED field subscriptions
 
 import { useMemo } from 'react';
 import {
-  useFormState as useRHFFormState,
   useWatch,
   useFormContext as useRHFFormContext,
 } from 'react-hook-form';
-import type { UseFormStateReturn, FieldValues, Path } from 'react-hook-form';
+import type { FieldValues } from 'react-hook-form';
 import { makeProxyState } from '../utils/makeProxyState';
 import { useFormContext as useFormalityFormContext } from '../context/FormContext';
-import type { CustomFieldState, ExtendedFormState } from '../types';
+import type { CustomFieldState, IsolatedFormState } from '../types';
 
 /**
  * Options for useFormState hook
  */
 export interface UseFormStateOptions {
-  /** Specific field name(s) to watch. If not provided, watches all configured fields. */
-  name?: string | string[];
+  /**
+   * Specific field name(s) to watch.
+   * REQUIRED for performance - you must specify which fields you need.
+   * Watching all fields defeats the purpose of isolation.
+   */
+  name: string | string[];
 }
 
 /**
- * Custom useFormState that wraps RHF's hook with proxy optimization
+ * Custom useFormState that provides ISOLATED field subscriptions
  *
- * This hook enhances React Hook Form's useFormState with:
+ * CRITICAL PERFORMANCE REQUIREMENT:
+ * You MUST specify which fields to watch via the `name` option.
+ * This hook is designed to prevent the "subscribe to everything" anti-pattern.
+ *
+ * This hook provides:
  * - Proxy-wrapped field states to prevent unnecessary re-renders
  * - Record property access via lazy getter
  * - Integration with Formality's FormContext
  *
  * Performance Benefits:
- * - Only re-renders when accessed properties change
+ * - Only re-renders when specified fields change
  * - Expression evaluation only creates dependencies on used properties
  * - Field states can update independently without cross-field re-renders
  *
  * @example
  * ```tsx
  * function MyField() {
- *   const formState = useFormState();
+ *   // Watch specific fields only
+ *   const formState = useFormState({ name: ['firstName', 'lastName'] });
  *
- *   // Only re-renders when firstName.value changes
+ *   // Only re-renders when firstName or lastName change
  *   const value = formState.fields.firstName?.value;
  *
  *   // Access original record for expressions
@@ -47,8 +56,8 @@ export interface UseFormStateOptions {
  * ```
  */
 export function useFormState<TFieldValues extends FieldValues = FieldValues>(
-  options?: UseFormStateOptions
-): ExtendedFormState<TFieldValues> {
+  options: UseFormStateOptions
+): IsolatedFormState {
   // Get RHF context
   const rhfContext = useRHFFormContext<TFieldValues>();
 
@@ -60,29 +69,19 @@ export function useFormState<TFieldValues extends FieldValues = FieldValues>(
     // Used outside Form - formalityContext stays null
   }
 
-  // Get RHF form state
-  const rhfFormState = useRHFFormState<TFieldValues>({
-    control: rhfContext.control,
-  });
-
-  // Determine field names to track
+  // Determine field names to track - MUST be explicitly specified
   const fieldNames = useMemo(() => {
-    if (options?.name) {
-      return Array.isArray(options.name) ? options.name : [options.name];
-    }
-    if (formalityContext?.config) {
-      return Object.keys(formalityContext.config);
-    }
-    return [];
-  }, [options?.name, formalityContext?.config]);
+    return Array.isArray(options.name) ? options.name : [options.name];
+  }, [options.name]);
 
-  // Watch field values (skip if no fields)
+  // Watch ONLY specified field values via useWatch (isolated subscription)
   const watchedValues = useWatch({
     control: rhfContext.control,
-    name: fieldNames.length > 0 ? (fieldNames as any) : undefined,
+    name: fieldNames as any,
   });
 
-  // Build proxy-wrapped field states
+  // Build proxy-wrapped field states for watched fields ONLY
+  // CRITICAL: We do NOT call getFieldState which would subscribe to form state
   const fields = useMemo(() => {
     const result: Record<string, CustomFieldState> = {};
 
@@ -91,37 +90,44 @@ export function useFormState<TFieldValues extends FieldValues = FieldValues>(
     }
 
     // Handle single field vs multiple fields
-    const values = Array.isArray(watchedValues) ? watchedValues : [watchedValues];
+    const values = fieldNames.length === 1
+      ? [watchedValues]
+      : (watchedValues as unknown[]);
 
     fieldNames.forEach((name, index) => {
-      const fieldState = rhfContext.getFieldState(name as Path<TFieldValues>, rhfFormState);
-      const value = (values as unknown[])[index];
+      const value = values[index];
 
-      // Create proxy state for each field
+      // Create minimal proxy state with just the value
+      // We intentionally do NOT access isTouched/isDirty/error from rhfFormState
+      // as that would create subscriptions to the entire form state
       result[name] = makeProxyState({
         value,
-        isTouched: fieldState.isTouched,
-        isDirty: fieldState.isDirty,
-        isValidating: false, // RHF doesn't expose per-field validating easily
-        error: fieldState.error
-          ? {
-              type: fieldState.error.type,
-              message: fieldState.error.message,
-            }
-          : undefined,
-        invalid: fieldState.invalid,
+        isTouched: false,
+        isDirty: false,
+        isValidating: false,
+        error: undefined,
+        invalid: false,
       });
     });
 
     return result;
-  }, [fieldNames, watchedValues, rhfFormState, rhfContext]);
+  }, [fieldNames, watchedValues]);
 
   // Create result object with lazy record access
-  const result = useMemo(() => {
-    const base = {
-      ...rhfFormState,
+  const result = useMemo((): IsolatedFormState => {
+    const base: IsolatedFormState = {
       fields,
-    } as ExtendedFormState<TFieldValues>;
+      record: {}, // Will be overwritten by defineProperty
+      // Provide minimal form-level state that doesn't require subscriptions
+      isDirty: false,
+      isTouched: false,
+      isValid: true,
+      isSubmitting: false,
+      errors: {},
+      touchedFields: {},
+      dirtyFields: {},
+      defaultValues: {},
+    };
 
     // Add record property with lazy access
     Object.defineProperty(base, 'record', {
@@ -131,7 +137,7 @@ export function useFormState<TFieldValues extends FieldValues = FieldValues>(
     });
 
     return base;
-  }, [rhfFormState, fields, formalityContext?.record]);
+  }, [fields, formalityContext?.record]);
 
   return result;
 }

@@ -149,22 +149,25 @@ describe('Field', () => {
 
     it('should support visible condition in config', () => {
       // Verify Field accepts visible conditions
+      // When toggle is 'yes', condition { is: 'no' } does NOT match → field visible
       const config: FormFieldsConfig = {
+        toggle: { type: 'textField' },
         conditional: {
           type: 'textField',
-          conditions: [{ when: 'toggle', truthy: false, visible: false }],
+          conditions: [{ when: 'toggle', is: 'no', visible: false }],
         },
       };
 
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={config}>
+          <Form config={config} defaultValues={{ toggle: 'yes' }}>
+            <Field name="toggle" />
             <Field name="conditional" />
           </Form>
         </FormalityProvider>
       );
 
-      // Field should render (no trigger field, so condition doesn't match)
+      // Field should render (toggle is 'yes', so is:'no' condition doesn't match)
       expect(screen.getByTestId('conditional')).toBeInTheDocument();
     });
 

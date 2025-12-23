@@ -53,7 +53,7 @@ export function usePropsEvaluation(
   options: UsePropsEvaluationOptions
 ): Record<string, unknown> {
   const { selectProps, subscribesTo, fieldName } = options;
-  const { record, methods, config } = useFormContext();
+  const { record, methods } = useFormContext();
 
   // Infer fields to watch from selectProps and explicit subscriptions
   const watchFields = useInferredInputs({
@@ -64,47 +64,53 @@ export function usePropsEvaluation(
   // Watch inferred fields (only subscribe if there are fields to watch)
   const watchedValues = useWatch({
     control: methods.control,
-    name: watchFields.length > 0 ? watchFields : (undefined as any),
+    name: watchFields.length > 0 ? (watchFields as any) : [],
   });
 
   // Build form state for evaluation (needed for function-based selectProps)
+  // CRITICAL: Only build state for watched fields to maintain performance isolation
   const formState = useMemo((): FormState => {
-    const values = methods.getValues();
-    const rhfState = methods.formState;
-
-    // Build proxy-wrapped field states
+    // Build proxy-wrapped field states ONLY for watched fields
+    // This prevents subscribing to the entire form state
     const fields: Record<string, any> = {};
-    Object.keys(config).forEach((name) => {
-      const fieldState = methods.getFieldState(name, rhfState);
-      fields[name] = makeProxyState({
-        value: values[name as keyof typeof values],
-        isTouched: fieldState.isTouched,
-        isDirty: fieldState.isDirty,
-        isValidating: false,
-        error: fieldState.error
-          ? {
-              type: fieldState.error.type,
-              message: fieldState.error.message,
-            }
-          : undefined,
-        invalid: fieldState.invalid,
+
+    if (watchFields.length > 0) {
+      // Handle single vs multiple watched values
+      const values = watchFields.length === 1
+        ? { [watchFields[0]]: watchedValues }
+        : watchFields.reduce((acc, field, i) => {
+            acc[field] = (watchedValues as unknown[])[i];
+            return acc;
+          }, {} as Record<string, unknown>);
+
+      watchFields.forEach((name) => {
+        // Create minimal proxy state with just the value
+        // We don't need isTouched/isDirty/error for selectProps evaluation
+        fields[name] = makeProxyState({
+          value: values[name],
+          isTouched: false,
+          isDirty: false,
+          isValidating: false,
+          error: undefined,
+          invalid: false,
+        });
       });
-    });
+    }
 
     return {
       fields,
       record: record ?? {},
-      errors: rhfState.errors as any,
+      errors: {},
       defaultValues: {},
-      touchedFields: rhfState.touchedFields as any,
-      dirtyFields: rhfState.dirtyFields as any,
-      isDirty: rhfState.isDirty,
-      isTouched: Object.keys(rhfState.touchedFields).length > 0,
-      isValid: rhfState.isValid,
-      isSubmitting: rhfState.isSubmitting,
+      touchedFields: {},
+      dirtyFields: {},
+      isDirty: false,
+      isTouched: false,
+      isValid: true,
+      isSubmitting: false,
     };
-    // Include watchedValues in dependencies so we re-evaluate when watched fields change
-  }, [methods, config, record, watchedValues]);
+    // Only depends on watchFields and watchedValues - NOT the entire form state
+  }, [watchFields, watchedValues, record]);
 
   // Evaluate selectProps
   return useMemo(() => {

@@ -71,6 +71,35 @@ export interface ExtendedFormState<TFieldValues extends FieldValues = FieldValue
 }
 
 /**
+ * Isolated form state for performance-critical subscriptions
+ *
+ * This is a lightweight version of ExtendedFormState that does NOT
+ * subscribe to the entire RHF form state. It only contains:
+ * - Fields you explicitly subscribed to
+ * - The record object
+ *
+ * Use this when you need to watch specific fields without causing
+ * re-renders when other fields change.
+ */
+export interface IsolatedFormState {
+  /** Proxy-wrapped field states for watched fields only */
+  fields: Record<string, CustomFieldState>;
+
+  /** Original record passed to Form (for expression access) */
+  record: Record<string, unknown>;
+
+  /** Minimal form-level flags (not reactive) */
+  isDirty: boolean;
+  isTouched: boolean;
+  isValid: boolean;
+  isSubmitting: boolean;
+  errors: Record<string, unknown>;
+  touchedFields: Record<string, unknown>;
+  dirtyFields: Record<string, unknown>;
+  defaultValues: Record<string, unknown>;
+}
+
+/**
  * Watcher setter function type
  *
  * Used by fields to receive updates about which other fields are watching them.
