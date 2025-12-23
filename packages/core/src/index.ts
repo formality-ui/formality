@@ -42,9 +42,14 @@ export {
   clearExpressionCache,
   QUALIFIED_PREFIXES,
   KEYWORDS,
+  FIELD_PROXY_MARKER,
+  FIELD_PROXY_VALUE,
   buildFormContext,
   buildFieldContext,
   buildEvaluationContext,
+  createFieldStateProxy,
+  isFieldProxy,
+  unwrapFieldProxy,
   inferFieldsFromExpression,
   inferFieldsFromDescriptor,
 } from './expression';
@@ -52,7 +57,7 @@ export {
 // ============================================================================
 // Conditions
 // ============================================================================
-export type { EvaluateConditionsInput } from './conditions';
+export type { EvaluateConditionsInput, FieldStateInput } from './conditions';
 
 export {
   evaluateConditions,

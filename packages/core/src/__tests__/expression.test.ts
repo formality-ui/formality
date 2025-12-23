@@ -156,13 +156,32 @@ describe('Expression Engine', () => {
         expect(context.record).toBe(record);
       });
 
-      it('should add unqualified shortcuts', () => {
+      it('should add unqualified shortcuts as proxies', () => {
         const fields = {
-          client: { value: 'Acme', isTouched: false, isDirty: false, isValidating: false, invalid: false },
+          client: { value: 'Acme', isTouched: true, isDirty: false, isValidating: false, invalid: false },
         };
         const context = buildFormContext(fields);
 
-        expect(context.client).toBe('Acme');
+        // Proxy provides access to both value and metadata
+        const clientProxy = context.client as any;
+        expect(clientProxy.value).toBe('Acme');
+        expect(clientProxy.isTouched).toBe(true);
+        expect(clientProxy.isDirty).toBe(false);
+      });
+
+      it('should allow expressions to evaluate proxy values correctly', () => {
+        const fields = {
+          client: { value: { id: 5, name: 'Acme' }, isTouched: false, isDirty: false, isValidating: false, invalid: false },
+          signed: { value: true, isTouched: true, isDirty: false, isValidating: false, invalid: false },
+        };
+        const context = buildFormContext(fields);
+
+        // Expression evaluation should unwrap proxies automatically
+        expect(evaluate('client.id', context)).toBe(5);
+        expect(evaluate('client.name', context)).toBe('Acme');
+        expect(evaluate('signed', context)).toBe(true);
+        expect(evaluate('signed.isTouched', context)).toBe(true);
+        expect(evaluate('client && signed', context)).toBe(true);
       });
     });
 
@@ -186,13 +205,27 @@ describe('Expression Engine', () => {
     });
 
     describe('buildEvaluationContext', () => {
-      it('should build minimal context from field values', () => {
+      it('should build minimal context from field values with proxies', () => {
         const fieldValues = { client: 'Acme', signed: true };
         const context = buildEvaluationContext(fieldValues);
 
-        expect(context.client).toBe('Acme');
-        expect(context.signed).toBe(true);
+        // Proxies wrap the values
+        const clientProxy = context.client as any;
+        const signedProxy = context.signed as any;
+        expect(clientProxy.value).toBe('Acme');
+        expect(signedProxy.value).toBe(true);
         expect((context.fields as any).client.value).toBe('Acme');
+      });
+
+      it('should work correctly with expression evaluation', () => {
+        const fieldValues = { client: 'Acme', signed: true, count: 5 };
+        const context = buildEvaluationContext(fieldValues);
+
+        // Expression evaluation should unwrap proxies
+        expect(evaluate('client', context)).toBe('Acme');
+        expect(evaluate('signed', context)).toBe(true);
+        expect(evaluate('count + 10', context)).toBe(15);
+        expect(evaluate('client && signed', context)).toBe(true);
       });
     });
   });

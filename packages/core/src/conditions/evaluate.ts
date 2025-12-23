@@ -4,8 +4,20 @@
 
 import type { ConditionDescriptor, ConditionResult } from '../types';
 import { evaluate, evaluateDescriptor } from '../expression/evaluate';
-import { buildEvaluationContext } from '../expression/context';
+import { buildEvaluationContext, unwrapFieldProxy } from '../expression/context';
 import { inferFieldsFromDescriptor } from '../expression/infer';
+
+/**
+ * Field state with metadata for expression evaluation
+ */
+export interface FieldStateInput {
+  value: unknown;
+  isTouched?: boolean;
+  isDirty?: boolean;
+  isValidating?: boolean;
+  error?: unknown;
+  invalid?: boolean;
+}
 
 /**
  * Input for condition evaluation
@@ -16,6 +28,9 @@ export interface EvaluateConditionsInput {
 
   /** Map of field names to their current values */
   fieldValues: Record<string, unknown>;
+
+  /** Optional: Full field states with metadata (isTouched, isDirty, etc.) */
+  fieldStates?: Record<string, FieldStateInput>;
 
   /** Original record passed to form */
   record?: Record<string, unknown>;
@@ -104,10 +119,11 @@ function evaluateConditionMatch(
 export function evaluateConditions(
   input: EvaluateConditionsInput
 ): ConditionResult {
-  const { conditions, fieldValues, record, props } = input;
+  const { conditions, fieldValues, fieldStates, record, props } = input;
 
   // Build evaluation context for expressions
-  const context = buildEvaluationContext(fieldValues, record, props);
+  // Pass fieldStates to enable access to isTouched, isDirty, etc.
+  const context = buildEvaluationContext(fieldValues, record, props, fieldStates);
 
   // Initialize result tracking
   let disabled: boolean | undefined;
@@ -145,13 +161,15 @@ export function evaluateConditions(
     } else if (condition.selectSet !== undefined) {
       hasSetCondition = true;
       if (typeof condition.selectSet === 'string') {
-        setValue = evaluate(condition.selectSet, context);
+        // Unwrap proxy to get raw value for setting
+        setValue = unwrapFieldProxy(evaluate(condition.selectSet, context));
       } else if (typeof condition.selectSet === 'function') {
         // Function must be handled by framework adapter
         // Store the function for the adapter to call
         setValue = condition.selectSet;
       } else {
-        setValue = evaluateDescriptor(condition.selectSet, context);
+        // Unwrap proxy to get raw value for setting
+        setValue = unwrapFieldProxy(evaluateDescriptor(condition.selectSet, context));
       }
     }
   }

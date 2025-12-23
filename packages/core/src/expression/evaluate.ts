@@ -2,6 +2,7 @@
 // Uses jsep for parsing and custom evaluation for safe expression execution
 
 import jsep from 'jsep';
+import { unwrapFieldProxy } from './context';
 
 // jsep AST node types
 type Expression = jsep.Expression;
@@ -67,16 +68,22 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       switch (binaryNode.operator) {
         case '&&': {
           const left = evaluateNode(binaryNode.left, context);
-          return left ? evaluateNode(binaryNode.right, context) : left;
+          // Unwrap proxy for truthiness check
+          const leftValue = unwrapFieldProxy(left);
+          return leftValue ? evaluateNode(binaryNode.right, context) : leftValue;
         }
         case '||': {
           const left = evaluateNode(binaryNode.left, context);
-          return left ? left : evaluateNode(binaryNode.right, context);
+          // Unwrap proxy for truthiness check
+          const leftValue = unwrapFieldProxy(left);
+          return leftValue ? leftValue : evaluateNode(binaryNode.right, context);
         }
         case '??': {
           const left = evaluateNode(binaryNode.left, context);
-          return left !== null && left !== undefined
-            ? left
+          // Unwrap proxy for null/undefined check
+          const leftValue = unwrapFieldProxy(left);
+          return leftValue !== null && leftValue !== undefined
+            ? leftValue
             : evaluateNode(binaryNode.right, context);
         }
       }
@@ -84,36 +91,39 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       // Non-short-circuit operators evaluate both sides
       const left = evaluateNode(binaryNode.left, context);
       const right = evaluateNode(binaryNode.right, context);
+      // Unwrap proxies for comparison/arithmetic operations
+      const leftValue = unwrapFieldProxy(left);
+      const rightValue = unwrapFieldProxy(right);
 
       switch (binaryNode.operator) {
         case '+':
-          return (left as number) + (right as number);
+          return (leftValue as number) + (rightValue as number);
         case '-':
-          return (left as number) - (right as number);
+          return (leftValue as number) - (rightValue as number);
         case '*':
-          return (left as number) * (right as number);
+          return (leftValue as number) * (rightValue as number);
         case '/':
-          return (left as number) / (right as number);
+          return (leftValue as number) / (rightValue as number);
         case '%':
-          return (left as number) % (right as number);
+          return (leftValue as number) % (rightValue as number);
         case '===':
-          return left === right;
+          return leftValue === rightValue;
         case '!==':
-          return left !== right;
+          return leftValue !== rightValue;
         case '==':
           // eslint-disable-next-line eqeqeq
-          return left == right;
+          return leftValue == rightValue;
         case '!=':
           // eslint-disable-next-line eqeqeq
-          return left != right;
+          return leftValue != rightValue;
         case '<':
-          return (left as number) < (right as number);
+          return (leftValue as number) < (rightValue as number);
         case '>':
-          return (left as number) > (right as number);
+          return (leftValue as number) > (rightValue as number);
         case '<=':
-          return (left as number) <= (right as number);
+          return (leftValue as number) <= (rightValue as number);
         case '>=':
-          return (left as number) >= (right as number);
+          return (leftValue as number) >= (rightValue as number);
         default:
           throw new Error(`Unknown binary operator: ${binaryNode.operator}`);
       }
@@ -122,18 +132,20 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
     case 'LogicalExpression': {
       const logicalNode = node as LogicalExpression;
       const left = evaluateNode(logicalNode.left, context);
+      // Unwrap proxy for truthiness/null checks
+      const leftValue = unwrapFieldProxy(left);
 
       switch (logicalNode.operator) {
         case '&&':
           // Short-circuit: only evaluate right if left is truthy
-          return left ? evaluateNode(logicalNode.right, context) : left;
+          return leftValue ? evaluateNode(logicalNode.right, context) : leftValue;
         case '||':
           // Short-circuit: only evaluate right if left is falsy
-          return left ? left : evaluateNode(logicalNode.right, context);
+          return leftValue ? leftValue : evaluateNode(logicalNode.right, context);
         case '??':
           // Nullish coalescing: only evaluate right if left is null/undefined
-          return left !== null && left !== undefined
-            ? left
+          return leftValue !== null && leftValue !== undefined
+            ? leftValue
             : evaluateNode(logicalNode.right, context);
         default:
           throw new Error(`Unknown logical operator: ${logicalNode.operator}`);
@@ -143,16 +155,18 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
     case 'UnaryExpression': {
       const unaryNode = node as UnaryExpression;
       const argument = evaluateNode(unaryNode.argument, context);
+      // Unwrap proxy for unary operations
+      const argValue = unwrapFieldProxy(argument);
 
       switch (unaryNode.operator) {
         case '!':
-          return !argument;
+          return !argValue;
         case '-':
-          return -(argument as number);
+          return -(argValue as number);
         case '+':
-          return +(argument as number);
+          return +(argValue as number);
         case 'typeof':
-          return typeof argument;
+          return typeof argValue;
         default:
           throw new Error(`Unknown unary operator: ${unaryNode.operator}`);
       }
@@ -161,7 +175,9 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
     case 'ConditionalExpression': {
       const condNode = node as ConditionalExpression;
       const test = evaluateNode(condNode.test, context);
-      return test
+      // Unwrap proxy for truthiness check
+      const testValue = unwrapFieldProxy(test);
+      return testValue
         ? evaluateNode(condNode.consequent, context)
         : evaluateNode(condNode.alternate, context);
     }
@@ -224,7 +240,10 @@ function parseExpression(expr: string): Expression {
 export function evaluate(expr: string, context: EvaluationContext): unknown {
   try {
     const ast = parseExpression(expr);
-    return evaluateNode(ast, context);
+    const result = evaluateNode(ast, context);
+    // Unwrap proxy to return raw value
+    const unwrapped = unwrapFieldProxy(result);
+    return unwrapped;
   } catch (error) {
     // Log error in development, return undefined in production
     if (process.env.NODE_ENV !== 'production') {

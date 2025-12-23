@@ -140,13 +140,29 @@ describe('Conditions', () => {
 
     it('should evaluate selectSet expressions', () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'trigger', truthy: true, selectSet: 'source.value' },
+        { when: 'trigger', truthy: true, selectSet: 'source' },
       ];
 
+      // With field state proxies, 'source' and 'source.value' are aliases
+      // Both return the field's value
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { trigger: true, source: { value: 42 } },
+          fieldValues: { trigger: true, source: 42 },
+        }).setValue
+      ).toBe(42);
+    });
+
+    it('should access nested properties via selectSet', () => {
+      const conditions: ConditionDescriptor[] = [
+        { when: 'trigger', truthy: true, selectSet: 'source.id' },
+      ];
+
+      // Accessing properties on an object value works via proxy delegation
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { trigger: true, source: { id: 42, name: 'Test' } },
         }).setValue
       ).toBe(42);
     });
