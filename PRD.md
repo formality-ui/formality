@@ -282,14 +282,22 @@ export function useConditions(
   const watchFields = explicitSubscriptions ?? inferredFields;
 
   // React-specific: subscribe to field changes
-  const watchedValues = useWatch({ name: watchFields });
+  // CRITICAL: Pass empty array (not undefined) when no fields to watch
+  const watchedValues = useWatch({
+    control: methods.control,
+    name: watchFields.length > 0 ? watchFields : [],
+  });
 
   // Build field values map
+  // CRITICAL: useWatch with an array name ALWAYS returns an array of values,
+  // even for a single field. Only useWatch({ name: 'string' }) returns scalar.
   const fieldValues = useMemo(() => {
     const values: Record<string, unknown> = {};
-    watchFields.forEach((field, i) => {
-      values[field] = watchedValues[i];
-    });
+    if (Array.isArray(watchedValues)) {
+      watchFields.forEach((field, i) => {
+        values[field] = watchedValues[i];
+      });
+    }
     return values;
   }, [watchFields, watchedValues]);
 
@@ -1045,16 +1053,51 @@ const context = {
 - Pros: Simpler implementation, no expression parsing needed
 - Cons: Larger context object, potential name collisions
 
-**DECISION: Use Option B (Dual Context Mapping)**
+**DECISION: Use Option B (Dual Context Mapping) with Field State Proxies**
 
 The implementation MUST:
 1. Build context with all qualified paths (`fields`, `record`, `props`, `errors`, etc.)
-2. Add shortcut properties for each field: `context[fieldName] = fields[fieldName].value`
+2. Add shortcut properties for each field using **field state proxies** (see below)
 3. Evaluate expressions directly against this merged context
 4. Handle name collisions by giving qualified paths precedence
 
+#### 4.1.5 Field State Proxy for Metadata Access
+
+Unqualified field shortcuts MUST use a proxy that enables access to both the value AND field metadata:
+
+```typescript
+// Proxy behavior for context[fieldName]:
+signed              // → true (coerces to value via Symbol.toPrimitive)
+signed.value        // → true (explicit value access)
+signed.isTouched    // → boolean (field metadata)
+signed.isDirty      // → boolean (field metadata)
+signed.id           // → value.id (delegates to value for object values)
+```
+
+**Why proxies are required:** Conditions like `selectSet: 'field && field.isTouched'` need access to field metadata within expressions. Without proxies, there's no way to access `isTouched` or `isDirty` in condition expressions.
+
 **Example Implementation:**
 ```typescript
+function createFieldStateProxy(fieldState) {
+  return new Proxy(fieldState, {
+    get(target, prop) {
+      // Symbol.toPrimitive for value coercion in comparisons
+      if (prop === Symbol.toPrimitive) {
+        return () => target.value;
+      }
+      // Known metadata properties - read from field state
+      if (['value', 'isTouched', 'isDirty', 'error', 'invalid'].includes(prop)) {
+        return target[prop];
+      }
+      // Unknown properties - delegate to value (for object values)
+      if (target.value && typeof target.value === 'object') {
+        return target.value[prop];
+      }
+      return undefined;
+    }
+  });
+}
+
 function buildEvaluationContext(formState, record, props) {
   const context = {
     // Qualified paths
@@ -1065,10 +1108,10 @@ function buildEvaluationContext(formState, record, props) {
     // ... other qualified paths
   };
 
-  // Add unqualified shortcuts for field values
+  // Add unqualified shortcuts as PROXIES (not raw values)
   for (const [fieldName, fieldState] of Object.entries(formState.fields)) {
     if (!(fieldName in context)) { // Don't override qualified paths
-      context[fieldName] = fieldState.value;
+      context[fieldName] = createFieldStateProxy(fieldState);
     }
   }
 
@@ -1076,7 +1119,9 @@ function buildEvaluationContext(formState, record, props) {
 }
 ```
 
-This ensures expressions like `"client"` resolve to the field value while `"record.name"` resolves to the record property.
+**Expression evaluator requirement:** The expression evaluator MUST unwrap proxies for all operations (arithmetic, comparison, logical) to ensure `field == value` comparisons work correctly.
+
+This ensures expressions like `"client"` resolve to the field value while `"client.isTouched"` resolves to field metadata and `"record.name"` resolves to the record property.
 
 ### 4.2 Expression Evaluation
 
@@ -1964,6 +2009,11 @@ function FieldGroup({ name, children }: FieldGroupProps) {
   const mergedState = {
     isDisabled: isDisabled || parentContext.state.isDisabled,
     isVisible: isVisible && parentContext.state.isVisible,
+    // setValue: this group's setValue takes priority, then parent's
+    hasSetCondition: conditionResult.hasSetCondition || parentContext.state.hasSetCondition,
+    setValue: conditionResult.hasSetCondition
+      ? conditionResult.setValue
+      : parentContext.state.setValue,
     // Accumulate conditions from all parent groups
     conditions: [
       ...parentContext.state.conditions,
@@ -1999,6 +2049,7 @@ function FieldGroup({ name, children }: FieldGroupProps) {
 1. **Nesting support**: FieldGroups can be nested. Each child group reads parent context and merges state:
    - `isDisabled`: OR-ed (any parent can disable: `child || parent`)
    - `isVisible`: AND-ed (any parent can hide: `child && parent`)
+   - `setValue`: Inner group takes priority, then parent's (field-level overrides all)
    - `conditions`: Accumulated array from all parents
    - `subscriptions`: Accumulated array from all parents
 
@@ -2006,7 +2057,12 @@ function FieldGroup({ name, children }: FieldGroupProps) {
 
 3. **Visible handling**: DOES use a wrapper `<span>` with `display: none`. This hides entire group including all nested children.
 
-4. **State merging in children**:
+4. **setValue propagation**: Group-level `set`/`selectSet` conditions propagate to ALL child fields. Priority order:
+   - Field-level condition setValue (highest priority)
+   - Immediate parent group setValue
+   - Ancestor group setValue (lowest priority)
+
+5. **State merging in children**:
    ```typescript
    // In Field component
    const groupContext = useContext(GroupContext);
@@ -2014,6 +2070,11 @@ function FieldGroup({ name, children }: FieldGroupProps) {
      fieldDisabled ||                      // Field's own disabled
      groupContext.state.isDisabled ||      // Group's disabled (merged from all parents)
      false;
+
+   // setValue: field-level takes priority over group-level
+   const effectiveSetValue = conditionResult.hasSetCondition
+     ? conditionResult.setValue
+     : groupContext.state.setValue;
    ```
 
 5. **Utility hooks**:
@@ -2272,6 +2333,39 @@ if (shouldApply) {
   }
 }
 ```
+
+#### 7.1.1 setValue Application Mechanism
+
+The `applySet` function MUST integrate with React Hook Form's `setValue`:
+
+```typescript
+// In Field component - apply setValue via useEffect
+const setValueRef = useRef(methods.setValue);
+setValueRef.current = methods.setValue;
+const getValuesRef = useRef(methods.getValues);
+getValuesRef.current = methods.getValues;
+
+useEffect(() => {
+  if (effectiveSetValue.hasCondition && effectiveSetValue.value !== undefined) {
+    const currentValue = getValuesRef.current(name);
+    // CRITICAL: Only update if value actually changed to prevent infinite loops
+    if (currentValue !== effectiveSetValue.value) {
+      setValueRef.current(name, effectiveSetValue.value, {
+        shouldValidate: true,   // Trigger validation after setting
+        shouldDirty: true,      // Mark as dirty
+        shouldTouch: false,     // Don't mark as user-touched
+      });
+    }
+  }
+}, [effectiveSetValue.hasCondition, effectiveSetValue.value, name]);
+```
+
+**Key implementation requirements:**
+
+1. **useRef for methods** - Store `methods.setValue` and `methods.getValues` in refs to avoid including `methods` in the dependency array, which would cause infinite loops
+2. **Value comparison** - Always compare current value before calling `setValue` to prevent unnecessary updates and infinite loops
+3. **shouldTouch: false** - Condition-set values should NOT mark the field as user-touched
+4. **Trigger on value change** - The effect runs when `effectiveSetValue.value` changes, which happens when watched fields change and conditions re-evaluate
 
 ### 7.2 when vs selectWhen
 
