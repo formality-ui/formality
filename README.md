@@ -2,6 +2,22 @@
 
 A powerful, framework-agnostic form library for building complex, dynamic forms with conditional logic, field dependencies, and auto-save support.
 
+```tsx
+const config = {
+  name:    { type: 'text', label: 'Name' },
+  email:   { type: 'text', label: 'Email' },
+  country: { type: 'select', props: { useOptions: useCountries } },
+  state:   { type: 'select', props: { useOptions: useStates }, selectProps: { queryParams: 'country.id', disabled: '!country' } },
+};
+
+<Form config={config} onSubmit={save}>
+  <Field name="name" />
+  <Field name="email" />
+  <Field name="country" />
+  <UnusedFields />  {/* renders: state */}
+</Form>
+```
+
 ## Packages
 
 | Package | Description | Status |
