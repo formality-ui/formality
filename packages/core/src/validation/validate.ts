@@ -1,4 +1,4 @@
-// @formality/core - Validation Pipeline
+// @formality-ui/core - Validation Pipeline
 // Pure functions for running validators against field values
 // ZERO framework dependencies
 

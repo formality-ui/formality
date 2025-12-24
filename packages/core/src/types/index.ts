@@ -1,4 +1,4 @@
-// @formality/core - Types Barrel Export
+// @formality-ui/core - Types Barrel Export
 // Re-exports all type definitions
 
 // Configuration types

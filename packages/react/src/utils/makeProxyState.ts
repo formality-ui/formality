@@ -1,4 +1,4 @@
-// @formality/react - makeProxyState
+// @formality-ui/react - makeProxyState
 // Lazy property access utility for React performance optimization
 
 /**

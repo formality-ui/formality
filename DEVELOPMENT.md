@@ -20,10 +20,10 @@ This package uses [yalc](https://github.com/wclr/yalc) for local development aga
 3. In your consumer project, link the packages:
    ```bash
    cd /path/to/your-project
-   yalc link @formality/core @formality/react
+   yalc link @formality-ui/core @formality-ui/react
    ```
 
-   This creates symlinks in `node_modules/@formality/*` pointing to `.yalc/@formality/*`.
+   This creates symlinks in `node_modules/@formality-ui/*` pointing to `.yalc/@formality-ui/*`.
 
 4. If your consumer project uses webpack (e.g., Create React App with CRACO), add this to your webpack config to watch symlinked packages:
    ```js
@@ -67,7 +67,7 @@ rm -rf node_modules/.cache
 
 If you run `npm install` or `yarn` in the consumer project, it may overwrite the yalc links. Re-run:
 ```bash
-yalc link @formality/core @formality/react
+yalc link @formality-ui/core @formality-ui/react
 ```
 
 **Check link status:**

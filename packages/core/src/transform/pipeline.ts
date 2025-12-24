@@ -1,4 +1,4 @@
-// @formality/core - Value Transformation Pipeline
+// @formality-ui/core - Value Transformation Pipeline
 // Pure functions for parsing and formatting field values
 // ZERO framework dependencies
 

@@ -1,4 +1,4 @@
-// @formality/core - Expression Context Building
+// @formality-ui/core - Expression Context Building
 // Implements the Dual Context Mapping pattern for expression evaluation
 
 import type { FormState, FieldState, FieldError } from '../types';

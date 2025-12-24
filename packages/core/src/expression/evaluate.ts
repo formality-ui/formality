@@ -1,4 +1,4 @@
-// @formality/core - Expression Evaluation
+// @formality-ui/core - Expression Evaluation
 // Uses jsep for parsing and custom evaluation for safe expression execution
 
 import jsep from 'jsep';

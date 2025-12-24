@@ -1,4 +1,4 @@
-// @formality/core - Conditions Module Barrel Export
+// @formality-ui/core - Conditions Module Barrel Export
 
 export type { EvaluateConditionsInput, FieldStateInput } from './evaluate';
 

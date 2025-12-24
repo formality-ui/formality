@@ -1,11 +1,11 @@
-// @formality/react - FieldGroup Component Tests
+// @formality-ui/react - FieldGroup Component Tests
 import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { Form } from '../components/Form';
 import { Field } from '../components/Field';
 import { FieldGroup } from '../components/FieldGroup';
 import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality/core';
+import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality-ui/core';
 
 // Test input component
 const TestInput = ({ value, onChange, disabled, ...props }: any) => (

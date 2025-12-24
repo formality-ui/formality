@@ -1,4 +1,4 @@
-// @formality/vue - Vue implementation of Formality
+// @formality-ui/vue - Vue implementation of Formality
 // Coming soon
 
 export {};

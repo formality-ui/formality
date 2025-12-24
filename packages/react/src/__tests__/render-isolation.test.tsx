@@ -1,4 +1,4 @@
-// @formality/react - Validation Isolation Tests
+// @formality-ui/react - Validation Isolation Tests
 // Comprehensive test suite to identify where validation is being triggered unnecessarily
 // This suite is diagnostic - tests that fail indicate areas that need investigation
 
@@ -10,7 +10,7 @@ import { Form } from '../components/Form';
 import { Field } from '../components/Field';
 import { FieldGroup } from '../components/FieldGroup';
 import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality/core';
+import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality-ui/core';
 
 // ============================================================================
 // TEST INPUT COMPONENTS

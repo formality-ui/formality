@@ -1,4 +1,4 @@
-// @formality/core - Error Message Resolution
+// @formality-ui/core - Error Message Resolution
 // Pure functions for resolving validation error messages
 // ZERO framework dependencies
 

@@ -1,4 +1,4 @@
-// @formality/core - Default Value Resolution
+// @formality-ui/core - Default Value Resolution
 // Pure functions for resolving initial/default values
 // ZERO framework dependencies
 

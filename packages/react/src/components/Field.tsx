@@ -1,4 +1,4 @@
-// @formality/react - Field Component
+// @formality-ui/react - Field Component
 // Core field component with Controller integration
 
 import {
@@ -23,8 +23,8 @@ import {
   format,
   runValidator,
   resolveErrorMessage,
-} from '@formality/core';
-import type { FieldConfig, InputConfig } from '@formality/core';
+} from '@formality-ui/core';
+import type { FieldConfig, InputConfig } from '@formality-ui/core';
 import { useFormContext } from '../context/FormContext';
 import { useConfigContext } from '../context/ConfigContext';
 import { useGroupContext } from '../context/GroupContext';

@@ -1,12 +1,12 @@
-// @formality/react - useInferredInputs Hook
+// @formality-ui/react - useInferredInputs Hook
 // Infers field dependencies from selectProps and conditions
 
 import { useMemo } from 'react';
 import {
   inferFieldsFromDescriptor,
   inferFieldsFromConditions,
-} from '@formality/core';
-import type { ConditionDescriptor, SelectValue } from '@formality/core';
+} from '@formality-ui/core';
+import type { ConditionDescriptor, SelectValue } from '@formality-ui/core';
 
 interface UseInferredInputsOptions {
   /** Dynamic props descriptor to analyze for field references */

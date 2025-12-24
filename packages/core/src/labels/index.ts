@@ -1,4 +1,4 @@
-// @formality/core - Labels Module Barrel Export
+// @formality-ui/core - Labels Module Barrel Export
 
 export {
   humanizeLabel,

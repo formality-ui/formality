@@ -1,11 +1,11 @@
-// @formality/react - Field Component Tests
+// @formality-ui/react - Field Component Tests
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Form } from '../components/Form';
 import { Field } from '../components/Field';
 import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig, FormFieldsConfig } from '@formality/core';
+import type { InputConfig, FormFieldsConfig } from '@formality-ui/core';
 
 // Test input component with all common props
 const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) => (

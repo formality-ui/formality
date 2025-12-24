@@ -1,4 +1,4 @@
-// @formality/svelte - Svelte implementation of Formality
+// @formality-ui/svelte - Svelte implementation of Formality
 // Coming soon
 
 export {};

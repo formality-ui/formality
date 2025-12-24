@@ -15,7 +15,7 @@ import {
   Field,
   type InputConfig,
   type FormFieldsConfig,
-} from '@formality/react';
+} from '@formality-ui/react';
 
 // =============================================================================
 // Step 1: Define Input Types

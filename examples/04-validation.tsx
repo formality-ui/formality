@@ -21,7 +21,7 @@ import {
   type FormFieldsConfig,
   type ValidatorsConfig,
   type ErrorMessagesConfig,
-} from '@formality/react';
+} from '@formality-ui/react';
 
 // =============================================================================
 // Input Types with Built-in Error Display

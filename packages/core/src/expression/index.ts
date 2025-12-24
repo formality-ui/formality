@@ -1,4 +1,4 @@
-// @formality/core - Expression Module Barrel Export
+// @formality-ui/core - Expression Module Barrel Export
 
 export type { EvaluationContext } from './evaluate';
 

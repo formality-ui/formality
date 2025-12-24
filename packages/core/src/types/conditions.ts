@@ -1,4 +1,4 @@
-// @formality/core - Condition Types
+// @formality-ui/core - Condition Types
 // This file defines condition descriptor and result interfaces
 
 import type { SelectValue } from './config';

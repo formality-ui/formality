@@ -18,7 +18,7 @@ import {
   type InputConfig,
   type FormFieldsConfig,
   type FormConfig,
-} from '@formality/react';
+} from '@formality-ui/react';
 
 // =============================================================================
 // Mock Data for Examples

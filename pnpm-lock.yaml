@@ -44,7 +44,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@formality/core':
+      '@formality-ui/core':
         specifier: workspace:*
         version: link:../core
       jse-eval:
@@ -90,7 +90,7 @@ importers:
 
   packages/svelte:
     dependencies:
-      '@formality/core':
+      '@formality-ui/core':
         specifier: workspace:*
         version: link:../core
       svelte:
@@ -99,7 +99,7 @@ importers:
 
   packages/vue:
     dependencies:
-      '@formality/core':
+      '@formality-ui/core':
         specifier: workspace:*
         version: link:../core
       vue:

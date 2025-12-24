@@ -1,11 +1,11 @@
-// @formality/react - UnusedFields Component Tests
+// @formality-ui/react - UnusedFields Component Tests
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Form } from '../components/Form';
 import { Field } from '../components/Field';
 import { UnusedFields } from '../components/UnusedFields';
 import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig, FormFieldsConfig } from '@formality/core';
+import type { InputConfig, FormFieldsConfig } from '@formality-ui/core';
 
 // Test input component
 const TestInput = ({ value, onChange, ...props }: any) => (

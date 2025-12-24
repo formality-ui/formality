@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FormalityProvider } from '../components/FormalityProvider';
 import { useConfigContext } from '../context/ConfigContext';
-import type { InputConfig } from '@formality/core';
+import type { InputConfig } from '@formality-ui/core';
 
 // Test component that reads context
 function TestConsumer() {

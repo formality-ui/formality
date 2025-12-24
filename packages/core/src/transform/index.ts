@@ -1,4 +1,4 @@
-// @formality/core - Transform Module Barrel Export
+// @formality-ui/core - Transform Module Barrel Export
 
 export type {
   ParserFunction,

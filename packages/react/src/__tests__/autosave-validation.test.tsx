@@ -1,4 +1,4 @@
-// @formality/react - AutoSave Validation Tests
+// @formality-ui/react - AutoSave Validation Tests
 // Tests for coordinated validation during auto-save
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { Form } from '../components/Form';
 import { Field } from '../components/Field';
 import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig } from '@formality/core';
+import type { InputConfig } from '@formality-ui/core';
 
 // Track validation calls
 let validationCalls: string[] = [];

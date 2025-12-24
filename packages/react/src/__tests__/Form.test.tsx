@@ -1,11 +1,11 @@
-// @formality/react - Form Component Tests
+// @formality-ui/react - Form Component Tests
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Form } from '../components/Form';
 import { FormalityProvider } from '../components/FormalityProvider';
 import { useFormContext } from '../context/FormContext';
-import type { InputConfig, FormFieldsConfig } from '@formality/core';
+import type { InputConfig, FormFieldsConfig } from '@formality-ui/core';
 
 // Test input component
 const TestInput = ({ value, onChange, ...props }: any) => (

@@ -1,4 +1,4 @@
-// @formality/core - Condition Evaluation
+// @formality-ui/core - Condition Evaluation
 // Pure functions for evaluating conditions against form state
 // ZERO framework dependencies
 

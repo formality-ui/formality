@@ -1,6 +1,10 @@
 {
-  "name": "@formality/svelte",
+  "name": "@formality-ui/svelte",
   "version": "0.0.0",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -21,7 +25,7 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@formality/core": "workspace:*"
+    "@formality-ui/core": "workspace:*"
   },
   "peerDependencies": {
     "svelte": "^4.0.0 || ^5.0.0"

@@ -1,4 +1,4 @@
-// @formality/core - Validation Module Barrel Export
+// @formality-ui/core - Validation Module Barrel Export
 
 export {
   runValidator,

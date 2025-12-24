@@ -24,7 +24,7 @@ import {
   type InputConfig,
   type FormFieldsConfig,
   type FormConfig,
-} from '@formality/react';
+} from '@formality-ui/react';
 
 // =============================================================================
 // Minimal Input Types for Examples

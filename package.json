@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "clean": "pnpm -r exec rm -rf dist",
     "yalc:publish": "pnpm build && pnpm -r exec yalc publish",
-    "yalc:push": "pnpm build && pnpm -r exec yalc push"
+    "yalc:push": "pnpm build && pnpm -r exec yalc push",
+    "release": "pnpm build && pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",

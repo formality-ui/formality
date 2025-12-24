@@ -86,7 +86,7 @@ Record → Form → Field → Transform → Component → User Input
 
 ```
 packages/
-├── core/                    # @formality/core - Zero framework dependencies
+├── core/                    # @formality-ui/core - Zero framework dependencies
 │   ├── src/
 │   │   ├── expression/      # Expression parsing & evaluation
 │   │   │   ├── evaluate.ts      # Expression evaluation engine
@@ -113,7 +113,7 @@ packages/
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── react/                   # @formality/react - React/RHF implementation
+├── react/                   # @formality-ui/react - React/RHF implementation
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Form.tsx
@@ -132,10 +132,10 @@ packages/
 │   │   │   ├── ConfigContext.ts
 │   │   │   └── GroupContext.ts
 │   │   └── index.ts
-│   ├── package.json         # Depends on @formality/core, react-hook-form
+│   ├── package.json         # Depends on @formality-ui/core, react-hook-form
 │   └── tsconfig.json
 │
-├── vue/                     # @formality/vue - Vue implementation (STUBBED)
+├── vue/                     # @formality-ui/vue - Vue implementation (STUBBED)
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Form.vue
@@ -145,10 +145,10 @@ packages/
 │   │   │   ├── useConditions.ts
 │   │   │   └── useField.ts
 │   │   └── index.ts
-│   ├── package.json         # Depends on @formality/core, vue
+│   ├── package.json         # Depends on @formality-ui/core, vue
 │   └── README.md            # "Coming soon" placeholder
 │
-└── svelte/                  # @formality/svelte - Svelte implementation (STUBBED)
+└── svelte/                  # @formality-ui/svelte - Svelte implementation (STUBBED)
     ├── src/
     │   ├── components/
     │   │   ├── Form.svelte
@@ -157,11 +157,11 @@ packages/
     │   ├── stores/
     │   │   └── form.ts
     │   └── index.ts
-    ├── package.json         # Depends on @formality/core, svelte
+    ├── package.json         # Depends on @formality-ui/core, svelte
     └── README.md            # "Coming soon" placeholder
 ```
 
-#### 1.3.2 What Belongs in `@formality/core`
+#### 1.3.2 What Belongs in `@formality-ui/core`
 
 The core package contains **pure functions with zero framework dependencies**. These modules MUST NOT import React, Vue, Svelte, or any framework-specific libraries.
 
@@ -183,7 +183,7 @@ The core package contains **pure functions with zero framework dependencies**. T
 **Example - Pure condition evaluation in core:**
 
 ```typescript
-// @formality/core/src/conditions/evaluate.ts
+// @formality-ui/core/src/conditions/evaluate.ts
 // NO framework imports allowed here
 
 import type { ConditionDescriptor, ConditionResult } from '../types';
@@ -242,7 +242,7 @@ export function evaluateConditions(input: EvaluateConditionsInput): ConditionRes
 }
 ```
 
-#### 1.3.3 What Belongs in `@formality/react`
+#### 1.3.3 What Belongs in `@formality-ui/react`
 
 The React package contains **React-specific implementations** that use core functions internally.
 
@@ -260,11 +260,11 @@ The React package contains **React-specific implementations** that use core func
 **Example - React hook calling core function:**
 
 ```typescript
-// @formality/react/src/hooks/useConditions.ts
+// @formality-ui/react/src/hooks/useConditions.ts
 import { useMemo } from 'react';
 import { useWatch } from 'react-hook-form';
-import { evaluateConditions, inferFieldsFromConditions } from '@formality/core';
-import type { ConditionDescriptor } from '@formality/core';
+import { evaluateConditions, inferFieldsFromConditions } from '@formality-ui/core';
+import type { ConditionDescriptor } from '@formality-ui/core';
 import { useFormContext } from '../context/FormContext';
 
 export function useConditions(
@@ -311,7 +311,7 @@ export function useConditions(
 
 #### 1.3.4 Framework Adapter Contracts
 
-Each framework adapter (`@formality/react`, `@formality/vue`, `@formality/svelte`) MUST:
+Each framework adapter (`@formality-ui/react`, `@formality-ui/vue`, `@formality-ui/svelte`) MUST:
 
 1. **Export identical component APIs** (as close as framework allows):
    - `Form` - Form container with state management
@@ -320,7 +320,7 @@ Each framework adapter (`@formality/react`, `@formality/vue`, `@formality/svelte
    - `FormalityProvider` / `createFormality` - Global configuration
 
 2. **Accept identical configuration objects**:
-   - `FieldConfig`, `FormConfig`, `InputConfig` from `@formality/core`
+   - `FieldConfig`, `FormConfig`, `InputConfig` from `@formality-ui/core`
    - Same `conditions`, `selectProps`, `validator` structures
 
 3. **Use core for all business logic**:
@@ -340,21 +340,21 @@ Each framework adapter (`@formality/react`, `@formality/vue`, `@formality/svelte
 
 | Package | Status | Notes |
 |---------|--------|-------|
-| `@formality/core` | **In Development** | Build alongside React implementation |
-| `@formality/react` | **In Development** | Primary implementation, full feature set |
-| `@formality/vue` | **Stubbed** | Package structure only, README placeholder |
-| `@formality/svelte` | **Stubbed** | Package structure only, README placeholder |
+| `@formality-ui/core` | **In Development** | Build alongside React implementation |
+| `@formality-ui/react` | **In Development** | Primary implementation, full feature set |
+| `@formality-ui/vue` | **Stubbed** | Package structure only, README placeholder |
+| `@formality-ui/svelte` | **Stubbed** | Package structure only, README placeholder |
 
 **Development Strategy:**
 
-1. Build `@formality/react` as the primary implementation
-2. Extract pure logic to `@formality/core` as you build
+1. Build `@formality-ui/react` as the primary implementation
+2. Extract pure logic to `@formality-ui/core` as you build
 3. Test that core modules have zero React imports
 4. Vue/Svelte adapters can be built later using the same core
 
 #### 1.3.6 Import Rules
 
-**In `@formality/core`:**
+**In `@formality-ui/core`:**
 ```typescript
 // ✅ ALLOWED
 import type { ConditionDescriptor } from '../types';
@@ -366,16 +366,16 @@ import { ref } from 'vue';                  // NO
 import { writable } from 'svelte/store';    // NO
 ```
 
-**In `@formality/react`:**
+**In `@formality-ui/react`:**
 ```typescript
 // ✅ ALLOWED
-import { evaluateConditions, inferFieldsFromDescriptor } from '@formality/core';
-import type { FieldConfig, ConditionDescriptor } from '@formality/core';
+import { evaluateConditions, inferFieldsFromDescriptor } from '@formality-ui/core';
+import type { FieldConfig, ConditionDescriptor } from '@formality-ui/core';
 import { useMemo, useCallback } from 'react';
 import { useForm, useWatch, Controller } from 'react-hook-form';
 
 // ✅ Re-export core types for convenience
-export type { FieldConfig, FormConfig, InputConfig } from '@formality/core';
+export type { FieldConfig, FormConfig, InputConfig } from '@formality-ui/core';
 ```
 
 #### 1.3.7 Testing Strategy

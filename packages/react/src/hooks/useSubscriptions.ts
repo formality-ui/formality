@@ -1,4 +1,4 @@
-// @formality/react - useSubscriptions Hook
+// @formality-ui/react - useSubscriptions Hook
 // Manages field subscriptions in the Form's inverted index
 
 import { useEffect, useRef } from 'react';

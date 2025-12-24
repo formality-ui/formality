@@ -1,4 +1,4 @@
-// @formality/core - Configuration Merging
+// @formality-ui/core - Configuration Merging
 // Pure functions for merging configuration layers
 // ZERO framework dependencies
 

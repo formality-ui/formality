@@ -23,7 +23,7 @@ This directory contains comprehensive, runnable examples demonstrating every fea
 Start with `01-basic-form.tsx` to understand the fundamental building blocks:
 
 ```tsx
-import { FormalityProvider, Form, Field } from '@formality/react';
+import { FormalityProvider, Form, Field } from '@formality-ui/react';
 
 // 1. Define input types (reusable across your app)
 const inputs = {
@@ -170,7 +170,7 @@ These examples are designed to be copy-pasted into your React application. To ru
 
 1. Install dependencies:
    ```bash
-   npm install @formality/react react-hook-form
+   npm install @formality-ui/react react-hook-form
    ```
 
 2. Copy an example file into your project

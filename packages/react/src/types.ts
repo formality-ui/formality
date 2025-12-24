@@ -1,4 +1,4 @@
-// @formality/react - Types
+// @formality-ui/react - Types
 // React-specific type extensions for Formality
 
 import type { ComponentType } from 'react';
@@ -7,7 +7,7 @@ import type {
   UseFormStateReturn,
   FieldValues,
 } from 'react-hook-form';
-import type { FormState, FieldError } from '@formality/core';
+import type { FormState, FieldError } from '@formality-ui/core';
 
 /**
  * Props passed to input template components

@@ -15,7 +15,7 @@
  */
 
 import React, { memo } from 'react';
-import { FormalityProvider, Form, Field, type InputConfig } from '@formality/react';
+import { FormalityProvider, Form, Field, type InputConfig } from '@formality-ui/react';
 
 // =============================================================================
 // Input Type: Text Field with Debounce

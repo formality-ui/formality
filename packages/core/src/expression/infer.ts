@@ -1,4 +1,4 @@
-// @formality/core - Field Dependency Inference
+// @formality-ui/core - Field Dependency Inference
 // Extracts field dependencies from expressions for automatic subscription
 
 import { QUALIFIED_PREFIXES, KEYWORDS } from './context';

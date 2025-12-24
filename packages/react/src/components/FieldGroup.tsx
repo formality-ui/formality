@@ -1,8 +1,8 @@
-// @formality/react - FieldGroup Component
+// @formality-ui/react - FieldGroup Component
 // Groups fields with shared conditions and state propagation
 
 import { useMemo, type ReactNode } from 'react';
-import type { GroupConfig } from '@formality/core';
+import type { GroupConfig } from '@formality-ui/core';
 import { useFormContext } from '../context/FormContext';
 import {
   GroupContext,

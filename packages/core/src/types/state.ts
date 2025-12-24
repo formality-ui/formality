@@ -1,4 +1,4 @@
-// @formality/core - State Types
+// @formality-ui/core - State Types
 // This file defines form and field state interfaces
 
 /**

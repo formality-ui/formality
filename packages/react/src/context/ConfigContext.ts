@@ -1,4 +1,4 @@
-// @formality/react - ConfigContext
+// @formality-ui/react - ConfigContext
 // Global configuration context for Formality
 
 import { createContext, useContext, type ComponentType } from 'react';
@@ -7,7 +7,7 @@ import type {
   ValidatorsConfig,
   ErrorMessagesConfig,
   SelectValue,
-} from '@formality/core';
+} from '@formality-ui/core';
 import type { InputTemplateProps } from '../types';
 
 /**

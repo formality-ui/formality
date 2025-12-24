@@ -1,4 +1,4 @@
-// @formality/react - FormalityProvider
+// @formality-ui/react - FormalityProvider
 // Global configuration provider for Formality forms
 
 import { useMemo, type ReactNode, type ComponentType } from 'react';
@@ -7,7 +7,7 @@ import type {
   ValidatorsConfig,
   ErrorMessagesConfig,
   SelectValue,
-} from '@formality/core';
+} from '@formality-ui/core';
 import { ConfigContext, type ConfigContextValue } from '../context/ConfigContext';
 import type { InputTemplateProps } from '../types';
 
@@ -134,7 +134,7 @@ export interface FormalityProviderProps {
  *
  * @example
  * ```tsx
- * import { FormalityProvider } from '@formality/react';
+ * import { FormalityProvider } from '@formality-ui/react';
  *
  * const inputs = {
  *   textField: { component: TextInput, defaultValue: '' },

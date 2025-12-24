@@ -1,4 +1,4 @@
-// @formality/react - Form Component
+// @formality-ui/react - Form Component
 // Core form component with React Hook Form integration
 
 import {
@@ -23,13 +23,13 @@ import {
   buildFormContext,
   extractValueField,
   transformFieldName,
-} from '@formality/core';
+} from '@formality-ui/core';
 import type {
   FormFieldsConfig,
   FormConfig,
   FormState,
   InputConfig,
-} from '@formality/core';
+} from '@formality-ui/core';
 import { FormContext, type FormContextValue } from '../context/FormContext';
 import { GroupContext } from '../context/GroupContext';
 import { useConfigContext } from '../context/ConfigContext';

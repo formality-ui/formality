@@ -1,20 +1,20 @@
-# @formality/core
+# @formality-ui/core
 
 Framework-agnostic form utilities for the Formality framework. This package provides pure functions for expression evaluation, condition processing, validation, and configuration management that can be used with any JavaScript framework.
 
 ## Installation
 
 ```bash
-npm install @formality/core
+npm install @formality-ui/core
 # or
-pnpm add @formality/core
+pnpm add @formality-ui/core
 # or
-yarn add @formality/core
+yarn add @formality-ui/core
 ```
 
 ## Overview
 
-`@formality/core` is the foundation of the Formality framework. It provides:
+`@formality-ui/core` is the foundation of the Formality framework. It provides:
 
 - **Expression Engine**: Parse and evaluate dynamic expressions against form state
 - **Condition Evaluation**: Process conditional visibility, disabled states, and value setting
@@ -34,7 +34,7 @@ This package has no React, Vue, or Svelte dependencies. It exports pure function
 Evaluate dynamic expressions against form state:
 
 ```typescript
-import { evaluate, buildEvaluationContext } from '@formality/core';
+import { evaluate, buildEvaluationContext } from '@formality-ui/core';
 
 const context = buildEvaluationContext({
   fields: {
@@ -58,7 +58,7 @@ evaluate('client.id > 3', context);     // true
 Evaluate conditions for field visibility and disabled state:
 
 ```typescript
-import { evaluateConditions } from '@formality/core';
+import { evaluateConditions } from '@formality-ui/core';
 
 const result = evaluateConditions({
   conditions: [
@@ -77,7 +77,7 @@ result.visible;   // true
 Compose and run validators:
 
 ```typescript
-import { runValidator, composeValidators, required, minLength } from '@formality/core';
+import { runValidator, composeValidators, required, minLength } from '@formality-ui/core';
 
 const validator = composeValidators([required(), minLength(3)]);
 const result = await runValidator(validator, 'ab', {});
@@ -89,7 +89,7 @@ const result = await runValidator(validator, 'ab', {});
 Parse and format values:
 
 ```typescript
-import { parse, format, createFloatParser, createFloatFormatter } from '@formality/core';
+import { parse, format, createFloatParser, createFloatFormatter } from '@formality-ui/core';
 
 const parser = createFloatParser();
 const formatter = createFloatFormatter(2);
@@ -103,7 +103,7 @@ format(42.567, formatter);      // '42.57' (string, 2 decimals)
 Auto-generate human-readable labels from field names:
 
 ```typescript
-import { humanizeLabel, resolveLabel } from '@formality/core';
+import { humanizeLabel, resolveLabel } from '@formality-ui/core';
 
 humanizeLabel('clientContact');      // 'Client Contact'
 humanizeLabel('minGrossMargin');     // 'Min Gross Margin'
@@ -239,7 +239,7 @@ import type {
 
   // Expression
   EvaluationContext,
-} from '@formality/core';
+} from '@formality-ui/core';
 ```
 
 ## Constants

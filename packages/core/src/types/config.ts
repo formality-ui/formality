@@ -1,4 +1,4 @@
-// @formality/core - Configuration Types
+// @formality-ui/core - Configuration Types
 // This file defines all configuration interfaces for the Formality framework
 
 import type { ConditionDescriptor } from './conditions';

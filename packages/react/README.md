@@ -1,15 +1,15 @@
-# @formality/react
+# @formality-ui/react
 
 React implementation of the Formality form framework. Build powerful, dynamic forms with conditional logic, field dependencies, and auto-save support.
 
 ## Installation
 
 ```bash
-npm install @formality/react react-hook-form
+npm install @formality-ui/react react-hook-form
 # or
-pnpm add @formality/react react-hook-form
+pnpm add @formality-ui/react react-hook-form
 # or
-yarn add @formality/react react-hook-form
+yarn add @formality-ui/react react-hook-form
 ```
 
 **Peer Dependencies:**
@@ -20,8 +20,8 @@ yarn add @formality/react react-hook-form
 ## Quick Start
 
 ```tsx
-import { FormalityProvider, Form, Field } from '@formality/react';
-import type { InputConfig, FormFieldsConfig } from '@formality/react';
+import { FormalityProvider, Form, Field } from '@formality-ui/react';
+import type { InputConfig, FormFieldsConfig } from '@formality-ui/react';
 
 // Define your input types
 const inputs: Record<string, InputConfig> = {
@@ -291,7 +291,7 @@ Enable automatic form submission on changes:
 Access form state and methods from any child component:
 
 ```typescript
-import { useFormContext } from '@formality/react';
+import { useFormContext } from '@formality-ui/react';
 
 function CustomComponent() {
   const { config, methods, record, unusedFields, submitImmediate } = useFormContext();
@@ -304,7 +304,7 @@ function CustomComponent() {
 Evaluate conditions manually:
 
 ```typescript
-import { useConditions } from '@formality/react';
+import { useConditions } from '@formality-ui/react';
 
 const { disabled, visible, setValue } = useConditions({
   conditions: fieldConfig.conditions,
@@ -316,7 +316,7 @@ const { disabled, visible, setValue } = useConditions({
 Evaluate dynamic props:
 
 ```typescript
-import { usePropsEvaluation } from '@formality/react';
+import { usePropsEvaluation } from '@formality-ui/react';
 
 const evaluatedProps = usePropsEvaluation(selectProps, watchedValues);
 ```
@@ -326,7 +326,7 @@ const evaluatedProps = usePropsEvaluation(selectProps, watchedValues);
 Subscribe to form state changes:
 
 ```typescript
-import { useFormState } from '@formality/react';
+import { useFormState } from '@formality-ui/react';
 
 const { methods, formState } = useFormState(options);
 ```
@@ -336,7 +336,7 @@ const { methods, formState } = useFormState(options);
 Subscribe to field value changes:
 
 ```typescript
-import { useSubscriptions } from '@formality/react';
+import { useSubscriptions } from '@formality-ui/react';
 
 const watchedValues = useSubscriptions(fieldNames);
 ```
@@ -346,7 +346,7 @@ const watchedValues = useSubscriptions(fieldNames);
 Infer input configurations:
 
 ```typescript
-import { useInferredInputs } from '@formality/react';
+import { useInferredInputs } from '@formality-ui/react';
 
 const inputs = useInferredInputs(config);
 ```
@@ -358,7 +358,7 @@ const inputs = useInferredInputs(config);
 Global configuration context:
 
 ```typescript
-import { useConfigContext } from '@formality/react';
+import { useConfigContext } from '@formality-ui/react';
 
 const { inputs, validators, formatters, parsers, errorMessages } = useConfigContext();
 ```
@@ -368,7 +368,7 @@ const { inputs, validators, formatters, parsers, errorMessages } = useConfigCont
 Form-level context:
 
 ```typescript
-import { useFormContext } from '@formality/react';
+import { useFormContext } from '@formality-ui/react';
 
 const { config, methods, record, formConfig, unusedFields } = useFormContext();
 ```
@@ -378,7 +378,7 @@ const { config, methods, record, formConfig, unusedFields } = useFormContext();
 Group-level context for nested conditions:
 
 ```typescript
-import { useGroupContext } from '@formality/react';
+import { useGroupContext } from '@formality-ui/react';
 
 const groupState = useGroupContext();
 ```
@@ -420,7 +420,7 @@ import type {
   UseFormStateOptions,
   WatcherSetterFn,
   DebouncedFunction,
-} from '@formality/react';
+} from '@formality-ui/react';
 ```
 
 ## Utilities
@@ -430,7 +430,7 @@ import type {
 Create proxy state for efficient subscriptions:
 
 ```typescript
-import { makeProxyState, makeDeepProxyState } from '@formality/react';
+import { makeProxyState, makeDeepProxyState } from '@formality-ui/react';
 
 const proxy = makeProxyState(initialState);
 const deepProxy = makeDeepProxyState(initialState);

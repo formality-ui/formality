@@ -24,7 +24,7 @@ import {
   type FormConfig,
   type ValidatorsConfig,
   type ErrorMessagesConfig,
-} from '@formality/react';
+} from '@formality-ui/react';
 
 // =============================================================================
 // Mock Data & API Hooks

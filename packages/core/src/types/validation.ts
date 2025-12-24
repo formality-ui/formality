@@ -1,4 +1,4 @@
-// @formality/core - Validation Types
+// @formality-ui/core - Validation Types
 // This file defines validation-related types
 
 /**

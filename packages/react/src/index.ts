@@ -1,5 +1,5 @@
-// @formality/react - React implementation of Formality
-// Depends on @formality/core and react-hook-form
+// @formality-ui/react - React implementation of Formality
+// Depends on @formality-ui/core and react-hook-form
 
 // ============================================================================
 // Re-export core types for convenience
@@ -27,7 +27,7 @@ export type {
   ValidatorSpec,
   ValidatorsConfig,
   ErrorMessagesConfig,
-} from '@formality/core';
+} from '@formality-ui/core';
 
 // ============================================================================
 // Context

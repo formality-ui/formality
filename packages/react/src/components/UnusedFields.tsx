@@ -1,8 +1,8 @@
-// @formality/react - UnusedFields Component
+// @formality-ui/react - UnusedFields Component
 // Renders fields declared in config but not explicitly rendered
 
 import { type ReactNode, useMemo } from 'react';
-import { sortFieldsByOrder } from '@formality/core';
+import { sortFieldsByOrder } from '@formality-ui/core';
 import { useFormContext } from '../context/FormContext';
 import { Field } from './Field';
 

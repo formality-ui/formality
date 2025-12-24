@@ -1,8 +1,8 @@
-// @formality/react - GroupContext
+// @formality-ui/react - GroupContext
 // Group-level context for nested disabled/visible state propagation
 
 import { createContext, useContext } from 'react';
-import type { ConditionDescriptor, GroupConfig } from '@formality/core';
+import type { ConditionDescriptor, GroupConfig } from '@formality-ui/core';
 
 /**
  * GroupState - Current computed state for a FieldGroup

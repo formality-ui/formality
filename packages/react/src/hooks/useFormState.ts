@@ -1,4 +1,4 @@
-// @formality/react - useFormState Hook
+// @formality-ui/react - useFormState Hook
 // Custom hook wrapping RHF's useWatch with proxy optimization
 // CRITICAL: This hook is designed for ISOLATED field subscriptions
 

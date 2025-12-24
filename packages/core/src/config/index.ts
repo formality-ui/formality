@@ -1,4 +1,4 @@
-// @formality/core - Config Module Barrel Export
+// @formality-ui/core - Config Module Barrel Export
 
 export {
   deepMerge,

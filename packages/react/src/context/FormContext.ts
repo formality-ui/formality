@@ -1,9 +1,9 @@
-// @formality/react - FormContext
+// @formality-ui/react - FormContext
 // Form-level context for field registration and state management
 
 import { createContext, useContext } from 'react';
 import type { UseFormReturn, FieldValues } from 'react-hook-form';
-import type { FormFieldsConfig, FormConfig, FormState } from '@formality/core';
+import type { FormFieldsConfig, FormConfig, FormState } from '@formality-ui/core';
 import type { WatcherSetterFn, DebouncedFunction } from '../types';
 
 /**

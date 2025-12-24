@@ -1,4 +1,4 @@
-// @formality/core - Label Resolution
+// @formality-ui/core - Label Resolution
 // Pure functions for resolving field labels
 // ZERO framework dependencies
 

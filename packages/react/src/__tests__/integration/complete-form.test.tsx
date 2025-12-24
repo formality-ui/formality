@@ -1,4 +1,4 @@
-// @formality/react - Complete Form Integration Tests
+// @formality-ui/react - Complete Form Integration Tests
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,7 +7,7 @@ import { Field } from '../../components/Field';
 import { FieldGroup } from '../../components/FieldGroup';
 import { UnusedFields } from '../../components/UnusedFields';
 import { FormalityProvider } from '../../components/FormalityProvider';
-import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality/core';
+import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality-ui/core';
 
 // === TEST COMPONENTS ===
 

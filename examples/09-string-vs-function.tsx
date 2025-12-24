@@ -27,7 +27,7 @@ import {
   type FormFieldsConfig,
   type FormConfig,
   type FormState,
-} from '@formality/react';
+} from '@formality-ui/react';
 
 // =============================================================================
 // Input Types

@@ -6,10 +6,10 @@ A powerful, framework-agnostic form library for building complex, dynamic forms 
 
 | Package | Description | Status |
 |---------|-------------|--------|
-| [@formality/core](./packages/core) | Framework-agnostic utilities | Stable |
-| [@formality/react](./packages/react) | React implementation | Stable |
-| [@formality/vue](./packages/vue) | Vue implementation | Planned |
-| [@formality/svelte](./packages/svelte) | Svelte implementation | Planned |
+| [@formality-ui/core](./packages/core) | Framework-agnostic utilities | Stable |
+| [@formality-ui/react](./packages/react) | React implementation | Stable |
+| [@formality-ui/vue](./packages/vue) | Vue implementation | Planned |
+| [@formality-ui/svelte](./packages/svelte) | Svelte implementation | Planned |
 
 ## Documentation
 
@@ -37,11 +37,11 @@ A powerful, framework-agnostic form library for building complex, dynamic forms 
 ## Quick Start (React)
 
 ```bash
-npm install @formality/react react-hook-form
+npm install @formality-ui/react react-hook-form
 ```
 
 ```tsx
-import { FormalityProvider, Form, Field } from '@formality/react';
+import { FormalityProvider, Form, Field } from '@formality-ui/react';
 
 // 1. Define input types (reusable across your app)
 const inputs = {
@@ -492,8 +492,8 @@ Contributions are welcome! Please read our contributing guidelines before submit
 pnpm test
 
 # Run specific package tests
-pnpm test --filter=@formality/core
-pnpm test --filter=@formality/react
+pnpm test --filter=@formality-ui/core
+pnpm test --filter=@formality-ui/react
 
 # Run with coverage
 pnpm test -- --coverage

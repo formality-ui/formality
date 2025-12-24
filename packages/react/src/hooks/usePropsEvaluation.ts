@@ -1,4 +1,4 @@
-// @formality/react - usePropsEvaluation Hook
+// @formality-ui/react - usePropsEvaluation Hook
 // Evaluates selectProps against current field values
 
 import { useMemo } from 'react';
@@ -7,8 +7,8 @@ import {
   evaluateDescriptor,
   buildFieldContext,
   type FormState,
-} from '@formality/core';
-import type { SelectValue } from '@formality/core';
+} from '@formality-ui/core';
+import type { SelectValue } from '@formality-ui/core';
 import { useFormContext } from '../context/FormContext';
 import { useInferredInputs } from './useInferredInputs';
 import { makeProxyState } from '../utils/makeProxyState';
