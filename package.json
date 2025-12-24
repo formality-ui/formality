@@ -1,5 +1,6 @@
 {
   "name": "formality",
+  "private": true,
   "type": "module",
   "packageManager": "pnpm@8.15.0",
   "version": "0.1.0",
