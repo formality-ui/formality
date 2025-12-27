@@ -447,12 +447,14 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       return;
     }
 
-    // Get all fields that need validation (changed + affected by conditions)
-    const fieldsToValidate = [...changedFields, ...affectedFields];
+    // Changed fields: already validated by RHF's onChange mode
+    // Affected fields: may need validation for cross-field validation
+    const fieldsToWaitFor = [...changedFields, ...affectedFields];
+    const fieldsToTrigger = [...affectedFields]; // Only affected, not changed
 
     // Wait for any in-flight validations on these fields to complete
     const validationsComplete = await waitForFieldValidation(
-      fieldsToValidate,
+      fieldsToWaitFor,
       executionVersion
     );
 
@@ -461,9 +463,18 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       return;
     }
 
-    // Trigger validation ONLY on changed and affected fields (not ALL fields)
-    if (fieldsToValidate.length > 0) {
-      const isValid = await methods.trigger(fieldsToValidate as any);
+    // Check if changed fields have errors (from onChange validation)
+    for (const fieldName of changedFields) {
+      const fieldState = methods.getFieldState(fieldName as any);
+      if (fieldState.error) {
+        // Changed field has validation error, don't submit
+        return;
+      }
+    }
+
+    // Only trigger affected fields (changed fields already validated by onChange)
+    if (fieldsToTrigger.length > 0) {
+      const isValid = await methods.trigger(fieldsToTrigger as any);
 
       // Check version again after async validation
       if (executionVersionRef.current !== executionVersion) {
@@ -474,19 +485,19 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         // Validation failed, don't submit
         return;
       }
+
+      // Wait for triggered validations to complete
+      const postTriggerComplete = await waitForFieldValidation(
+        fieldsToTrigger,
+        executionVersion
+      );
+
+      if (!postTriggerComplete || executionVersionRef.current !== executionVersion) {
+        return;
+      }
     }
 
-    // Wait for validations to complete after trigger
-    const postTriggerComplete = await waitForFieldValidation(
-      fieldsToValidate,
-      executionVersion
-    );
-
-    if (!postTriggerComplete || executionVersionRef.current !== executionVersion) {
-      return;
-    }
-
-    // Check if form is valid (may have other errors)
+    // Check if form is valid (may have other errors from other fields)
     const formState = methods.formState;
     if (Object.keys(formState.errors).length > 0) {
       return;
