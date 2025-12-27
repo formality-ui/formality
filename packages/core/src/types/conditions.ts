@@ -4,6 +4,37 @@
 import type { SelectValue } from './config';
 
 /**
+ * FieldMatcher - Matchers for a single field in multi-field conditions
+ *
+ * Used when `when` is an object mapping field names to their matchers.
+ * All specified matchers must pass (AND logic).
+ */
+export interface FieldMatcher {
+  /** Exact value match */
+  is?: unknown;
+
+  /** Truthy/falsy check (alias: isTruthy) */
+  truthy?: boolean;
+
+  /** Truthy/falsy check (alias for truthy) */
+  isTruthy?: boolean;
+
+  /** Field validity check - true if field has no errors */
+  isValid?: boolean;
+
+  /** Field disabled state check */
+  isDisabled?: boolean;
+}
+
+/**
+ * Multi-field when trigger - maps field names to their matchers
+ *
+ * All field conditions must match (AND logic).
+ * Example: { email: { isValid: true }, name: { isTruthy: true } }
+ */
+export type WhenMultiField = Record<string, FieldMatcher>;
+
+/**
  * ConditionDescriptor - Defines a single condition rule
  *
  * Conditions control disabled, visible, and setValue behaviors based on
@@ -16,10 +47,11 @@ export interface ConditionDescriptor {
   // ========================
 
   /**
-   * Simple field reference trigger
-   * Example: "client" - triggers when client field has a value
+   * Field reference trigger - can be:
+   * - string: Single field reference (e.g., "client")
+   * - object: Multi-field with per-field matchers (e.g., { email: { isValid: true }, name: { isTruthy: true } })
    */
-  when?: string;
+  when?: string | WhenMultiField;
 
   /**
    * Expression or function trigger
@@ -43,6 +75,20 @@ export interface ConditionDescriptor {
    * false: matches if trigger is falsy
    */
   truthy?: boolean;
+
+  /**
+   * Field validity check (requires 'when' trigger)
+   * true: matches if the 'when' field is valid (no errors)
+   * false: matches if the 'when' field is invalid (has errors)
+   */
+  isValid?: boolean;
+
+  /**
+   * Field disabled state check (requires 'when' trigger)
+   * true: matches if the 'when' field is disabled
+   * false: matches if the 'when' field is enabled
+   */
+  isDisabled?: boolean;
 
   // ========================
   // ACTIONS (when matched)

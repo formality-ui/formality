@@ -18,7 +18,12 @@ export type {
 export type { FieldError, FieldState, FormState } from './state';
 
 // Condition types
-export type { ConditionDescriptor, ConditionResult } from './conditions';
+export type {
+  ConditionDescriptor,
+  ConditionResult,
+  FieldMatcher,
+  WhenMultiField,
+} from './conditions';
 
 // Validation types
 export type {

@@ -43,6 +43,7 @@ const FIELD_STATE_PROPERTIES = new Set([
   'isValidating',
   'error',
   'invalid',
+  'disabled',
 ]);
 
 /**
@@ -217,6 +218,7 @@ interface FieldStateForContext {
   isValidating?: boolean;
   error?: unknown;
   invalid?: boolean;
+  disabled?: boolean;
 }
 
 /**

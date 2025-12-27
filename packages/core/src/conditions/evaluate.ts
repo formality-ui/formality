@@ -2,7 +2,7 @@
 // Pure functions for evaluating conditions against form state
 // ZERO framework dependencies
 
-import type { ConditionDescriptor, ConditionResult } from '../types';
+import type { ConditionDescriptor, ConditionResult, FieldMatcher } from '../types';
 import { evaluate, evaluateDescriptor } from '../expression/evaluate';
 import { buildEvaluationContext, unwrapFieldProxy } from '../expression/context';
 import { inferFieldsFromDescriptor } from '../expression/infer';
@@ -17,6 +17,7 @@ export interface FieldStateInput {
   isValidating?: boolean;
   error?: unknown;
   invalid?: boolean;
+  disabled?: boolean;
 }
 
 /**
@@ -40,25 +41,113 @@ export interface EvaluateConditionsInput {
 }
 
 /**
+ * Check if a single field matches its matchers
+ *
+ * @param fieldName - The field name to check
+ * @param matcher - The matchers to apply
+ * @param fieldValues - Map of field values
+ * @param fieldStates - Optional field states for state-based matchers
+ * @returns true if all matchers pass, false otherwise
+ */
+function evaluateFieldMatcher(
+  fieldName: string,
+  matcher: FieldMatcher,
+  fieldValues: Record<string, unknown>,
+  fieldStates?: Record<string, FieldStateInput>
+): boolean {
+  const fieldValue = fieldValues[fieldName];
+  const fieldState = fieldStates?.[fieldName];
+
+  // Check isValid matcher
+  if (matcher.isValid !== undefined) {
+    const isFieldValid = fieldState
+      ? !fieldState.invalid && !fieldState.error
+      : true; // No state = assume valid
+    if (matcher.isValid !== isFieldValid) {
+      return false;
+    }
+  }
+
+  // Check isDisabled matcher
+  if (matcher.isDisabled !== undefined) {
+    const isFieldDisabled = fieldState?.disabled ?? false;
+    if (matcher.isDisabled !== isFieldDisabled) {
+      return false;
+    }
+  }
+
+  // Check exact value match
+  if (matcher.is !== undefined) {
+    if (fieldValue !== matcher.is) {
+      return false;
+    }
+  }
+
+  // Check truthy/isTruthy (they're aliases)
+  const truthyCheck = matcher.truthy ?? matcher.isTruthy;
+  if (truthyCheck !== undefined) {
+    const isTruthy = Boolean(fieldValue);
+    if (truthyCheck !== isTruthy) {
+      return false;
+    }
+  }
+
+  // If no matchers specified, default to truthy check
+  const hasAnyMatcher =
+    matcher.is !== undefined ||
+    matcher.truthy !== undefined ||
+    matcher.isTruthy !== undefined ||
+    matcher.isValid !== undefined ||
+    matcher.isDisabled !== undefined;
+
+  if (!hasAnyMatcher) {
+    return Boolean(fieldValue);
+  }
+
+  return true;
+}
+
+/**
  * Check if a condition matches based on its trigger and matchers
  *
- * Handles both 'when' (field reference) and 'selectWhen' (expression) triggers,
- * and applies 'is' (exact match) or 'truthy' (boolean check) matchers.
+ * Handles triggers:
+ * - 'when' as string: Single field reference
+ * - 'when' as object: Multi-field with per-field matchers (AND logic)
+ * - 'selectWhen': Expression or function trigger
+ *
+ * Applies matchers:
+ * - 'is' (exact match) or 'truthy' (boolean check) for value matching
+ * - 'isValid' and 'isDisabled' for field state matching
+ *
+ * When multiple matchers are specified, ALL must pass (AND logic).
  *
  * @param condition - The condition to check
  * @param context - Evaluation context with field values
  * @param fieldValues - Direct field values map for 'when' lookup
+ * @param fieldStates - Optional field states for state-based matchers
  * @returns true if the condition matches, false otherwise
  */
 function evaluateConditionMatch(
   condition: ConditionDescriptor,
   context: Record<string, unknown>,
-  fieldValues: Record<string, unknown>
+  fieldValues: Record<string, unknown>,
+  fieldStates?: Record<string, FieldStateInput>
 ): boolean {
+  // Handle multi-field 'when' (object form)
+  if (condition.when !== undefined && typeof condition.when === 'object') {
+    // All field conditions must match (AND logic)
+    for (const [fieldName, matcher] of Object.entries(condition.when)) {
+      if (!evaluateFieldMatcher(fieldName, matcher, fieldValues, fieldStates)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   let triggerValue: unknown;
 
-  // Determine trigger value
-  if (condition.when !== undefined) {
+  // Determine trigger value for single-field or expression triggers
+  if (typeof condition.when === 'string') {
     // Simple field reference: look up field value directly
     triggerValue = fieldValues[condition.when];
   } else if (condition.selectWhen !== undefined) {
@@ -78,7 +167,31 @@ function evaluateConditionMatch(
     return false;
   }
 
-  // Apply matchers
+  // Apply field state matchers (require string 'when' trigger for field reference)
+  if (typeof condition.when === 'string' && fieldStates) {
+    const fieldState = fieldStates[condition.when];
+
+    // Check isValid matcher
+    if (condition.isValid !== undefined) {
+      // Field is valid if not invalid and has no error
+      const isFieldValid = fieldState
+        ? !fieldState.invalid && !fieldState.error
+        : true; // No state = assume valid
+      if (condition.isValid !== isFieldValid) {
+        return false;
+      }
+    }
+
+    // Check isDisabled matcher
+    if (condition.isDisabled !== undefined) {
+      const isFieldDisabled = fieldState?.disabled ?? false;
+      if (condition.isDisabled !== isFieldDisabled) {
+        return false;
+      }
+    }
+  }
+
+  // Apply value matchers
   if (condition.is !== undefined) {
     // Exact value match
     return triggerValue === condition.is;
@@ -88,6 +201,11 @@ function evaluateConditionMatch(
     // Boolean truthiness check
     const isTruthy = Boolean(triggerValue);
     return condition.truthy ? isTruthy : !isTruthy;
+  }
+
+  // If only state matchers were specified (isValid/isDisabled), we've already checked them
+  if (condition.isValid !== undefined || condition.isDisabled !== undefined) {
+    return true;
   }
 
   // Default: truthy check if no matcher specified
@@ -135,7 +253,7 @@ export function evaluateConditions(
 
   // Evaluate each condition in order
   for (const condition of conditions) {
-    const isMatched = evaluateConditionMatch(condition, context, fieldValues);
+    const isMatched = evaluateConditionMatch(condition, context, fieldValues, fieldStates);
 
     if (!isMatched) {
       continue;
@@ -193,16 +311,18 @@ export function evaluateConditions(
  * @param fieldValues - Map of field names to their current values
  * @param record - Optional record for expression context
  * @param props - Optional props for expression context
+ * @param fieldStates - Optional field states for state-based matchers
  * @returns true if the condition matches
  */
 export function conditionMatches(
   condition: ConditionDescriptor,
   fieldValues: Record<string, unknown>,
   record?: Record<string, unknown>,
-  props?: Record<string, unknown>
+  props?: Record<string, unknown>,
+  fieldStates?: Record<string, FieldStateInput>
 ): boolean {
-  const context = buildEvaluationContext(fieldValues, record, props);
-  return evaluateConditionMatch(condition, context, fieldValues);
+  const context = buildEvaluationContext(fieldValues, record, props, fieldStates);
+  return evaluateConditionMatch(condition, context, fieldValues, fieldStates);
 }
 
 /**
@@ -278,9 +398,14 @@ export function inferFieldsFromConditions(
   const fields: string[] = [];
 
   for (const condition of conditions) {
-    // Add 'when' field reference
+    // Add 'when' field reference(s)
     if (condition.when !== undefined) {
-      fields.push(condition.when);
+      if (typeof condition.when === 'string') {
+        fields.push(condition.when);
+      } else {
+        // Multi-field object: add all field names
+        fields.push(...Object.keys(condition.when));
+      }
     }
 
     // Infer fields from 'selectWhen' expression

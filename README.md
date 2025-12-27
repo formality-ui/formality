@@ -4,17 +4,25 @@ A powerful, framework-agnostic form library for building complex, dynamic forms 
 
 ```tsx
 const config = {
-  name:    { type: 'text', label: 'Name' },
-  email:   { type: 'text', label: 'Email' },
+  name:    { type: 'text', label: 'Name', },
+  email:   { type: 'text', label: 'Email', validator: ['required', 'email'] },
   country: { type: 'select', props: { useOptions: useCountries } },
   state:   { type: 'select', props: { useOptions: useStates }, selectProps: { queryParams: 'country.id', disabled: '!country' } },
 };
 
-<Form config={config} onSubmit={save}>
+const formConfig = {
+  groups: {
+    details: { conditions: [{ when: 'email', isValid: true, visible: true }] },
+  },
+};
+
+<Form config={config} formConfig={formConfig} onSubmit={save}>
   <Field name="name" />
   <Field name="email" />
-  <Field name="country" />
-  <UnusedFields />  {/* renders: state */}
+  <FieldGroup name="details"> {/*  hidden until email is valid */}
+    <Field name="country" />
+    <UnusedFields />  {/* renders: state */}
+  </FieldGroup>
 </Form>
 ```
 
@@ -145,14 +153,38 @@ const config = {
 
 | Property | Description |
 |----------|-------------|
-| `when` | Field name to watch |
+| `when` | Field name to watch (string), or object for multi-field matching |
 | `selectWhen` | Expression to evaluate (for complex conditions) |
 | `is` | Exact value to match |
 | `truthy` | Check if value is truthy (`true`) or falsy (`false`) |
+| `isValid` | Check if field is valid (`true`) or invalid (`false`) |
+| `isDisabled` | Check if field is disabled (`true`) or enabled (`false`) |
 | `disabled` | Set disabled state when condition matches |
 | `visible` | Set visibility when condition matches |
 | `set` | Set static value when condition matches |
 | `selectSet` | Set dynamic value from expression or function |
+
+### Multi-Field Conditions
+
+Match on multiple fields with per-field matchers (AND logic):
+
+```typescript
+conditions: [
+  {
+    when: {
+      email: { isValid: true },
+      name: { isTruthy: true },
+    },
+    visible: true, // Show only when email is valid AND name is filled
+  },
+]
+```
+
+Available matchers for multi-field `when`:
+- `is`: Exact value match
+- `truthy` / `isTruthy`: Truthy/falsy check
+- `isValid`: Field validity check
+- `isDisabled`: Field disabled state check
 
 ---
 
