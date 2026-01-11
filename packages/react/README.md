@@ -13,6 +13,7 @@ yarn add @formality-ui/react react-hook-form
 ```
 
 **Peer Dependencies:**
+
 - `react` >= 18.0.0
 - `react-dom` >= 18.0.0
 - `react-hook-form` >= 7.0.0
@@ -20,8 +21,8 @@ yarn add @formality-ui/react react-hook-form
 ## Quick Start
 
 ```tsx
-import { FormalityProvider, Form, Field } from '@formality-ui/react';
-import type { InputConfig, FormFieldsConfig } from '@formality-ui/react';
+import { FormalityProvider, Form, Field } from "@formality-ui/react";
+import type { InputConfig, FormFieldsConfig } from "@formality-ui/react";
 
 // Define your input types
 const inputs: Record<string, InputConfig> = {
@@ -29,16 +30,24 @@ const inputs: Record<string, InputConfig> = {
     component: ({ value, onChange, label, error, ...props }) => (
       <div>
         <label>{label}</label>
-        <input value={value ?? ''} onChange={(e) => onChange(e.target.value)} {...props} />
+        <input
+          value={value ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          {...props}
+        />
         {error && <span>{error}</span>}
       </div>
     ),
-    defaultValue: '',
+    defaultValue: "",
   },
   switch: {
     component: ({ value, onChange, label }) => (
       <label>
-        <input type="checkbox" checked={value ?? false} onChange={(e) => onChange(e.target.checked)} />
+        <input
+          type="checkbox"
+          checked={value ?? false}
+          onChange={(e) => onChange(e.target.checked)}
+        />
         {label}
       </label>
     ),
@@ -48,9 +57,9 @@ const inputs: Record<string, InputConfig> = {
 
 // Define your form fields
 const config: FormFieldsConfig = {
-  name: { type: 'textField', label: 'Full Name' },
-  email: { type: 'textField', label: 'Email Address' },
-  subscribed: { type: 'switch', label: 'Subscribe to newsletter' },
+  name: { type: "textField", label: "Full Name" },
+  email: { type: "textField", label: "Email Address" },
+  subscribed: { type: "switch", label: "Subscribe to newsletter" },
 };
 
 // Use in your app
@@ -181,7 +190,7 @@ Apply conditions to multiple fields.
 const formConfig = {
   groups: {
     signedFields: {
-      conditions: [{ when: 'signed', is: true, disabled: false }],
+      conditions: [{ when: "signed", is: true, disabled: false }],
     },
   },
 };
@@ -189,7 +198,7 @@ const formConfig = {
 <FieldGroup name="signedFields">
   <Field name="creditApp" />
   <Field name="inCarvin" />
-</FieldGroup>
+</FieldGroup>;
 ```
 
 **Props:**
@@ -221,12 +230,12 @@ Add conditional logic to fields:
 
 ```typescript
 const config: FormFieldsConfig = {
-  signed: { type: 'switch' },
+  signed: { type: "switch" },
   creditApp: {
-    type: 'switch',
+    type: "switch",
     conditions: [
-      { when: 'signed', is: false, disabled: true },
-      { when: 'signed', is: true, visible: true },
+      { when: "signed", is: false, disabled: true },
+      { when: "signed", is: true, visible: true },
     ],
   },
 };
@@ -255,13 +264,13 @@ Evaluate props dynamically based on form state:
 
 ```typescript
 const config: FormFieldsConfig = {
-  client: { type: 'autocomplete' },
+  client: { type: "autocomplete" },
   clientContact: {
-    type: 'autocomplete',
+    type: "autocomplete",
     selectProps: {
-      queryParams: 'client.id',
-      disabled: '!client',
-      placeholder: 'client.name',
+      queryParams: "client.id",
+      disabled: "!client",
+      placeholder: "client.name",
     },
   },
 };
@@ -291,10 +300,11 @@ Enable automatic form submission on changes:
 Access form state and methods from any child component:
 
 ```typescript
-import { useFormContext } from '@formality-ui/react';
+import { useFormContext } from "@formality-ui/react";
 
 function CustomComponent() {
-  const { config, methods, record, unusedFields, submitImmediate } = useFormContext();
+  const { config, methods, record, unusedFields, submitImmediate } =
+    useFormContext();
   // ...
 }
 ```
@@ -304,7 +314,7 @@ function CustomComponent() {
 Evaluate conditions manually:
 
 ```typescript
-import { useConditions } from '@formality-ui/react';
+import { useConditions } from "@formality-ui/react";
 
 const { disabled, visible, setValue } = useConditions({
   conditions: fieldConfig.conditions,
@@ -316,7 +326,7 @@ const { disabled, visible, setValue } = useConditions({
 Evaluate dynamic props:
 
 ```typescript
-import { usePropsEvaluation } from '@formality-ui/react';
+import { usePropsEvaluation } from "@formality-ui/react";
 
 const evaluatedProps = usePropsEvaluation(selectProps, watchedValues);
 ```
@@ -326,7 +336,7 @@ const evaluatedProps = usePropsEvaluation(selectProps, watchedValues);
 Subscribe to form state changes:
 
 ```typescript
-import { useFormState } from '@formality-ui/react';
+import { useFormState } from "@formality-ui/react";
 
 const { methods, formState } = useFormState(options);
 ```
@@ -336,7 +346,7 @@ const { methods, formState } = useFormState(options);
 Subscribe to field value changes:
 
 ```typescript
-import { useSubscriptions } from '@formality-ui/react';
+import { useSubscriptions } from "@formality-ui/react";
 
 const watchedValues = useSubscriptions(fieldNames);
 ```
@@ -346,7 +356,7 @@ const watchedValues = useSubscriptions(fieldNames);
 Infer input configurations:
 
 ```typescript
-import { useInferredInputs } from '@formality-ui/react';
+import { useInferredInputs } from "@formality-ui/react";
 
 const inputs = useInferredInputs(config);
 ```
@@ -358,9 +368,10 @@ const inputs = useInferredInputs(config);
 Global configuration context:
 
 ```typescript
-import { useConfigContext } from '@formality-ui/react';
+import { useConfigContext } from "@formality-ui/react";
 
-const { inputs, validators, formatters, parsers, errorMessages } = useConfigContext();
+const { inputs, validators, formatters, parsers, errorMessages } =
+  useConfigContext();
 ```
 
 ### FormContext
@@ -368,7 +379,7 @@ const { inputs, validators, formatters, parsers, errorMessages } = useConfigCont
 Form-level context:
 
 ```typescript
-import { useFormContext } from '@formality-ui/react';
+import { useFormContext } from "@formality-ui/react";
 
 const { config, methods, record, formConfig, unusedFields } = useFormContext();
 ```
@@ -378,7 +389,7 @@ const { config, methods, record, formConfig, unusedFields } = useFormContext();
 Group-level context for nested conditions:
 
 ```typescript
-import { useGroupContext } from '@formality-ui/react';
+import { useGroupContext } from "@formality-ui/react";
 
 const groupState = useGroupContext();
 ```
@@ -420,7 +431,7 @@ import type {
   UseFormStateOptions,
   WatcherSetterFn,
   DebouncedFunction,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 ```
 
 ## Utilities
@@ -430,7 +441,7 @@ import type {
 Create proxy state for efficient subscriptions:
 
 ```typescript
-import { makeProxyState, makeDeepProxyState } from '@formality-ui/react';
+import { makeProxyState, makeDeepProxyState } from "@formality-ui/react";
 
 const proxy = makeProxyState(initialState);
 const deepProxy = makeDeepProxyState(initialState);

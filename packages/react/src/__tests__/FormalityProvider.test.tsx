@@ -1,17 +1,21 @@
-import React, { forwardRef } from 'react';
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { FormalityProvider } from '../components/FormalityProvider';
-import { useConfigContext } from '../context/ConfigContext';
-import type { InputConfig } from '@formality-ui/core';
+import React, { forwardRef } from "react";
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { FormalityProvider } from "../components/FormalityProvider";
+import { useConfigContext } from "../context/ConfigContext";
+import type { InputConfig } from "@formality-ui/core";
 
 // Test component that reads context
 function TestConsumer() {
   const config = useConfigContext();
   return (
     <div data-testid="consumer">
-      <span data-testid="inputs-count">{Object.keys(config.inputs).length}</span>
-      <span data-testid="default-prop-name">{config.defaultSubscriptionPropName}</span>
+      <span data-testid="inputs-count">
+        {Object.keys(config.inputs).length}
+      </span>
+      <span data-testid="default-prop-name">
+        {config.defaultSubscriptionPropName}
+      </span>
     </div>
   );
 }
@@ -21,18 +25,17 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  (props, ref) => <input ref={ref} />
-);
+const TestInput = forwardRef<HTMLInputElement, TestInputProps>((props, ref) => (
+  <input ref={ref} />
+));
 
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 
-describe('FormalityProvider', () => {
-
+describe("FormalityProvider", () => {
   const testInputs: Record<string, InputConfig> = {
     textField: {
       component: TestInput,
-      defaultValue: '',
+      defaultValue: "",
     },
     switch: {
       component: TestInput,
@@ -40,40 +43,42 @@ describe('FormalityProvider', () => {
     },
   };
 
-  it('should provide inputs to descendants', () => {
+  it("should provide inputs to descendants", () => {
     render(
       <FormalityProvider inputs={testInputs}>
         <TestConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('inputs-count')).toHaveTextContent('2');
+    expect(screen.getByTestId("inputs-count")).toHaveTextContent("2");
   });
 
-  it('should use default subscription prop name', () => {
+  it("should use default subscription prop name", () => {
     render(
       <FormalityProvider inputs={testInputs}>
         <TestConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('default-prop-name')).toHaveTextContent('state');
+    expect(screen.getByTestId("default-prop-name")).toHaveTextContent("state");
   });
 
-  it('should allow custom subscription prop name', () => {
+  it("should allow custom subscription prop name", () => {
     render(
       <FormalityProvider
         inputs={testInputs}
         defaultSubscriptionPropName="formState"
       >
         <TestConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('default-prop-name')).toHaveTextContent('formState');
+    expect(screen.getByTestId("default-prop-name")).toHaveTextContent(
+      "formState",
+    );
   });
 
-  it('should provide formatters and parsers', () => {
+  it("should provide formatters and parsers", () => {
     const formatters = { currency: (v: unknown) => `$${v}` };
     const parsers = { number: (v: unknown) => Number(v) };
 
@@ -85,7 +90,7 @@ describe('FormalityProvider', () => {
             {config.formatters.currency?.(100)}
           </span>
           <span data-testid="parser-result">
-            {String(config.parsers.number?.('42'))}
+            {String(config.parsers.number?.("42"))}
           </span>
         </div>
       );
@@ -98,48 +103,54 @@ describe('FormalityProvider', () => {
         parsers={parsers}
       >
         <FormatterConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('formatter-result')).toHaveTextContent('$100');
-    expect(screen.getByTestId('parser-result')).toHaveTextContent('42');
+    expect(screen.getByTestId("formatter-result")).toHaveTextContent("$100");
+    expect(screen.getByTestId("parser-result")).toHaveTextContent("42");
   });
 
-  it('should provide validators config', () => {
+  it("should provide validators config", () => {
     const validators = {
       customValidator: (value: unknown) => {
-        if (!value) return 'Value is required';
+        if (!value) return "Value is required";
         return true;
       },
     };
 
     function ValidatorConsumer() {
       const config = useConfigContext();
-      const hasValidator = 'customValidator' in config.validators;
-      return <span data-testid="has-validator">{hasValidator ? 'yes' : 'no'}</span>;
+      const hasValidator = "customValidator" in config.validators;
+      return (
+        <span data-testid="has-validator">{hasValidator ? "yes" : "no"}</span>
+      );
     }
 
     render(
       <FormalityProvider inputs={testInputs} validators={validators}>
         <ValidatorConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('has-validator')).toHaveTextContent('yes');
+    expect(screen.getByTestId("has-validator")).toHaveTextContent("yes");
   });
 
-  it('should provide error messages config', () => {
+  it("should provide error messages config", () => {
     const errorMessages = {
-      required: 'This field is required',
-      minLength: 'Too short',
+      required: "This field is required",
+      minLength: "Too short",
     };
 
     function ErrorMessageConsumer() {
       const config = useConfigContext();
       return (
         <div>
-          <span data-testid="required-msg">{config.errorMessages.required}</span>
-          <span data-testid="minlength-msg">{config.errorMessages.minLength}</span>
+          <span data-testid="required-msg">
+            {config.errorMessages.required}
+          </span>
+          <span data-testid="minlength-msg">
+            {config.errorMessages.minLength}
+          </span>
         </div>
       );
     }
@@ -147,40 +158,49 @@ describe('FormalityProvider', () => {
     render(
       <FormalityProvider inputs={testInputs} errorMessages={errorMessages}>
         <ErrorMessageConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('required-msg')).toHaveTextContent('This field is required');
-    expect(screen.getByTestId('minlength-msg')).toHaveTextContent('Too short');
+    expect(screen.getByTestId("required-msg")).toHaveTextContent(
+      "This field is required",
+    );
+    expect(screen.getByTestId("minlength-msg")).toHaveTextContent("Too short");
   });
 
-  it('should provide default field props', () => {
+  it("should provide default field props", () => {
     const defaultFieldProps = {
-      variant: 'outlined',
-      size: 'small',
+      variant: "outlined",
+      size: "small",
     };
 
     function FieldPropsConsumer() {
       const config = useConfigContext();
       return (
         <div>
-          <span data-testid="variant">{config.defaultFieldProps.variant as string}</span>
-          <span data-testid="size">{config.defaultFieldProps.size as string}</span>
+          <span data-testid="variant">
+            {config.defaultFieldProps.variant as string}
+          </span>
+          <span data-testid="size">
+            {config.defaultFieldProps.size as string}
+          </span>
         </div>
       );
     }
 
     render(
-      <FormalityProvider inputs={testInputs} defaultFieldProps={defaultFieldProps}>
+      <FormalityProvider
+        inputs={testInputs}
+        defaultFieldProps={defaultFieldProps}
+      >
         <FieldPropsConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('variant')).toHaveTextContent('outlined');
-    expect(screen.getByTestId('size')).toHaveTextContent('small');
+    expect(screen.getByTestId("variant")).toHaveTextContent("outlined");
+    expect(screen.getByTestId("size")).toHaveTextContent("small");
   });
 
-  it('should provide input templates', () => {
+  it("should provide input templates", () => {
     const CustomTemplate = () => <div>Template</div>;
     const inputTemplates = {
       card: CustomTemplate,
@@ -188,59 +208,76 @@ describe('FormalityProvider', () => {
 
     function TemplateConsumer() {
       const config = useConfigContext();
-      const hasCardTemplate = 'card' in config.inputTemplates;
-      return <span data-testid="has-template">{hasCardTemplate ? 'yes' : 'no'}</span>;
+      const hasCardTemplate = "card" in config.inputTemplates;
+      return (
+        <span data-testid="has-template">{hasCardTemplate ? "yes" : "no"}</span>
+      );
     }
 
     render(
       <FormalityProvider inputs={testInputs} inputTemplates={inputTemplates}>
         <TemplateConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('has-template')).toHaveTextContent('yes');
+    expect(screen.getByTestId("has-template")).toHaveTextContent("yes");
   });
 
-  it('should provide default input template', () => {
+  it("should provide default input template", () => {
     const DefaultTemplate = () => <div>Default Template</div>;
 
     function DefaultTemplateConsumer() {
       const config = useConfigContext();
       const hasDefault = config.defaultInputTemplate !== undefined;
-      return <span data-testid="has-default">{hasDefault ? 'yes' : 'no'}</span>;
+      return <span data-testid="has-default">{hasDefault ? "yes" : "no"}</span>;
     }
 
     render(
-      <FormalityProvider inputs={testInputs} defaultInputTemplate={DefaultTemplate}>
+      <FormalityProvider
+        inputs={testInputs}
+        defaultInputTemplate={DefaultTemplate}
+      >
         <DefaultTemplateConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('has-default')).toHaveTextContent('yes');
+    expect(screen.getByTestId("has-default")).toHaveTextContent("yes");
   });
 
-  it('should not render any wrapper elements', () => {
+  it("should not render any wrapper elements", () => {
     const { container } = render(
       <FormalityProvider inputs={testInputs}>
         <div data-testid="child">Child Content</div>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // FormalityProvider should only render its children (via Context.Provider)
-    expect(container.firstChild).toBe(screen.getByTestId('child'));
+    expect(container.firstChild).toBe(screen.getByTestId("child"));
   });
 
-  it('should use empty defaults for optional props', () => {
+  it("should use empty defaults for optional props", () => {
     function DefaultsConsumer() {
       const config = useConfigContext();
       return (
         <div>
-          <span data-testid="formatters-count">{Object.keys(config.formatters).length}</span>
-          <span data-testid="parsers-count">{Object.keys(config.parsers).length}</span>
-          <span data-testid="validators-count">{Object.keys(config.validators).length}</span>
-          <span data-testid="error-messages-count">{Object.keys(config.errorMessages).length}</span>
-          <span data-testid="templates-count">{Object.keys(config.inputTemplates).length}</span>
-          <span data-testid="field-props-count">{Object.keys(config.defaultFieldProps).length}</span>
+          <span data-testid="formatters-count">
+            {Object.keys(config.formatters).length}
+          </span>
+          <span data-testid="parsers-count">
+            {Object.keys(config.parsers).length}
+          </span>
+          <span data-testid="validators-count">
+            {Object.keys(config.validators).length}
+          </span>
+          <span data-testid="error-messages-count">
+            {Object.keys(config.errorMessages).length}
+          </span>
+          <span data-testid="templates-count">
+            {Object.keys(config.inputTemplates).length}
+          </span>
+          <span data-testid="field-props-count">
+            {Object.keys(config.defaultFieldProps).length}
+          </span>
         </div>
       );
     }
@@ -248,18 +285,18 @@ describe('FormalityProvider', () => {
     render(
       <FormalityProvider inputs={testInputs}>
         <DefaultsConsumer />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('formatters-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('parsers-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('validators-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('error-messages-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('templates-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('field-props-count')).toHaveTextContent('0');
+    expect(screen.getByTestId("formatters-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("parsers-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("validators-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("error-messages-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("templates-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("field-props-count")).toHaveTextContent("0");
   });
 
-  it('should memoize context value when all props are stable references', () => {
+  it("should memoize context value when all props are stable references", () => {
     const references: unknown[] = [];
 
     // Define stable references for all optional props
@@ -287,7 +324,7 @@ describe('FormalityProvider', () => {
         defaultFieldProps={stableDefaultFieldProps}
       >
         <ReferenceTracker />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // Rerender with same prop references
@@ -302,7 +339,7 @@ describe('FormalityProvider', () => {
         defaultFieldProps={stableDefaultFieldProps}
       >
         <ReferenceTracker />
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // Should be same reference due to useMemo with same dependency references
@@ -310,14 +347,18 @@ describe('FormalityProvider', () => {
   });
 });
 
-describe('ConfigContext default values', () => {
-  it('should provide default values when no FormalityProvider', () => {
+describe("ConfigContext default values", () => {
+  it("should provide default values when no FormalityProvider", () => {
     function DefaultValuesConsumer() {
       const config = useConfigContext();
       return (
         <div>
-          <span data-testid="inputs-count">{Object.keys(config.inputs).length}</span>
-          <span data-testid="prop-name">{config.defaultSubscriptionPropName}</span>
+          <span data-testid="inputs-count">
+            {Object.keys(config.inputs).length}
+          </span>
+          <span data-testid="prop-name">
+            {config.defaultSubscriptionPropName}
+          </span>
         </div>
       );
     }
@@ -325,7 +366,7 @@ describe('ConfigContext default values', () => {
     // Render without FormalityProvider - should use defaults
     render(<DefaultValuesConsumer />);
 
-    expect(screen.getByTestId('inputs-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('prop-name')).toHaveTextContent('state');
+    expect(screen.getByTestId("inputs-count")).toHaveTextContent("0");
+    expect(screen.getByTestId("prop-name")).toHaveTextContent("state");
   });
 });

@@ -1,8 +1,8 @@
 // @formality-ui/core - Expression Evaluation
 // Uses jsep for parsing and custom evaluation for safe expression execution
 
-import jsep from 'jsep';
-import { unwrapFieldProxy } from './context';
+import jsep from "jsep";
+import { unwrapFieldProxy } from "./context";
 
 // jsep AST node types
 type Expression = jsep.Expression;
@@ -30,7 +30,7 @@ function getProperty(obj: unknown, key: string): unknown {
   if (obj === null || obj === undefined) {
     return undefined;
   }
-  if (typeof obj === 'object') {
+  if (typeof obj === "object") {
     return (obj as Record<string, unknown>)[key];
   }
   return undefined;
@@ -41,13 +41,13 @@ function getProperty(obj: unknown, key: string): unknown {
  */
 function evaluateNode(node: Expression, context: EvaluationContext): unknown {
   switch (node.type) {
-    case 'Literal':
+    case "Literal":
       return (node as Literal).value;
 
-    case 'Identifier':
+    case "Identifier":
       return context[(node as Identifier).name];
 
-    case 'MemberExpression': {
+    case "MemberExpression": {
       const memberNode = node as MemberExpression;
       const object = evaluateNode(memberNode.object, context);
       if (memberNode.computed) {
@@ -60,25 +60,29 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       }
     }
 
-    case 'BinaryExpression': {
+    case "BinaryExpression": {
       const binaryNode = node as BinaryExpression;
 
       // Logical operators need short-circuit evaluation
       // (newer jsep versions treat these as BinaryExpression)
       switch (binaryNode.operator) {
-        case '&&': {
+        case "&&": {
           const left = evaluateNode(binaryNode.left, context);
           // Unwrap proxy for truthiness check
           const leftValue = unwrapFieldProxy(left);
-          return leftValue ? evaluateNode(binaryNode.right, context) : leftValue;
+          return leftValue
+            ? evaluateNode(binaryNode.right, context)
+            : leftValue;
         }
-        case '||': {
+        case "||": {
           const left = evaluateNode(binaryNode.left, context);
           // Unwrap proxy for truthiness check
           const leftValue = unwrapFieldProxy(left);
-          return leftValue ? leftValue : evaluateNode(binaryNode.right, context);
+          return leftValue
+            ? leftValue
+            : evaluateNode(binaryNode.right, context);
         }
-        case '??': {
+        case "??": {
           const left = evaluateNode(binaryNode.left, context);
           // Unwrap proxy for null/undefined check
           const leftValue = unwrapFieldProxy(left);
@@ -96,53 +100,57 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       const rightValue = unwrapFieldProxy(right);
 
       switch (binaryNode.operator) {
-        case '+':
+        case "+":
           return (leftValue as number) + (rightValue as number);
-        case '-':
+        case "-":
           return (leftValue as number) - (rightValue as number);
-        case '*':
+        case "*":
           return (leftValue as number) * (rightValue as number);
-        case '/':
+        case "/":
           return (leftValue as number) / (rightValue as number);
-        case '%':
+        case "%":
           return (leftValue as number) % (rightValue as number);
-        case '===':
+        case "===":
           return leftValue === rightValue;
-        case '!==':
+        case "!==":
           return leftValue !== rightValue;
-        case '==':
+        case "==":
           // eslint-disable-next-line eqeqeq
           return leftValue == rightValue;
-        case '!=':
+        case "!=":
           // eslint-disable-next-line eqeqeq
           return leftValue != rightValue;
-        case '<':
+        case "<":
           return (leftValue as number) < (rightValue as number);
-        case '>':
+        case ">":
           return (leftValue as number) > (rightValue as number);
-        case '<=':
+        case "<=":
           return (leftValue as number) <= (rightValue as number);
-        case '>=':
+        case ">=":
           return (leftValue as number) >= (rightValue as number);
         default:
           throw new Error(`Unknown binary operator: ${binaryNode.operator}`);
       }
     }
 
-    case 'LogicalExpression': {
+    case "LogicalExpression": {
       const logicalNode = node as LogicalExpression;
       const left = evaluateNode(logicalNode.left, context);
       // Unwrap proxy for truthiness/null checks
       const leftValue = unwrapFieldProxy(left);
 
       switch (logicalNode.operator) {
-        case '&&':
+        case "&&":
           // Short-circuit: only evaluate right if left is truthy
-          return leftValue ? evaluateNode(logicalNode.right, context) : leftValue;
-        case '||':
+          return leftValue
+            ? evaluateNode(logicalNode.right, context)
+            : leftValue;
+        case "||":
           // Short-circuit: only evaluate right if left is falsy
-          return leftValue ? leftValue : evaluateNode(logicalNode.right, context);
-        case '??':
+          return leftValue
+            ? leftValue
+            : evaluateNode(logicalNode.right, context);
+        case "??":
           // Nullish coalescing: only evaluate right if left is null/undefined
           return leftValue !== null && leftValue !== undefined
             ? leftValue
@@ -152,27 +160,27 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       }
     }
 
-    case 'UnaryExpression': {
+    case "UnaryExpression": {
       const unaryNode = node as UnaryExpression;
       const argument = evaluateNode(unaryNode.argument, context);
       // Unwrap proxy for unary operations
       const argValue = unwrapFieldProxy(argument);
 
       switch (unaryNode.operator) {
-        case '!':
+        case "!":
           return !argValue;
-        case '-':
+        case "-":
           return -(argValue as number);
-        case '+':
+        case "+":
           return +(argValue as number);
-        case 'typeof':
+        case "typeof":
           return typeof argValue;
         default:
           throw new Error(`Unknown unary operator: ${unaryNode.operator}`);
       }
     }
 
-    case 'ConditionalExpression': {
+    case "ConditionalExpression": {
       const condNode = node as ConditionalExpression;
       const test = evaluateNode(condNode.test, context);
       // Unwrap proxy for truthiness check
@@ -182,19 +190,19 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
         : evaluateNode(condNode.alternate, context);
     }
 
-    case 'ArrayExpression': {
+    case "ArrayExpression": {
       const arrayNode = node as ArrayExpression;
       return arrayNode.elements.map((element) =>
-        element ? evaluateNode(element, context) : undefined
+        element ? evaluateNode(element, context) : undefined,
       );
     }
 
-    case 'CallExpression': {
+    case "CallExpression": {
       // We don't allow function calls for security
-      throw new Error('Function calls are not allowed in expressions');
+      throw new Error("Function calls are not allowed in expressions");
     }
 
-    case 'Compound': {
+    case "Compound": {
       // Compound expressions (multiple statements) - evaluate last one
       const compoundNode = node as Compound;
       let result: unknown;
@@ -246,7 +254,7 @@ export function evaluate(expr: string, context: EvaluationContext): unknown {
     return unwrapped;
   } catch (error) {
     // Log error in development, return undefined in production
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== "production") {
       console.warn(`Expression evaluation error for "${expr}":`, error);
     }
     return undefined;
@@ -265,15 +273,15 @@ export function evaluate(expr: string, context: EvaluationContext): unknown {
  */
 export function evaluateDescriptor(
   descriptor: unknown,
-  context: EvaluationContext
+  context: EvaluationContext,
 ): unknown {
   // String: evaluate as expression
-  if (typeof descriptor === 'string') {
+  if (typeof descriptor === "string") {
     return evaluate(descriptor, context);
   }
 
   // Function: return as-is (framework adapter handles this)
-  if (typeof descriptor === 'function') {
+  if (typeof descriptor === "function") {
     return descriptor;
   }
 
@@ -283,7 +291,7 @@ export function evaluateDescriptor(
   }
 
   // Object: evaluate each value
-  if (descriptor !== null && typeof descriptor === 'object') {
+  if (descriptor !== null && typeof descriptor === "object") {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(descriptor)) {
       result[key] = evaluateDescriptor(value, context);

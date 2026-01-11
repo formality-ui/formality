@@ -1,13 +1,13 @@
 // @formality-ui/react - Types
 // React-specific type extensions for Formality
 
-import type { ComponentType } from 'react';
+import type { ComponentType } from "react";
 import type {
   ControllerFieldState,
   UseFormStateReturn,
   FieldValues,
-} from 'react-hook-form';
-import type { FormState, FieldError } from '@formality-ui/core';
+} from "react-hook-form";
+import type { FormState, FieldError } from "@formality-ui/core";
 
 /**
  * Props passed to input template components
@@ -61,8 +61,9 @@ export interface CustomFieldState {
  * Combines RHF's form state with proxy-wrapped field states
  * and the original record for expression access.
  */
-export interface ExtendedFormState<TFieldValues extends FieldValues = FieldValues>
-  extends UseFormStateReturn<TFieldValues> {
+export interface ExtendedFormState<
+  TFieldValues extends FieldValues = FieldValues,
+> extends UseFormStateReturn<TFieldValues> {
   /** Proxy-wrapped field states for each field */
   fields: Record<string, CustomFieldState>;
 

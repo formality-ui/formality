@@ -12,7 +12,7 @@
  * - Custom input templates
  */
 
-import React, { memo } from 'react';
+import React, { memo } from "react";
 import {
   FormalityProvider,
   Form,
@@ -23,7 +23,7 @@ import {
   type FormFieldsConfig,
   type FormConfig,
   type InputTemplateProps,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 
 // =============================================================================
 // Input Types
@@ -35,14 +35,14 @@ const inputs: Record<string, InputConfig> = {
       <div className="field">
         <label>{label}</label>
         <input
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
         {error && <span className="error">{error}</span>}
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
 
   switch: {
@@ -58,7 +58,7 @@ const inputs: Record<string, InputConfig> = {
       </label>
     )),
     defaultValue: false,
-    inputFieldProp: 'checked',
+    inputFieldProp: "checked",
     debounce: false,
   },
 
@@ -67,19 +67,16 @@ const inputs: Record<string, InputConfig> = {
     component: memo(({ value, onChange, label, state, formState }) => (
       <div className="field field-with-state">
         <label>{label}</label>
-        <input
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
         {/* Access field metadata via state */}
         <div className="field-metadata">
-          <span>Touched: {state?.isTouched ? 'Yes' : 'No'}</span>
-          <span>Dirty: {state?.isDirty ? 'Yes' : 'No'}</span>
-          <span>Valid: {!state?.invalid ? 'Yes' : 'No'}</span>
+          <span>Touched: {state?.isTouched ? "Yes" : "No"}</span>
+          <span>Dirty: {state?.isDirty ? "Yes" : "No"}</span>
+          <span>Valid: {!state?.invalid ? "Yes" : "No"}</span>
         </div>
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
 
   // Input with subscription access
@@ -87,10 +84,7 @@ const inputs: Record<string, InputConfig> = {
     component: memo(({ value, onChange, label, subscribedState }) => (
       <div className="field field-with-subs">
         <label>{label}</label>
-        <input
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
         {/* Access other fields' states */}
         {subscribedState && (
           <div className="subscribed-state">
@@ -104,7 +98,7 @@ const inputs: Record<string, InputConfig> = {
         )}
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
 
   numberField: {
@@ -113,8 +107,10 @@ const inputs: Record<string, InputConfig> = {
         <label>{label}</label>
         <input
           type="number"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+          value={value ?? ""}
+          onChange={(e) =>
+            onChange(e.target.value ? Number(e.target.value) : null)
+          }
         />
       </div>
     )),
@@ -129,15 +125,15 @@ const inputs: Record<string, InputConfig> = {
 
 const unusedFieldsConfig: FormFieldsConfig = {
   // These will be rendered explicitly
-  firstName: { type: 'textField', label: 'First Name' },
-  lastName: { type: 'textField', label: 'Last Name' },
+  firstName: { type: "textField", label: "First Name" },
+  lastName: { type: "textField", label: "Last Name" },
 
   // These will be rendered by UnusedFields
-  email: { type: 'textField', label: 'Email' },
-  phone: { type: 'textField', label: 'Phone' },
-  address: { type: 'textField', label: 'Address' },
-  city: { type: 'textField', label: 'City' },
-  zipCode: { type: 'textField', label: 'ZIP Code' },
+  email: { type: "textField", label: "Email" },
+  phone: { type: "textField", label: "Phone" },
+  address: { type: "textField", label: "Address" },
+  city: { type: "textField", label: "City" },
+  zipCode: { type: "textField", label: "ZIP Code" },
 };
 
 export function UnusedFieldsExample() {
@@ -147,7 +143,9 @@ export function UnusedFieldsExample() {
         {({ methods, unusedFields }) => (
           <form onSubmit={methods.handleSubmit(console.log)}>
             <h3>UnusedFields Component</h3>
-            <p>Only first/last name are explicit. Rest rendered by UnusedFields.</p>
+            <p>
+              Only first/last name are explicit. Rest rendered by UnusedFields.
+            </p>
 
             <div className="explicit-section">
               <h4>Explicit Fields:</h4>
@@ -175,15 +173,15 @@ export function UnusedFieldsExample() {
 
 const orderedFieldsConfig: FormFieldsConfig = {
   // Use order property to control UnusedFields rendering order
-  zipCode: { type: 'textField', label: 'ZIP Code', order: 50 },
-  city: { type: 'textField', label: 'City', order: 40 },
-  state: { type: 'textField', label: 'State', order: 45 },
-  street: { type: 'textField', label: 'Street Address', order: 30 },
-  country: { type: 'textField', label: 'Country', order: 60 },
-  apartment: { type: 'textField', label: 'Apt/Suite', order: 35 },
+  zipCode: { type: "textField", label: "ZIP Code", order: 50 },
+  city: { type: "textField", label: "City", order: 40 },
+  state: { type: "textField", label: "State", order: 45 },
+  street: { type: "textField", label: "Street Address", order: 30 },
+  country: { type: "textField", label: "Country", order: 60 },
+  apartment: { type: "textField", label: "Apt/Suite", order: 35 },
 
   // Negative order for priority fields
-  urgentNote: { type: 'textField', label: 'Urgent Note', order: -10 },
+  urgentNote: { type: "textField", label: "Urgent Note", order: -10 },
 };
 
 export function FieldOrderingExample() {
@@ -193,7 +191,9 @@ export function FieldOrderingExample() {
         {({ methods }) => (
           <form onSubmit={methods.handleSubmit(console.log)}>
             <h3>Field Ordering</h3>
-            <p>Fields sorted by `order` property (negative first, then ascending)</p>
+            <p>
+              Fields sorted by `order` property (negative first, then ascending)
+            </p>
 
             {/* All fields rendered via UnusedFields, in order */}
             <UnusedFields />
@@ -213,28 +213,28 @@ export function FieldOrderingExample() {
 
 const recordKeyConfig: FormFieldsConfig = {
   clientContact: {
-    type: 'textField',
-    label: 'Client Contact',
+    type: "textField",
+    label: "Client Contact",
     // API returns 'clientContactId', but form uses 'clientContact'
-    recordKey: 'clientContactName', // Read from record.clientContactName
+    recordKey: "clientContactName", // Read from record.clientContactName
   },
   position: {
-    type: 'textField',
-    label: 'Position',
-    recordKey: 'jobTitle', // Read from record.jobTitle
+    type: "textField",
+    label: "Position",
+    recordKey: "jobTitle", // Read from record.jobTitle
   },
   startDate: {
-    type: 'textField',
-    label: 'Start Date',
-    recordKey: 'employmentStartDate', // Read from record.employmentStartDate
+    type: "textField",
+    label: "Start Date",
+    recordKey: "employmentStartDate", // Read from record.employmentStartDate
   },
 };
 
 // API returns data with different field names
 const apiRecord = {
-  clientContactName: 'John Smith',
-  jobTitle: 'Senior Developer',
-  employmentStartDate: '2024-01-15',
+  clientContactName: "John Smith",
+  jobTitle: "Senior Developer",
+  employmentStartDate: "2024-01-15",
 };
 
 export function RecordKeyExample() {
@@ -269,9 +269,9 @@ export function RecordKeyExample() {
 // Dynamic form title based on record data
 
 const formTitleConfig: FormFieldsConfig = {
-  firstName: { type: 'textField', label: 'First Name' },
-  lastName: { type: 'textField', label: 'Last Name' },
-  email: { type: 'textField', label: 'Email' },
+  firstName: { type: "textField", label: "First Name" },
+  lastName: { type: "textField", label: "Last Name" },
+  email: { type: "textField", label: "Email" },
 };
 
 const formTitleFormConfig: FormConfig = {
@@ -279,14 +279,15 @@ const formTitleFormConfig: FormConfig = {
   // title: 'Edit User',
 
   // Dynamic title from expression
-  selectTitle: 'record.firstName ? "Edit: " + record.firstName + " " + record.lastName : "New User"',
+  selectTitle:
+    'record.firstName ? "Edit: " + record.firstName + " " + record.lastName : "New User"',
 };
 
 export function FormTitleExample() {
   const existingUser = {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    email: 'jane@example.com',
+    firstName: "Jane",
+    lastName: "Doe",
+    email: "jane@example.com",
   };
 
   return (
@@ -337,21 +338,21 @@ export function FormTitleExample() {
 
 const provideStateConfig: FormFieldsConfig = {
   username: {
-    type: 'textFieldWithState',
-    label: 'Username',
+    type: "textFieldWithState",
+    label: "Username",
     provideState: true, // Pass field state (isTouched, isDirty, etc.)
     validator: (value) => {
-      if (!value) return 'Required';
-      if (String(value).length < 3) return 'Too short';
+      if (!value) return "Required";
+      if (String(value).length < 3) return "Too short";
       return true;
     },
   },
   email: {
-    type: 'textFieldWithState',
-    label: 'Email',
+    type: "textFieldWithState",
+    label: "Email",
     provideState: true,
     validator: (value) => {
-      if (!value) return 'Required';
+      if (!value) return "Required";
       return true;
     },
   },
@@ -383,19 +384,19 @@ export function ProvideStateExample() {
 
 const passSubscriptionsConfig: FormFieldsConfig = {
   baseValue: {
-    type: 'numberField',
-    label: 'Base Value',
+    type: "numberField",
+    label: "Base Value",
   },
   multiplier: {
-    type: 'numberField',
-    label: 'Multiplier',
+    type: "numberField",
+    label: "Multiplier",
   },
   result: {
-    type: 'textFieldWithSubscriptions',
-    label: 'Result (watching base and multiplier)',
-    subscribesTo: ['baseValue', 'multiplier'],
+    type: "textFieldWithSubscriptions",
+    label: "Result (watching base and multiplier)",
+    subscribesTo: ["baseValue", "multiplier"],
     passSubscriptions: true, // Pass subscribed fields' states
-    passSubscriptionsAs: 'subscribedState', // Prop name for states
+    passSubscriptionsAs: "subscribedState", // Prop name for states
     disabled: true,
   },
 };
@@ -427,8 +428,8 @@ export function PassSubscriptionsExample() {
 
 const renderFunctionConfig: FormFieldsConfig = {
   status: {
-    type: 'textField',
-    label: 'Status',
+    type: "textField",
+    label: "Status",
   },
 };
 
@@ -449,10 +450,12 @@ export function FieldRenderFunctionExample() {
 
                   {/* Custom additions based on field state */}
                   <div className="field-debug">
-                    <p>Field Props: {JSON.stringify(Object.keys(fieldProps))}</p>
-                    <p>Is Touched: {fieldState.isTouched ? 'Yes' : 'No'}</p>
-                    <p>Is Dirty: {fieldState.isDirty ? 'Yes' : 'No'}</p>
-                    <p>Has Error: {fieldState.error ? 'Yes' : 'No'}</p>
+                    <p>
+                      Field Props: {JSON.stringify(Object.keys(fieldProps))}
+                    </p>
+                    <p>Is Touched: {fieldState.isTouched ? "Yes" : "No"}</p>
+                    <p>Is Dirty: {fieldState.isDirty ? "Yes" : "No"}</p>
+                    <p>Has Error: {fieldState.error ? "Yes" : "No"}</p>
                     <p>Watchers: {JSON.stringify(watchers)}</p>
                   </div>
                 </div>
@@ -472,30 +475,32 @@ export function FieldRenderFunctionExample() {
 // =============================================================================
 
 // Template wraps input component with consistent styling
-const CustomTemplate = memo(({
-  Field: InputComponent,
-  fieldProps,
-  fieldState,
-  formState,
-}: InputTemplateProps) => (
-  <div className={`custom-template ${fieldState.error ? 'has-error' : ''}`}>
-    <div className="template-header">
-      <span className="field-name">{fieldProps.name}</span>
-      {fieldState.isDirty && <span className="dirty-badge">Modified</span>}
-    </div>
+const CustomTemplate = memo(
+  ({
+    Field: InputComponent,
+    fieldProps,
+    fieldState,
+    formState,
+  }: InputTemplateProps) => (
+    <div className={`custom-template ${fieldState.error ? "has-error" : ""}`}>
+      <div className="template-header">
+        <span className="field-name">{fieldProps.name}</span>
+        {fieldState.isDirty && <span className="dirty-badge">Modified</span>}
+      </div>
 
-    <InputComponent {...fieldProps} />
+      <InputComponent {...fieldProps} />
 
-    <div className="template-footer">
-      {fieldState.error && (
-        <span className="error-text">{fieldState.error.message}</span>
-      )}
-      {!fieldState.error && fieldState.isTouched && (
-        <span className="valid-text">Looks good!</span>
-      )}
+      <div className="template-footer">
+        {fieldState.error && (
+          <span className="error-text">{fieldState.error.message}</span>
+        )}
+        {!fieldState.error && fieldState.isTouched && (
+          <span className="valid-text">Looks good!</span>
+        )}
+      </div>
     </div>
-  </div>
-));
+  ),
+);
 
 const templateInputs: Record<string, InputConfig> = {
   ...inputs,
@@ -507,16 +512,16 @@ const templateInputs: Record<string, InputConfig> = {
 
 const templateConfig: FormFieldsConfig = {
   username: {
-    type: 'templatedTextField',
-    label: 'Username',
+    type: "templatedTextField",
+    label: "Username",
     validator: (value) => {
-      if (!value) return { type: 'required', message: 'Username is required' };
+      if (!value) return { type: "required", message: "Username is required" };
       return true;
     },
   },
   bio: {
-    type: 'templatedTextField',
-    label: 'Bio',
+    type: "templatedTextField",
+    label: "Bio",
   },
 };
 
@@ -527,7 +532,9 @@ export function CustomTemplateExample() {
         {({ methods }) => (
           <form onSubmit={methods.handleSubmit(console.log)}>
             <h3>Custom Input Templates</h3>
-            <p>Templates wrap inputs with consistent error display and styling</p>
+            <p>
+              Templates wrap inputs with consistent error display and styling
+            </p>
 
             <Field name="username" />
             <Field name="bio" />

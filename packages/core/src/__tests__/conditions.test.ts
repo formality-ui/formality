@@ -1,17 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import {
   evaluateConditions,
   conditionMatches,
   mergeConditionResults,
   inferFieldsFromConditions,
-} from '../index';
-import type { ConditionDescriptor, ConditionResult } from '../index';
+} from "../index";
+import type { ConditionDescriptor, ConditionResult } from "../index";
 
-describe('Conditions', () => {
-  describe('evaluateConditions', () => {
-    it('should evaluate disabled conditions with when trigger', () => {
+describe("Conditions", () => {
+  describe("evaluateConditions", () => {
+    it("should evaluate disabled conditions with when trigger", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'signed', is: false, disabled: true },
+        { when: "signed", is: false, disabled: true },
       ];
 
       const result = evaluateConditions({
@@ -23,9 +23,9 @@ describe('Conditions', () => {
       expect(result.hasDisabledCondition).toBe(true);
     });
 
-    it('should evaluate visible conditions', () => {
+    it("should evaluate visible conditions", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'showAdvanced', truthy: true, visible: true },
+        { when: "showAdvanced", truthy: true, visible: true },
       ];
 
       // When condition matches
@@ -33,7 +33,7 @@ describe('Conditions', () => {
         evaluateConditions({
           conditions,
           fieldValues: { showAdvanced: true },
-        }).visible
+        }).visible,
       ).toBe(true);
 
       // When condition doesn't match
@@ -41,14 +41,14 @@ describe('Conditions', () => {
         evaluateConditions({
           conditions,
           fieldValues: { showAdvanced: false },
-        }).visible
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should use OR logic for disabled', () => {
+    it("should use OR logic for disabled", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'a', truthy: true, disabled: true },
-        { when: 'b', truthy: true, disabled: true },
+        { when: "a", truthy: true, disabled: true },
+        { when: "b", truthy: true, disabled: true },
       ];
 
       // Both false
@@ -56,7 +56,7 @@ describe('Conditions', () => {
         evaluateConditions({
           conditions,
           fieldValues: { a: false, b: false },
-        }).disabled
+        }).disabled,
       ).toBeUndefined();
 
       // One true
@@ -64,7 +64,7 @@ describe('Conditions', () => {
         evaluateConditions({
           conditions,
           fieldValues: { a: true, b: false },
-        }).disabled
+        }).disabled,
       ).toBe(true);
 
       // Both true
@@ -72,14 +72,14 @@ describe('Conditions', () => {
         evaluateConditions({
           conditions,
           fieldValues: { a: true, b: true },
-        }).disabled
+        }).disabled,
       ).toBe(true);
     });
 
-    it('should use AND logic for visible', () => {
+    it("should use AND logic for visible", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'a', truthy: true, visible: true },
-        { when: 'b', truthy: true, visible: true },
+        { when: "a", truthy: true, visible: true },
+        { when: "b", truthy: true, visible: true },
       ];
 
       // Both true
@@ -87,60 +87,60 @@ describe('Conditions', () => {
         evaluateConditions({
           conditions,
           fieldValues: { a: true, b: true },
-        }).visible
+        }).visible,
       ).toBe(true);
 
       // One hidden
       const conditionsWithHidden: ConditionDescriptor[] = [
-        { when: 'a', truthy: true, visible: true },
-        { when: 'b', truthy: true, visible: false },
+        { when: "a", truthy: true, visible: true },
+        { when: "b", truthy: true, visible: false },
       ];
 
       expect(
         evaluateConditions({
           conditions: conditionsWithHidden,
           fieldValues: { a: true, b: true },
-        }).visible
+        }).visible,
       ).toBe(false);
     });
 
-    it('should use last matching setValue', () => {
+    it("should use last matching setValue", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'a', truthy: true, set: 'first' },
-        { when: 'b', truthy: true, set: 'second' },
+        { when: "a", truthy: true, set: "first" },
+        { when: "b", truthy: true, set: "second" },
       ];
 
       expect(
         evaluateConditions({
           conditions,
           fieldValues: { a: true, b: true },
-        }).setValue
-      ).toBe('second');
+        }).setValue,
+      ).toBe("second");
     });
 
-    it('should evaluate selectWhen expressions', () => {
+    it("should evaluate selectWhen expressions", () => {
       const conditions: ConditionDescriptor[] = [
-        { selectWhen: 'count > 5', disabled: true },
+        { selectWhen: "count > 5", disabled: true },
       ];
 
       expect(
         evaluateConditions({
           conditions,
           fieldValues: { count: 10 },
-        }).disabled
+        }).disabled,
       ).toBe(true);
 
       expect(
         evaluateConditions({
           conditions,
           fieldValues: { count: 3 },
-        }).disabled
+        }).disabled,
       ).toBeUndefined();
     });
 
-    it('should evaluate selectSet expressions', () => {
+    it("should evaluate selectSet expressions", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'trigger', truthy: true, selectSet: 'source' },
+        { when: "trigger", truthy: true, selectSet: "source" },
       ];
 
       // With field state proxies, 'source' and 'source.value' are aliases
@@ -149,196 +149,205 @@ describe('Conditions', () => {
         evaluateConditions({
           conditions,
           fieldValues: { trigger: true, source: 42 },
-        }).setValue
+        }).setValue,
       ).toBe(42);
     });
 
-    it('should access nested properties via selectSet', () => {
+    it("should access nested properties via selectSet", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'trigger', truthy: true, selectSet: 'source.id' },
+        { when: "trigger", truthy: true, selectSet: "source.id" },
       ];
 
       // Accessing properties on an object value works via proxy delegation
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { trigger: true, source: { id: 42, name: 'Test' } },
-        }).setValue
+          fieldValues: { trigger: true, source: { id: 42, name: "Test" } },
+        }).setValue,
       ).toBe(42);
     });
 
-    it('should handle is matcher', () => {
+    it("should handle is matcher", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'status', is: 'active', visible: true },
+        { when: "status", is: "active", visible: true },
       ];
 
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { status: 'active' },
-        }).visible
+          fieldValues: { status: "active" },
+        }).visible,
       ).toBe(true);
 
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { status: 'inactive' },
-        }).visible
+          fieldValues: { status: "inactive" },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should handle truthy: false matcher', () => {
+    it("should handle truthy: false matcher", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'value', truthy: false, visible: true },
+        { when: "value", truthy: false, visible: true },
       ];
 
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { value: '' },
-        }).visible
+          fieldValues: { value: "" },
+        }).visible,
       ).toBe(true);
 
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { value: 'something' },
-        }).visible
+          fieldValues: { value: "something" },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should handle isValid matcher - field is valid', () => {
+    it("should handle isValid matcher - field is valid", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'email', isValid: true, disabled: true },
+        { when: "email", isValid: true, disabled: true },
       ];
 
       // Valid field (no error, not invalid)
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'test@example.com' },
-          fieldStates: { email: { value: 'test@example.com', invalid: false } },
-        }).disabled
+          fieldValues: { email: "test@example.com" },
+          fieldStates: { email: { value: "test@example.com", invalid: false } },
+        }).disabled,
       ).toBe(true);
 
       // Invalid field (has error)
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'bad' },
-          fieldStates: { email: { value: 'bad', invalid: true, error: 'Invalid email' } },
-        }).disabled
+          fieldValues: { email: "bad" },
+          fieldStates: {
+            email: { value: "bad", invalid: true, error: "Invalid email" },
+          },
+        }).disabled,
       ).toBeUndefined();
     });
 
-    it('should handle isValid: false matcher - field is invalid', () => {
+    it("should handle isValid: false matcher - field is invalid", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'email', isValid: false, visible: true },
+        { when: "email", isValid: false, visible: true },
       ];
 
       // Show error help when email is invalid
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'bad' },
-          fieldStates: { email: { value: 'bad', invalid: true, error: 'Invalid email' } },
-        }).visible
+          fieldValues: { email: "bad" },
+          fieldStates: {
+            email: { value: "bad", invalid: true, error: "Invalid email" },
+          },
+        }).visible,
       ).toBe(true);
 
       // Hide when email is valid
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'test@example.com' },
-          fieldStates: { email: { value: 'test@example.com', invalid: false } },
-        }).visible
+          fieldValues: { email: "test@example.com" },
+          fieldStates: { email: { value: "test@example.com", invalid: false } },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should handle isDisabled matcher - field is disabled', () => {
+    it("should handle isDisabled matcher - field is disabled", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'source', isDisabled: true, visible: false },
+        { when: "source", isDisabled: true, visible: false },
       ];
 
       // Hide when source is disabled
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { source: 'value' },
-          fieldStates: { source: { value: 'value', disabled: true } },
-        }).visible
+          fieldValues: { source: "value" },
+          fieldStates: { source: { value: "value", disabled: true } },
+        }).visible,
       ).toBe(false);
 
       // Show when source is enabled
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { source: 'value' },
-          fieldStates: { source: { value: 'value', disabled: false } },
-        }).visible
+          fieldValues: { source: "value" },
+          fieldStates: { source: { value: "value", disabled: false } },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should handle isDisabled: false matcher - field is enabled', () => {
+    it("should handle isDisabled: false matcher - field is enabled", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'source', isDisabled: false, disabled: true },
+        { when: "source", isDisabled: false, disabled: true },
       ];
 
       // Disable when source is enabled (not disabled)
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { source: 'value' },
-          fieldStates: { source: { value: 'value', disabled: false } },
-        }).disabled
+          fieldValues: { source: "value" },
+          fieldStates: { source: { value: "value", disabled: false } },
+        }).disabled,
       ).toBe(true);
 
       // Don't disable when source is disabled
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { source: 'value' },
-          fieldStates: { source: { value: 'value', disabled: true } },
-        }).disabled
+          fieldValues: { source: "value" },
+          fieldStates: { source: { value: "value", disabled: true } },
+        }).disabled,
       ).toBeUndefined();
     });
 
-    it('should combine isValid with value matchers', () => {
+    it("should combine isValid with value matchers", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'email', is: 'admin@test.com', isValid: true, visible: true },
+        { when: "email", is: "admin@test.com", isValid: true, visible: true },
       ];
 
       // Both value match AND valid = show
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'admin@test.com' },
-          fieldStates: { email: { value: 'admin@test.com', invalid: false } },
-        }).visible
+          fieldValues: { email: "admin@test.com" },
+          fieldStates: { email: { value: "admin@test.com", invalid: false } },
+        }).visible,
       ).toBe(true);
 
       // Value matches but invalid = don't show
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'admin@test.com' },
-          fieldStates: { email: { value: 'admin@test.com', invalid: true } },
-        }).visible
+          fieldValues: { email: "admin@test.com" },
+          fieldStates: { email: { value: "admin@test.com", invalid: true } },
+        }).visible,
       ).toBeUndefined();
 
       // Valid but value doesn't match = don't show
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'other@test.com' },
-          fieldStates: { email: { value: 'other@test.com', invalid: false } },
-        }).visible
+          fieldValues: { email: "other@test.com" },
+          fieldStates: { email: { value: "other@test.com", invalid: false } },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should combine isDisabled with truthy matcher', () => {
+    it("should combine isDisabled with truthy matcher", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'toggle', truthy: true, isDisabled: false, set: 'enabled-and-on' },
+        {
+          when: "toggle",
+          truthy: true,
+          isDisabled: false,
+          set: "enabled-and-on",
+        },
       ];
 
       // Truthy AND not disabled = set value
@@ -347,8 +356,8 @@ describe('Conditions', () => {
           conditions,
           fieldValues: { toggle: true },
           fieldStates: { toggle: { value: true, disabled: false } },
-        }).setValue
-      ).toBe('enabled-and-on');
+        }).setValue,
+      ).toBe("enabled-and-on");
 
       // Truthy but disabled = no match
       expect(
@@ -356,7 +365,7 @@ describe('Conditions', () => {
           conditions,
           fieldValues: { toggle: true },
           fieldStates: { toggle: { value: true, disabled: true } },
-        }).setValue
+        }).setValue,
       ).toBeUndefined();
 
       // Not truthy but enabled = no match
@@ -365,25 +374,25 @@ describe('Conditions', () => {
           conditions,
           fieldValues: { toggle: false },
           fieldStates: { toggle: { value: false, disabled: false } },
-        }).setValue
+        }).setValue,
       ).toBeUndefined();
     });
 
-    it('should handle missing fieldStates gracefully', () => {
+    it("should handle missing fieldStates gracefully", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'email', isValid: true, disabled: true },
+        { when: "email", isValid: true, disabled: true },
       ];
 
       // Without fieldStates, isValid defaults to true (assume valid)
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'test@example.com' },
-        }).disabled
+          fieldValues: { email: "test@example.com" },
+        }).disabled,
       ).toBe(true);
     });
 
-    it('should handle multi-field when with isTruthy', () => {
+    it("should handle multi-field when with isTruthy", () => {
       const conditions: ConditionDescriptor[] = [
         {
           when: {
@@ -398,36 +407,38 @@ describe('Conditions', () => {
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'test@example.com', name: 'John' },
-          fieldStates: { email: { value: 'test@example.com', invalid: false } },
-        }).visible
+          fieldValues: { email: "test@example.com", name: "John" },
+          fieldStates: { email: { value: "test@example.com", invalid: false } },
+        }).visible,
       ).toBe(true);
 
       // Email valid but name is empty
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'test@example.com', name: '' },
-          fieldStates: { email: { value: 'test@example.com', invalid: false } },
-        }).visible
+          fieldValues: { email: "test@example.com", name: "" },
+          fieldStates: { email: { value: "test@example.com", invalid: false } },
+        }).visible,
       ).toBeUndefined();
 
       // Name truthy but email invalid
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'bad', name: 'John' },
-          fieldStates: { email: { value: 'bad', invalid: true, error: 'Invalid' } },
-        }).visible
+          fieldValues: { email: "bad", name: "John" },
+          fieldStates: {
+            email: { value: "bad", invalid: true, error: "Invalid" },
+          },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should handle multi-field when with is matcher', () => {
+    it("should handle multi-field when with is matcher", () => {
       const conditions: ConditionDescriptor[] = [
         {
           when: {
-            status: { is: 'active' },
-            role: { is: 'admin' },
+            status: { is: "active" },
+            role: { is: "admin" },
           },
           disabled: true,
         },
@@ -437,27 +448,27 @@ describe('Conditions', () => {
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { status: 'active', role: 'admin' },
-        }).disabled
+          fieldValues: { status: "active", role: "admin" },
+        }).disabled,
       ).toBe(true);
 
       // Only one matches
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { status: 'active', role: 'user' },
-        }).disabled
+          fieldValues: { status: "active", role: "user" },
+        }).disabled,
       ).toBeUndefined();
     });
 
-    it('should handle multi-field when with isDisabled', () => {
+    it("should handle multi-field when with isDisabled", () => {
       const conditions: ConditionDescriptor[] = [
         {
           when: {
             source: { isDisabled: false },
             target: { isTruthy: true },
           },
-          set: 'ready',
+          set: "ready",
         },
       ];
 
@@ -465,28 +476,28 @@ describe('Conditions', () => {
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { source: 'a', target: 'b' },
+          fieldValues: { source: "a", target: "b" },
           fieldStates: {
-            source: { value: 'a', disabled: false },
-            target: { value: 'b' },
+            source: { value: "a", disabled: false },
+            target: { value: "b" },
           },
-        }).setValue
-      ).toBe('ready');
+        }).setValue,
+      ).toBe("ready");
 
       // Source disabled
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { source: 'a', target: 'b' },
+          fieldValues: { source: "a", target: "b" },
           fieldStates: {
-            source: { value: 'a', disabled: true },
-            target: { value: 'b' },
+            source: { value: "a", disabled: true },
+            target: { value: "b" },
           },
-        }).setValue
+        }).setValue,
       ).toBeUndefined();
     });
 
-    it('should handle multi-field when with combined matchers per field', () => {
+    it("should handle multi-field when with combined matchers per field", () => {
       const conditions: ConditionDescriptor[] = [
         {
           when: {
@@ -500,31 +511,31 @@ describe('Conditions', () => {
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'test@example.com' },
-          fieldStates: { email: { value: 'test@example.com', invalid: false } },
-        }).visible
+          fieldValues: { email: "test@example.com" },
+          fieldStates: { email: { value: "test@example.com", invalid: false } },
+        }).visible,
       ).toBe(true);
 
       // Truthy but invalid
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: 'bad' },
-          fieldStates: { email: { value: 'bad', invalid: true } },
-        }).visible
+          fieldValues: { email: "bad" },
+          fieldStates: { email: { value: "bad", invalid: true } },
+        }).visible,
       ).toBeUndefined();
 
       // Valid but empty (falsy)
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { email: '' },
-          fieldStates: { email: { value: '', invalid: false } },
-        }).visible
+          fieldValues: { email: "" },
+          fieldStates: { email: { value: "", invalid: false } },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should handle multi-field when with truthy alias', () => {
+    it("should handle multi-field when with truthy alias", () => {
       // truthy and isTruthy should work the same
       const conditions: ConditionDescriptor[] = [
         {
@@ -539,19 +550,19 @@ describe('Conditions', () => {
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { a: 'yes', b: 'yes' },
-        }).visible
+          fieldValues: { a: "yes", b: "yes" },
+        }).visible,
       ).toBe(true);
 
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { a: '', b: 'yes' },
-        }).visible
+          fieldValues: { a: "", b: "yes" },
+        }).visible,
       ).toBeUndefined();
     });
 
-    it('should use default truthy check when no matcher in multi-field', () => {
+    it("should use default truthy check when no matcher in multi-field", () => {
       const conditions: ConditionDescriptor[] = [
         {
           when: {
@@ -566,44 +577,44 @@ describe('Conditions', () => {
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { a: 'yes', b: 'yes' },
-        }).visible
+          fieldValues: { a: "yes", b: "yes" },
+        }).visible,
       ).toBe(true);
 
       // One falsy
       expect(
         evaluateConditions({
           conditions,
-          fieldValues: { a: 'yes', b: '' },
-        }).visible
+          fieldValues: { a: "yes", b: "" },
+        }).visible,
       ).toBeUndefined();
     });
   });
 
-  describe('conditionMatches', () => {
-    it('should check single condition match', () => {
+  describe("conditionMatches", () => {
+    it("should check single condition match", () => {
       expect(
-        conditionMatches({ when: 'signed', truthy: true }, { signed: true })
+        conditionMatches({ when: "signed", truthy: true }, { signed: true }),
       ).toBe(true);
 
       expect(
-        conditionMatches({ when: 'signed', truthy: true }, { signed: false })
+        conditionMatches({ when: "signed", truthy: true }, { signed: false }),
       ).toBe(false);
     });
 
-    it('should include record in context', () => {
+    it("should include record in context", () => {
       expect(
         conditionMatches(
-          { selectWhen: 'record.isAdmin === true' },
+          { selectWhen: "record.isAdmin === true" },
           {},
-          { isAdmin: true }
-        )
+          { isAdmin: true },
+        ),
       ).toBe(true);
     });
   });
 
-  describe('mergeConditionResults', () => {
-    it('should merge multiple results', () => {
+  describe("mergeConditionResults", () => {
+    it("should merge multiple results", () => {
       const results: ConditionResult[] = [
         {
           disabled: true,
@@ -616,7 +627,7 @@ describe('Conditions', () => {
         {
           disabled: false,
           visible: false,
-          setValue: 'test',
+          setValue: "test",
           hasDisabledCondition: true,
           hasVisibleCondition: true,
           hasSetCondition: true,
@@ -630,10 +641,10 @@ describe('Conditions', () => {
       // visible: AND logic
       expect(merged.visible).toBe(false);
       // setValue: last wins
-      expect(merged.setValue).toBe('test');
+      expect(merged.setValue).toBe("test");
     });
 
-    it('should handle empty results array', () => {
+    it("should handle empty results array", () => {
       const merged = mergeConditionResults([]);
 
       expect(merged.disabled).toBeUndefined();
@@ -642,73 +653,73 @@ describe('Conditions', () => {
     });
   });
 
-  describe('inferFieldsFromConditions', () => {
-    it('should extract when field references', () => {
+  describe("inferFieldsFromConditions", () => {
+    it("should extract when field references", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'client', disabled: true },
-        { when: 'signed', visible: true },
+        { when: "client", disabled: true },
+        { when: "signed", visible: true },
       ];
 
       expect(inferFieldsFromConditions(conditions)).toEqual([
-        'client',
-        'signed',
+        "client",
+        "signed",
       ]);
     });
 
-    it('should infer fields from selectWhen expressions', () => {
+    it("should infer fields from selectWhen expressions", () => {
       const conditions: ConditionDescriptor[] = [
-        { selectWhen: 'client.id > 0 && signed', disabled: true },
+        { selectWhen: "client.id > 0 && signed", disabled: true },
       ];
 
       expect(inferFieldsFromConditions(conditions)).toEqual([
-        'client',
-        'signed',
+        "client",
+        "signed",
       ]);
     });
 
-    it('should include explicit subscribesTo', () => {
+    it("should include explicit subscribesTo", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'trigger', disabled: true, subscribesTo: ['extra', 'field'] },
+        { when: "trigger", disabled: true, subscribesTo: ["extra", "field"] },
       ];
 
       expect(inferFieldsFromConditions(conditions)).toEqual([
-        'trigger',
-        'extra',
-        'field',
+        "trigger",
+        "extra",
+        "field",
       ]);
     });
 
-    it('should return unique fields', () => {
+    it("should return unique fields", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'client', disabled: true },
-        { selectWhen: 'client.id > 0', visible: true },
+        { when: "client", disabled: true },
+        { selectWhen: "client.id > 0", visible: true },
       ];
 
-      expect(inferFieldsFromConditions(conditions)).toEqual(['client']);
+      expect(inferFieldsFromConditions(conditions)).toEqual(["client"]);
     });
 
-    it('should extract fields from multi-field when object', () => {
+    it("should extract fields from multi-field when object", () => {
       const conditions: ConditionDescriptor[] = [
         {
           when: {
             email: { isValid: true },
             name: { isTruthy: true },
-            status: { is: 'active' },
+            status: { is: "active" },
           },
           visible: true,
         },
       ];
 
       expect(inferFieldsFromConditions(conditions)).toEqual([
-        'email',
-        'name',
-        'status',
+        "email",
+        "name",
+        "status",
       ]);
     });
 
-    it('should combine multi-field when with other conditions', () => {
+    it("should combine multi-field when with other conditions", () => {
       const conditions: ConditionDescriptor[] = [
-        { when: 'client', disabled: true },
+        { when: "client", disabled: true },
         {
           when: {
             email: { isValid: true },
@@ -716,15 +727,15 @@ describe('Conditions', () => {
           },
           visible: true,
         },
-        { selectWhen: 'approved && signed', set: 'done' },
+        { selectWhen: "approved && signed", set: "done" },
       ];
 
       expect(inferFieldsFromConditions(conditions)).toEqual([
-        'client',
-        'email',
-        'name',
-        'approved',
-        'signed',
+        "client",
+        "email",
+        "name",
+        "approved",
+        "signed",
       ]);
     });
   });

@@ -1,7 +1,7 @@
 // @formality-ui/core - Condition Types
 // This file defines condition descriptor and result interfaces
 
-import type { SelectValue } from './config';
+import type { SelectValue } from "./config";
 
 /**
  * FieldMatcher - Matchers for a single field in multi-field conditions

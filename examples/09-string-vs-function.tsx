@@ -18,7 +18,7 @@
  * - REQUIRES explicit subscribesTo declaration
  */
 
-import React, { memo } from 'react';
+import React, { memo } from "react";
 import {
   FormalityProvider,
   Form,
@@ -27,7 +27,7 @@ import {
   type FormFieldsConfig,
   type FormConfig,
   type FormState,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 
 // =============================================================================
 // Input Types
@@ -39,13 +39,13 @@ const inputs: Record<string, InputConfig> = {
       <div className="field">
         <label>{label}</label>
         <input
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
   numberField: {
     component: memo(({ value, onChange, label, disabled }) => (
@@ -53,8 +53,10 @@ const inputs: Record<string, InputConfig> = {
         <label>{label}</label>
         <input
           type="number"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+          value={value ?? ""}
+          onChange={(e) =>
+            onChange(e.target.value ? Number(e.target.value) : null)
+          }
           disabled={disabled}
         />
       </div>
@@ -74,7 +76,7 @@ const inputs: Record<string, InputConfig> = {
       </label>
     )),
     defaultValue: false,
-    inputFieldProp: 'checked',
+    inputFieldProp: "checked",
     debounce: false,
   },
 };
@@ -86,33 +88,33 @@ const inputs: Record<string, InputConfig> = {
 
 const selectPropsConfig: FormFieldsConfig = {
   // Source fields
-  firstName: { type: 'textField', label: 'First Name' },
-  lastName: { type: 'textField', label: 'Last Name' },
-  basePrice: { type: 'numberField', label: 'Base Price' },
-  quantity: { type: 'numberField', label: 'Quantity' },
+  firstName: { type: "textField", label: "First Name" },
+  lastName: { type: "textField", label: "Last Name" },
+  basePrice: { type: "numberField", label: "Base Price" },
+  quantity: { type: "numberField", label: "Quantity" },
 
   // STRING EXPRESSION: Auto-infers dependencies on firstName, lastName
   // Concise, but limited to expression syntax
   fullNameString: {
-    type: 'textField',
-    label: 'Full Name (String Expression)',
+    type: "textField",
+    label: "Full Name (String Expression)",
     selectProps: {
       // String concatenation in expression
       value: 'firstName + " " + lastName',
-      disabled: 'true',
+      disabled: "true",
     },
   },
 
   // FUNCTION: Must declare subscribesTo explicitly
   // More verbose, but full JavaScript power
   fullNameFunction: {
-    type: 'textField',
-    label: 'Full Name (Function)',
-    subscribesTo: ['firstName', 'lastName'], // REQUIRED for functions!
+    type: "textField",
+    label: "Full Name (Function)",
+    subscribesTo: ["firstName", "lastName"], // REQUIRED for functions!
     selectProps: {
       value: ({ fields }: FormState) => {
-        const first = fields.firstName?.value ?? '';
-        const last = fields.lastName?.value ?? '';
+        const first = fields.firstName?.value ?? "";
+        const last = fields.lastName?.value ?? "";
         // Can do complex string manipulation
         return `${first} ${last}`.trim().toUpperCase();
       },
@@ -122,19 +124,19 @@ const selectPropsConfig: FormFieldsConfig = {
 
   // STRING EXPRESSION: Simple arithmetic
   totalString: {
-    type: 'numberField',
-    label: 'Total (String Expression)',
+    type: "numberField",
+    label: "Total (String Expression)",
     selectProps: {
-      value: 'basePrice * quantity',
-      disabled: 'true',
+      value: "basePrice * quantity",
+      disabled: "true",
     },
   },
 
   // FUNCTION: Complex calculation with rounding, currency formatting, etc.
   totalFunction: {
-    type: 'numberField',
-    label: 'Total (Function)',
-    subscribesTo: ['basePrice', 'quantity'],
+    type: "numberField",
+    label: "Total (Function)",
+    subscribesTo: ["basePrice", "quantity"],
     selectProps: {
       value: ({ fields }: FormState) => {
         const price = fields.basePrice?.value ?? 0;
@@ -196,18 +198,18 @@ export function SelectPropsComparisonExample() {
 // =============================================================================
 
 const conditionWhenConfig: FormFieldsConfig = {
-  age: { type: 'numberField', label: 'Age' },
-  hasLicense: { type: 'switch', label: 'Has License' },
-  yearsExperience: { type: 'numberField', label: 'Years Experience' },
+  age: { type: "numberField", label: "Age" },
+  hasLicense: { type: "switch", label: "Has License" },
+  yearsExperience: { type: "numberField", label: "Years Experience" },
 
   // STRING: when + is/truthy
   simpleConditionField: {
-    type: 'textField',
-    label: 'Simple Condition (String)',
+    type: "textField",
+    label: "Simple Condition (String)",
     conditions: [
       {
-        when: 'hasLicense', // Simple field reference
-        truthy: false,      // Check if falsy
+        when: "hasLicense", // Simple field reference
+        truthy: false, // Check if falsy
         disabled: true,
       },
     ],
@@ -215,26 +217,26 @@ const conditionWhenConfig: FormFieldsConfig = {
 
   // STRING: selectWhen for complex expressions
   complexExpressionField: {
-    type: 'textField',
-    label: 'Complex Expression (String)',
+    type: "textField",
+    label: "Complex Expression (String)",
     conditions: [
       {
         // Expression: multiple fields, operators
-        selectWhen: 'age >= 21 && hasLicense && yearsExperience >= 2',
-        set: 'Qualified!',
+        selectWhen: "age >= 21 && hasLicense && yearsExperience >= 2",
+        set: "Qualified!",
       },
       {
-        selectWhen: '!(age >= 21 && hasLicense && yearsExperience >= 2)',
-        set: 'Not qualified',
+        selectWhen: "!(age >= 21 && hasLicense && yearsExperience >= 2)",
+        set: "Not qualified",
       },
     ],
   },
 
   // FUNCTION: selectWhen with callback
   functionConditionField: {
-    type: 'textField',
-    label: 'Function Condition',
-    subscribesTo: ['age', 'hasLicense', 'yearsExperience'], // REQUIRED!
+    type: "textField",
+    label: "Function Condition",
+    subscribesTo: ["age", "hasLicense", "yearsExperience"], // REQUIRED!
     conditions: [
       {
         // Function for complex business logic
@@ -248,7 +250,7 @@ const conditionWhenConfig: FormFieldsConfig = {
           if (age >= 21 && licensed && exp >= 2) return true; // Standard
           return false;
         },
-        set: 'Qualified via function!',
+        set: "Qualified via function!",
       },
     ],
   },
@@ -301,20 +303,20 @@ export function ConditionWhenComparisonExample() {
 // =============================================================================
 
 const setValueConfig: FormFieldsConfig = {
-  useDefault: { type: 'switch', label: 'Use Default Address' },
-  quantity: { type: 'numberField', label: 'Quantity' },
-  unitPrice: { type: 'numberField', label: 'Unit Price' },
-  discountPercent: { type: 'numberField', label: 'Discount %' },
+  useDefault: { type: "switch", label: "Use Default Address" },
+  quantity: { type: "numberField", label: "Quantity" },
+  unitPrice: { type: "numberField", label: "Unit Price" },
+  discountPercent: { type: "numberField", label: "Discount %" },
 
   // STATIC SET: set to literal value
   addressStatic: {
-    type: 'textField',
-    label: 'Address (Static set)',
+    type: "textField",
+    label: "Address (Static set)",
     conditions: [
       {
-        when: 'useDefault',
+        when: "useDefault",
         truthy: true,
-        set: '123 Main Street, Default City', // Static value
+        set: "123 Main Street, Default City", // Static value
         disabled: true,
       },
     ],
@@ -322,13 +324,13 @@ const setValueConfig: FormFieldsConfig = {
 
   // STRING selectSet: expression-based value
   totalString: {
-    type: 'numberField',
-    label: 'Total (String selectSet)',
+    type: "numberField",
+    label: "Total (String selectSet)",
     conditions: [
       {
-        selectWhen: 'quantity && unitPrice',
+        selectWhen: "quantity && unitPrice",
         // String expression for calculation
-        selectSet: 'quantity * unitPrice * (1 - discountPercent / 100)',
+        selectSet: "quantity * unitPrice * (1 - discountPercent / 100)",
       },
     ],
     disabled: true,
@@ -336,9 +338,9 @@ const setValueConfig: FormFieldsConfig = {
 
   // FUNCTION selectSet: complex logic
   totalFunction: {
-    type: 'numberField',
-    label: 'Total (Function selectSet)',
-    subscribesTo: ['quantity', 'unitPrice', 'discountPercent'],
+    type: "numberField",
+    label: "Total (Function selectSet)",
+    subscribesTo: ["quantity", "unitPrice", "discountPercent"],
     conditions: [
       {
         selectWhen: ({ fields }: FormState) =>
@@ -352,11 +354,12 @@ const setValueConfig: FormFieldsConfig = {
           let subtotal = qty * price;
 
           // Volume discount tiers (complex logic)
-          if (qty >= 100) subtotal *= 0.9;  // 10% volume discount
+          if (qty >= 100)
+            subtotal *= 0.9; // 10% volume discount
           else if (qty >= 50) subtotal *= 0.95; // 5% volume discount
 
           // Apply percentage discount
-          subtotal *= (1 - discount / 100);
+          subtotal *= 1 - discount / 100;
 
           // Round to 2 decimals
           return Math.round(subtotal * 100) / 100;
@@ -416,19 +419,19 @@ export function SetValueComparisonExample() {
 // =============================================================================
 
 const defaultFieldPropsConfig: FormFieldsConfig = {
-  globalToggle: { type: 'switch', label: 'Enable All Fields' },
-  field1: { type: 'textField' },
-  field2: { type: 'textField' },
-  field3: { type: 'textField' },
+  globalToggle: { type: "switch", label: "Enable All Fields" },
+  field1: { type: "textField" },
+  field2: { type: "textField" },
+  field3: { type: "textField" },
 };
 
 // STRING form config
 const stringFormConfig: FormConfig = {
   selectDefaultFieldProps: {
     // String expression: evaluated for each field
-    disabled: '!globalToggle',
+    disabled: "!globalToggle",
     // Access field's own name via props
-    label: 'props.name',
+    label: "props.name",
   },
 };
 
@@ -439,10 +442,10 @@ const functionFormConfig: FormConfig = {
     disabled: ({ fields }: FormState) => !fields.globalToggle?.value,
     // Can access field name via props in context
     label: ({ props }: FormState) => {
-      const name = props?.name ?? '';
+      const name = props?.name ?? "";
       // Humanize: "firstName" -> "First Name"
       return name
-        .replace(/([A-Z])/g, ' $1')
+        .replace(/([A-Z])/g, " $1")
         .replace(/^./, (s) => s.toUpperCase())
         .trim();
     },
@@ -456,7 +459,11 @@ export function DefaultFieldPropsComparisonExample() {
         <div className="form-column">
           <h4>String selectDefaultFieldProps</h4>
           <pre>{`disabled: '!globalToggle', label: 'props.name'`}</pre>
-          <Form config={defaultFieldPropsConfig} formConfig={stringFormConfig} onSubmit={console.log}>
+          <Form
+            config={defaultFieldPropsConfig}
+            formConfig={stringFormConfig}
+            onSubmit={console.log}
+          >
             {({ methods }) => (
               <form onSubmit={methods.handleSubmit(console.log)}>
                 <Field name="globalToggle" />
@@ -471,7 +478,11 @@ export function DefaultFieldPropsComparisonExample() {
         <div className="form-column">
           <h4>Function selectDefaultFieldProps</h4>
           <pre>{`disabled: ({ fields }) => !fields.globalToggle?.value`}</pre>
-          <Form config={defaultFieldPropsConfig} formConfig={functionFormConfig} onSubmit={console.log}>
+          <Form
+            config={defaultFieldPropsConfig}
+            formConfig={functionFormConfig}
+            onSubmit={console.log}
+          >
             {({ methods }) => (
               <form onSubmit={methods.handleSubmit(console.log)}>
                 <Field name="globalToggle" />
@@ -507,62 +518,88 @@ export function WhenToUseGuide() {
         <tbody>
           <tr>
             <td>Simple field reference</td>
-            <td><code>'fieldName'</code></td>
+            <td>
+              <code>'fieldName'</code>
+            </td>
             <td>Overkill - use string</td>
           </tr>
           <tr>
             <td>Property access</td>
-            <td><code>'client.id'</code></td>
+            <td>
+              <code>'client.id'</code>
+            </td>
             <td>Overkill - use string</td>
           </tr>
           <tr>
             <td>Basic arithmetic</td>
-            <td><code>'price * quantity'</code></td>
+            <td>
+              <code>'price * quantity'</code>
+            </td>
             <td>Use function for rounding/formatting</td>
           </tr>
           <tr>
             <td>Comparisons</td>
-            <td><code>'age &gt;= 21'</code></td>
+            <td>
+              <code>'age &gt;= 21'</code>
+            </td>
             <td>Overkill - use string</td>
           </tr>
           <tr>
             <td>Logical operators</td>
-            <td><code>'a && b || c'</code></td>
+            <td>
+              <code>'a && b || c'</code>
+            </td>
             <td>Use function for complex branching</td>
           </tr>
           <tr>
             <td>Ternary</td>
-            <td><code>'signed ? "Yes" : "No"'</code></td>
+            <td>
+              <code>'signed ? "Yes" : "No"'</code>
+            </td>
             <td>Use function for multiple branches</td>
           </tr>
           <tr>
             <td>String manipulation</td>
-            <td><code>'first + " " + last'</code></td>
-            <td><strong>Recommended</strong> for toUpperCase, trim, etc.</td>
+            <td>
+              <code>'first + " " + last'</code>
+            </td>
+            <td>
+              <strong>Recommended</strong> for toUpperCase, trim, etc.
+            </td>
           </tr>
           <tr>
             <td>Complex business logic</td>
             <td>Not possible</td>
-            <td><strong>Required</strong></td>
+            <td>
+              <strong>Required</strong>
+            </td>
           </tr>
           <tr>
             <td>API calls in logic</td>
             <td>Not possible</td>
-            <td><strong>Required</strong></td>
+            <td>
+              <strong>Required</strong>
+            </td>
           </tr>
           <tr>
             <td>Access RHF methods</td>
             <td>Not possible</td>
-            <td><strong>Required</strong></td>
+            <td>
+              <strong>Required</strong>
+            </td>
           </tr>
           <tr>
             <td>Type safety</td>
             <td>No type checking</td>
-            <td><strong>Full TypeScript support</strong></td>
+            <td>
+              <strong>Full TypeScript support</strong>
+            </td>
           </tr>
           <tr>
             <td>Serializable config</td>
-            <td><strong>Yes - JSON safe</strong></td>
+            <td>
+              <strong>Yes - JSON safe</strong>
+            </td>
             <td>No - cannot serialize functions</td>
           </tr>
         </tbody>
@@ -570,7 +607,10 @@ export function WhenToUseGuide() {
 
       <h3>Key Rule</h3>
       <p>
-        <strong>When using callback functions, you MUST declare <code>subscribesTo</code>!</strong>
+        <strong>
+          When using callback functions, you MUST declare{" "}
+          <code>subscribesTo</code>!
+        </strong>
       </p>
       <pre>{`// WRONG - function without subscribesTo
 {

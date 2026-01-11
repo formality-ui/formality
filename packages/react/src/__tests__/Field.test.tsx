@@ -1,12 +1,12 @@
 // @formality-ui/react - Field Component Tests
-import React, { forwardRef } from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { Form } from '../components/Form';
-import { Field } from '../components/Field';
-import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig, FormFieldsConfig } from '@formality-ui/core';
+import React, { forwardRef } from "react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Form } from "../components/Form";
+import { Field } from "../components/Field";
+import { FormalityProvider } from "../components/FormalityProvider";
+import type { InputConfig, FormFieldsConfig } from "@formality-ui/core";
 
 // Test input component with all common props
 interface TestInputProps {
@@ -26,17 +26,17 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
       <input
         ref={ref}
         data-testid={name}
-        value={value ?? ''}
+        value={value ?? ""}
         onChange={(e) => onChange?.(e.target.value)}
         disabled={disabled}
         {...props}
       />
       {error && <span data-testid={`${name}-error`}>{error}</span>}
     </div>
-  )
+  ),
 );
 
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 
 // Test switch input
 interface TestSwitchProps {
@@ -58,16 +58,16 @@ const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
       disabled={disabled}
       {...props}
     />
-  )
+  ),
 );
 
-TestSwitch.displayName = 'TestSwitch';
+TestSwitch.displayName = "TestSwitch";
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {
   textField: {
     component: TestInput,
-    defaultValue: '',
+    defaultValue: "",
   },
   switch: {
     component: TestSwitch,
@@ -75,90 +75,92 @@ const testInputs: Record<string, InputConfig> = {
   },
 };
 
-describe('Field', () => {
-  describe('rendering', () => {
-    it('should render the configured component', () => {
+describe("Field", () => {
+  describe("rendering", () => {
+    it("should render the configured component", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField' } }}>
+          <Form config={{ name: { type: "textField" } }}>
             <Field name="name" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('name')).toBeInTheDocument();
+      expect(screen.getByTestId("name")).toBeInTheDocument();
     });
 
-    it('should resolve label from config', () => {
+    it("should resolve label from config", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField', label: 'Full Name' } }}>
+          <Form config={{ name: { type: "textField", label: "Full Name" } }}>
             <Field name="name" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('name-label')).toHaveTextContent('Full Name');
+      expect(screen.getByTestId("name-label")).toHaveTextContent("Full Name");
     });
 
-    it('should auto-generate label from field name when not specified', () => {
+    it("should auto-generate label from field name when not specified", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ clientContact: { type: 'textField' } }}>
+          <Form config={{ clientContact: { type: "textField" } }}>
             <Field name="clientContact" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // clientContact should become "Client Contact"
-      expect(screen.getByTestId('clientContact-label')).toHaveTextContent('Client Contact');
+      expect(screen.getByTestId("clientContact-label")).toHaveTextContent(
+        "Client Contact",
+      );
     });
 
-    it('should not render when hidden prop is true', () => {
+    it("should not render when hidden prop is true", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField' } }}>
+          <Form config={{ name: { type: "textField" } }}>
             <Field name="name" hidden />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.queryByTestId('name')).not.toBeInTheDocument();
+      expect(screen.queryByTestId("name")).not.toBeInTheDocument();
     });
 
-    it('should not render when field config has hidden: true', () => {
+    it("should not render when field config has hidden: true", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField', hidden: true } }}>
+          <Form config={{ name: { type: "textField", hidden: true } }}>
             <Field name="name" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.queryByTestId('name')).not.toBeInTheDocument();
+      expect(screen.queryByTestId("name")).not.toBeInTheDocument();
     });
 
-    it('should use component prop label over config label', () => {
+    it("should use component prop label over config label", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField', label: 'Config Label' } }}>
+          <Form config={{ name: { type: "textField", label: "Config Label" } }}>
             <Field name="name" label="Prop Label" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('name-label')).toHaveTextContent('Prop Label');
+      expect(screen.getByTestId("name-label")).toHaveTextContent("Prop Label");
     });
   });
 
-  describe('conditions', () => {
-    it('should render field with conditions array', () => {
+  describe("conditions", () => {
+    it("should render field with conditions array", () => {
       // Verify Field accepts conditions in config
       const config: FormFieldsConfig = {
-        toggle: { type: 'switch' },
+        toggle: { type: "switch" },
         dependent: {
-          type: 'textField',
-          conditions: [{ when: 'toggle', truthy: true, disabled: true }],
+          type: "textField",
+          conditions: [{ when: "toggle", truthy: true, disabled: true }],
         },
       };
 
@@ -168,45 +170,45 @@ describe('Field', () => {
             <Field name="toggle" />
             <Field name="dependent" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Both fields should render
-      expect(screen.getByTestId('toggle')).toBeInTheDocument();
-      expect(screen.getByTestId('dependent')).toBeInTheDocument();
+      expect(screen.getByTestId("toggle")).toBeInTheDocument();
+      expect(screen.getByTestId("dependent")).toBeInTheDocument();
     });
 
-    it('should support visible condition in config', () => {
+    it("should support visible condition in config", () => {
       // Verify Field accepts visible conditions
       // When toggle is 'yes', condition { is: 'no' } does NOT match → field visible
       const config: FormFieldsConfig = {
-        toggle: { type: 'textField' },
+        toggle: { type: "textField" },
         conditional: {
-          type: 'textField',
-          conditions: [{ when: 'toggle', is: 'no', visible: false }],
+          type: "textField",
+          conditions: [{ when: "toggle", is: "no", visible: false }],
         },
       };
 
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={config} defaultValues={{ toggle: 'yes' }}>
+          <Form config={config} defaultValues={{ toggle: "yes" }}>
             <Field name="toggle" />
             <Field name="conditional" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Field should render (toggle is 'yes', so is:'no' condition doesn't match)
-      expect(screen.getByTestId('conditional')).toBeInTheDocument();
+      expect(screen.getByTestId("conditional")).toBeInTheDocument();
     });
 
     it('should support "is" condition type in config', () => {
       // Verify Field accepts "is" conditions for exact value matching
       const config: FormFieldsConfig = {
-        status: { type: 'textField' },
+        status: { type: "textField" },
         dependent: {
-          type: 'textField',
-          conditions: [{ when: 'status', is: 'active', disabled: true }],
+          type: "textField",
+          conditions: [{ when: "status", is: "active", disabled: true }],
         },
       };
 
@@ -216,135 +218,147 @@ describe('Field', () => {
             <Field name="status" />
             <Field name="dependent" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Both fields should render
-      expect(screen.getByTestId('status')).toBeInTheDocument();
-      expect(screen.getByTestId('dependent')).toBeInTheDocument();
+      expect(screen.getByTestId("status")).toBeInTheDocument();
+      expect(screen.getByTestId("dependent")).toBeInTheDocument();
     });
   });
 
-  describe('selectProps', () => {
-    it('should evaluate selectProps expressions', () => {
+  describe("selectProps", () => {
+    it("should evaluate selectProps expressions", () => {
       const config: FormFieldsConfig = {
-        source: { type: 'textField' },
+        source: { type: "textField" },
         target: {
-          type: 'textField',
-          selectProps: { placeholder: 'source' },
+          type: "textField",
+          selectProps: { placeholder: "source" },
         },
       };
 
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={config} record={{ source: 'Hello World' }}>
+          <Form config={config} record={{ source: "Hello World" }}>
             <Field name="source" />
             <Field name="target" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('target')).toHaveAttribute('placeholder', 'Hello World');
+      expect(screen.getByTestId("target")).toHaveAttribute(
+        "placeholder",
+        "Hello World",
+      );
     });
 
-    it('should update selectProps when referenced field changes', async () => {
+    it("should update selectProps when referenced field changes", async () => {
       const config: FormFieldsConfig = {
-        source: { type: 'textField' },
+        source: { type: "textField" },
         target: {
-          type: 'textField',
-          selectProps: { placeholder: 'source' },
+          type: "textField",
+          selectProps: { placeholder: "source" },
         },
       };
 
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={config} record={{ source: 'Initial' }}>
+          <Form config={config} record={{ source: "Initial" }}>
             <Field name="source" />
             <Field name="target" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('target')).toHaveAttribute('placeholder', 'Initial');
+      expect(screen.getByTestId("target")).toHaveAttribute(
+        "placeholder",
+        "Initial",
+      );
 
       // Type in source field
       const user = userEvent.setup();
-      await user.clear(screen.getByTestId('source'));
-      await user.type(screen.getByTestId('source'), 'Updated');
+      await user.clear(screen.getByTestId("source"));
+      await user.type(screen.getByTestId("source"), "Updated");
 
       await waitFor(() => {
-        expect(screen.getByTestId('target')).toHaveAttribute('placeholder', 'Updated');
+        expect(screen.getByTestId("target")).toHaveAttribute(
+          "placeholder",
+          "Updated",
+        );
       });
     });
   });
 
-  describe('value transformation', () => {
-    it('should apply parser on change', async () => {
+  describe("value transformation", () => {
+    it("should apply parser on change", async () => {
       const parseToUpperCase = vi.fn((value: string) => value.toUpperCase());
 
       const inputs: Record<string, InputConfig> = {
         textField: {
           component: TestInput,
-          defaultValue: '',
+          defaultValue: "",
           parser: parseToUpperCase,
         },
       };
 
       render(
         <FormalityProvider inputs={inputs}>
-          <Form config={{ name: { type: 'textField' } }}>
+          <Form config={{ name: { type: "textField" } }}>
             {({ methods }) => (
               <>
                 <Field name="name" />
-                <span data-testid="value">{methods.watch('name')}</span>
+                <span data-testid="value">{methods.watch("name")}</span>
               </>
             )}
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       const user = userEvent.setup();
-      await user.type(screen.getByTestId('name'), 'hello');
+      await user.type(screen.getByTestId("name"), "hello");
 
       await waitFor(() => {
-        expect(screen.getByTestId('value')).toHaveTextContent('HELLO');
+        expect(screen.getByTestId("value")).toHaveTextContent("HELLO");
       });
     });
 
-    it('should apply formatter for display', async () => {
+    it("should apply formatter for display", async () => {
       const formatToLower = vi.fn((value: string) =>
-        typeof value === 'string' ? value.toLowerCase() : value
+        typeof value === "string" ? value.toLowerCase() : value,
       );
 
       const inputs: Record<string, InputConfig> = {
         textField: {
           component: TestInput,
-          defaultValue: '',
+          defaultValue: "",
           formatter: formatToLower,
         },
       };
 
       render(
         <FormalityProvider inputs={inputs}>
-          <Form config={{ name: { type: 'textField' } }} record={{ name: 'HELLO' }}>
+          <Form
+            config={{ name: { type: "textField" } }}
+            record={{ name: "HELLO" }}
+          >
             <Field name="name" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Value should be formatted for display
-      expect(screen.getByTestId('name')).toHaveValue('hello');
+      expect(screen.getByTestId("name")).toHaveValue("hello");
     });
   });
 
-  describe('validation', () => {
-    it('should run field-level validator on blur', async () => {
+  describe("validation", () => {
+    it("should run field-level validator on blur", async () => {
       const config: FormFieldsConfig = {
         email: {
-          type: 'textField',
+          type: "textField",
           validator: (value) => {
-            if (typeof value === 'string' && !value.includes('@')) {
-              return 'Must be a valid email';
+            if (typeof value === "string" && !value.includes("@")) {
+              return "Must be a valid email";
             }
             return true;
           },
@@ -356,25 +370,27 @@ describe('Field', () => {
           <Form config={config}>
             <Field name="email" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       const user = userEvent.setup();
-      await user.type(screen.getByTestId('email'), 'invalid');
+      await user.type(screen.getByTestId("email"), "invalid");
       await user.tab(); // Trigger blur/validation
 
       await waitFor(() => {
-        expect(screen.getByTestId('email-error')).toHaveTextContent('Must be a valid email');
+        expect(screen.getByTestId("email-error")).toHaveTextContent(
+          "Must be a valid email",
+        );
       });
     });
 
-    it('should clear error when validation passes', async () => {
+    it("should clear error when validation passes", async () => {
       const config: FormFieldsConfig = {
         email: {
-          type: 'textField',
+          type: "textField",
           validator: (value) => {
-            if (typeof value === 'string' && !value.includes('@')) {
-              return 'Must be a valid email';
+            if (typeof value === "string" && !value.includes("@")) {
+              return "Must be a valid email";
             }
             return true;
           },
@@ -386,37 +402,37 @@ describe('Field', () => {
           <Form config={config}>
             <Field name="email" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       const user = userEvent.setup();
 
       // First, trigger invalid state
-      await user.type(screen.getByTestId('email'), 'invalid');
+      await user.type(screen.getByTestId("email"), "invalid");
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByTestId('email-error')).toBeInTheDocument();
+        expect(screen.getByTestId("email-error")).toBeInTheDocument();
       });
 
       // Now fix the value
-      await user.clear(screen.getByTestId('email'));
-      await user.type(screen.getByTestId('email'), 'valid@email.com');
+      await user.clear(screen.getByTestId("email"));
+      await user.type(screen.getByTestId("email"), "valid@email.com");
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.queryByTestId('email-error')).not.toBeInTheDocument();
+        expect(screen.queryByTestId("email-error")).not.toBeInTheDocument();
       });
     });
   });
 
-  describe('disabled prop override', () => {
-    it('should use disabled prop over condition result', () => {
+  describe("disabled prop override", () => {
+    it("should use disabled prop over condition result", () => {
       const config: FormFieldsConfig = {
-        toggle: { type: 'switch' },
+        toggle: { type: "switch" },
         field: {
-          type: 'textField',
-          conditions: [{ when: 'toggle', truthy: true, disabled: true }],
+          type: "textField",
+          conditions: [{ when: "toggle", truthy: true, disabled: true }],
         },
       };
 
@@ -427,15 +443,15 @@ describe('Field', () => {
             {/* Force disabled=false even though condition would disable */}
             <Field name="field" disabled={false} />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('field')).not.toBeDisabled();
+      expect(screen.getByTestId("field")).not.toBeDisabled();
     });
 
-    it('should use disabled prop to force disable', () => {
+    it("should use disabled prop to force disable", () => {
       const config: FormFieldsConfig = {
-        field: { type: 'textField' },
+        field: { type: "textField" },
       };
 
       render(
@@ -443,122 +459,138 @@ describe('Field', () => {
           <Form config={config}>
             <Field name="field" disabled />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('field')).toBeDisabled();
+      expect(screen.getByTestId("field")).toBeDisabled();
     });
   });
 
-  describe('render prop', () => {
-    it('should pass field API to render function', () => {
+  describe("render prop", () => {
+    it("should pass field API to render function", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField' } }}>
+          <Form config={{ name: { type: "textField" } }}>
             <Field name="name">
               {({ fieldState, renderedField, watchers }) => (
                 <div data-testid="wrapper">
                   {renderedField}
-                  <span data-testid="touched">{fieldState.isTouched ? 'yes' : 'no'}</span>
-                  <span data-testid="watchers">{Object.keys(watchers).length}</span>
+                  <span data-testid="touched">
+                    {fieldState.isTouched ? "yes" : "no"}
+                  </span>
+                  <span data-testid="watchers">
+                    {Object.keys(watchers).length}
+                  </span>
                 </div>
               )}
             </Field>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('wrapper')).toBeInTheDocument();
-      expect(screen.getByTestId('touched')).toHaveTextContent('no');
-      expect(screen.getByTestId('watchers')).toHaveTextContent('0');
+      expect(screen.getByTestId("wrapper")).toBeInTheDocument();
+      expect(screen.getByTestId("touched")).toHaveTextContent("no");
+      expect(screen.getByTestId("watchers")).toHaveTextContent("0");
     });
 
-    it('should provide fieldProps to render function', () => {
+    it("should provide fieldProps to render function", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField', label: 'Test Label' } }}>
+          <Form config={{ name: { type: "textField", label: "Test Label" } }}>
             <Field name="name">
               {({ fieldProps }) => (
                 <span data-testid="label">{fieldProps.label as string}</span>
               )}
             </Field>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('label')).toHaveTextContent('Test Label');
+      expect(screen.getByTestId("label")).toHaveTextContent("Test Label");
     });
 
-    it('should update touched state after blur', async () => {
+    it("should update touched state after blur", async () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField' } }}>
+          <Form config={{ name: { type: "textField" } }}>
             <Field name="name">
               {({ fieldState, renderedField }) => (
                 <div data-testid="wrapper">
                   {renderedField}
-                  <span data-testid="touched">{fieldState.isTouched ? 'yes' : 'no'}</span>
+                  <span data-testid="touched">
+                    {fieldState.isTouched ? "yes" : "no"}
+                  </span>
                 </div>
               )}
             </Field>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('touched')).toHaveTextContent('no');
+      expect(screen.getByTestId("touched")).toHaveTextContent("no");
 
       const user = userEvent.setup();
-      await user.click(screen.getByTestId('name'));
+      await user.click(screen.getByTestId("name"));
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByTestId('touched')).toHaveTextContent('yes');
+        expect(screen.getByTestId("touched")).toHaveTextContent("yes");
       });
     });
   });
 
-  describe('shouldRegister prop', () => {
-    it('should register field by default', () => {
+  describe("shouldRegister prop", () => {
+    it("should register field by default", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField' }, other: { type: 'textField' } }}>
+          <Form
+            config={{
+              name: { type: "textField" },
+              other: { type: "textField" },
+            }}
+          >
             {({ unusedFields }) => (
               <>
                 <Field name="name" />
-                <span data-testid="unused">{unusedFields.join(',')}</span>
+                <span data-testid="unused">{unusedFields.join(",")}</span>
               </>
             )}
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // 'name' is registered, so only 'other' is unused
-      expect(screen.getByTestId('unused')).toHaveTextContent('other');
+      expect(screen.getByTestId("unused")).toHaveTextContent("other");
     });
 
-    it('should not register field when shouldRegister={false}', () => {
+    it("should not register field when shouldRegister={false}", () => {
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={{ name: { type: 'textField' }, other: { type: 'textField' } }}>
+          <Form
+            config={{
+              name: { type: "textField" },
+              other: { type: "textField" },
+            }}
+          >
             {({ unusedFields }) => (
               <>
                 <Field name="name" shouldRegister={false} />
-                <span data-testid="unused">{unusedFields.join(',')}</span>
+                <span data-testid="unused">{unusedFields.join(",")}</span>
               </>
             )}
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // 'name' is not registered, so both are unused
-      expect(screen.getByTestId('unused')).toHaveTextContent('name,other');
+      expect(screen.getByTestId("unused")).toHaveTextContent("name,other");
     });
   });
 
-  describe('type override', () => {
-    it('should use type prop over config type', () => {
+  describe("type override", () => {
+    it("should use type prop over config type", () => {
       const config: FormFieldsConfig = {
-        toggle: { type: 'textField' },
+        toggle: { type: "textField" },
       };
 
       render(
@@ -567,11 +599,11 @@ describe('Field', () => {
             {/* Override textField with switch */}
             <Field name="toggle" type="switch" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Should render as checkbox (switch type) not text input
-      expect(screen.getByTestId('toggle')).toHaveAttribute('type', 'checkbox');
+      expect(screen.getByTestId("toggle")).toHaveAttribute("type", "checkbox");
     });
   });
 });

@@ -1,6 +1,7 @@
 # Codebase Pattern Analysis - forwardRef Updates
 
 ## Purpose
+
 Analysis of completed forwardRef update tasks (P1.M1.T1.S1-S5) to extract the established pattern for updating test components.
 
 ## Analyzed Files
@@ -15,7 +16,7 @@ Analysis of completed forwardRef update tasks (P1.M1.T1.S1-S5) to extract the es
 ### TestInput Component Pattern
 
 ```tsx
-import React, { forwardRef } from 'react';
+import React, { forwardRef } from "react";
 
 interface TestInputProps {
   value?: any;
@@ -30,21 +31,21 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
     <input
       ref={ref}
       data-testid={name}
-      value={value ?? ''}
+      value={value ?? ""}
       onChange={(e) => onChange?.(e.target.value)}
       disabled={disabled}
       {...props}
     />
-  )
+  ),
 );
 
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 ```
 
 ### TestSwitch Component Pattern
 
 ```tsx
-import React, { forwardRef } from 'react';
+import React, { forwardRef } from "react";
 
 interface TestSwitchProps {
   value?: any;
@@ -65,25 +66,25 @@ const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
       disabled={disabled}
       {...props}
     />
-  )
+  ),
 );
 
-TestSwitch.displayName = 'TestSwitch';
+TestSwitch.displayName = "TestSwitch";
 ```
 
 ## Key Conventions
 
-| Aspect | Convention |
-|--------|------------|
-| Import | `import React, { forwardRef } from 'react';` |
-| Props Interface | Must include `[key: string]: unknown` for spread props |
-| Generic Type 1 | `HTMLInputElement` for both text and checkbox inputs |
-| Generic Type 2 | The props interface name |
-| Ref Parameter | Second parameter: `ref` |
-| Ref Placement | On the underlying DOM element: `ref={ref}` |
-| displayName | Must be set after component definition |
-| Optional Callbacks | Use optional chaining: `onChange?.()` |
-| Nullish Coalescing | Use `value ?? ''` or `value ?? false` |
+| Aspect             | Convention                                             |
+| ------------------ | ------------------------------------------------------ |
+| Import             | `import React, { forwardRef } from 'react';`           |
+| Props Interface    | Must include `[key: string]: unknown` for spread props |
+| Generic Type 1     | `HTMLInputElement` for both text and checkbox inputs   |
+| Generic Type 2     | The props interface name                               |
+| Ref Parameter      | Second parameter: `ref`                                |
+| Ref Placement      | On the underlying DOM element: `ref={ref}`             |
+| displayName        | Must be set after component definition                 |
+| Optional Callbacks | Use optional chaining: `onChange?.()`                  |
+| Nullish Coalescing | Use `value ?? ''` or `value ?? false`                  |
 
 ## Changes Required for autosave-validation.test.tsx
 

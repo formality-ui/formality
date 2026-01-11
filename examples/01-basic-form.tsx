@@ -8,14 +8,14 @@
  * - Basic submit handling
  */
 
-import React from 'react';
+import React from "react";
 import {
   FormalityProvider,
   Form,
   Field,
   type InputConfig,
   type FormFieldsConfig,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 
 // =============================================================================
 // Step 1: Define Input Types
@@ -32,14 +32,14 @@ const inputs: Record<string, InputConfig> = {
           id={name}
           name={name}
           type="text"
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
         {error && <span className="error">{error}</span>}
       </div>
     ),
-    defaultValue: '',
+    defaultValue: "",
   },
 
   emailField: {
@@ -50,14 +50,14 @@ const inputs: Record<string, InputConfig> = {
           id={name}
           name={name}
           type="email"
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
         {error && <span className="error">{error}</span>}
       </div>
     ),
-    defaultValue: '',
+    defaultValue: "",
   },
 
   numberField: {
@@ -68,18 +68,18 @@ const inputs: Record<string, InputConfig> = {
           id={name}
           name={name}
           type="number"
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
         {error && <span className="error">{error}</span>}
       </div>
     ),
-    defaultValue: '',
+    defaultValue: "",
     // Parse string input to number for form state
-    parser: (value) => (value === '' ? null : parseFloat(String(value))),
+    parser: (value) => (value === "" ? null : parseFloat(String(value))),
     // Format number back to string for display
-    formatter: (value) => (value == null ? '' : String(value)),
+    formatter: (value) => (value == null ? "" : String(value)),
   },
 };
 
@@ -90,20 +90,20 @@ const inputs: Record<string, InputConfig> = {
 
 const config: FormFieldsConfig = {
   firstName: {
-    type: 'textField',
-    label: 'First Name',
+    type: "textField",
+    label: "First Name",
   },
   lastName: {
-    type: 'textField',
-    label: 'Last Name',
+    type: "textField",
+    label: "Last Name",
   },
   email: {
-    type: 'emailField',
-    label: 'Email Address',
+    type: "emailField",
+    label: "Email Address",
   },
   age: {
-    type: 'numberField',
-    label: 'Age',
+    type: "numberField",
+    label: "Age",
   },
 };
 
@@ -113,7 +113,7 @@ const config: FormFieldsConfig = {
 
 export function BasicForm() {
   const handleSubmit = (values: Record<string, unknown>) => {
-    console.log('Form submitted:', values);
+    console.log("Form submitted:", values);
     // Output: { firstName: "John", lastName: "Doe", email: "john@example.com", age: 30 }
   };
 
@@ -145,14 +145,14 @@ export function BasicForm() {
 export function BasicFormWithData() {
   // Initial data - typically from an API
   const record = {
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane@example.com',
+    firstName: "Jane",
+    lastName: "Smith",
+    email: "jane@example.com",
     age: 28,
   };
 
   const handleSubmit = (values: Record<string, unknown>) => {
-    console.log('Updated values:', values);
+    console.log("Updated values:", values);
   };
 
   return (

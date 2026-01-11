@@ -1,15 +1,18 @@
 // @formality-ui/react - FormalityProvider
 // Global configuration provider for Formality forms
 
-import { useMemo, type ReactNode, type ComponentType } from 'react';
+import { useMemo, type ReactNode, type ComponentType } from "react";
 import type {
   InputConfig,
   ValidatorsConfig,
   ErrorMessagesConfig,
   SelectValue,
-} from '@formality-ui/core';
-import { ConfigContext, type ConfigContextValue } from '../context/ConfigContext';
-import type { InputTemplateProps } from '../types';
+} from "@formality-ui/core";
+import {
+  ConfigContext,
+  type ConfigContextValue,
+} from "../context/ConfigContext";
+import type { InputTemplateProps } from "../types";
 
 /**
  * FormalityProviderProps - Props for the FormalityProvider component
@@ -163,7 +166,7 @@ export function FormalityProvider({
   errorMessages = {},
   defaultInputTemplate,
   inputTemplates = {},
-  defaultSubscriptionPropName = 'state',
+  defaultSubscriptionPropName = "state",
   defaultFieldProps = {},
   selectDefaultFieldProps,
 }: FormalityProviderProps): JSX.Element {
@@ -193,7 +196,7 @@ export function FormalityProvider({
       defaultSubscriptionPropName,
       defaultFieldProps,
       selectDefaultFieldProps,
-    ]
+    ],
   );
 
   return (

@@ -1,4 +1,5 @@
 # Formality v1.0 - Complete Specification
+
 ## Comprehensive Framework Documentation
 
 This document provides complete, unambiguous specifications for every aspect of the Formality framework based on analysis of the working implementation (sellario-ui-formality-base) and gap analysis from the rewrite attempt.
@@ -165,20 +166,20 @@ packages/
 
 The core package contains **pure functions with zero framework dependencies**. These modules MUST NOT import React, Vue, Svelte, or any framework-specific libraries.
 
-| Module | Purpose | Key Exports |
-|--------|---------|-------------|
-| `expression/evaluate` | Evaluate string expressions against state | `evaluate(expr, context)` |
-| `expression/infer` | Extract field dependencies from expressions | `inferFieldsFromDescriptor(descriptor)` |
-| `expression/context` | Build evaluation context from state | `buildEvaluationContext(fields, record, props)` |
-| `conditions/evaluate` | Evaluate conditions to get disabled/visible/value | `evaluateConditions(conditions, state)` |
-| `validation/validate` | Run validators and compose results | `validate(value, rules, validators, formValues)` |
-| `validation/messages` | Resolve error messages from types | `resolveErrorMessage(error, messages)` |
-| `transform/pipeline` | Apply parsers and formatters | `parse(value, parser)`, `format(value, formatter)` |
-| `config/merge` | Merge provider + form + field configs | `mergeConfigs(provider, form, field)` |
-| `config/defaults` | Resolve initial/default values | `resolveInitialValue(record, config, inputConfig)` |
-| `config/ordering` | Sort fields by order property | `sortFieldsByOrder(fields, config)` |
-| `labels/resolve` | Resolve field labels/titles | `resolveLabel(config, fieldName)` |
-| `types/*` | All TypeScript interfaces | All type definitions |
+| Module                | Purpose                                           | Key Exports                                        |
+| --------------------- | ------------------------------------------------- | -------------------------------------------------- |
+| `expression/evaluate` | Evaluate string expressions against state         | `evaluate(expr, context)`                          |
+| `expression/infer`    | Extract field dependencies from expressions       | `inferFieldsFromDescriptor(descriptor)`            |
+| `expression/context`  | Build evaluation context from state               | `buildEvaluationContext(fields, record, props)`    |
+| `conditions/evaluate` | Evaluate conditions to get disabled/visible/value | `evaluateConditions(conditions, state)`            |
+| `validation/validate` | Run validators and compose results                | `validate(value, rules, validators, formValues)`   |
+| `validation/messages` | Resolve error messages from types                 | `resolveErrorMessage(error, messages)`             |
+| `transform/pipeline`  | Apply parsers and formatters                      | `parse(value, parser)`, `format(value, formatter)` |
+| `config/merge`        | Merge provider + form + field configs             | `mergeConfigs(provider, form, field)`              |
+| `config/defaults`     | Resolve initial/default values                    | `resolveInitialValue(record, config, inputConfig)` |
+| `config/ordering`     | Sort fields by order property                     | `sortFieldsByOrder(fields, config)`                |
+| `labels/resolve`      | Resolve field labels/titles                       | `resolveLabel(config, fieldName)`                  |
+| `types/*`             | All TypeScript interfaces                         | All type definitions                               |
 
 **Example - Pure condition evaluation in core:**
 
@@ -186,8 +187,8 @@ The core package contains **pure functions with zero framework dependencies**. T
 // @formality-ui/core/src/conditions/evaluate.ts
 // NO framework imports allowed here
 
-import type { ConditionDescriptor, ConditionResult } from '../types';
-import { evaluate } from '../expression/evaluate';
+import type { ConditionDescriptor, ConditionResult } from "../types";
+import { evaluate } from "../expression/evaluate";
 
 export interface EvaluateConditionsInput {
   conditions: ConditionDescriptor[];
@@ -205,7 +206,9 @@ export interface ConditionResult {
   hasSetCondition: boolean;
 }
 
-export function evaluateConditions(input: EvaluateConditionsInput): ConditionResult {
+export function evaluateConditions(
+  input: EvaluateConditionsInput,
+): ConditionResult {
   const { conditions, fieldValues, record, props } = input;
 
   let disabled: boolean | undefined;
@@ -227,7 +230,10 @@ export function evaluateConditions(input: EvaluateConditionsInput): ConditionRes
       }
       if (condition.visible !== undefined) {
         hasVisibleCondition = true;
-        visible = visible === undefined ? condition.visible : visible && condition.visible; // AND logic
+        visible =
+          visible === undefined
+            ? condition.visible
+            : visible && condition.visible; // AND logic
       }
       if (condition.set !== undefined || condition.selectSet !== undefined) {
         hasSetCondition = true;
@@ -238,7 +244,14 @@ export function evaluateConditions(input: EvaluateConditionsInput): ConditionRes
     }
   }
 
-  return { disabled, visible, setValue, hasDisabledCondition, hasVisibleCondition, hasSetCondition };
+  return {
+    disabled,
+    visible,
+    setValue,
+    hasDisabledCondition,
+    hasVisibleCondition,
+    hasSetCondition,
+  };
 }
 ```
 
@@ -246,37 +259,40 @@ export function evaluateConditions(input: EvaluateConditionsInput): ConditionRes
 
 The React package contains **React-specific implementations** that use core functions internally.
 
-| Module | Purpose | Uses Core |
-|--------|---------|-----------|
-| `components/Form` | RHF integration, context providers | config/merge |
-| `components/Field` | Controller wrapper, state management | All core modules |
-| `components/FieldGroup` | Group context provider | conditions/evaluate |
-| `hooks/useConditions` | React hook wrapping condition evaluation | conditions/evaluate |
-| `hooks/useField` | RHF Controller integration | transform/pipeline, validation/validate |
-| `hooks/useSubscriptions` | Field dependency tracking | expression/infer |
-| `hooks/usePropsEvaluation` | Evaluate selectProps with memoization | expression/evaluate |
-| `context/*` | React Context definitions | types/* |
+| Module                     | Purpose                                  | Uses Core                               |
+| -------------------------- | ---------------------------------------- | --------------------------------------- |
+| `components/Form`          | RHF integration, context providers       | config/merge                            |
+| `components/Field`         | Controller wrapper, state management     | All core modules                        |
+| `components/FieldGroup`    | Group context provider                   | conditions/evaluate                     |
+| `hooks/useConditions`      | React hook wrapping condition evaluation | conditions/evaluate                     |
+| `hooks/useField`           | RHF Controller integration               | transform/pipeline, validation/validate |
+| `hooks/useSubscriptions`   | Field dependency tracking                | expression/infer                        |
+| `hooks/usePropsEvaluation` | Evaluate selectProps with memoization    | expression/evaluate                     |
+| `context/*`                | React Context definitions                | types/\*                                |
 
 **Example - React hook calling core function:**
 
 ```typescript
 // @formality-ui/react/src/hooks/useConditions.ts
-import { useMemo } from 'react';
-import { useWatch } from 'react-hook-form';
-import { evaluateConditions, inferFieldsFromConditions } from '@formality-ui/core';
-import type { ConditionDescriptor } from '@formality-ui/core';
-import { useFormContext } from '../context/FormContext';
+import { useMemo } from "react";
+import { useWatch } from "react-hook-form";
+import {
+  evaluateConditions,
+  inferFieldsFromConditions,
+} from "@formality-ui/core";
+import type { ConditionDescriptor } from "@formality-ui/core";
+import { useFormContext } from "../context/FormContext";
 
 export function useConditions(
   conditions: ConditionDescriptor[],
-  explicitSubscriptions?: string[]
+  explicitSubscriptions?: string[],
 ) {
   const { record } = useFormContext();
 
   // Use core's inference to find dependencies
   const inferredFields = useMemo(
     () => inferFieldsFromConditions(conditions),
-    [conditions]
+    [conditions],
   );
 
   const watchFields = explicitSubscriptions ?? inferredFields;
@@ -304,7 +320,7 @@ export function useConditions(
   // Call core's pure function
   return useMemo(
     () => evaluateConditions({ conditions, fieldValues, record }),
-    [conditions, fieldValues, record]
+    [conditions, fieldValues, record],
   );
 }
 ```
@@ -338,12 +354,12 @@ Each framework adapter (`@formality-ui/react`, `@formality-ui/vue`, `@formality-
 
 #### 1.3.5 Current Implementation Status
 
-| Package | Status | Notes |
-|---------|--------|-------|
-| `@formality-ui/core` | **In Development** | Build alongside React implementation |
-| `@formality-ui/react` | **In Development** | Primary implementation, full feature set |
-| `@formality-ui/vue` | **Stubbed** | Package structure only, README placeholder |
-| `@formality-ui/svelte` | **Stubbed** | Package structure only, README placeholder |
+| Package                | Status             | Notes                                      |
+| ---------------------- | ------------------ | ------------------------------------------ |
+| `@formality-ui/core`   | **In Development** | Build alongside React implementation       |
+| `@formality-ui/react`  | **In Development** | Primary implementation, full feature set   |
+| `@formality-ui/vue`    | **Stubbed**        | Package structure only, README placeholder |
+| `@formality-ui/svelte` | **Stubbed**        | Package structure only, README placeholder |
 
 **Development Strategy:**
 
@@ -355,44 +371,52 @@ Each framework adapter (`@formality-ui/react`, `@formality-ui/vue`, `@formality-
 #### 1.3.6 Import Rules
 
 **In `@formality-ui/core`:**
+
 ```typescript
 // ✅ ALLOWED
-import type { ConditionDescriptor } from '../types';
-import { evaluate } from '../expression/evaluate';
+import type { ConditionDescriptor } from "../types";
+import { evaluate } from "../expression/evaluate";
 
 // ❌ FORBIDDEN - No framework imports
-import { useState } from 'react';           // NO
-import { ref } from 'vue';                  // NO
-import { writable } from 'svelte/store';    // NO
+import { useState } from "react"; // NO
+import { ref } from "vue"; // NO
+import { writable } from "svelte/store"; // NO
 ```
 
 **In `@formality-ui/react`:**
+
 ```typescript
 // ✅ ALLOWED
-import { evaluateConditions, inferFieldsFromDescriptor } from '@formality-ui/core';
-import type { FieldConfig, ConditionDescriptor } from '@formality-ui/core';
-import { useMemo, useCallback } from 'react';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import {
+  evaluateConditions,
+  inferFieldsFromDescriptor,
+} from "@formality-ui/core";
+import type { FieldConfig, ConditionDescriptor } from "@formality-ui/core";
+import { useMemo, useCallback } from "react";
+import { useForm, useWatch, Controller } from "react-hook-form";
 
 // ✅ Re-export core types for convenience
-export type { FieldConfig, FormConfig, InputConfig } from '@formality-ui/core';
+export type { FieldConfig, FormConfig, InputConfig } from "@formality-ui/core";
 ```
 
 #### 1.3.7 Testing Strategy
 
 **Core package tests:**
+
 - Pure unit tests, no framework test utilities
 - Test expression evaluation with plain objects
 - Test condition evaluation with mock state
 - 100% coverage target for core logic
 
 **React package tests:**
+
 - React Testing Library
 - Test hooks with `renderHook`
 - Integration tests for Form/Field/FieldGroup
 - Test that components correctly call core functions
 
 **Cross-package tests:**
+
 - Ensure React adapter produces identical results to calling core directly
 - Validate that core has zero framework dependencies (build check)
 
@@ -413,7 +437,9 @@ React Hook Form implements a sophisticated subscription system where components 
 const fieldState = { value: 5, isTouched: false, isDirty: false, error: null };
 
 // When an expression accesses fieldState:
-const result = evaluate("client.value", { state: { fields: { client: fieldState } } });
+const result = evaluate("client.value", {
+  state: { fields: { client: fieldState } },
+});
 
 // React's dependency tracking registers a dependency on the ENTIRE fieldState object
 // If ANY property changes (even isTouched: false → true), the component re-renders
@@ -441,6 +467,7 @@ function makeProxyState<T extends object>(formState: T): T {
 ```
 
 **How it works:**
+
 1. Instead of passing objects directly, wrap them in proxy objects with getter properties
 2. Properties are only accessed when the expression actually uses them
 3. React's dependency tracking only registers dependencies on **accessed properties**
@@ -460,10 +487,10 @@ const makeCustomFieldState = ({
   isValidating,
 }) =>
   makeProxyState({
-    ...fieldState,        // isTouched, isDirty, invalid, error
-    value,                // Current field value
-    defaultValue,         // Initial/default value
-    isValidating,         // Async validation state
+    ...fieldState, // isTouched, isDirty, invalid, error
+    value, // Current field value
+    defaultValue, // Initial/default value
+    isValidating, // Async validation state
   });
 
 // Usage in formState.fields
@@ -493,7 +520,7 @@ const useFormState = (options) => {
   const record = useContext(FormFieldContext).record;
 
   // Add record property using lazy access
-  Object.defineProperty(formState, 'record', {
+  Object.defineProperty(formState, "record", {
     get: () => record,
     enumerable: true,
     configurable: true,
@@ -508,12 +535,14 @@ const useFormState = (options) => {
 #### 2.1.4 Performance Impact
 
 **Without Proxy Pattern:**
+
 - 100 field form with 20 fields having `selectProps`
 - Every field change triggers re-evaluation in all 20 dependent fields
 - Each re-evaluation creates dependencies on 5+ properties per field state
 - Result: 100+ unnecessary re-renders per keystroke
 
 **With Proxy Pattern:**
+
 - Same 100 field form
 - Field change triggers re-evaluation in 20 dependent fields
 - Each re-evaluation only creates dependencies on actually used properties (typically 1-2)
@@ -537,7 +566,7 @@ const useFormState = (options) => {
 const state = makeProxyState({ value: 5, isTouched: false });
 
 // Should create getter, not direct property
-console.log(Object.getOwnPropertyDescriptor(state, 'value').get); // Should be a function
+console.log(Object.getOwnPropertyDescriptor(state, "value").get); // Should be a function
 
 // Should still work like normal object
 console.log(state.value); // 5
@@ -557,13 +586,13 @@ const invertedSubscriptions = new Map<string, Set<string>>();
 // Maps: targetField → Set<subscriberField>
 
 // When Field B subscribes to Field A:
-if (!invertedSubscriptions.has('fieldA')) {
-  invertedSubscriptions.set('fieldA', new Set());
+if (!invertedSubscriptions.has("fieldA")) {
+  invertedSubscriptions.set("fieldA", new Set());
 }
-invertedSubscriptions.get('fieldA').add('fieldB');
+invertedSubscriptions.get("fieldA").add("fieldB");
 
 // When Field A changes:
-const subscribers = invertedSubscriptions.get('fieldA');
+const subscribers = invertedSubscriptions.get("fieldA");
 if (subscribers?.size) {
   // Trigger re-renders only in Fields B, C, D, etc.
   // React Hook Form's useWatch handles this automatically
@@ -670,27 +699,27 @@ interface InputConfig<TValue = unknown> {
   formatter?: string | ((value: TValue) => unknown);
   validator?: ValidatorSpec;
   template?: React.ComponentType<InputTemplateProps>;
-  props?: Record<string, unknown>;           // Default props for this input type
+  props?: Record<string, unknown>; // Default props for this input type
 }
 
 // Field-level configuration
 interface FieldConfig {
   type?: string;
-  label?: string;                            // Human-readable label (static)
-  title?: string;                            // Alias for label (legacy support)
+  label?: string; // Human-readable label (static)
+  title?: string; // Alias for label (legacy support)
   disabled?: boolean;
   hidden?: boolean;
-  order?: number;                            // Display order for config-driven rendering
-  recordKey?: string;                        // Key to use when reading from record
+  order?: number; // Display order for config-driven rendering
+  recordKey?: string; // Key to use when reading from record
   rules?: RegisterOptions;
   validator?: ValidatorSpec;
   props?: Record<string, unknown>;
-  selectProps?: SelectValue<Record<string, unknown>>;  // Dynamic props - string, object, OR function
+  selectProps?: SelectValue<Record<string, unknown>>; // Dynamic props - string, object, OR function
   conditions?: ConditionDescriptor[];
-  subscribesTo?: string[];                   // REQUIRED when using functions in selectProps
-  provideState?: boolean;                    // Pass field state to component
-  passSubscriptions?: boolean;               // Pass subscribed field states to component
-  passSubscriptionsAs?: string;              // Prop name for subscribed states (default: 'state')
+  subscribesTo?: string[]; // REQUIRED when using functions in selectProps
+  provideState?: boolean; // Pass field state to component
+  passSubscriptions?: boolean; // Pass subscribed field states to component
+  passSubscriptionsAs?: string; // Prop name for subscribed states (default: 'state')
 }
 
 // Select descriptor (DEPRECATED name - use SelectValue)
@@ -699,21 +728,21 @@ type SelectDescriptor = SelectValue;
 // Condition descriptor - supports both strings AND functions
 interface ConditionDescriptor {
   // Trigger - one of these is required
-  when?: string;                             // Field to watch: "client"
-  selectWhen?: SelectValue<boolean>;         // Expression OR function: "client.id > 5" or ({ fields }) => ...
+  when?: string; // Field to watch: "client"
+  selectWhen?: SelectValue<boolean>; // Expression OR function: "client.id > 5" or ({ fields }) => ...
 
   // Matchers
-  is?: unknown;                              // Exact value match
-  truthy?: boolean;                          // Truthy/falsy check
+  is?: unknown; // Exact value match
+  truthy?: boolean; // Truthy/falsy check
 
   // Actions when condition matches
-  disabled?: boolean;                        // Set disabled state
-  visible?: boolean;                         // Set visibility
-  set?: unknown;                             // Set static value
-  selectSet?: SelectValue;                   // Set dynamic value - string OR function
+  disabled?: boolean; // Set disabled state
+  visible?: boolean; // Set visibility
+  set?: unknown; // Set static value
+  selectSet?: SelectValue; // Set dynamic value - string OR function
 
   // Dependencies (REQUIRED when using functions)
-  subscribesTo?: string[];                   // Explicit subscriptions for function-based conditions
+  subscribesTo?: string[]; // Explicit subscriptions for function-based conditions
 }
 
 // Note: Either 'when' or 'selectWhen' must be provided, but not both.
@@ -722,21 +751,21 @@ interface ConditionDescriptor {
 
 // Validator specification
 type ValidatorSpec =
-  | string                         // Named validator
-  | ValidatorFunction              // Inline function
-  | Array<string | ValidatorFunction>;  // Multiple validators
+  | string // Named validator
+  | ValidatorFunction // Inline function
+  | Array<string | ValidatorFunction>; // Multiple validators
 
 type ValidatorFunction = (
   value: unknown,
-  formValues: Record<string, unknown>
+  formValues: Record<string, unknown>,
 ) => ValidationResult | Promise<ValidationResult>;
 
 type ValidationResult =
-  | true                           // Valid
-  | false                          // Invalid (generic message)
-  | string                         // Invalid with message
-  | undefined                      // Valid
-  | { type: string; message?: string };  // Invalid with type
+  | true // Valid
+  | false // Invalid (generic message)
+  | string // Invalid with message
+  | undefined // Valid
+  | { type: string; message?: string }; // Invalid with type
 ```
 
 ### 3.3 Provider Configuration
@@ -750,9 +779,9 @@ interface FormalityProviderConfig {
   errorMessages?: ErrorMessagesConfig;
   defaultInputTemplate?: React.ComponentType<InputTemplateProps>;
   inputTemplates?: Record<string, React.ComponentType<InputTemplateProps>>;
-  defaultSubscriptionPropName?: string;       // Default prop name for passSubscriptions (default: 'state')
+  defaultSubscriptionPropName?: string; // Default prop name for passSubscriptions (default: 'state')
   defaultFieldProps?: Record<string, unknown>;
-  selectDefaultFieldProps?: SelectValue;      // Can be string, object, OR function
+  selectDefaultFieldProps?: SelectValue; // Can be string, object, OR function
 }
 
 interface ValidatorsConfig {
@@ -818,7 +847,7 @@ interface FormState {
   isTouched: boolean;
   isValid: boolean;
   isSubmitting: boolean;
-  props?: Record<string, unknown>;  // Field-level: { name: string }
+  props?: Record<string, unknown>; // Field-level: { name: string }
 }
 
 interface FieldState {
@@ -828,7 +857,7 @@ interface FieldState {
   isValidating: boolean;
   error?: FieldError;
   invalid: boolean;
-  watchers: Record<string, boolean>;  // Who is watching this field
+  watchers: Record<string, boolean>; // Who is watching this field
 }
 ```
 
@@ -866,8 +895,8 @@ interface FormContextValue {
 
   // Submission operations
   onSubmit: (values: Record<string, unknown>) => void | Promise<void>;
-  debouncedSubmit: DebouncedFunction;         // Debounced submit with lodash-style API
-  submitImmediate: () => void;                 // Execute pending debounced submit immediately
+  debouncedSubmit: DebouncedFunction; // Debounced submit with lodash-style API
+  submitImmediate: () => void; // Execute pending debounced submit immediately
 
   // Unused fields tracking
   unusedFields: string[];
@@ -880,13 +909,15 @@ interface FormContextValue {
  * DebouncedFunction - Lodash-style debounced function API
  */
 interface DebouncedFunction {
-  (): void;                    // Call the debounced function
-  cancel: () => void;          // Cancel any pending invocation
-  flush: () => void;           // Execute pending invocation immediately
-  pending: () => boolean;      // Check if there's a pending invocation
+  (): void; // Call the debounced function
+  cancel: () => void; // Cancel any pending invocation
+  flush: () => void; // Execute pending invocation immediately
+  pending: () => boolean; // Check if there's a pending invocation
 }
 
-type WatcherSetterFn = React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+type WatcherSetterFn = React.Dispatch<
+  React.SetStateAction<Record<string, boolean>>
+>;
 ```
 
 ### 4.2 ConfigContext
@@ -904,7 +935,7 @@ interface ConfigContextValue {
   inputTemplates: Record<string, React.ComponentType<InputTemplateProps>>;
   defaultSubscriptionPropName: string;
   defaultFieldProps: Record<string, unknown>;
-  selectDefaultFieldProps?: SelectValue;      // Can be string, object, OR function
+  selectDefaultFieldProps?: SelectValue; // Can be string, object, OR function
 }
 ```
 
@@ -920,7 +951,7 @@ interface GroupContextValue {
     conditions: ConditionDescriptor[];
     subscriptions: string[];
   };
-  subscriptions: string[];  // Root-level for default context
+  subscriptions: string[]; // Root-level for default context
   inferredInputs: string[];
   config: GroupConfig;
 }
@@ -962,15 +993,15 @@ The expression engine resolves string expressions to values from FormState.
 
 **Complete list of qualified prefixes** (paths that are NOT auto-transformed):
 
-| Prefix | Resolution Path | Example |
-|--------|-----------------|---------|
-| `fields.` | `state.fields.{rest}` | `fields.client.value` → `state.fields.client.value` |
-| `record.` | `state.record.{rest}` | `record.name` → `state.record.name` |
-| `errors.` | `state.errors.{rest}` | `errors.client` → `state.errors.client` |
+| Prefix           | Resolution Path              | Example                                               |
+| ---------------- | ---------------------------- | ----------------------------------------------------- |
+| `fields.`        | `state.fields.{rest}`        | `fields.client.value` → `state.fields.client.value`   |
+| `record.`        | `state.record.{rest}`        | `record.name` → `state.record.name`                   |
+| `errors.`        | `state.errors.{rest}`        | `errors.client` → `state.errors.client`               |
 | `defaultValues.` | `state.defaultValues.{rest}` | `defaultValues.client` → `state.defaultValues.client` |
 | `touchedFields.` | `state.touchedFields.{rest}` | `touchedFields.client` → `state.touchedFields.client` |
-| `dirtyFields.` | `state.dirtyFields.{rest}` | `dirtyFields.client` → `state.dirtyFields.client` |
-| `props.` | `state.props.{rest}` | `props.name` → `state.props.name` |
+| `dirtyFields.`   | `state.dirtyFields.{rest}`   | `dirtyFields.client` → `state.dirtyFields.client`     |
+| `props.`         | `state.props.{rest}`         | `props.name` → `state.props.name`                     |
 
 #### 4.1.2 Unqualified Path Transformation
 
@@ -991,16 +1022,16 @@ Paths WITHOUT a qualified prefix are auto-transformed to field value paths:
 ```typescript
 function resolvePath(path: string, context: FormState): string {
   const QUALIFIED_KEYS = [
-    'fields',
-    'record',
-    'errors',
-    'defaultValues',
-    'touchedFields',
-    'dirtyFields',
-    'props'
+    "fields",
+    "record",
+    "errors",
+    "defaultValues",
+    "touchedFields",
+    "dirtyFields",
+    "props",
   ];
 
-  const parts = path.split('.');
+  const parts = path.split(".");
   const root = parts[0];
 
   if (QUALIFIED_KEYS.includes(root)) {
@@ -1011,8 +1042,8 @@ function resolvePath(path: string, context: FormState): string {
   // Unqualified - transform to field value access
   // "client" → "fields.client.value"
   // "client.id" → "fields.client.value.id"
-  return `fields.${path.split('.')[0]}.value${
-    parts.length > 1 ? '.' + parts.slice(1).join('.') : ''
+  return `fields.${path.split(".")[0]}.value${
+    parts.length > 1 ? "." + parts.slice(1).join(".") : ""
   }`;
 }
 ```
@@ -1023,24 +1054,27 @@ function resolvePath(path: string, context: FormState): string {
 
 **Option A: Pre-Transform Paths (Complex)**
 Before evaluating, scan the expression for unqualified identifiers and transform them:
+
 ```typescript
 // Input expression
-"client && client.id > 5"
+"client && client.id > 5";
 
 // After transformation
-"fields.client.value && fields.client.value.id > 5"
+"fields.client.value && fields.client.value.id > 5";
 ```
+
 - Pros: Clean expressions match PRD semantics exactly
 - Cons: Complex regex/AST transformation, edge cases with property names
 
 **Option B: Dual Context Mapping (RECOMMENDED)**
 Provide field values at BOTH qualified AND unqualified levels in the evaluation context:
+
 ```typescript
 const context = {
   // Qualified access: fields.client.value
   fields: {
     client: { value: { id: 5, name: "Acme" } },
-    signed: { value: true }
+    signed: { value: true },
   },
   // Unqualified access: client, signed (direct shortcuts)
   client: { id: 5, name: "Acme" },
@@ -1050,12 +1084,14 @@ const context = {
   props: { name: "fieldName" },
 };
 ```
+
 - Pros: Simpler implementation, no expression parsing needed
 - Cons: Larger context object, potential name collisions
 
 **DECISION: Use Option B (Dual Context Mapping) with Field State Proxies**
 
 The implementation MUST:
+
 1. Build context with all qualified paths (`fields`, `record`, `props`, `errors`, etc.)
 2. Add shortcut properties for each field using **field state proxies** (see below)
 3. Evaluate expressions directly against this merged context
@@ -1067,16 +1103,17 @@ Unqualified field shortcuts MUST use a proxy that enables access to both the val
 
 ```typescript
 // Proxy behavior for context[fieldName]:
-signed              // → true (coerces to value via Symbol.toPrimitive)
-signed.value        // → true (explicit value access)
-signed.isTouched    // → boolean (field metadata)
-signed.isDirty      // → boolean (field metadata)
-signed.id           // → value.id (delegates to value for object values)
+signed; // → true (coerces to value via Symbol.toPrimitive)
+signed.value; // → true (explicit value access)
+signed.isTouched; // → boolean (field metadata)
+signed.isDirty; // → boolean (field metadata)
+signed.id; // → value.id (delegates to value for object values)
 ```
 
 **Why proxies are required:** Conditions like `selectSet: 'field && field.isTouched'` need access to field metadata within expressions. Without proxies, there's no way to access `isTouched` or `isDirty` in condition expressions.
 
 **Example Implementation:**
+
 ```typescript
 function createFieldStateProxy(fieldState) {
   return new Proxy(fieldState, {
@@ -1086,15 +1123,17 @@ function createFieldStateProxy(fieldState) {
         return () => target.value;
       }
       // Known metadata properties - read from field state
-      if (['value', 'isTouched', 'isDirty', 'error', 'invalid'].includes(prop)) {
+      if (
+        ["value", "isTouched", "isDirty", "error", "invalid"].includes(prop)
+      ) {
         return target[prop];
       }
       // Unknown properties - delegate to value (for object values)
-      if (target.value && typeof target.value === 'object') {
+      if (target.value && typeof target.value === "object") {
         return target.value[prop];
       }
       return undefined;
-    }
+    },
   });
 }
 
@@ -1110,7 +1149,8 @@ function buildEvaluationContext(formState, record, props) {
 
   // Add unqualified shortcuts as PROXIES (not raw values)
   for (const [fieldName, fieldState] of Object.entries(formState.fields)) {
-    if (!(fieldName in context)) { // Don't override qualified paths
+    if (!(fieldName in context)) {
+      // Don't override qualified paths
       context[fieldName] = createFieldStateProxy(fieldState);
     }
   }
@@ -1164,6 +1204,7 @@ This ensures expressions like `"client"` resolve to the field value while `"clie
 When evaluating expressions, the context varies by **where** the expression is used:
 
 **Form-level expressions** (e.g., conditions on FieldGroup):
+
 ```typescript
 {
   state: {
@@ -1176,6 +1217,7 @@ When evaluating expressions, the context varies by **where** the expression is u
 ```
 
 **Field-level expressions** (e.g., selectProps, selectDefaultFieldProps):
+
 ```typescript
 {
   state: {
@@ -1224,13 +1266,13 @@ When a SelectDescriptor is a string, it's evaluated directly:
 
 ```typescript
 // Input
-selectTitle: "record.name"
+selectTitle: "record.name";
 
 // Evaluation
-evaluate("record.name", context)  // → "Hometown Heating and Cooling"
+evaluate("record.name", context); // → "Hometown Heating and Cooling"
 
 // Result
-"Hometown Heating and Cooling"
+("Hometown Heating and Cooling");
 ```
 
 #### 4.3.3 Inference (Field Dependencies)
@@ -1242,9 +1284,8 @@ function inferFieldsFromDescriptor(descriptor: SelectDescriptor): string[] {
   const fields: string[] = [];
 
   // Scan all expression strings
-  const expressions = typeof descriptor === 'string'
-    ? [descriptor]
-    : Object.values(descriptor);
+  const expressions =
+    typeof descriptor === "string" ? [descriptor] : Object.values(descriptor);
 
   for (const expr of expressions) {
     // Extract unqualified identifiers (field names)
@@ -1258,7 +1299,7 @@ function inferFieldsFromDescriptor(descriptor: SelectDescriptor): string[] {
     }
   }
 
-  return [...new Set(fields)];  // Unique list
+  return [...new Set(fields)]; // Unique list
 }
 ```
 
@@ -1289,11 +1330,13 @@ interface FormalityProviderProps {
 ```
 
 **Behavior**:
+
 1. Creates ConfigContext with merged default values
 2. Does NOT render any wrapper elements
 3. Simply provides context for children
 
 **Defaults**:
+
 ```typescript
 {
   formatters: {},
@@ -1320,15 +1363,16 @@ interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   record?: Partial<TFieldValues>;
   autoSave?: boolean;
   debounce?: number;
-  validate?: (values: Partial<TFieldValues>) =>
-    ValidationErrors | Promise<ValidationErrors>;
+  validate?: (
+    values: Partial<TFieldValues>,
+  ) => ValidationErrors | Promise<ValidationErrors>;
 }
 
 interface FormRenderAPI {
   unusedFields: string[];
   formState: UseFormStateReturn;
   methods: UseFormReturn;
-  resolvedTitle?: string;  // Evaluated form title from selectTitle/title
+  resolvedTitle?: string; // Evaluated form title from selectTitle/title
 }
 ```
 
@@ -1337,10 +1381,12 @@ interface FormRenderAPI {
 **CRITICAL**: The Form component does NOT render titles directly. Instead, it evaluates and EXPOSES the resolved title through the render function API.
 
 **Resolution order** (first defined wins):
+
 1. `formConfig.selectTitle` - Expression evaluated against form context
 2. `formConfig.title` - Static string
 
 **Implementation:**
+
 ```typescript
 // In Form component
 const resolvedTitle = useMemo(() => {
@@ -1362,17 +1408,18 @@ children({
   unusedFields,
   formState: methods.formState,
   methods,
-})
+});
 ```
 
 **Usage example:**
+
 ```jsx
 <Form
   config={fieldConfig}
   formConfig={{
-    selectTitle: "record.clientName",  // Dynamic: "Hometown Heating"
+    selectTitle: "record.clientName", // Dynamic: "Hometown Heating"
     // OR
-    title: "Edit Quote",               // Static fallback
+    title: "Edit Quote", // Static fallback
   }}
   record={{ clientName: "Hometown Heating" }}
 >
@@ -1395,6 +1442,7 @@ children({
    - Provider config + Form config + Field config
 
 2. **Extract default values from config**
+
    ```typescript
    const defaultValues = {};
    for (const [name, fieldConfig] of Object.entries(config)) {
@@ -1405,11 +1453,12 @@ children({
    ```
 
 3. **Initialize React Hook Form**
+
    ```typescript
    const methods = useForm({
-     mode: 'onChange',
+     mode: "onChange",
      defaultValues,
-     values: record,  // Initial values from record prop
+     values: record, // Initial values from record prop
    });
    ```
 
@@ -1437,7 +1486,7 @@ function addSubscription(target: string, subscriber: string) {
   // Notify target field immediately if mounted
   const setter = watcherSetters.get(target);
   if (setter) {
-    setter(prev => ({ ...prev, [subscriber]: true }));
+    setter((prev) => ({ ...prev, [subscriber]: true }));
   } else {
     // Target not mounted yet - queue for later
     if (!pendingWatcherUpdates.has(target)) {
@@ -1457,9 +1506,11 @@ function registerWatcherSetter(name: string, setter: WatcherSetterFn) {
   // Process any pending subscriptions
   const pending = pendingWatcherUpdates.get(name);
   if (pending?.size) {
-    setter(prev => {
+    setter((prev) => {
       const next = { ...prev };
-      pending.forEach(sub => { next[sub] = true; });
+      pending.forEach((sub) => {
+        next[sub] = true;
+      });
       return next;
     });
     pendingWatcherUpdates.delete(name);
@@ -1495,11 +1546,11 @@ function changeField(name: string, value: unknown) {
 const declaredFields = new Set<string>();
 
 // In Field component registration
-registerField(name);  // Adds to declaredFields
+registerField(name); // Adds to declaredFields
 
 // Calculate unused fields
 const unusedFields = Object.keys(config).filter(
-  name => !declaredFields.has(name)
+  (name) => !declaredFields.has(name),
 );
 ```
 
@@ -1549,7 +1600,7 @@ function transformValuesForSubmit(values: Record<string, unknown>) {
       // Use custom submit field name
       const submitName = inputConfig.getSubmitField(name);
 
-      if (inputConfig.valueField && value && typeof value === 'object') {
+      if (inputConfig.valueField && value && typeof value === "object") {
         // Extract specific field from object
         result[submitName] = (value as any)[inputConfig.valueField];
       } else {
@@ -1565,6 +1616,7 @@ function transformValuesForSubmit(values: Record<string, unknown>) {
 ```
 
 **Example**:
+
 ```typescript
 // Input values
 {
@@ -1601,7 +1653,7 @@ interface FieldProps {
   hidden?: boolean;
   children?: React.ReactNode | ((api: FieldRenderAPI) => React.ReactNode);
   shouldRegister?: boolean;
-  [key: string]: unknown;  // Additional props passed to input
+  [key: string]: unknown; // Additional props passed to input
 }
 
 interface FieldRenderAPI {
@@ -1618,6 +1670,7 @@ interface FieldRenderAPI {
 **Order of operations**:
 
 1. **Register with form**
+
    ```typescript
    useEffect(() => {
      registerField(name);
@@ -1626,13 +1679,15 @@ interface FieldRenderAPI {
    ```
 
 2. **Resolve configuration**
+
    ```typescript
    const fieldConfig = config[name] || {};
-   const type = typeProp || fieldConfig.type || 'textField';
+   const type = typeProp || fieldConfig.type || "textField";
    const inputConfig = inputs[type];
    ```
 
 3. **Set up watcher state**
+
    ```typescript
    const [watchers, setWatchers] = useState<Record<string, boolean>>({});
 
@@ -1643,6 +1698,7 @@ interface FieldRenderAPI {
    ```
 
 4. **Resolve subscriptions**
+
    ```typescript
    // Explicit subscriptions
    const explicitSubs = fieldConfig.subscribesTo || [];
@@ -1653,25 +1709,27 @@ interface FieldRenderAPI {
      : [];
 
    // Inferred from conditions
-   const conditionSubs = (fieldConfig.conditions || [])
-     .map(cond => cond.when);
+   const conditionSubs = (fieldConfig.conditions || []).map(
+     (cond) => cond.when,
+   );
 
    const allSubscriptions = [
      ...explicitSubs,
      ...inferredSubs,
-     ...conditionSubs
+     ...conditionSubs,
    ];
    ```
 
 5. **Subscribe to fields**
+
    ```typescript
    useEffect(() => {
-     allSubscriptions.forEach(target => {
+     allSubscriptions.forEach((target) => {
        addSubscription(target, name);
      });
 
      return () => {
-       allSubscriptions.forEach(target => {
+       allSubscriptions.forEach((target) => {
          removeSubscription(target, name);
        });
      };
@@ -1690,7 +1748,7 @@ const providerDefaults = providerConfig.defaultFieldProps || {};
 const providerSelectDefaults = providerConfig.selectDefaultFieldProps
   ? evaluateDescriptor(
       providerConfig.selectDefaultFieldProps,
-      createFieldContext(name, formState)
+      createFieldContext(name, formState),
     )
   : {};
 
@@ -1701,7 +1759,7 @@ const formDefaults = formConfig.defaultFieldProps || {};
 const formSelectDefaults = formConfig.selectDefaultFieldProps
   ? evaluateDescriptor(
       formConfig.selectDefaultFieldProps,
-      createFieldContext(name, formState)
+      createFieldContext(name, formState),
     )
   : {};
 
@@ -1715,7 +1773,7 @@ const fieldConfigProps = fieldConfig.props || {};
 const selectProps = fieldConfig.selectProps
   ? evaluateDescriptor(
       fieldConfig.selectProps,
-      createFieldContext(name, formState)
+      createFieldContext(name, formState),
     )
   : {};
 
@@ -1724,20 +1782,20 @@ const componentProps = { ...restProps };
 
 // MERGE ORDER (later overrides earlier)
 const finalProps = {
-  ...providerDefaults,        // Lowest priority
+  ...providerDefaults, // Lowest priority
   ...providerSelectDefaults,
   ...formDefaults,
   ...formSelectDefaults,
   ...inputProps,
   ...fieldConfigProps,
   ...selectProps,
-  ...componentProps,          // Highest priority
+  ...componentProps, // Highest priority
 
   // Core field props (always override)
   name,
   disabled: resolvedDisabled,
   error: fieldState.error?.message,
-  [inputFieldProp || 'value']: formattedValue,
+  [inputFieldProp || "value"]: formattedValue,
   onChange: handleChange,
   onBlur: controller.field.onBlur,
   ref: controller.field.ref,
@@ -1767,7 +1825,7 @@ This is how `selectDefaultFieldProps: { label: "props.name" }` resolves to the f
 ```typescript
 function evaluateConditions(
   conditions: ConditionDescriptor[],
-  context: EvaluatorContext
+  context: EvaluatorContext,
 ): ConditionResult {
   let disabled = false;
   let visible = true;
@@ -1780,9 +1838,9 @@ function evaluateConditions(
 
     let shouldApply = false;
 
-    if ('is' in condition) {
+    if ("is" in condition) {
       shouldApply = targetValue === condition.is;
-    } else if ('truthy' in condition) {
+    } else if ("truthy" in condition) {
       shouldApply = condition.truthy ? !!targetValue : !targetValue;
     } else {
       shouldApply = !!targetValue;
@@ -1791,20 +1849,20 @@ function evaluateConditions(
     if (!shouldApply) continue;
 
     // Apply actions
-    if ('disabled' in condition) {
+    if ("disabled" in condition) {
       disabled = disabled || condition.disabled!;
     }
 
-    if ('visible' in condition) {
+    if ("visible" in condition) {
       visible = visible && condition.visible!;
     }
 
-    if ('set' in condition) {
+    if ("set" in condition) {
       setValue = condition.set;
       hasSetValue = true;
     }
 
-    if ('selectSet' in condition) {
+    if ("selectSet" in condition) {
       setValue = evaluate(condition.selectSet!, context);
       hasSetValue = true;
     }
@@ -1815,6 +1873,7 @@ function evaluateConditions(
 ```
 
 **CRITICAL BEHAVIOR**: Condition actions are cumulative:
+
 - `disabled` is OR-ed (any condition can disable)
 - `visible` is AND-ed (any condition can hide)
 - `set` uses last matching condition's value
@@ -1823,11 +1882,11 @@ function evaluateConditions(
 
 ```typescript
 const isDisabled =
-  disabledProp ??                    // Explicit prop (highest priority)
-  fieldConfig.disabled ??            // Field config
-  conditionResult.disabled ??        // Condition evaluation
-  groupContext.state.isDisabled ??   // FieldGroup
-  false;                             // Default
+  disabledProp ?? // Explicit prop (highest priority)
+  fieldConfig.disabled ?? // Field config
+  conditionResult.disabled ?? // Condition evaluation
+  groupContext.state.isDisabled ?? // FieldGroup
+  false; // Default
 ```
 
 **Key**: Group disabled state is OR-ed with field-level disabled, not overridden.
@@ -1843,7 +1902,7 @@ function parseValue(rawValue: unknown, inputConfig: InputConfig): unknown {
   }
 
   // Named parser
-  if (typeof inputConfig.parser === 'string') {
+  if (typeof inputConfig.parser === "string") {
     const parser = parsers[inputConfig.parser];
     if (!parser) {
       console.warn(`Parser "${inputConfig.parser}" not found`);
@@ -1866,7 +1925,7 @@ function formatValue(formValue: unknown, inputConfig: InputConfig): unknown {
   }
 
   // Named formatter
-  if (typeof inputConfig.formatter === 'string') {
+  if (typeof inputConfig.formatter === "string") {
     const formatter = formatters[inputConfig.formatter];
     if (!formatter) {
       console.warn(`Formatter "${inputConfig.formatter}" not found`);
@@ -1885,21 +1944,24 @@ function formatValue(formValue: unknown, inputConfig: InputConfig): unknown {
 #### 5.3.6 Change Handler
 
 ```typescript
-const handleChange = useCallback((newValue: unknown) => {
-  // 1. Parse value
-  const parsedValue = parseValue(newValue, inputConfig);
+const handleChange = useCallback(
+  (newValue: unknown) => {
+    // 1. Parse value
+    const parsedValue = parseValue(newValue, inputConfig);
 
-  // 2. Update form value
-  controller.field.onChange(parsedValue);
+    // 2. Update form value
+    controller.field.onChange(parsedValue);
 
-  // 3. Notify subscribers
-  changeField(name, parsedValue);
+    // 3. Notify subscribers
+    changeField(name, parsedValue);
 
-  // 4. Trigger validation if debounce is false
-  if (inputConfig.debounce === false) {
-    methods.trigger(name);
-  }
-}, [name, inputConfig, controller.field.onChange]);
+    // 4. Trigger validation if debounce is false
+    if (inputConfig.debounce === false) {
+      methods.trigger(name);
+    }
+  },
+  [name, inputConfig, controller.field.onChange],
+);
 ```
 
 #### 5.3.7 Validation Integration
@@ -1947,19 +2009,17 @@ const template =
   defaultInputTemplate;
 
 // Render through template
-const renderedField = template ? (
-  React.createElement(template, {
-    Field: inputConfig.component,
-    fieldProps: finalProps,
-    fieldState: controller.fieldState,
-    formState: methods.formState,
-  })
-) : (
-  React.createElement(inputConfig.component, finalProps)
-);
+const renderedField = template
+  ? React.createElement(template, {
+      Field: inputConfig.component,
+      fieldProps: finalProps,
+      fieldState: controller.fieldState,
+      formState: methods.formState,
+    })
+  : React.createElement(inputConfig.component, finalProps);
 
 // Render children if provided
-if (typeof children === 'function') {
+if (typeof children === "function") {
   return children({
     fieldState: controller.fieldState,
     renderedField,
@@ -2063,12 +2123,13 @@ function FieldGroup({ name, children }: FieldGroupProps) {
    - Ancestor group setValue (lowest priority)
 
 5. **State merging in children**:
+
    ```typescript
    // In Field component
    const groupContext = useContext(GroupContext);
    const isDisabled =
-     fieldDisabled ||                      // Field's own disabled
-     groupContext.state.isDisabled ||      // Group's disabled (merged from all parents)
+     fieldDisabled || // Field's own disabled
+     groupContext.state.isDisabled || // Group's disabled (merged from all parents)
      false;
 
    // setValue: field-level takes priority over group-level
@@ -2077,13 +2138,13 @@ function FieldGroup({ name, children }: FieldGroupProps) {
      : groupContext.state.setValue;
    ```
 
-5. **Utility hooks**:
+6. **Utility hooks**:
    - `useInferredInputs({ conditions })`: Extracts field names from condition `when` clauses
    - `useConditions({ conditions, subscriptions })`: Evaluates conditions and watches dependencies
 
-6. **Conditions re-evaluate**: On any watched field change (from conditions or subscribesTo), the group re-evaluates and updates context.
+7. **Conditions re-evaluate**: On any watched field change (from conditions or subscribesTo), the group re-evaluates and updates context.
 
-7. **subscribesTo property**: Allows manual subscription to fields not referenced in conditions. Useful for function-based conditions that don't use string expressions.
+8. **subscribesTo property**: Allows manual subscription to fields not referenced in conditions. Useful for function-based conditions that don't use string expressions.
 
 ### 5.5 UnusedFields Component
 
@@ -2127,9 +2188,9 @@ function UnusedFields() {
 ```typescript
 // Determine field type
 const type =
-  props.type ||              // Explicit <Field type="...">
-  config[name]?.type ||      // Config: { fieldName: { type: '...' }}
-  'textField';               // Default fallback
+  props.type || // Explicit <Field type="...">
+  config[name]?.type || // Config: { fieldName: { type: '...' }}
+  "textField"; // Default fallback
 ```
 
 ### 6.3 InputConfig Properties
@@ -2137,7 +2198,7 @@ const type =
 #### 6.3.1 component (Required)
 
 ```typescript
-component: React.ComponentType<any>
+component: React.ComponentType<any>;
 ```
 
 The React component to render. Receives all merged props.
@@ -2145,12 +2206,13 @@ The React component to render. Receives all merged props.
 #### 6.3.2 defaultValue (Required)
 
 ```typescript
-defaultValue: TValue
+defaultValue: TValue;
 ```
 
 Used to initialize form fields on mount. **CRITICAL**: Must match the expected value type.
 
 Examples:
+
 - `textField`: `''`
 - `switch`: `false`
 - `autocomplete`: `null`
@@ -2175,6 +2237,7 @@ inputFieldProp?: string
 The prop name for passing the value. Defaults to `'value'`.
 
 Examples:
+
 - `switch`: `'checked'`
 - Most inputs: `'value'` (default)
 
@@ -2187,6 +2250,7 @@ valueField?: string
 For complex values (objects), which property contains the actual value.
 
 Example:
+
 ```typescript
 // Config
 {
@@ -2208,6 +2272,7 @@ getSubmitField?: (fieldName: string) => string
 Transforms the field name for submission.
 
 Example:
+
 ```typescript
 // Config
 {
@@ -2228,12 +2293,13 @@ parser?: string | ((value: unknown) => TValue)
 Transforms user input to form value.
 
 Examples:
+
 ```typescript
 // Named parser
-parser: 'float'  // Uses parsers.float from provider
+parser: "float"; // Uses parsers.float from provider
 
 // Inline parser
-parser: (value) => parseFloat(value) || 0
+parser: (value) => parseFloat(value) || 0;
 ```
 
 #### 6.3.8 formatter (Optional)
@@ -2245,21 +2311,23 @@ formatter?: string | ((value: TValue) => unknown)
 Transforms form value to display value.
 
 Examples:
+
 ```typescript
 // Named formatter
-formatter: 'float'  // Uses formatters.float from provider
+formatter: "float"; // Uses formatters.float from provider
 
 // Inline formatter
-formatter: (value) => value?.toFixed(2) || ''
+formatter: (value) => value?.toFixed(2) || "";
 ```
 
 **Formatter precision**:
+
 ```typescript
 // 2 decimals
-float: (value) => typeof value === 'number' ? value.toFixed(2) : ''
+float: (value) => (typeof value === "number" ? value.toFixed(2) : "");
 
 // 3 decimals (for specific fields)
-float3: (value) => typeof value === 'number' ? value.toFixed(3) : ''
+float3: (value) => (typeof value === "number" ? value.toFixed(3) : "");
 ```
 
 #### 6.3.9 validator (Optional)
@@ -2298,16 +2366,12 @@ const targetValue = condition.selectWhen
 // Check if condition matches
 let shouldApply = false;
 
-if ('is' in condition) {
+if ("is" in condition) {
   // Exact match
   shouldApply = targetValue === condition.is;
-
-} else if ('truthy' in condition) {
+} else if ("truthy" in condition) {
   // Truthy/falsy check
-  shouldApply = condition.truthy
-    ? !!targetValue
-    : !targetValue;
-
+  shouldApply = condition.truthy ? !!targetValue : !targetValue;
 } else {
   // No matcher specified - default to truthy
   shouldApply = !!targetValue;
@@ -2319,16 +2383,16 @@ if ('is' in condition) {
 ```typescript
 if (shouldApply) {
   // Apply specified actions
-  if ('disabled' in condition) {
+  if ("disabled" in condition) {
     applyDisabled(condition.disabled);
   }
-  if ('visible' in condition) {
+  if ("visible" in condition) {
     applyVisible(condition.visible);
   }
-  if ('set' in condition) {
+  if ("set" in condition) {
     applySet(condition.set);
   }
-  if ('selectSet' in condition) {
+  if ("selectSet" in condition) {
     applySet(evaluate(condition.selectSet, context));
   }
 }
@@ -2351,9 +2415,9 @@ useEffect(() => {
     // CRITICAL: Only update if value actually changed to prevent infinite loops
     if (currentValue !== effectiveSetValue.value) {
       setValueRef.current(name, effectiveSetValue.value, {
-        shouldValidate: true,   // Trigger validation after setting
-        shouldDirty: true,      // Mark as dirty
-        shouldTouch: false,     // Don't mark as user-touched
+        shouldValidate: true, // Trigger validation after setting
+        shouldDirty: true, // Mark as dirty
+        shouldTouch: false, // Don't mark as user-touched
       });
     }
   }
@@ -2372,6 +2436,7 @@ useEffect(() => {
 Conditions support two ways to specify what to watch:
 
 **`when` - Simple field reference:**
+
 ```typescript
 {
   when: 'client',          // Watch the 'client' field
@@ -2379,11 +2444,13 @@ Conditions support two ways to specify what to watch:
   disabled: true,
 }
 ```
+
 - Value: Simple field name as a string
 - Resolves to: `fields.client.value` (using standard path resolution)
 - Use for: Most common cases where you watch a single field
 
 **`selectWhen` - Complex expression:**
+
 ```typescript
 {
   selectWhen: 'client.id > 5 && signed',  // Watch expression result
@@ -2391,6 +2458,7 @@ Conditions support two ways to specify what to watch:
   disabled: true,
 }
 ```
+
 - Value: Full expression string
 - Resolves to: Evaluated expression result
 - Use for: Complex conditions involving multiple fields or operators
@@ -2398,16 +2466,17 @@ Conditions support two ways to specify what to watch:
 
 **Key Differences:**
 
-| Feature | `when` | `selectWhen` |
-|---------|--------|--------------|
-| Syntax | Field name only | Full expression |
-| Example | `"client"` | `"client.id > 5 && signed"` |
-| Dependencies | Single field | All fields in expression |
-| Use Case | Simple field watching | Complex multi-field logic |
+| Feature      | `when`                | `selectWhen`                |
+| ------------ | --------------------- | --------------------------- |
+| Syntax       | Field name only       | Full expression             |
+| Example      | `"client"`            | `"client.id > 5 && signed"` |
+| Dependencies | Single field          | All fields in expression    |
+| Use Case     | Simple field watching | Complex multi-field logic   |
 
 **IMPORTANT**: Only one of `when` or `selectWhen` should be provided per condition. If both are present, `selectWhen` takes precedence.
 
 **Example with selectWhen:**
+
 ```typescript
 {
   selectWhen: 'placementType === "TEMP" && !signed',
@@ -2525,21 +2594,21 @@ Conditions support two ways to specify what to watch:
 
 **When to use functions vs strings:**
 
-| Use Strings When... | Use Functions When... |
-|---------------------|----------------------|
-| Simple field references | Complex business logic |
-| Basic comparisons | Need access to RHF methods |
-| Auto-subscription is desired | Need type safety (TypeScript) |
-| Config is serializable (JSON) | Need to call other functions |
+| Use Strings When...           | Use Functions When...         |
+| ----------------------------- | ----------------------------- |
+| Simple field references       | Complex business logic        |
+| Basic comparisons             | Need access to RHF methods    |
+| Auto-subscription is desired  | Need type safety (TypeScript) |
+| Config is serializable (JSON) | Need to call other functions  |
 
 ### 7.6 Visible vs Disabled
 
 **Semantic difference**:
 
-| Property | Effect | Use Case |
-|----------|--------|----------|
-| `visible: false` | Hides field (display: none) | Conditional field presence |
-| `disabled: true` | Shows field but prevents editing | Locked fields |
+| Property         | Effect                           | Use Case                   |
+| ---------------- | -------------------------------- | -------------------------- |
+| `visible: false` | Hides field (display: none)      | Conditional field presence |
+| `disabled: true` | Shows field but prevents editing | Locked fields              |
 
 **CRITICAL OBSERVATION**: In the authoritative implementation, the Quote form config uses:
 
@@ -2561,6 +2630,7 @@ But the UI shows fields as **disabled**, not hidden. This suggests one of two th
 2. OR the config is actually using `disabled: true` in production but `visible: false` in the base version
 
 **For the new implementation**: Follow the spec literally:
+
 - `visible: false` → hide with `display: none`
 - `disabled: true` → disable the field
 
@@ -2590,18 +2660,19 @@ Let consuming apps use the correct property for their intent.
 
 When evaluating multiple conditions, the cumulative result for each action depends on:
 
-| Action | Default (no conditions set it) | Cumulative Logic |
-|--------|-------------------------------|------------------|
-| `disabled` | `undefined` (use other sources) | OR-ed: any `true` → `true` |
-| `visible` | `true` (field is shown) | AND-ed: any `false` → `false` |
-| `setValue` | `undefined` (no change) | Last matching wins |
+| Action     | Default (no conditions set it)  | Cumulative Logic              |
+| ---------- | ------------------------------- | ----------------------------- |
+| `disabled` | `undefined` (use other sources) | OR-ed: any `true` → `true`    |
+| `visible`  | `true` (field is shown)         | AND-ed: any `false` → `false` |
+| `setValue` | `undefined` (no change)         | Last matching wins            |
 
 **Implementation pseudocode:**
+
 ```typescript
 function evaluateConditions(conditions, context) {
   let disabled = undefined;
   let hasDisabled = false;
-  let visible = true;  // Default to visible
+  let visible = true; // Default to visible
   let hasVisible = false;
   let setValue = undefined;
 
@@ -2609,26 +2680,26 @@ function evaluateConditions(conditions, context) {
     if (!conditionMatches(condition, context)) continue;
 
     // disabled: OR logic
-    if ('disabled' in condition) {
+    if ("disabled" in condition) {
       hasDisabled = true;
       disabled = (disabled ?? false) || condition.disabled;
     }
 
     // visible: AND logic
-    if ('visible' in condition) {
+    if ("visible" in condition) {
       hasVisible = true;
       visible = visible && condition.visible;
     }
 
     // setValue: last wins
-    if ('set' in condition || 'selectSet' in condition) {
+    if ("set" in condition || "selectSet" in condition) {
       setValue = condition.set ?? evaluate(condition.selectSet, context);
     }
   }
 
   return {
     disabled: hasDisabled ? disabled : undefined,
-    visible: hasVisible ? visible : true,  // Default true if no condition touched it
+    visible: hasVisible ? visible : true, // Default true if no condition touched it
     setValue,
   };
 }
@@ -2637,13 +2708,16 @@ function evaluateConditions(conditions, context) {
 #### 7.7.3 Common Mistake: Confusing disabled with hidden
 
 **Wrong assumption:**
+
 > "Setting `disabled: true` should hide the field"
 
 **Correct behavior:**
+
 - `disabled: true` → Field is shown but greyed out, user cannot interact
 - `visible: false` → Field is completely hidden from DOM
 
 **Example of correct configuration:**
+
 ```typescript
 // Fields that should be visible but non-editable (e.g., computed values)
 {
@@ -2677,10 +2751,12 @@ function evaluateConditions(conditions, context) {
 ### 8.1 Subscription Types
 
 **Forward subscription** (Field B watches Field A):
+
 - Field B uses `useWatch({ name: 'fieldA' })`
 - Field B re-renders when Field A changes
 
 **Reverse subscription** (Field A knows Field B is watching):
+
 - Field A maintains `watchers: { fieldB: true }` state
 - Field A can show "watched by" indicators
 - Form can block submission if Field A is validating and has watchers
@@ -2699,26 +2775,26 @@ A field automatically subscribes to other fields based on:
 // Field B mounting
 useEffect(() => {
   // Subscribe to all targets
-  ['fieldA', 'fieldC'].forEach(target => {
-    addSubscription(target, 'fieldB');
+  ["fieldA", "fieldC"].forEach((target) => {
+    addSubscription(target, "fieldB");
   });
 
   return () => {
     // Unsubscribe on unmount
-    ['fieldA', 'fieldC'].forEach(target => {
-      removeSubscription(target, 'fieldB');
+    ["fieldA", "fieldC"].forEach((target) => {
+      removeSubscription(target, "fieldB");
     });
   };
-}, ['fieldB']);
+}, ["fieldB"]);
 
 // Field A mounting
 useEffect(() => {
-  registerWatcherSetter('fieldA', setWatchers);
+  registerWatcherSetter("fieldA", setWatchers);
 
   return () => {
-    unregisterWatcherSetter('fieldA');
+    unregisterWatcherSetter("fieldA");
   };
-}, ['fieldA']);
+}, ["fieldA"]);
 ```
 
 ### 8.4 Mount Order Resolution
@@ -2729,11 +2805,11 @@ useEffect(() => {
 
 ```typescript
 // When B subscribes but A isn't mounted yet
-addSubscription('fieldA', 'fieldB');
+addSubscription("fieldA", "fieldB");
 // → Adds to pendingWatcherUpdates.get('fieldA')
 
 // Later, when A mounts
-registerWatcherSetter('fieldA', setWatchers);
+registerWatcherSetter("fieldA", setWatchers);
 // → Processes pending queue, calls setWatchers({ fieldB: true })
 ```
 
@@ -2746,7 +2822,7 @@ const isAnySubscribedFieldValidating = useMemo(() => {
     if (isValidating) {
       const subscribers = invertedSubscriptions.get(fieldName);
       if (subscribers && subscribers.size > 0) {
-        return true;  // Block submission
+        return true; // Block submission
       }
     }
   }
@@ -2755,7 +2831,7 @@ const isAnySubscribedFieldValidating = useMemo(() => {
 
 const handleSubmit = methods.handleSubmit(async (values) => {
   if (isAnySubscribedFieldValidating) {
-    return;  // Don't submit while subscribed field validates
+    return; // Don't submit while subscribed field validates
   }
 
   await onSubmit?.(values);
@@ -2820,21 +2896,21 @@ validator: ['required', validators.minLength(5)]
 
 ### 9.3 Validator Return Values
 
-| Return Value | Meaning | Error Message |
-|--------------|---------|---------------|
-| `true` | Valid | None |
-| `undefined` | Valid | None |
-| `false` | Invalid | "Invalid" |
-| `string` | Invalid | Use string directly |
-| `{ type: string }` | Invalid | Look up in `errorMessages[type]` |
-| `{ type: string, message: string }` | Invalid | Use provided message |
+| Return Value                        | Meaning | Error Message                    |
+| ----------------------------------- | ------- | -------------------------------- |
+| `true`                              | Valid   | None                             |
+| `undefined`                         | Valid   | None                             |
+| `false`                             | Invalid | "Invalid"                        |
+| `string`                            | Invalid | Use string directly              |
+| `{ type: string }`                  | Invalid | Look up in `errorMessages[type]` |
+| `{ type: string, message: string }` | Invalid | Use provided message             |
 
 ### 9.4 Error Message Resolution
 
 ```typescript
 function resolveErrorMessage(
   result: ValidationResult,
-  errorMessages: ErrorMessagesConfig
+  errorMessages: ErrorMessagesConfig,
 ): string | undefined {
   // Valid results
   if (result === true || result === undefined || result === null) {
@@ -2843,24 +2919,22 @@ function resolveErrorMessage(
 
   // Invalid without specific message
   if (result === false) {
-    return 'Invalid';
+    return "Invalid";
   }
 
   // String message
-  if (typeof result === 'string') {
+  if (typeof result === "string") {
     return result;
   }
 
   // Object with type
-  if (typeof result === 'object' && 'type' in result) {
+  if (typeof result === "object" && "type" in result) {
     // Use provided message, or lookup, or type as fallback
-    return result.message
-      ?? errorMessages[result.type]
-      ?? result.type;
+    return result.message ?? errorMessages[result.type] ?? result.type;
   }
 
   // Fallback
-  return 'Invalid';
+  return "Invalid";
 }
 ```
 
@@ -2924,6 +2998,7 @@ User Input → Component → parse → RHF setValue → Form State
 **When**: On every `onChange` event
 
 **Example**:
+
 ```typescript
 // Input config
 {
@@ -2950,6 +3025,7 @@ Form State → RHF getValue → format → Component
 **When**: On every render
 
 **Example**:
+
 ```typescript
 // Input config
 {
@@ -2975,6 +3051,7 @@ Form State → Extract → Transform → Submit Value
 **When**: On form submission
 
 **Example**:
+
 ```typescript
 // Input config
 {
@@ -3069,6 +3146,7 @@ formatters: {
 **CRITICAL ISSUE**: Decimal precision can be lost between the OLD and NEW systems.
 
 **Example from discrepancy report:**
+
 ```
 OLD: Min Gross Margin (%) = 0.241
 NEW: Min Gross Margin (%) = 0.24   ← Lost precision!
@@ -3150,14 +3228,14 @@ config = {
 
 ```typescript
 // Valid: parse(format(value)) === value
-const parsed = parseFloat("42.69");  // 42.69
-const formatted = parsed.toFixed(2);  // "42.69"
-const reparsed = parseFloat(formatted);  // 42.69 ✓
+const parsed = parseFloat("42.69"); // 42.69
+const formatted = parsed.toFixed(2); // "42.69"
+const reparsed = parseFloat(formatted); // 42.69 ✓
 
 // Invalid: precision loss breaks the contract
-const parsed = parseFloat("42.691");  // 42.691
-const formatted = parsed.toFixed(2);  // "42.69" ← Truncated!
-const reparsed = parseFloat(formatted);  // 42.69 ✗ (lost .001)
+const parsed = parseFloat("42.691"); // 42.691
+const formatted = parsed.toFixed(2); // "42.69" ← Truncated!
+const reparsed = parseFloat(formatted); // 42.69 ✗ (lost .001)
 ```
 
 **Test all parser/formatter pairs** with real data to ensure no precision loss.
@@ -3169,6 +3247,7 @@ const reparsed = parseFloat(formatted);  // 42.69 ✗ (lost .001)
 ### 11.1 Behavior
 
 When `autoSave={true}`:
+
 1. Any field change triggers a debounced submit
 2. Debounce duration from field's `inputConfig.debounce`
 3. If field has `debounce: false`, submit immediately
@@ -3178,14 +3257,11 @@ When `autoSave={true}`:
 
 ```typescript
 // In Form component
-const debouncedSubmit = useDebouncedFn(
-  () => {
-    if (methods.formState.isValid) {
-      methods.handleSubmit(onSubmit)();
-    }
-  },
-  debounce || 1000
-);
+const debouncedSubmit = useDebouncedFn(() => {
+  if (methods.formState.isValid) {
+    methods.handleSubmit(onSubmit)();
+  }
+}, debounce || 1000);
 
 // In changeField
 function changeField(name: string, value: unknown) {
@@ -3243,6 +3319,7 @@ Apply shared conditions to multiple fields without repeating condition config. S
 ### 12.2 Behavior Details
 
 **What FieldGroup DOES**:
+
 1. Evaluates conditions based on watched fields
 2. Provides `isDisabled` and `isVisible` state via context
 3. Wraps children in a `<span>` that can be hidden with `display: none`
@@ -3251,11 +3328,13 @@ Apply shared conditions to multiple fields without repeating condition config. S
 6. Optionally watches additional fields via `subscribesTo`
 
 **What FieldGroup DOES NOT DO**:
+
 1. Does NOT render a `<fieldset>` element
 2. Does NOT use the `disabled` attribute on a wrapper
 3. Does NOT automatically disable inputs (children must read context)
 
 **Why this matters**: The disabled state propagates through React context, not through DOM disabled attributes. This means:
+
 - Easier to override in individual fields
 - More flexible styling
 - Supports nesting (parent groups can affect children)
@@ -3297,11 +3376,11 @@ const defaultGroupContext: GroupContextValue = {
 
 **State merging rules**:
 
-| Property | Merge Logic | Why |
-|----------|-------------|-----|
-| `isDisabled` | `child \|\| parent` | Any ancestor can disable |
-| `isVisible` | `child && parent` | Any ancestor can hide |
-| `conditions` | `[...parent, ...child]` | Accumulate all conditions |
+| Property        | Merge Logic             | Why                          |
+| --------------- | ----------------------- | ---------------------------- |
+| `isDisabled`    | `child \|\| parent`     | Any ancestor can disable     |
+| `isVisible`     | `child && parent`       | Any ancestor can hide        |
+| `conditions`    | `[...parent, ...child]` | Accumulate all conditions    |
 | `subscriptions` | `[...parent, ...child]` | Accumulate all subscriptions |
 
 ### 12.4 subscribesTo Property
@@ -3338,7 +3417,11 @@ Without `subscribesTo`, the group wouldn't re-evaluate when `field2` or `field3`
 **Implementation**:
 
 ```typescript
-function useInferredInputs({ conditions }: { conditions?: ConditionDescriptor[] }): string[] {
+function useInferredInputs({
+  conditions,
+}: {
+  conditions?: ConditionDescriptor[];
+}): string[] {
   return useMemo(() => {
     if (!conditions) return [];
 
@@ -3351,9 +3434,9 @@ function useInferredInputs({ conditions }: { conditions?: ConditionDescriptor[] 
       }
 
       // Extract fields from selectSet expressions
-      if (condition.selectSet && typeof condition.selectSet === 'string') {
+      if (condition.selectSet && typeof condition.selectSet === "string") {
         const inferred = inferFieldsFromDescriptor(condition.selectSet);
-        inferred.forEach(name => fieldNames.add(name));
+        inferred.forEach((name) => fieldNames.add(name));
       }
     }
 
@@ -3380,7 +3463,7 @@ function useConditions({
   const inferredFields = useInferredInputs({ conditions });
   const allSubscriptions = useMemo(
     () => [...inferredFields, ...(subscriptions || [])],
-    [inferredFields, subscriptions]
+    [inferredFields, subscriptions],
   );
 
   // Watch all subscribed fields
@@ -3525,15 +3608,19 @@ function useConditions({
 ### 13.2 Record Value Extraction
 
 For simple types:
+
 ```typescript
 // Record
-{ name: "John" }
+{
+  name: "John";
+}
 
 // Field: name
 // Initial value: "John"
 ```
 
 For complex types with `valueField`:
+
 ```typescript
 // Record
 {
@@ -3558,10 +3645,12 @@ For complex types with `valueField`:
 **Answer from observation**: In the authoritative version, autocomplete fields display the full object label ("Carl Davis"), so the initial value is the **full object**.
 
 This means `valueField` is ONLY used for:
+
 1. **Submission**: Extract `id` field for API
 2. **getSubmitField**: Transform field name for API
 
 But NOT for:
+
 1. **Initial value**: Always use full object from record
 2. **Display**: Component receives full object
 
@@ -3578,8 +3667,8 @@ for (const [name, fieldConfig] of Object.entries(config)) {
 
 // 2. Initialize RHF
 const methods = useForm({
-  defaultValues,           // Sets initial form state
-  values: record,          // Overrides with record data (if provided)
+  defaultValues, // Sets initial form state
+  values: record, // Overrides with record data (if provided)
 });
 
 // 3. In Field render
@@ -3594,18 +3683,19 @@ const fieldValue = methods.watch(name);
 **CRITICAL ISSUE**: API records often use different field names than form fields.
 
 **Problem scenario:**
+
 ```typescript
 // API returns:
 const record = {
-  clientContactId: 5,        // API uses "Id" suffix
+  clientContactId: 5, // API uses "Id" suffix
   positionId: 42069,
   // ...
 };
 
 // Form config expects:
 config = {
-  clientContact: { type: 'autocomplete' },  // No "Id" suffix
-  position: { type: 'autocomplete' },
+  clientContact: { type: "autocomplete" }, // No "Id" suffix
+  position: { type: "autocomplete" },
 };
 
 // Result: Fields are EMPTY because record.clientContact is undefined
@@ -3618,23 +3708,24 @@ Add a `recordKey` property to field configuration for explicit mapping:
 ```typescript
 interface FieldConfig {
   // ... existing properties ...
-  recordKey?: string;  // Key to use when reading from record (defaults to field name)
+  recordKey?: string; // Key to use when reading from record (defaults to field name)
 }
 
 // Usage:
 config = {
   clientContact: {
-    type: 'autocomplete',
-    recordKey: 'clientContactId',  // Read from record.clientContactId
+    type: "autocomplete",
+    recordKey: "clientContactId", // Read from record.clientContactId
   },
   position: {
-    type: 'autocomplete',
-    recordKey: 'positionId',
+    type: "autocomplete",
+    recordKey: "positionId",
   },
 };
 ```
 
 **Implementation in Form:**
+
 ```typescript
 // Build values mapping
 const recordValues: Record<string, unknown> = {};
@@ -3647,13 +3738,14 @@ for (const [fieldName, fieldConfig] of Object.entries(config)) {
 
 const methods = useForm({
   defaultValues,
-  values: recordValues,  // Use mapped values, not raw record
+  values: recordValues, // Use mapped values, not raw record
 });
 ```
 
 ### 13.5 Complex Type Initial Value Resolution
 
 **Problem**: Autocomplete/lookup fields expect full objects `{ id, label }` but the API might provide:
+
 - Just an ID: `clientContactId: 5`
 - A partial object: `clientContact: { id: 5 }` (missing label)
 
@@ -3693,18 +3785,18 @@ interface FieldConfig {
   // ... existing properties ...
   resolveInitialValue?: (
     recordValue: unknown,
-    record: Record<string, unknown>
+    record: Record<string, unknown>,
   ) => unknown | Promise<unknown>;
 }
 
 // Usage:
 config = {
   clientContact: {
-    type: 'autocomplete',
-    recordKey: 'clientContactId',
+    type: "autocomplete",
+    recordKey: "clientContactId",
     resolveInitialValue: async (id, record) => {
       if (!id) return null;
-      return await fetchContact(id);  // Returns { id, fullName, ... }
+      return await fetchContact(id); // Returns { id, fullName, ... }
     },
   },
 };
@@ -3766,6 +3858,7 @@ For nested record values:
 ```
 
 **CRITICAL**: The `record` in expressions refers to the ORIGINAL record prop, not the current form values. This allows:
+
 - Comparing current values to original
 - Accessing nested properties not in form fields
 - Conditional logic based on original state
@@ -3784,10 +3877,10 @@ When fields are rendered explicitly in JSX, they appear in JSX order:
 
 ```jsx
 <Form config={config}>
-  <Field name="clientContact" />   {/* 1st */}
-  <Field name="placementType" />   {/* 2nd */}
-  <Field name="position" />        {/* 3rd */}
-  <Field name="signed" />          {/* 4th */}
+  <Field name="clientContact" /> {/* 1st */}
+  <Field name="placementType" /> {/* 2nd */}
+  <Field name="position" /> {/* 3rd */}
+  <Field name="signed" /> {/* 4th */}
 </Form>
 ```
 
@@ -3798,6 +3891,7 @@ This is the **recommended approach** for most use cases.
 When using `<UnusedFields />` to render fields not explicitly placed in JSX, ordering comes from the config object.
 
 **Problem**: JavaScript object key order depends on insertion order and key type:
+
 - String keys: insertion order (ES2015+)
 - Integer keys: ascending numeric order
 
@@ -3805,17 +3899,17 @@ When using `<UnusedFields />` to render fields not explicitly placed in JSX, ord
 
 ```typescript
 interface FieldConfig {
-  order?: number;  // Display order for config-driven rendering
+  order?: number; // Display order for config-driven rendering
   // ... other properties
 }
 
 // Usage:
 config = {
-  clientContact: { type: 'autocomplete', order: 1 },
-  placementType: { type: 'buttonGroup', order: 2 },
-  position: { type: 'autocomplete', order: 3 },
-  signed: { type: 'switch', order: 4 },
-  davisBacon: { type: 'switch', order: 5 },
+  clientContact: { type: "autocomplete", order: 1 },
+  placementType: { type: "buttonGroup", order: 2 },
+  position: { type: "autocomplete", order: 3 },
+  signed: { type: "switch", order: 4 },
+  davisBacon: { type: "switch", order: 5 },
   // ...
 };
 ```
@@ -3882,7 +3976,7 @@ config = {
 
 ```typescript
 config = {
-  priority: { order: -10 },  // Appears first
+  priority: { order: -10 }, // Appears first
   normal: { order: 10 },
 };
 ```
@@ -3935,14 +4029,14 @@ function humanizeLabel(fieldName: string): string {
   // "clientContact" → ["client", "Contact"]
   // "HTMLParser" → ["HTML", "Parser"]
   const words = fieldName
-    .replace(/([a-z])([A-Z])/g, '$1 $2')  // camelCase
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')  // HTMLParser → HTML Parser
-    .split(' ');
+    .replace(/([a-z])([A-Z])/g, "$1 $2") // camelCase
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2") // HTMLParser → HTML Parser
+    .split(" ");
 
   // Capitalize each word
   return words
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }
 ```
 
@@ -3993,12 +4087,12 @@ For fields with special formatting requirements (e.g., units, symbols):
 ```typescript
 config = {
   minGrossMarginPercent: {
-    type: 'number',
-    label: 'Min Gross Margin (%)',  // Explicit with unit
+    type: "number",
+    label: "Min Gross Margin (%)", // Explicit with unit
   },
   minGrossMarginDollars: {
-    type: 'number',
-    label: 'Min Gross Margin ($)',
+    type: "number",
+    label: "Min Gross Margin ($)",
   },
 };
 ```
@@ -4027,6 +4121,7 @@ Components should use `label` for display and `name` for form operations.
 ### 16.1 Evaluation Contexts
 
 **Provider-level** (no field context):
+
 ```typescript
 // evaluateDescriptor(providerConfig.selectDefaultFieldProps, context)
 {
@@ -4040,6 +4135,7 @@ Components should use `label` for display and `name` for form operations.
 ```
 
 **Form-level** (no field context):
+
 ```typescript
 // evaluateDescriptor(formConfig.selectDefaultFieldProps, context)
 {
@@ -4053,6 +4149,7 @@ Components should use `label` for display and `name` for form operations.
 ```
 
 **Field-level** (with field context):
+
 ```typescript
 // evaluateDescriptor(fieldConfig.selectProps, context)
 {
@@ -4068,6 +4165,7 @@ Components should use `label` for display and `name` for form operations.
 ```
 
 This is why:
+
 - `providerConfig.selectDefaultFieldProps: { label: "props.name" }` works
 - `formConfig.selectDefaultFieldProps: { label: "props.name" }` works
 - But they evaluate in field context, not provider/form context
@@ -4130,6 +4228,7 @@ Components that accept `useOptions` props must:
 5. Pass options to underlying component
 
 Example:
+
 ```typescript
 function ExpandingAutocomplete({ useOptions, queryParams, ...props }) {
   // Call the hook with evaluated params
@@ -4163,6 +4262,7 @@ const evaluatedSelectProps = useMemo(() => {
 ```
 
 **Example flow**:
+
 ```typescript
 // Initial state: client = null
 selectProps: { queryParams: "client.id" }
@@ -4348,12 +4448,12 @@ selectProps: { queryParams: "client.id" }
 
 ```typescript
 // B mounts first
-addSubscription('fieldA', 'fieldB');
+addSubscription("fieldA", "fieldB");
 // fieldA watcher setter not registered yet
 // → Add to pendingWatcherUpdates.get('fieldA')
 
 // A mounts later
-registerWatcherSetter('fieldA', setWatchers);
+registerWatcherSetter("fieldA", setWatchers);
 // → Check pending queue
 // → Process pending: setWatchers({ fieldB: true })
 ```
@@ -4373,6 +4473,7 @@ registerWatcherSetter('fieldA', setWatchers);
 **Scenario**: Condition sets field value, then user edits field, then condition triggers again.
 
 **Behavior**:
+
 1. Condition applies: `set: 'default'` → field value = 'default'
 2. User types 'custom' → field value = 'custom'
 3. Condition triggers again → field value = 'default' (overwrites user input)
@@ -4385,12 +4486,12 @@ registerWatcherSetter('fieldA', setWatchers);
 
 Different field types use different "empty" values:
 
-| Type | Empty Value | Why |
-|------|-------------|-----|
-| textField | `''` | Standard for text inputs |
-| switch | `false` | Boolean default |
-| autocomplete | `null` | Indicates "no selection" |
-| decimal | `''` | Allows truly empty field (vs 0) |
+| Type         | Empty Value | Why                             |
+| ------------ | ----------- | ------------------------------- |
+| textField    | `''`        | Standard for text inputs        |
+| switch       | `false`     | Boolean default                 |
+| autocomplete | `null`      | Indicates "no selection"        |
+| decimal      | `''`        | Allows truly empty field (vs 0) |
 
 **CRITICAL**: Match the empty value to the expected type. Using `0` for decimal prevents distinguishing between "empty" and "zero".
 
@@ -4409,6 +4510,7 @@ Different field types use different "empty" values:
 **Scenario 1**: User types "abc", waits 3s (debounce), then types "d".
 
 **Behavior**:
+
 - After 3s: Validation runs for "abc"
 - After typing "d": New 3s debounce starts
 - After 3s more: Validation runs for "abcd"
@@ -4416,6 +4518,7 @@ Different field types use different "empty" values:
 **Scenario 2**: User types "abc", debounce timer running, user submits form.
 
 **Behavior**:
+
 - Submit triggers immediate validation (ignores debounce)
 - If valid, submits "abc"
 
@@ -4424,10 +4527,12 @@ Different field types use different "empty" values:
 **Scenario**: Record has `{ name: "John" }`, user changes to "Jane".
 
 **State**:
+
 - `record.name`: "John" (original, unchanged)
 - `fields.name.value`: "Jane" (current)
 
 **Expressions**:
+
 - `"record.name"` → "John"
 - `"name"` → "Jane" (resolves to fields.name.value)
 
@@ -4469,6 +4574,7 @@ Different field types use different "empty" values:
 **Why**: OR logic for disabled means any ancestor can disable. This prevents accidentally enabling fields that a parent disabled.
 
 **Example**:
+
 ```typescript
 <FieldGroup name="parentGroup">  {/* disables when userRole !== 'admin' */}
   <FieldGroup name="childGroup">  {/* disables when formLocked === true */}
@@ -4492,6 +4598,7 @@ Different field types use different "empty" values:
 **Why**: `subscribesTo` is additive, not replacement. It supplements inferred dependencies.
 
 **Use case**: Condition uses a function that references fields not in the `when` clause:
+
 ```typescript
 {
   conditions: [{
@@ -4568,13 +4675,11 @@ interface FieldConfig {
 
 // === Descriptors ===
 
-type SelectDescriptor =
-  | Record<string, string>
-  | string;
+type SelectDescriptor = Record<string, string> | string;
 
 interface ConditionDescriptor {
-  when?: string;                   // Field to watch (simple field name)
-  selectWhen?: string;             // Expression to watch (alternative to when)
+  when?: string; // Field to watch (simple field name)
+  selectWhen?: string; // Expression to watch (alternative to when)
   is?: unknown;
   truthy?: boolean;
   disabled?: boolean;
@@ -4592,7 +4697,7 @@ type ValidatorSpec =
 
 type ValidatorFunction = (
   value: unknown,
-  formValues: Record<string, unknown>
+  formValues: Record<string, unknown>,
 ) => ValidationResult | Promise<ValidationResult>;
 
 type ValidationResult =
@@ -4647,7 +4752,7 @@ interface GroupContextValue {
     conditions: ConditionDescriptor[];
     subscriptions: string[];
   };
-  subscriptions: string[];  // Root-level for default context
+  subscriptions: string[]; // Root-level for default context
   inferredInputs: string[];
   config: GroupConfig;
 }
@@ -4688,8 +4793,9 @@ interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   record?: Partial<TFieldValues>;
   autoSave?: boolean;
   debounce?: number;
-  validate?: (values: Partial<TFieldValues>) =>
-    ValidationErrors | Promise<ValidationErrors>;
+  validate?: (
+    values: Partial<TFieldValues>,
+  ) => ValidationErrors | Promise<ValidationErrors>;
 }
 
 interface FormRenderAPI {
@@ -4737,7 +4843,9 @@ interface EvaluatorContext {
 
 // === Utilities ===
 
-type WatcherSetterFn = React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+type WatcherSetterFn = React.Dispatch<
+  React.SetStateAction<Record<string, boolean>>
+>;
 
 type ValidationErrors = Record<string, string>;
 ```
@@ -4749,6 +4857,7 @@ type ValidationErrors = Record<string, string>;
 Use this checklist to ensure every aspect is implemented:
 
 ### Performance Architecture (CRITICAL)
+
 - [ ] **makeProxyState utility function**
 - [ ] **Proxy state for formState.fields[name] objects**
 - [ ] **Proxy state for record property on formState**
@@ -4763,6 +4872,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] **Testing: Verify proxy objects enumerate correctly**
 
 ### Configuration System
+
 - [ ] FormalityProvider component
 - [ ] ConfigContext creation and provision
 - [ ] Config merging (provider + form + field)
@@ -4771,6 +4881,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Named formatters/parsers/validators registry
 
 ### Form Component
+
 - [ ] React Hook Form integration
 - [ ] FormContext creation and provision
 - [ ] Field registry (registerField/unregisterField)
@@ -4786,6 +4897,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Subscribed field validation blocking
 
 ### Field Component
+
 - [ ] Controller integration
 - [ ] Type resolution (prop → config → default)
 - [ ] Config merging (all 8 layers)
@@ -4804,6 +4916,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] provideState prop handling
 
 ### FieldGroup Component
+
 - [ ] GroupContext provision
 - [ ] Parent context reading (for nesting)
 - [ ] Condition evaluation
@@ -4819,6 +4932,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Children rendering
 
 ### Expression Engine
+
 - [ ] Tokenizer implementation
 - [ ] Parser implementation
 - [ ] Evaluator implementation
@@ -4829,6 +4943,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Props context for field-level expressions
 
 ### Subscription System
+
 - [ ] Forward subscriptions (useWatch)
 - [ ] Reverse subscriptions (watchers state)
 - [ ] Inverted subscriptions registry
@@ -4837,6 +4952,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Validation state integration
 
 ### Validation System
+
 - [ ] RHF rules integration
 - [ ] Field validator layer
 - [ ] Type validator layer
@@ -4848,6 +4964,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Validation state tracking
 
 ### Value Transformation
+
 - [ ] Parse pipeline (input → form)
 - [ ] Format pipeline (form → display)
 - [ ] Submit pipeline (form → API)
@@ -4858,6 +4975,7 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] getSubmitField renaming
 
 ### Conditions System
+
 - [ ] Condition evaluation (is, truthy, default)
 - [ ] Condition trigger support (when and selectWhen)
 - [ ] selectWhen expression evaluation for complex triggers
@@ -4868,16 +4986,19 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Dependency watching
 
 ### Additional Components
+
 - [ ] Fields component (renders array of fields)
 - [ ] UnusedFields component with shouldRegister
 - [ ] Input template system
 
 ### Hooks
+
 - [ ] useDebounce/useDebouncedFn
 - [ ] usePrevious
 - [ ] useStableCallback
 
 ### Edge Cases
+
 - [ ] Mount order race conditions
 - [ ] Circular dependency detection
 - [ ] Empty value handling (null vs undefined vs '')

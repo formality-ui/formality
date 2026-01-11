@@ -7,7 +7,7 @@ export type {
   FormatterSpec,
   ParsersConfig,
   FormattersConfig,
-} from './pipeline';
+} from "./pipeline";
 
 export {
   parse,
@@ -20,4 +20,4 @@ export {
   createTrimParser,
   createDefaultParsers,
   createDefaultFormatters,
-} from './pipeline';
+} from "./pipeline";

@@ -2,10 +2,17 @@
 // Pure functions for evaluating conditions against form state
 // ZERO framework dependencies
 
-import type { ConditionDescriptor, ConditionResult, FieldMatcher } from '../types';
-import { evaluate, evaluateDescriptor } from '../expression/evaluate';
-import { buildEvaluationContext, unwrapFieldProxy } from '../expression/context';
-import { inferFieldsFromDescriptor } from '../expression/infer';
+import type {
+  ConditionDescriptor,
+  ConditionResult,
+  FieldMatcher,
+} from "../types";
+import { evaluate, evaluateDescriptor } from "../expression/evaluate";
+import {
+  buildEvaluationContext,
+  unwrapFieldProxy,
+} from "../expression/context";
+import { inferFieldsFromDescriptor } from "../expression/infer";
 
 /**
  * Field state with metadata for expression evaluation
@@ -53,7 +60,7 @@ function evaluateFieldMatcher(
   fieldName: string,
   matcher: FieldMatcher,
   fieldValues: Record<string, unknown>,
-  fieldStates?: Record<string, FieldStateInput>
+  fieldStates?: Record<string, FieldStateInput>,
 ): boolean {
   const fieldValue = fieldValues[fieldName];
   const fieldState = fieldStates?.[fieldName];
@@ -131,10 +138,10 @@ function evaluateConditionMatch(
   condition: ConditionDescriptor,
   context: Record<string, unknown>,
   fieldValues: Record<string, unknown>,
-  fieldStates?: Record<string, FieldStateInput>
+  fieldStates?: Record<string, FieldStateInput>,
 ): boolean {
   // Handle multi-field 'when' (object form)
-  if (condition.when !== undefined && typeof condition.when === 'object') {
+  if (condition.when !== undefined && typeof condition.when === "object") {
     // All field conditions must match (AND logic)
     for (const [fieldName, matcher] of Object.entries(condition.when)) {
       if (!evaluateFieldMatcher(fieldName, matcher, fieldValues, fieldStates)) {
@@ -147,14 +154,14 @@ function evaluateConditionMatch(
   let triggerValue: unknown;
 
   // Determine trigger value for single-field or expression triggers
-  if (typeof condition.when === 'string') {
+  if (typeof condition.when === "string") {
     // Simple field reference: look up field value directly
     triggerValue = fieldValues[condition.when];
   } else if (condition.selectWhen !== undefined) {
     // Expression or function trigger
-    if (typeof condition.selectWhen === 'string') {
+    if (typeof condition.selectWhen === "string") {
       triggerValue = evaluate(condition.selectWhen, context);
-    } else if (typeof condition.selectWhen === 'function') {
+    } else if (typeof condition.selectWhen === "function") {
       // Functions are evaluated by the framework adapter
       // Core returns the function as-is for the adapter to call
       return false; // Framework adapter handles this case
@@ -168,7 +175,7 @@ function evaluateConditionMatch(
   }
 
   // Apply field state matchers (require string 'when' trigger for field reference)
-  if (typeof condition.when === 'string' && fieldStates) {
+  if (typeof condition.when === "string" && fieldStates) {
     const fieldState = fieldStates[condition.when];
 
     // Check isValid matcher
@@ -235,13 +242,18 @@ function evaluateConditionMatch(
  * // result.visible === false (archived is truthy, matches second condition)
  */
 export function evaluateConditions(
-  input: EvaluateConditionsInput
+  input: EvaluateConditionsInput,
 ): ConditionResult {
   const { conditions, fieldValues, fieldStates, record, props } = input;
 
   // Build evaluation context for expressions
   // Pass fieldStates to enable access to isTouched, isDirty, etc.
-  const context = buildEvaluationContext(fieldValues, record, props, fieldStates);
+  const context = buildEvaluationContext(
+    fieldValues,
+    record,
+    props,
+    fieldStates,
+  );
 
   // Initialize result tracking
   let disabled: boolean | undefined;
@@ -253,7 +265,12 @@ export function evaluateConditions(
 
   // Evaluate each condition in order
   for (const condition of conditions) {
-    const isMatched = evaluateConditionMatch(condition, context, fieldValues, fieldStates);
+    const isMatched = evaluateConditionMatch(
+      condition,
+      context,
+      fieldValues,
+      fieldStates,
+    );
 
     if (!isMatched) {
       continue;
@@ -269,7 +286,10 @@ export function evaluateConditions(
     if (condition.visible !== undefined) {
       hasVisibleCondition = true;
       // Start with true on first visible condition, then AND subsequent values
-      visible = visible === undefined ? condition.visible : visible && condition.visible;
+      visible =
+        visible === undefined
+          ? condition.visible
+          : visible && condition.visible;
     }
 
     // Apply setValue action (last matching wins)
@@ -278,16 +298,18 @@ export function evaluateConditions(
       setValue = condition.set;
     } else if (condition.selectSet !== undefined) {
       hasSetCondition = true;
-      if (typeof condition.selectSet === 'string') {
+      if (typeof condition.selectSet === "string") {
         // Unwrap proxy to get raw value for setting
         setValue = unwrapFieldProxy(evaluate(condition.selectSet, context));
-      } else if (typeof condition.selectSet === 'function') {
+      } else if (typeof condition.selectSet === "function") {
         // Function must be handled by framework adapter
         // Store the function for the adapter to call
         setValue = condition.selectSet;
       } else {
         // Unwrap proxy to get raw value for setting
-        setValue = unwrapFieldProxy(evaluateDescriptor(condition.selectSet, context));
+        setValue = unwrapFieldProxy(
+          evaluateDescriptor(condition.selectSet, context),
+        );
       }
     }
   }
@@ -319,9 +341,14 @@ export function conditionMatches(
   fieldValues: Record<string, unknown>,
   record?: Record<string, unknown>,
   props?: Record<string, unknown>,
-  fieldStates?: Record<string, FieldStateInput>
+  fieldStates?: Record<string, FieldStateInput>,
 ): boolean {
-  const context = buildEvaluationContext(fieldValues, record, props, fieldStates);
+  const context = buildEvaluationContext(
+    fieldValues,
+    record,
+    props,
+    fieldStates,
+  );
   return evaluateConditionMatch(condition, context, fieldValues, fieldStates);
 }
 
@@ -337,7 +364,7 @@ export function conditionMatches(
  * @returns Merged result
  */
 export function mergeConditionResults(
-  results: ConditionResult[]
+  results: ConditionResult[],
 ): ConditionResult {
   let disabled: boolean | undefined;
   let visible: boolean | undefined;
@@ -356,7 +383,10 @@ export function mergeConditionResults(
     // visible: AND logic
     if (result.hasVisibleCondition) {
       hasVisibleCondition = true;
-      visible = visible === undefined ? result.visible : visible && (result.visible ?? true);
+      visible =
+        visible === undefined
+          ? result.visible
+          : visible && (result.visible ?? true);
     }
 
     // setValue: later source wins
@@ -393,14 +423,14 @@ export function mergeConditionResults(
  * // → ['client', 'signed', 'approved']
  */
 export function inferFieldsFromConditions(
-  conditions: ConditionDescriptor[]
+  conditions: ConditionDescriptor[],
 ): string[] {
   const fields: string[] = [];
 
   for (const condition of conditions) {
     // Add 'when' field reference(s)
     if (condition.when !== undefined) {
-      if (typeof condition.when === 'string') {
+      if (typeof condition.when === "string") {
         fields.push(condition.when);
       } else {
         // Multi-field object: add all field names

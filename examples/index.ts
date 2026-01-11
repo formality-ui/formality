@@ -34,15 +34,10 @@
  */
 
 // Basic Form Setup
-export {
-  BasicForm,
-  BasicFormWithData,
-} from './01-basic-form';
+export { BasicForm, BasicFormWithData } from "./01-basic-form";
 
 // Input Type Configuration
-export {
-  InputTypesDemo,
-} from './02-input-types';
+export { InputTypesDemo } from "./02-input-types";
 
 // Conditional Logic
 export {
@@ -55,7 +50,7 @@ export {
   FieldGroupExample,
   NestedFieldGroupExample,
   FunctionConditionExample,
-} from './03-conditions';
+} from "./03-conditions";
 
 // Validation
 export {
@@ -65,7 +60,7 @@ export {
   CrossFieldValidationExample,
   ConditionalValidationExample,
   ValidatorReturnTypesExample,
-} from './04-validation';
+} from "./04-validation";
 
 // Field Dependencies
 export {
@@ -76,7 +71,7 @@ export {
   DynamicLabelsExample,
   FunctionSelectPropsExample,
   NestedObjectExample,
-} from './05-field-dependencies';
+} from "./05-field-dependencies";
 
 // Auto-Save
 export {
@@ -86,7 +81,7 @@ export {
   ValidatedAutoSaveExample,
   ConditionalAutoSaveExample,
   HybridSaveExample,
-} from './06-auto-save';
+} from "./06-auto-save";
 
 // Advanced Features
 export {
@@ -98,14 +93,14 @@ export {
   PassSubscriptionsExample,
   FieldRenderFunctionExample,
   CustomTemplateExample,
-} from './07-advanced-features';
+} from "./07-advanced-features";
 
 // Real-World Example
 export {
   QuoteForm,
   NewQuoteDemo,
   EditQuoteDemo,
-} from './08-real-world-example';
+} from "./08-real-world-example";
 
 // String vs Function Comparison
 export {
@@ -114,4 +109,4 @@ export {
   SetValueComparisonExample,
   DefaultFieldPropsComparisonExample,
   WhenToUseGuide,
-} from './09-string-vs-function';
+} from "./09-string-vs-function";

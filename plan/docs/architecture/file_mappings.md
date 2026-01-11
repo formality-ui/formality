@@ -12,20 +12,21 @@
 
 ### Files to Modify
 
-| # | File Path | Lines | Components to Fix |
-|---|-----------|-------|-------------------|
-| 1 | `packages/react/src/__tests__/Field.test.tsx` | 11-26 | `TestInput`, `TestSwitch` |
-| 2 | `packages/react/src/__tests__/FieldGroup.test.tsx` | 11-33 | `TestInput`, `TestSwitch` |
-| 3 | `packages/react/src/__tests__/Form.test.tsx` | 11 | `TestInput` |
-| 4 | `packages/react/src/__tests__/FormalityProvider.test.tsx` | 19 | `TestInput` |
-| 5 | `packages/react/src/__tests__/UnusedFields.test.tsx` | 11 | `TestInput` |
-| 6 | `packages/react/src/__tests__/autosave-validation.test.tsx` | 27-36 | `TestInput`, `TestSwitch` |
-| 7 | `packages/react/src/__tests__/render-isolation.test.tsx` | 19-33 | `TestInput`, `TestSwitch` |
-| 8 | `packages/react/src/__tests__/integration/complete-form.test.tsx` | 14-49 | `TestInput`, `TestSwitch`, `TestSelect` |
+| #   | File Path                                                         | Lines | Components to Fix                       |
+| --- | ----------------------------------------------------------------- | ----- | --------------------------------------- |
+| 1   | `packages/react/src/__tests__/Field.test.tsx`                     | 11-26 | `TestInput`, `TestSwitch`               |
+| 2   | `packages/react/src/__tests__/FieldGroup.test.tsx`                | 11-33 | `TestInput`, `TestSwitch`               |
+| 3   | `packages/react/src/__tests__/Form.test.tsx`                      | 11    | `TestInput`                             |
+| 4   | `packages/react/src/__tests__/FormalityProvider.test.tsx`         | 19    | `TestInput`                             |
+| 5   | `packages/react/src/__tests__/UnusedFields.test.tsx`              | 11    | `TestInput`                             |
+| 6   | `packages/react/src/__tests__/autosave-validation.test.tsx`       | 27-36 | `TestInput`, `TestSwitch`               |
+| 7   | `packages/react/src/__tests__/render-isolation.test.tsx`          | 19-33 | `TestInput`, `TestSwitch`               |
+| 8   | `packages/react/src/__tests__/integration/complete-form.test.tsx` | 14-49 | `TestInput`, `TestSwitch`, `TestSelect` |
 
 ### Fix Pattern
 
 **Before:**
+
 ```typescript
 const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) => (
   <input ... />
@@ -33,6 +34,7 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ```
 
 **After:**
+
 ```typescript
 const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
   ({ value, onChange, disabled, label, error, name, ...props }, ref) => (
@@ -60,10 +62,10 @@ TestInput.displayName = 'TestInput';
 **Location:** `packages/react/src/components/FieldGroup.tsx:73-78`
 
 ```typescript
-if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
+if (process.env.NODE_ENV !== "production" && !formConfig.groups?.[name]) {
   console.warn(
     `FieldGroup: No config found for group "${name}". ` +
-      `Make sure to define it in formConfig.groups.`
+      `Make sure to define it in formConfig.groups.`,
   );
 }
 ```
@@ -71,25 +73,27 @@ if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
 ### Fix Options
 
 **Option A:** Throw error in development mode
+
 ```typescript
-if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
+if (process.env.NODE_ENV !== "production" && !formConfig.groups?.[name]) {
   const availableGroups = Object.keys(formConfig.groups || {});
   throw new Error(
     `FieldGroup: No config found for group "${name}".\n` +
-    `Available groups: ${availableGroups.join(', ') || 'none'}\n` +
-    `Make sure to define it in formConfig.groups.`
+      `Available groups: ${availableGroups.join(", ") || "none"}\n` +
+      `Make sure to define it in formConfig.groups.`,
   );
 }
 ```
 
 **Option B:** Keep warning but improve message
+
 ```typescript
-if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
+if (process.env.NODE_ENV !== "production" && !formConfig.groups?.[name]) {
   const availableGroups = Object.keys(formConfig.groups || {});
   console.warn(
     `FieldGroup: No config found for group "${name}".\n` +
-    `Available groups: ${availableGroups.join(', ') || 'none'}\n` +
-    `Make sure to define it in formConfig.groups.`
+      `Available groups: ${availableGroups.join(", ") || "none"}\n` +
+      `Make sure to define it in formConfig.groups.`,
   );
 }
 ```
@@ -103,20 +107,21 @@ if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
 
 ### Files to Modify
 
-| # | File Path | Lines | Description |
-|---|-----------|-------|-------------|
-| 1 | `packages/react/src/utils/cycleDetection.ts` | **NEW** | Create cycle detection utility |
-| 2 | `packages/react/src/components/Form.tsx` | 212-230 | Add detection in `addSubscription` |
-| 3 | `packages/react/src/utils/cycleDetection.test.ts` | **NEW** | Add tests for detection |
+| #   | File Path                                         | Lines   | Description                        |
+| --- | ------------------------------------------------- | ------- | ---------------------------------- |
+| 1   | `packages/react/src/utils/cycleDetection.ts`      | **NEW** | Create cycle detection utility     |
+| 2   | `packages/react/src/components/Form.tsx`          | 212-230 | Add detection in `addSubscription` |
+| 3   | `packages/react/src/utils/cycleDetection.test.ts` | **NEW** | Add tests for detection            |
 
 ### Implementation Plan
 
 **Step 1:** Create `packages/react/src/utils/cycleDetection.ts`
+
 ```typescript
 export function wouldCreateCycle(
   graph: Map<string, Set<string>>,
   target: string,
-  subscriber: string
+  subscriber: string,
 ): boolean {
   // DFS-based cycle detection
   // Returns true if adding edge (subscriber → target) creates a cycle
@@ -124,15 +129,16 @@ export function wouldCreateCycle(
 
 export function getCyclePath(
   graph: Map<string, Set<string>>,
-  start: string
+  start: string,
 ): string {
   // Returns the cycle path as a string: "A → B → C → A"
 }
 ```
 
 **Step 2:** Modify `packages/react/src/components/Form.tsx:212-230`
+
 ```typescript
-import { wouldCreateCycle, getCyclePath } from '../utils/cycleDetection';
+import { wouldCreateCycle, getCyclePath } from "../utils/cycleDetection";
 
 const addSubscription = useCallback((target: string, subscriber: string) => {
   // Check for circular dependency
@@ -146,14 +152,14 @@ const addSubscription = useCallback((target: string, subscriber: string) => {
 
     throw new Error(
       `[CircularDependencyError] Circular dependency detected in form subscriptions:\n` +
-      `  ${getCyclePath(tempGraph, subscriber)}\n\n` +
-      `This can cause infinite render loops and performance issues.\n\n` +
-      `Possible solutions:\n` +
-      `  - Refactor your field dependencies to break the circular reference\n` +
-      `  - Use computed fields for derived values instead of subscriptions\n` +
-      `  - Consider consolidating related fields into a FieldGroup\n` +
-      `  - Review your subscribesTo configuration\n\n` +
-      `Learn more: https://formality.dev/docs/circular-deps`
+        `  ${getCyclePath(tempGraph, subscriber)}\n\n` +
+        `This can cause infinite render loops and performance issues.\n\n` +
+        `Possible solutions:\n` +
+        `  - Refactor your field dependencies to break the circular reference\n` +
+        `  - Use computed fields for derived values instead of subscriptions\n` +
+        `  - Consider consolidating related fields into a FieldGroup\n` +
+        `  - Review your subscribesTo configuration\n\n` +
+        `Learn more: https://formality.dev/docs/circular-deps`,
     );
   }
 
@@ -205,15 +211,16 @@ if (children) {
 
 ### Files to Modify
 
-| # | File Path | Lines | Description |
-|---|-----------|-------|-------------|
-| 1 | `packages/core/src/types/config.ts` | - | Add `onExpressionError` to config type |
-| 2 | `packages/core/src/expression/evaluate.ts` | 248-252 | Use callback in error handler |
-| 3 | `packages/react/src/components/FormalityProvider.tsx` | - | Pass callback to core |
+| #   | File Path                                             | Lines   | Description                            |
+| --- | ----------------------------------------------------- | ------- | -------------------------------------- |
+| 1   | `packages/core/src/types/config.ts`                   | -       | Add `onExpressionError` to config type |
+| 2   | `packages/core/src/expression/evaluate.ts`            | 248-252 | Use callback in error handler          |
+| 3   | `packages/react/src/components/FormalityProvider.tsx` | -       | Pass callback to core                  |
 
 ### Implementation Plan
 
 **Step 1:** Update type in `packages/core/src/types/config.ts`
+
 ```typescript
 export interface FormalityConfig {
   validators?: Record<string, Validator>;
@@ -224,6 +231,7 @@ export interface FormalityConfig {
 ```
 
 **Step 2:** Modify `packages/core/src/expression/evaluate.ts:248-252`
+
 ```typescript
 } catch (error) {
   // Call custom error handler if provided
@@ -237,6 +245,7 @@ export interface FormalityConfig {
 ```
 
 **Step 3:** Update `packages/react/src/components/FormalityProvider.tsx`
+
 ```typescript
 interface FormalityProviderConfig {
   // ... existing props
@@ -253,15 +262,16 @@ interface FormalityProviderConfig {
 
 ### Files to Modify
 
-| # | File Path | Lines | Description |
-|---|-----------|-------|-------------|
-| 1 | `packages/core/src/validation/validate.ts` | 107-114 | Validator not found |
-| 2 | `packages/core/src/transform/pipeline.ts` | 69-81 | Parser not found |
-| 3 | `packages/core/src/transform/pipeline.ts` | 132-144 | Formatter not found |
+| #   | File Path                                  | Lines   | Description         |
+| --- | ------------------------------------------ | ------- | ------------------- |
+| 1   | `packages/core/src/validation/validate.ts` | 107-114 | Validator not found |
+| 2   | `packages/core/src/transform/pipeline.ts`  | 69-81   | Parser not found    |
+| 3   | `packages/core/src/transform/pipeline.ts`  | 132-144 | Formatter not found |
 
 ### Fix Pattern
 
 **Before:**
+
 ```typescript
 if (!validator) {
   console.warn(`Validator "${spec}" not found in validators config`);
@@ -270,13 +280,14 @@ if (!validator) {
 ```
 
 **After:**
+
 ```typescript
 if (!validator) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== "production") {
     throw new Error(
       `Validator "${spec}" not found in validators config.\n` +
-      `Available validators: ${Object.keys(namedValidators || {}).join(', ') || 'none'}\n` +
-      `Make sure to define it in your config.`
+        `Available validators: ${Object.keys(namedValidators || {}).join(", ") || "none"}\n` +
+        `Make sure to define it in your config.`,
     );
   }
   return true; // Pass in production
@@ -284,6 +295,7 @@ if (!validator) {
 ```
 
 **Apply same pattern to:**
+
 - Parser not found (pipeline.ts:69-81)
 - Formatter not found (pipeline.ts:132-144)
 
@@ -296,16 +308,16 @@ if (!validator) {
 
 ### Files to Modify
 
-| # | File Path | Lines | Description |
-|---|-----------|-------|-------------|
-| 1 | `packages/core/src/types/conditions.ts` | - | SelectFunction type definition |
+| #   | File Path                               | Lines | Description                    |
+| --- | --------------------------------------- | ----- | ------------------------------ |
+| 1   | `packages/core/src/types/conditions.ts` | -     | SelectFunction type definition |
 
 ### Current Type
 
 ```typescript
 type SelectFunction<TReturn = unknown> = (
   formState: FormState,
-  methods: UseFormReturn
+  methods: UseFormReturn,
 ) => TReturn;
 ```
 
@@ -314,10 +326,10 @@ type SelectFunction<TReturn = unknown> = (
 ```typescript
 type SelectFunction<
   TFields extends Record<string, any> = Record<string, any>,
-  TReturn = unknown
+  TReturn = unknown,
 > = (
   formState: FormState & { fields: TFields },
-  methods: UseFormReturn<TFields>
+  methods: UseFormReturn<TFields>,
 ) => TReturn;
 ```
 
@@ -330,20 +342,22 @@ type SelectFunction<
 
 ### Files to Modify
 
-| # | File Path | Lines | Description |
-|---|-----------|-------|-------------|
-| 1 | `packages/react/src/components/Form.tsx` | 136 | Add validation |
+| #   | File Path                                | Lines | Description    |
+| --- | ---------------------------------------- | ----- | -------------- |
+| 1   | `packages/react/src/components/Form.tsx` | 136   | Add validation |
 
 ### Implementation
 
 **Location:** `packages/react/src/components/Form.tsx:136`
 
 **Before:**
+
 ```typescript
 debounce?: number;
 ```
 
 **After:** Add validation in component body
+
 ```typescript
 interface FormProps<TFieldValues extends FieldValues> {
   debounce?: number | false;
@@ -355,10 +369,13 @@ export function Form<TFieldValues extends FieldValues>({
   ...props
 }: FormProps<TFieldValues>) {
   // Validate debounce prop
-  if (typeof debounce === 'number' && (debounce < 0 || !Number.isFinite(debounce))) {
+  if (
+    typeof debounce === "number" &&
+    (debounce < 0 || !Number.isFinite(debounce))
+  ) {
     throw new Error(
       `Form: debounce must be a positive number or false, received: ${debounce}\n` +
-      `Example: <Form debounce={1000}> or <Form debounce={false}>`
+        `Example: <Form debounce={1000}> or <Form debounce={false}>`,
     );
   }
 
@@ -375,19 +392,20 @@ export function Form<TFieldValues extends FieldValues>({
 
 ### Files to Modify
 
-| # | File Path | Lines | Description |
-|---|-----------|-------|-------------|
-| 1 | `packages/core/src/labels/resolve.ts` | 177-186 | sortFieldsByOrder function |
+| #   | File Path                             | Lines   | Description                |
+| --- | ------------------------------------- | ------- | -------------------------- |
+| 1   | `packages/core/src/labels/resolve.ts` | 177-186 | sortFieldsByOrder function |
 
 ### Implementation
 
 **Location:** `packages/core/src/labels/resolve.ts:177-186`
 
 **Before:**
+
 ```typescript
 export function sortFieldsByOrder(
   fieldNames: string[],
-  fieldConfigs: Record<string, FieldConfig>
+  fieldConfigs: Record<string, FieldConfig>,
 ): string[] {
   return [...fieldNames].sort((a, b) => {
     const orderA = fieldConfigs[a]?.order ?? Infinity;
@@ -398,31 +416,32 @@ export function sortFieldsByOrder(
 ```
 
 **After:** Add runtime validation
+
 ```typescript
 export function sortFieldsByOrder(
   fieldNames: string[],
-  fieldConfigs: Record<string, FieldConfig>
+  fieldConfigs: Record<string, FieldConfig>,
 ): string[] {
   return [...fieldNames].sort((a, b) => {
     const configA = fieldConfigs[a];
     const configB = fieldConfigs[b];
 
     // Validate order property
-    if (configA?.order !== undefined && typeof configA.order !== 'number') {
-      if (process.env.NODE_ENV !== 'production') {
+    if (configA?.order !== undefined && typeof configA.order !== "number") {
+      if (process.env.NODE_ENV !== "production") {
         console.warn(
           `sortFieldsByOrder: Field "${a}" has invalid order property: ${configA.order}. ` +
-          `Order must be a number. Using Infinity.`
+            `Order must be a number. Using Infinity.`,
         );
       }
       configA.order = Infinity;
     }
 
-    if (configB?.order !== undefined && typeof configB.order !== 'number') {
-      if (process.env.NODE_ENV !== 'production') {
+    if (configB?.order !== undefined && typeof configB.order !== "number") {
+      if (process.env.NODE_ENV !== "production") {
         console.warn(
           `sortFieldsByOrder: Field "${b}" has invalid order property: ${configB.order}. ` +
-          `Order must be a number. Using Infinity.`
+            `Order must be a number. Using Infinity.`,
         );
       }
       configB.order = Infinity;
@@ -444,11 +463,11 @@ export function sortFieldsByOrder(
 
 ### Files to Modify
 
-| # | File Path | Lines | Description |
-|---|-----------|-------|-------------|
-| 1 | `packages/core/src/labels/resolve.ts` | 21-46 | humanizeLabel function |
-| 2 | `packages/core/src/labels/resolve.ts` | - | Add JSDoc comments |
-| 3 | `packages/core/src/__tests__/labels.test.ts` | - | Add edge case tests |
+| #   | File Path                                    | Lines | Description            |
+| --- | -------------------------------------------- | ----- | ---------------------- |
+| 1   | `packages/core/src/labels/resolve.ts`        | 21-46 | humanizeLabel function |
+| 2   | `packages/core/src/labels/resolve.ts`        | -     | Add JSDoc comments     |
+| 3   | `packages/core/src/__tests__/labels.test.ts` | -     | Add edge case tests    |
 
 ### Current Implementation
 
@@ -458,7 +477,7 @@ export function sortFieldsByOrder(
 export function humanizeLabel(fieldName: string): string {
   // Empty string
   if (!fieldName) {
-    return '';
+    return "";
   }
 
   // Handle special characters (preserve as-is with first letter capitalized)
@@ -468,20 +487,20 @@ export function humanizeLabel(fieldName: string): string {
 
   // Split on camelCase boundaries
   const words = fieldName
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-    .split(' ');
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .split(" ");
 
   // Capitalize each word
   return words
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+    .join(" ");
 }
 ```
 
 ### Enhancement: Add Documentation
 
-```typescript
+````typescript
 /**
  * Converts a field name into a human-readable label.
  *
@@ -509,36 +528,36 @@ export function humanizeLabel(fieldName: string): string {
 export function humanizeLabel(fieldName: string): string {
   // ... implementation unchanged
 }
-```
+````
 
 ### Add Edge Case Tests
 
 **Location:** `packages/core/src/__tests__/labels.test.ts`
 
 ```typescript
-describe('humanizeLabel edge cases', () => {
-  it('should handle consecutive numbers', () => {
-    expect(humanizeLabel('field123name')).toBe('Field123name');
-    expect(humanizeLabel('test123')).toBe('Test123');
+describe("humanizeLabel edge cases", () => {
+  it("should handle consecutive numbers", () => {
+    expect(humanizeLabel("field123name")).toBe("Field123name");
+    expect(humanizeLabel("test123")).toBe("Test123");
   });
 
-  it('should handle all-caps words', () => {
-    expect(humanizeLabel('URL')).toBe('Url'); // Normalized
-    expect(humanizeLabel('userID')).toBe('User Id'); // Split on caps
+  it("should handle all-caps words", () => {
+    expect(humanizeLabel("URL")).toBe("Url"); // Normalized
+    expect(humanizeLabel("userID")).toBe("User Id"); // Split on caps
   });
 
-  it('should handle single letters', () => {
-    expect(humanizeLabel('x')).toBe('X');
-    expect(humanizeLabel('y')).toBe('Y');
+  it("should handle single letters", () => {
+    expect(humanizeLabel("x")).toBe("X");
+    expect(humanizeLabel("y")).toBe("Y");
   });
 
-  it('should handle special characters', () => {
-    expect(humanizeLabel('field_name')).toBe('Field_name'); // Preserved
-    expect(humanizeLabel('field-name')).toBe('Field-name'); // Preserved
+  it("should handle special characters", () => {
+    expect(humanizeLabel("field_name")).toBe("Field_name"); // Preserved
+    expect(humanizeLabel("field-name")).toBe("Field-name"); // Preserved
   });
 
-  it('should handle empty string', () => {
-    expect(humanizeLabel('')).toBe('');
+  it("should handle empty string", () => {
+    expect(humanizeLabel("")).toBe("");
   });
 });
 ```
@@ -547,25 +566,27 @@ describe('humanizeLabel edge cases', () => {
 
 ## Summary Matrix
 
-| Issue | Severity | Files Modified | Lines Changed | Complexity |
-|-------|----------|----------------|---------------|------------|
-| #1 | Major | 8 test files | ~100 lines | Low |
-| #2 | Major | 1 component | ~10 lines | Low |
-| #3 | Major | 3 files (1 new) | ~150 lines | High |
-| #4 | Minor | **NONE** | **Already implemented** | N/A |
-| #5 | Minor | 3 files | ~30 lines | Medium |
-| #6 | Minor | 3 files | ~30 lines | Low |
-| #7 | Minor | 1 type file | ~10 lines | Low |
-| #8 | Minor | 1 component | ~15 lines | Low |
-| #9 | Minor | 1 utility | ~20 lines | Low |
-| #10 | Minor | 2 files (1 test) | ~30 lines | Low |
+| Issue | Severity | Files Modified   | Lines Changed           | Complexity |
+| ----- | -------- | ---------------- | ----------------------- | ---------- |
+| #1    | Major    | 8 test files     | ~100 lines              | Low        |
+| #2    | Major    | 1 component      | ~10 lines               | Low        |
+| #3    | Major    | 3 files (1 new)  | ~150 lines              | High       |
+| #4    | Minor    | **NONE**         | **Already implemented** | N/A        |
+| #5    | Minor    | 3 files          | ~30 lines               | Medium     |
+| #6    | Minor    | 3 files          | ~30 lines               | Low        |
+| #7    | Minor    | 1 type file      | ~10 lines               | Low        |
+| #8    | Minor    | 1 component      | ~15 lines               | Low        |
+| #9    | Minor    | 1 utility        | ~20 lines               | Low        |
+| #10   | Minor    | 2 files (1 test) | ~30 lines               | Low        |
 
 **Total Estimated Effort:**
+
 - **Major Issues:** ~260 lines (mostly Issue #3)
 - **Minor Issues:** ~105 lines
 - **Total:** ~365 lines across 22 files
 
 **Testing Strategy:**
+
 - All changes must maintain 329 passing tests
 - Add new tests for Issue #3 (cycle detection)
 - Add new tests for Issue #10 (edge cases)

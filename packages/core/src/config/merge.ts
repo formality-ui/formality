@@ -7,7 +7,7 @@ import type {
   FieldConfig,
   FormConfig,
   FormalityProviderConfig,
-} from '../types';
+} from "../types";
 
 /**
  * Deep merge two objects, with the second object taking precedence
@@ -18,7 +18,7 @@ import type {
  */
 export function deepMerge<T extends object>(
   base: T,
-  override: Partial<T> | undefined
+  override: Partial<T> | undefined,
 ): T {
   if (!override) {
     return base;
@@ -35,9 +35,9 @@ export function deepMerge<T extends object>(
     }
 
     if (
-      typeof baseValue === 'object' &&
+      typeof baseValue === "object" &&
       baseValue !== null &&
-      typeof overrideValue === 'object' &&
+      typeof overrideValue === "object" &&
       overrideValue !== null &&
       !Array.isArray(baseValue) &&
       !Array.isArray(overrideValue)
@@ -45,7 +45,7 @@ export function deepMerge<T extends object>(
       // Recursively merge objects
       result[key as keyof T] = deepMerge(
         baseValue as object,
-        overrideValue as object
+        overrideValue as object,
       ) as T[keyof T];
     } else {
       // Override value takes precedence
@@ -69,7 +69,7 @@ export function deepMerge<T extends object>(
  */
 export function mergeInputConfigs(
   providerInputs: Record<string, InputConfig>,
-  formInputs?: FormConfig['inputs']
+  formInputs?: FormConfig["inputs"],
 ): Record<string, InputConfig> {
   // No form inputs - return provider inputs
   if (!formInputs) {
@@ -77,7 +77,7 @@ export function mergeInputConfigs(
   }
 
   // Function form - allow form to transform all inputs
-  if (typeof formInputs === 'function') {
+  if (typeof formInputs === "function") {
     const transformed = formInputs(providerInputs);
     return mergeInputConfigs(providerInputs, transformed);
   }
@@ -107,7 +107,7 @@ export function mergeInputConfigs(
 export function resolveInputConfig(
   type: string,
   inputs: Record<string, InputConfig>,
-  defaultType: string = 'textField'
+  defaultType: string = "textField",
 ): InputConfig | undefined {
   return inputs[type] ?? inputs[defaultType];
 }
@@ -128,7 +128,7 @@ export function resolveInputConfig(
 export function resolveFieldType(
   componentType?: string,
   fieldConfig?: FieldConfig,
-  defaultType: string = 'textField'
+  defaultType: string = "textField",
 ): string {
   return componentType ?? fieldConfig?.type ?? defaultType;
 }
@@ -210,7 +210,7 @@ export function mergeFieldProps(options: {
     fieldConfigProps,
     selectProps,
     componentProps,
-    coreProps // Core props always win (name, value, onChange, etc.)
+    coreProps, // Core props always win (name, value, onChange, etc.)
   );
 }
 
@@ -226,7 +226,7 @@ export function mergeFieldProps(options: {
  */
 export function createConfigContext(
   providerConfig: FormalityProviderConfig,
-  formConfig?: FormConfig
+  formConfig?: FormConfig,
 ): {
   inputs: Record<string, InputConfig>;
   formatters: Record<string, (value: unknown) => unknown>;
@@ -238,7 +238,7 @@ export function createConfigContext(
 } {
   const mergedInputs = mergeInputConfigs(
     providerConfig.inputs,
-    formConfig?.inputs
+    formConfig?.inputs,
   );
 
   return {
@@ -249,7 +249,7 @@ export function createConfigContext(
     errorMessages: providerConfig.errorMessages ?? {},
     defaultFieldProps: mergeStaticProps(
       providerConfig.defaultFieldProps,
-      formConfig?.defaultFieldProps
+      formConfig?.defaultFieldProps,
     ),
     selectDefaultFieldProps:
       formConfig?.selectDefaultFieldProps ??

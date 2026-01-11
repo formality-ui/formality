@@ -1,10 +1,14 @@
 // @formality-ui/react - FormContext
 // Form-level context for field registration and state management
 
-import { createContext, useContext } from 'react';
-import type { UseFormReturn, FieldValues } from 'react-hook-form';
-import type { FormFieldsConfig, FormConfig, FormState } from '@formality-ui/core';
-import type { WatcherSetterFn, DebouncedFunction } from '../types';
+import { createContext, useContext } from "react";
+import type { UseFormReturn, FieldValues } from "react-hook-form";
+import type {
+  FormFieldsConfig,
+  FormConfig,
+  FormState,
+} from "@formality-ui/core";
+import type { WatcherSetterFn, DebouncedFunction } from "../types";
 
 /**
  * FormContextValue - Form-level configuration and operations
@@ -12,7 +16,9 @@ import type { WatcherSetterFn, DebouncedFunction } from '../types';
  * Provides field registration, subscription management, and access
  * to form state for all fields within a Form component.
  */
-export interface FormContextValue<TFieldValues extends FieldValues = FieldValues> {
+export interface FormContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+> {
   // ========================
   // Configuration
   // ========================
@@ -137,7 +143,7 @@ export interface FormContextValue<TFieldValues extends FieldValues = FieldValues
  */
 export const FormContext = createContext<FormContextValue | null>(null);
 
-FormContext.displayName = 'FormalityFormContext';
+FormContext.displayName = "FormalityFormContext";
 
 /**
  * useFormContext - Hook to access form-level context
@@ -145,13 +151,17 @@ FormContext.displayName = 'FormalityFormContext';
  * @throws Error if used outside a Form component
  * @returns The FormContextValue from the nearest Form component
  */
-export function useFormContext<TFieldValues extends FieldValues = FieldValues>(): FormContextValue<TFieldValues> {
-  const context = useContext(FormContext) as FormContextValue<TFieldValues> | null;
+export function useFormContext<
+  TFieldValues extends FieldValues = FieldValues,
+>(): FormContextValue<TFieldValues> {
+  const context = useContext(
+    FormContext,
+  ) as FormContextValue<TFieldValues> | null;
 
   if (!context) {
     throw new Error(
-      'useFormContext must be used within a Form component. ' +
-      'Make sure your component is wrapped in a <Form> component.'
+      "useFormContext must be used within a Form component. " +
+        "Make sure your component is wrapped in a <Form> component.",
     );
   }
 

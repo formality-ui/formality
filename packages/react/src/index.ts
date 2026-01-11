@@ -27,53 +27,53 @@ export type {
   ValidatorSpec,
   ValidatorsConfig,
   ErrorMessagesConfig,
-} from '@formality-ui/core';
+} from "@formality-ui/core";
 
 // ============================================================================
 // Context
 // ============================================================================
-export { ConfigContext, useConfigContext } from './context/ConfigContext';
-export type { ConfigContextValue } from './context/ConfigContext';
+export { ConfigContext, useConfigContext } from "./context/ConfigContext";
+export type { ConfigContextValue } from "./context/ConfigContext";
 
-export { FormContext, useFormContext } from './context/FormContext';
-export type { FormContextValue } from './context/FormContext';
+export { FormContext, useFormContext } from "./context/FormContext";
+export type { FormContextValue } from "./context/FormContext";
 
-export { GroupContext, useGroupContext } from './context/GroupContext';
-export type { GroupContextValue, GroupState } from './context/GroupContext';
+export { GroupContext, useGroupContext } from "./context/GroupContext";
+export type { GroupContextValue, GroupState } from "./context/GroupContext";
 
 // ============================================================================
 // Components
 // ============================================================================
-export { FormalityProvider } from './components/FormalityProvider';
-export type { FormalityProviderProps } from './components/FormalityProvider';
+export { FormalityProvider } from "./components/FormalityProvider";
+export type { FormalityProviderProps } from "./components/FormalityProvider";
 
-export { Form } from './components/Form';
-export type { FormProps, FormRenderAPI } from './components/Form';
+export { Form } from "./components/Form";
+export type { FormProps, FormRenderAPI } from "./components/Form";
 
-export { Field } from './components/Field';
-export type { FieldProps, FieldRenderAPI } from './components/Field';
+export { Field } from "./components/Field";
+export type { FieldProps, FieldRenderAPI } from "./components/Field";
 
-export { FieldGroup } from './components/FieldGroup';
-export type { FieldGroupProps } from './components/FieldGroup';
+export { FieldGroup } from "./components/FieldGroup";
+export type { FieldGroupProps } from "./components/FieldGroup";
 
-export { UnusedFields } from './components/UnusedFields';
-export type { UnusedFieldsProps } from './components/UnusedFields';
+export { UnusedFields } from "./components/UnusedFields";
+export type { UnusedFieldsProps } from "./components/UnusedFields";
 
 // ============================================================================
 // Utilities
 // ============================================================================
-export { makeProxyState, makeDeepProxyState } from './utils/makeProxyState';
+export { makeProxyState, makeDeepProxyState } from "./utils/makeProxyState";
 
 // ============================================================================
 // Hooks
 // ============================================================================
-export { useFormState } from './hooks/useFormState';
-export type { UseFormStateOptions } from './hooks/useFormState';
+export { useFormState } from "./hooks/useFormState";
+export type { UseFormStateOptions } from "./hooks/useFormState";
 
-export { useConditions } from './hooks/useConditions';
-export { usePropsEvaluation } from './hooks/usePropsEvaluation';
-export { useInferredInputs } from './hooks/useInferredInputs';
-export { useSubscriptions } from './hooks/useSubscriptions';
+export { useConditions } from "./hooks/useConditions";
+export { usePropsEvaluation } from "./hooks/usePropsEvaluation";
+export { useInferredInputs } from "./hooks/useInferredInputs";
+export { useSubscriptions } from "./hooks/useSubscriptions";
 
 // ============================================================================
 // Types
@@ -84,4 +84,4 @@ export type {
   ExtendedFormState,
   WatcherSetterFn,
   DebouncedFunction,
-} from './types';
+} from "./types";

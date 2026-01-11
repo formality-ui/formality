@@ -2,7 +2,7 @@
 // Pure functions for resolving initial/default values
 // ZERO framework dependencies
 
-import type { FieldConfig, InputConfig } from '../types';
+import type { FieldConfig, InputConfig } from "../types";
 
 /**
  * Resolve the initial value for a field
@@ -45,7 +45,7 @@ export function resolveInitialValue(
   fieldConfig?: FieldConfig,
   inputConfig?: InputConfig,
   record?: Record<string, unknown>,
-  defaultValues?: Record<string, unknown>
+  defaultValues?: Record<string, unknown>,
 ): unknown {
   // Priority 1: Explicit default value for this field
   if (defaultValues && fieldName in defaultValues) {
@@ -80,12 +80,12 @@ export function resolveAllInitialValues(
   fieldConfigs: Record<string, FieldConfig>,
   inputs: Record<string, InputConfig>,
   record?: Record<string, unknown>,
-  defaultValues?: Record<string, unknown>
+  defaultValues?: Record<string, unknown>,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {};
 
   for (const [fieldName, fieldConfig] of Object.entries(fieldConfigs)) {
-    const type = fieldConfig.type ?? 'textField';
+    const type = fieldConfig.type ?? "textField";
     const inputConfig = inputs[type];
 
     const value = resolveInitialValue(
@@ -93,7 +93,7 @@ export function resolveAllInitialValues(
       fieldConfig,
       inputConfig,
       record,
-      defaultValues
+      defaultValues,
     );
 
     if (value !== undefined) {
@@ -123,7 +123,7 @@ export function isEmptyValue(value: unknown): boolean {
   if (value === undefined || value === null) {
     return true;
   }
-  if (value === '') {
+  if (value === "") {
     return true;
   }
   if (Array.isArray(value) && value.length === 0) {
@@ -143,7 +143,7 @@ export function isEmptyValue(value: unknown): boolean {
  */
 export function getInputDefaultValue(
   inputConfig?: InputConfig,
-  typeName?: string
+  typeName?: string,
 ): unknown {
   // Explicit default value
   if (inputConfig?.defaultValue !== undefined) {
@@ -153,30 +153,30 @@ export function getInputDefaultValue(
   // Type-based defaults
   if (typeName) {
     switch (typeName) {
-      case 'switch':
-      case 'checkbox':
+      case "switch":
+      case "checkbox":
         return false;
-      case 'number':
-      case 'decimal':
-      case 'integer':
+      case "number":
+      case "decimal":
+      case "integer":
         return 0;
-      case 'select':
-      case 'autocomplete':
+      case "select":
+      case "autocomplete":
         return null;
-      case 'multiSelect':
-      case 'checkboxGroup':
+      case "multiSelect":
+      case "checkboxGroup":
         return [];
-      case 'textField':
-      case 'text':
-      case 'textarea':
-      case 'email':
-      case 'password':
+      case "textField":
+      case "text":
+      case "textarea":
+      case "email":
+      case "password":
       default:
-        return '';
+        return "";
     }
   }
 
-  return '';
+  return "";
 }
 
 /**
@@ -190,7 +190,7 @@ export function getInputDefaultValue(
  */
 export function mergeRecordWithDefaults(
   record?: Record<string, unknown>,
-  defaults?: Record<string, unknown>
+  defaults?: Record<string, unknown>,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {};
 

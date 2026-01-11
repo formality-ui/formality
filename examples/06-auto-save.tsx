@@ -9,24 +9,24 @@
  * - Submission state tracking
  */
 
-import React, { memo, useState, useCallback } from 'react';
+import React, { memo, useState, useCallback } from "react";
 import {
   FormalityProvider,
   Form,
   Field,
   type InputConfig,
   type FormFieldsConfig,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 
 // =============================================================================
 // Mock API for Demonstration
 // =============================================================================
 
 const saveToAPI = async (values: Record<string, unknown>): Promise<void> => {
-  console.log('Saving to API:', values);
+  console.log("Saving to API:", values);
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 500));
-  console.log('Saved successfully!');
+  console.log("Saved successfully!");
 };
 
 // =============================================================================
@@ -41,13 +41,13 @@ const inputs: Record<string, InputConfig> = {
       <div className="field">
         <label>{label}</label>
         <input
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
     debounce: 2000, // Wait 2s after user stops typing
   },
 
@@ -57,13 +57,13 @@ const inputs: Record<string, InputConfig> = {
       <div className="field">
         <label>{label}</label>
         <textarea
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           rows={4}
         />
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
     debounce: 3000, // Wait 3s for longer content
   },
 
@@ -80,7 +80,7 @@ const inputs: Record<string, InputConfig> = {
       </label>
     )),
     defaultValue: false,
-    inputFieldProp: 'checked',
+    inputFieldProp: "checked",
     debounce: false, // No debounce - submit immediately
   },
 
@@ -89,18 +89,17 @@ const inputs: Record<string, InputConfig> = {
     component: memo(({ value, onChange, label, options }) => (
       <div className="field">
         <label>{label}</label>
-        <select
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-        >
+        <select value={value ?? ""} onChange={(e) => onChange(e.target.value)}>
           <option value="">Select...</option>
           {options?.map((opt: string) => (
-            <option key={opt} value={opt}>{opt}</option>
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
           ))}
         </select>
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
     debounce: 500, // Short debounce for selects
   },
 
@@ -111,8 +110,10 @@ const inputs: Record<string, InputConfig> = {
         <label>{label}</label>
         <input
           type="number"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+          value={value ?? ""}
+          onChange={(e) =>
+            onChange(e.target.value ? Number(e.target.value) : null)
+          }
         />
       </div>
     )),
@@ -127,16 +128,16 @@ const inputs: Record<string, InputConfig> = {
 
 const basicAutoSaveConfig: FormFieldsConfig = {
   title: {
-    type: 'textField',
-    label: 'Title',
+    type: "textField",
+    label: "Title",
   },
   content: {
-    type: 'textArea',
-    label: 'Content',
+    type: "textArea",
+    label: "Content",
   },
   isPublished: {
-    type: 'switch',
-    label: 'Published',
+    type: "switch",
+    label: "Published",
   },
 };
 
@@ -162,7 +163,11 @@ export function BasicAutoSaveExample() {
           <div>
             <h3>Basic Auto-Save</h3>
             <div className="save-status">
-              {isSaving ? 'Saving...' : lastSaved ? `Last saved: ${lastSaved}` : 'Not saved yet'}
+              {isSaving
+                ? "Saving..."
+                : lastSaved
+                  ? `Last saved: ${lastSaved}`
+                  : "Not saved yet"}
             </div>
 
             <Field name="title" />
@@ -171,8 +176,8 @@ export function BasicAutoSaveExample() {
 
             {/* No submit button needed - form saves automatically */}
             <p className="hint">
-              Changes save automatically. Text fields wait 2-3 seconds,
-              switches save immediately.
+              Changes save automatically. Text fields wait 2-3 seconds, switches
+              save immediately.
             </p>
           </div>
         )}
@@ -187,12 +192,12 @@ export function BasicAutoSaveExample() {
 
 const customDebounceConfig: FormFieldsConfig = {
   name: {
-    type: 'textField',
-    label: 'Name',
+    type: "textField",
+    label: "Name",
   },
   email: {
-    type: 'textField',
-    label: 'Email',
+    type: "textField",
+    label: "Email",
   },
 };
 
@@ -201,7 +206,10 @@ export function CustomDebounceExample() {
 
   const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
     const timestamp = new Date().toLocaleTimeString();
-    setSaveLog((prev) => [...prev.slice(-4), `${timestamp}: Saved - ${JSON.stringify(values)}`]);
+    setSaveLog((prev) => [
+      ...prev.slice(-4),
+      `${timestamp}: Saved - ${JSON.stringify(values)}`,
+    ]);
     await saveToAPI(values);
   }, []);
 
@@ -240,27 +248,27 @@ export function CustomDebounceExample() {
 
 const mixedDebounceConfig: FormFieldsConfig = {
   quickNote: {
-    type: 'textField',
-    label: 'Quick Note (2s debounce)',
+    type: "textField",
+    label: "Quick Note (2s debounce)",
   },
   detailedDescription: {
-    type: 'textArea',
-    label: 'Detailed Description (3s debounce)',
+    type: "textArea",
+    label: "Detailed Description (3s debounce)",
   },
   priority: {
-    type: 'select',
-    label: 'Priority (0.5s debounce)',
+    type: "select",
+    label: "Priority (0.5s debounce)",
     props: {
-      options: ['Low', 'Medium', 'High', 'Critical'],
+      options: ["Low", "Medium", "High", "Critical"],
     },
   },
   isUrgent: {
-    type: 'switch',
-    label: 'Urgent (immediate)',
+    type: "switch",
+    label: "Urgent (immediate)",
   },
   estimatedHours: {
-    type: 'numberField',
-    label: 'Estimated Hours (1s debounce)',
+    type: "numberField",
+    label: "Estimated Hours (1s debounce)",
   },
 };
 
@@ -315,35 +323,38 @@ export function MixedDebounceExample() {
 
 const validatedAutoSaveConfig: FormFieldsConfig = {
   email: {
-    type: 'textField',
-    label: 'Email',
+    type: "textField",
+    label: "Email",
     validator: (value) => {
-      if (!value) return 'Email is required';
+      if (!value) return "Email is required";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))) {
-        return 'Invalid email format';
+        return "Invalid email format";
       }
       return true;
     },
   },
   age: {
-    type: 'numberField',
-    label: 'Age',
+    type: "numberField",
+    label: "Age",
     validator: (value) => {
-      if (value === null || value === undefined || value === '') return 'Age is required';
-      if (Number(value) < 18) return 'Must be 18 or older';
+      if (value === null || value === undefined || value === "")
+        return "Age is required";
+      if (Number(value) < 18) return "Must be 18 or older";
       return true;
     },
   },
 };
 
 export function ValidatedAutoSaveExample() {
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'invalid'>('idle');
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "invalid">(
+    "idle",
+  );
 
   const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
-    setStatus('saving');
+    setStatus("saving");
     await saveToAPI(values);
-    setStatus('saved');
-    setTimeout(() => setStatus('idle'), 2000);
+    setStatus("saved");
+    setTimeout(() => setStatus("idle"), 2000);
   }, []);
 
   return (
@@ -359,16 +370,16 @@ export function ValidatedAutoSaveExample() {
             <p>Form only saves when all fields are valid</p>
 
             <div className="status-badge" data-status={status}>
-              {status === 'idle' && 'Ready'}
-              {status === 'saving' && 'Saving...'}
-              {status === 'saved' && 'Saved!'}
+              {status === "idle" && "Ready"}
+              {status === "saving" && "Saving..."}
+              {status === "saved" && "Saved!"}
             </div>
 
             <Field name="email" />
             <Field name="age" />
 
             <div className="validation-status">
-              Form valid: {methods.formState.isValid ? 'Yes' : 'No'}
+              Form valid: {methods.formState.isValid ? "Yes" : "No"}
             </div>
           </div>
         )}
@@ -384,16 +395,16 @@ export function ValidatedAutoSaveExample() {
 
 const conditionalAutoSaveConfig: FormFieldsConfig = {
   autoSaveEnabled: {
-    type: 'switch',
-    label: 'Enable Auto-Save',
+    type: "switch",
+    label: "Enable Auto-Save",
   },
   title: {
-    type: 'textField',
-    label: 'Document Title',
+    type: "textField",
+    label: "Document Title",
   },
   body: {
-    type: 'textArea',
-    label: 'Document Body',
+    type: "textArea",
+    label: "Document Body",
   },
 };
 
@@ -404,7 +415,7 @@ export function ConditionalAutoSaveExample() {
   const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
     // Check if auto-save is enabled via form value
     if (!values.autoSaveEnabled) {
-      console.log('Auto-save disabled, skipping...');
+      console.log("Auto-save disabled, skipping...");
       return;
     }
     await saveToAPI(values);
@@ -445,18 +456,18 @@ export function ConditionalAutoSaveExample() {
 
 const hybridSaveConfig: FormFieldsConfig = {
   name: {
-    type: 'textField',
-    label: 'Name',
+    type: "textField",
+    label: "Name",
   },
   description: {
-    type: 'textArea',
-    label: 'Description',
+    type: "textArea",
+    label: "Description",
   },
   status: {
-    type: 'select',
-    label: 'Status',
+    type: "select",
+    label: "Status",
     props: {
-      options: ['Draft', 'In Review', 'Published'],
+      options: ["Draft", "In Review", "Published"],
     },
   },
 };
@@ -491,7 +502,7 @@ export function HybridSaveExample() {
 
             <div className="action-bar">
               <button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Now'}
+                {isSaving ? "Saving..." : "Save Now"}
               </button>
               {lastSaved && (
                 <span className="last-saved">

@@ -1,60 +1,60 @@
 // @formality-ui/core - Expression Context Building
 // Implements the Dual Context Mapping pattern for expression evaluation
 
-import type { FormState, FieldState, FieldError } from '../types';
+import type { FormState, FieldState, FieldError } from "../types";
 
 /**
  * Qualified prefixes that should NOT be auto-transformed
  */
 export const QUALIFIED_PREFIXES = [
-  'fields',
-  'record',
-  'errors',
-  'defaultValues',
-  'touchedFields',
-  'dirtyFields',
-  'props',
+  "fields",
+  "record",
+  "errors",
+  "defaultValues",
+  "touchedFields",
+  "dirtyFields",
+  "props",
 ] as const;
 
 /**
  * JavaScript keywords to skip during field inference
  */
 export const KEYWORDS = [
-  'true',
-  'false',
-  'null',
-  'undefined',
-  'typeof',
-  'instanceof',
-  'new',
-  'this',
-  'if',
-  'else',
-  'return',
+  "true",
+  "false",
+  "null",
+  "undefined",
+  "typeof",
+  "instanceof",
+  "new",
+  "this",
+  "if",
+  "else",
+  "return",
 ] as const;
 
 /**
  * Known field state properties that should be accessed directly on the field state
  */
 const FIELD_STATE_PROPERTIES = new Set([
-  'value',
-  'isTouched',
-  'isDirty',
-  'isValidating',
-  'error',
-  'invalid',
-  'disabled',
+  "value",
+  "isTouched",
+  "isDirty",
+  "isValidating",
+  "error",
+  "invalid",
+  "disabled",
 ]);
 
 /**
  * Symbol to identify field state proxies for unwrapping in expressions
  */
-export const FIELD_PROXY_MARKER = Symbol.for('formality.fieldProxy');
+export const FIELD_PROXY_MARKER = Symbol.for("formality.fieldProxy");
 
 /**
  * Symbol to get the raw value from a field proxy
  */
-export const FIELD_PROXY_VALUE = Symbol.for('formality.fieldProxyValue');
+export const FIELD_PROXY_VALUE = Symbol.for("formality.fieldProxyValue");
 
 /**
  * Create a proxy for a field state that:
@@ -67,7 +67,9 @@ export const FIELD_PROXY_VALUE = Symbol.for('formality.fieldProxyValue');
  * - `client.isTouched` to return the touched state
  * - `client.id` to return value.id (for object values)
  */
-export function createFieldStateProxy(fieldState: FieldState | { value: unknown }): unknown {
+export function createFieldStateProxy(
+  fieldState: FieldState | { value: unknown },
+): unknown {
   // If value is null/undefined or primitive, we still need the proxy for metadata access
   const proxy = new Proxy(fieldState as object, {
     get(target: FieldState | { value: unknown }, prop: string | symbol) {
@@ -87,13 +89,13 @@ export function createFieldStateProxy(fieldState: FieldState | { value: unknown 
       }
 
       // Known field state properties - return from field state
-      if (typeof prop === 'string' && FIELD_STATE_PROPERTIES.has(prop)) {
+      if (typeof prop === "string" && FIELD_STATE_PROPERTIES.has(prop)) {
         return (target as Record<string, unknown>)[prop];
       }
 
       // Unknown property - delegate to value
       const value = target.value;
-      if (value !== null && value !== undefined && typeof value === 'object') {
+      if (value !== null && value !== undefined && typeof value === "object") {
         return (value as Record<string, unknown>)[prop as string];
       }
 
@@ -110,7 +112,7 @@ export function createFieldStateProxy(fieldState: FieldState | { value: unknown 
 export function isFieldProxy(value: unknown): boolean {
   return (
     value !== null &&
-    typeof value === 'object' &&
+    typeof value === "object" &&
     (value as Record<symbol, unknown>)[FIELD_PROXY_MARKER] === true
   );
 }
@@ -146,7 +148,7 @@ export function buildFormContext(
   errors?: Record<string, FieldError | undefined>,
   defaultValues?: Record<string, unknown>,
   touchedFields?: Record<string, boolean>,
-  dirtyFields?: Record<string, boolean>
+  dirtyFields?: Record<string, boolean>,
 ): Record<string, unknown> {
   const context: Record<string, unknown> = {};
 
@@ -188,7 +190,7 @@ export function buildFormContext(
 export function buildFieldContext(
   formState: FormState,
   fieldName: string,
-  additionalProps?: Record<string, unknown>
+  additionalProps?: Record<string, unknown>,
 ): Record<string, unknown> {
   const context = buildFormContext(
     formState.fields,
@@ -196,7 +198,7 @@ export function buildFieldContext(
     formState.errors,
     formState.defaultValues,
     formState.touchedFields,
-    formState.dirtyFields
+    formState.dirtyFields,
   );
 
   // Add field-specific props
@@ -237,7 +239,7 @@ export function buildEvaluationContext(
   fieldValues: Record<string, unknown>,
   record?: Record<string, unknown>,
   props?: Record<string, unknown>,
-  fieldStates?: Record<string, FieldStateForContext>
+  fieldStates?: Record<string, FieldStateForContext>,
 ): Record<string, unknown> {
   const context: Record<string, unknown> = {};
 

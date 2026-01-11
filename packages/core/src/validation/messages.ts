@@ -2,7 +2,7 @@
 // Pure functions for resolving validation error messages
 // ZERO framework dependencies
 
-import type { ValidationResult, ErrorMessagesConfig } from '../types';
+import type { ValidationResult, ErrorMessagesConfig } from "../types";
 
 /**
  * Resolve an error message from a validation result
@@ -24,7 +24,7 @@ import type { ValidationResult, ErrorMessagesConfig } from '../types';
  */
 export function resolveErrorMessage(
   result: ValidationResult,
-  errorMessages?: ErrorMessagesConfig
+  errorMessages?: ErrorMessagesConfig,
 ): string | undefined {
   // Valid results - no error message
   if (result === true || result === undefined) {
@@ -32,17 +32,17 @@ export function resolveErrorMessage(
   }
 
   // String result - use directly as message
-  if (typeof result === 'string') {
+  if (typeof result === "string") {
     return result;
   }
 
   // False result - generic invalid message
   if (result === false) {
-    return errorMessages?.['invalid'] ?? 'Invalid value';
+    return errorMessages?.["invalid"] ?? "Invalid value";
   }
 
   // Object result with type and optional message
-  if (typeof result === 'object' && result !== null) {
+  if (typeof result === "object" && result !== null) {
     // Use provided message if available
     if (result.message) {
       return result.message;
@@ -58,10 +58,10 @@ export function resolveErrorMessage(
       return formatTypeAsMessage(result.type);
     }
 
-    return 'Invalid value';
+    return "Invalid value";
   }
 
-  return 'Invalid value';
+  return "Invalid value";
 }
 
 /**
@@ -78,8 +78,8 @@ export function resolveErrorMessage(
 export function formatTypeAsMessage(type: string): string {
   // Convert camelCase/snake_case to words
   const words = type
-    .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase → camel Case
-    .replace(/_/g, ' ') // snake_case → snake case
+    .replace(/([a-z])([A-Z])/g, "$1 $2") // camelCase → camel Case
+    .replace(/_/g, " ") // snake_case → snake case
     .toLowerCase();
 
   // Capitalize first letter
@@ -93,27 +93,27 @@ export function formatTypeAsMessage(type: string): string {
  * @returns Complete error messages config
  */
 export function createErrorMessages(
-  overrides?: ErrorMessagesConfig
+  overrides?: ErrorMessagesConfig,
 ): ErrorMessagesConfig {
   const defaults: ErrorMessagesConfig = {
-    required: 'This field is required',
-    invalid: 'Invalid value',
-    minLength: 'Too short',
-    maxLength: 'Too long',
-    pattern: 'Invalid format',
-    min: 'Value is too small',
-    max: 'Value is too large',
-    email: 'Invalid email address',
-    url: 'Invalid URL',
-    number: 'Must be a number',
-    integer: 'Must be a whole number',
-    positive: 'Must be positive',
-    negative: 'Must be negative',
-    date: 'Invalid date',
-    phone: 'Invalid phone number',
-    unique: 'Must be unique',
-    match: 'Fields do not match',
-    validate: 'Validation failed',
+    required: "This field is required",
+    invalid: "Invalid value",
+    minLength: "Too short",
+    maxLength: "Too long",
+    pattern: "Invalid format",
+    min: "Value is too small",
+    max: "Value is too large",
+    email: "Invalid email address",
+    url: "Invalid URL",
+    number: "Must be a number",
+    integer: "Must be a whole number",
+    positive: "Must be positive",
+    negative: "Must be negative",
+    date: "Invalid date",
+    phone: "Invalid phone number",
+    unique: "Must be unique",
+    match: "Fields do not match",
+    validate: "Validation failed",
   };
 
   return {
@@ -134,18 +134,18 @@ export function getErrorType(result: ValidationResult): string | undefined {
   }
 
   if (result === false) {
-    return 'invalid';
+    return "invalid";
   }
 
-  if (typeof result === 'string') {
-    return 'validate';
+  if (typeof result === "string") {
+    return "validate";
   }
 
-  if (typeof result === 'object' && result !== null) {
-    return result.type || 'validate';
+  if (typeof result === "object" && result !== null) {
+    return result.type || "validate";
   }
 
-  return 'validate';
+  return "validate";
 }
 
 /**
@@ -159,12 +159,10 @@ export function getErrorType(result: ValidationResult): string | undefined {
 export function createValidationError(
   type: string,
   message?: string,
-  errorMessages?: ErrorMessagesConfig
+  errorMessages?: ErrorMessagesConfig,
 ): { type: string; message: string } {
   const resolvedMessage =
-    message ??
-    errorMessages?.[type] ??
-    formatTypeAsMessage(type);
+    message ?? errorMessages?.[type] ?? formatTypeAsMessage(type);
 
   return {
     type,

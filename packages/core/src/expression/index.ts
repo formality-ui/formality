@@ -1,12 +1,8 @@
 // @formality-ui/core - Expression Module Barrel Export
 
-export type { EvaluationContext } from './evaluate';
+export type { EvaluationContext } from "./evaluate";
 
-export {
-  evaluate,
-  evaluateDescriptor,
-  clearExpressionCache,
-} from './evaluate';
+export { evaluate, evaluateDescriptor, clearExpressionCache } from "./evaluate";
 
 export {
   QUALIFIED_PREFIXES,
@@ -19,9 +15,6 @@ export {
   createFieldStateProxy,
   isFieldProxy,
   unwrapFieldProxy,
-} from './context';
+} from "./context";
 
-export {
-  inferFieldsFromExpression,
-  inferFieldsFromDescriptor,
-} from './infer';
+export { inferFieldsFromExpression, inferFieldsFromDescriptor } from "./infer";

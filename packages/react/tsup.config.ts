@@ -1,8 +1,8 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from "tsup";
 
 export default defineConfig((options) => ({
-  entry: ['src/index.ts'],
-  format: ['esm', 'cjs'],
+  entry: ["src/index.ts"],
+  format: ["esm", "cjs"],
   dts: {
     compilerOptions: {
       composite: false,
@@ -13,14 +13,10 @@ export default defineConfig((options) => ({
   treeshake: true,
   splitting: false,
   minify: false,
-  external: [
-    'react',
-    'react-dom',
-    'react-hook-form',
-  ],
+  external: ["react", "react-dom", "react-hook-form"],
   esbuildOptions(opts) {
-    opts.jsx = 'automatic';
+    opts.jsx = "automatic";
   },
   // Auto-push to yalc on successful build in watch mode
-  onSuccess: options.watch ? 'yalc push --changed' : undefined,
+  onSuccess: options.watch ? "yalc push --changed" : undefined,
 }));

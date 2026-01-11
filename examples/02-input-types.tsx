@@ -14,8 +14,13 @@
  * - props: Default props for this input type
  */
 
-import React, { memo } from 'react';
-import { FormalityProvider, Form, Field, type InputConfig } from '@formality-ui/react';
+import React, { memo } from "react";
+import {
+  FormalityProvider,
+  Form,
+  Field,
+  type InputConfig,
+} from "@formality-ui/react";
 
 // =============================================================================
 // Input Type: Text Field with Debounce
@@ -26,14 +31,11 @@ const textField: InputConfig = {
   component: memo(({ value, onChange, label, name, error }) => (
     <div className="field">
       <label>{label}</label>
-      <input
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      <input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
       {error && <span className="error">{error}</span>}
     </div>
   )),
-  defaultValue: '',
+  defaultValue: "",
   debounce: 300, // Wait 300ms after user stops typing before validating
 };
 
@@ -57,7 +59,7 @@ const switchInput: InputConfig = {
     </div>
   )),
   defaultValue: false,
-  inputFieldProp: 'checked', // Pass value as 'checked' prop, not 'value'
+  inputFieldProp: "checked", // Pass value as 'checked' prop, not 'value'
   debounce: false, // No debounce - react immediately to clicks
 };
 
@@ -77,9 +79,11 @@ const autocomplete: InputConfig<Option | null> = {
     <div className="field">
       <label>{label}</label>
       <select
-        value={value?.id ?? ''}
+        value={value?.id ?? ""}
         onChange={(e) => {
-          const selected = options?.find((o: Option) => o.id === Number(e.target.value));
+          const selected = options?.find(
+            (o: Option) => o.id === Number(e.target.value),
+          );
           onChange(selected ?? null);
         }}
         disabled={disabled}
@@ -95,7 +99,7 @@ const autocomplete: InputConfig<Option | null> = {
   )),
   defaultValue: null,
   // Extract the 'id' property when submitting
-  valueField: 'id',
+  valueField: "id",
   // Transform "client" to "clientId" for API submission
   getSubmitField: (fieldName) => `${fieldName}Id`,
 };
@@ -111,16 +115,16 @@ const decimal: InputConfig = {
       <label>{label}</label>
       <input
         type="text"
-        value={value ?? ''}
+        value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
       />
       {error && <span className="error">{error}</span>}
     </div>
   )),
-  defaultValue: '',
+  defaultValue: "",
   // Named parsers/formatters (defined in provider config)
-  parser: 'float',
-  formatter: 'float',
+  parser: "float",
+  formatter: "float",
 };
 
 // =============================================================================
@@ -135,24 +139,24 @@ const currency: InputConfig = {
         <span>$</span>
         <input
           type="text"
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
         />
       </div>
     </div>
   )),
-  defaultValue: '',
+  defaultValue: "",
   // Inline parser: string "1,234.56" -> number 1234.56
   parser: (value) => {
-    if (value === '' || value == null) return null;
-    const cleaned = String(value).replace(/[,$]/g, '');
+    if (value === "" || value == null) return null;
+    const cleaned = String(value).replace(/[,$]/g, "");
     const num = parseFloat(cleaned);
     return isNaN(num) ? null : num;
   },
   // Inline formatter: number 1234.56 -> string "1,234.56"
   formatter: (value) => {
-    if (value == null) return '';
-    return new Intl.NumberFormat('en-US', {
+    if (value == null) return "";
+    return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
@@ -169,14 +173,14 @@ const textArea: InputConfig = {
     <div className="field">
       <label>{label}</label>
       <textarea
-        value={value ?? ''}
+        value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
         cols={cols}
       />
     </div>
   )),
-  defaultValue: '',
+  defaultValue: "",
   // Default props - can be overridden per-field
   props: {
     rows: 4,
@@ -189,36 +193,35 @@ const textArea: InputConfig = {
 // =============================================================================
 // Templates wrap the input component to provide consistent error display
 
-const FieldTemplate = memo(({
-  Field: InputComponent,
-  fieldProps,
-  fieldState,
-}: {
-  Field: React.ComponentType<any>;
-  fieldProps: Record<string, unknown>;
-  fieldState: { error?: { message?: string }; isTouched: boolean };
-}) => (
-  <div className={`field-wrapper ${fieldState.error ? 'has-error' : ''}`}>
-    <InputComponent {...fieldProps} />
-    {fieldState.isTouched && fieldState.error && (
-      <div className="error-message">{fieldState.error.message}</div>
-    )}
-  </div>
-));
+const FieldTemplate = memo(
+  ({
+    Field: InputComponent,
+    fieldProps,
+    fieldState,
+  }: {
+    Field: React.ComponentType<any>;
+    fieldProps: Record<string, unknown>;
+    fieldState: { error?: { message?: string }; isTouched: boolean };
+  }) => (
+    <div className={`field-wrapper ${fieldState.error ? "has-error" : ""}`}>
+      <InputComponent {...fieldProps} />
+      {fieldState.isTouched && fieldState.error && (
+        <div className="error-message">{fieldState.error.message}</div>
+      )}
+    </div>
+  ),
+);
 
 const validatedTextField: InputConfig = {
   component: memo(({ value, onChange, label }) => (
     <div className="field">
       <label>{label}</label>
-      <input
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      <input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
     </div>
   )),
-  defaultValue: '',
+  defaultValue: "",
   template: FieldTemplate,
-  validator: 'required', // Type-level validation (all fields of this type are required)
+  validator: "required", // Type-level validation (all fields of this type are required)
 };
 
 // =============================================================================
@@ -238,12 +241,12 @@ const inputs: Record<string, InputConfig> = {
 // Named parsers and formatters (referenced by string in input configs)
 const parsers = {
   float: (value: unknown) => {
-    if (value === '' || value == null) return null;
+    if (value === "" || value == null) return null;
     const num = parseFloat(String(value));
     return isNaN(num) ? null : num;
   },
   int: (value: unknown) => {
-    if (value === '' || value == null) return null;
+    if (value === "" || value == null) return null;
     const num = parseInt(String(value), 10);
     return isNaN(num) ? null : num;
   },
@@ -251,11 +254,11 @@ const parsers = {
 
 const formatters = {
   float: (value: unknown) => {
-    if (value == null) return '';
+    if (value == null) return "";
     return (value as number).toFixed(2);
   },
   float3: (value: unknown) => {
-    if (value == null) return '';
+    if (value == null) return "";
     return (value as number).toFixed(3);
   },
 };
@@ -266,44 +269,48 @@ const formatters = {
 
 const config = {
   client: {
-    type: 'autocomplete',
-    label: 'Client',
+    type: "autocomplete",
+    label: "Client",
     props: {
       options: [
-        { id: 1, name: 'Acme Corp', code: 'ACM' },
-        { id: 2, name: 'Globex Inc', code: 'GLX' },
-        { id: 3, name: 'Initech', code: 'INT' },
+        { id: 1, name: "Acme Corp", code: "ACM" },
+        { id: 2, name: "Globex Inc", code: "GLX" },
+        { id: 3, name: "Initech", code: "INT" },
       ],
     },
   },
   isActive: {
-    type: 'switch',
-    label: 'Active',
+    type: "switch",
+    label: "Active",
   },
   billRate: {
-    type: 'decimal',
-    label: 'Bill Rate',
+    type: "decimal",
+    label: "Bill Rate",
   },
   totalBudget: {
-    type: 'currency',
-    label: 'Total Budget',
+    type: "currency",
+    label: "Total Budget",
   },
   notes: {
-    type: 'textArea',
-    label: 'Notes',
+    type: "textArea",
+    label: "Notes",
     props: { rows: 6 }, // Override default rows
   },
 };
 
 export function InputTypesDemo() {
   const handleSubmit = (values: Record<string, unknown>) => {
-    console.log('Submitted:', values);
+    console.log("Submitted:", values);
     // Output: { clientId: 1, isActive: true, billRate: 125.50, ... }
     // Note: 'client' became 'clientId' due to getSubmitField
   };
 
   return (
-    <FormalityProvider inputs={inputs} parsers={parsers} formatters={formatters}>
+    <FormalityProvider
+      inputs={inputs}
+      parsers={parsers}
+      formatters={formatters}
+    >
       <Form config={config} onSubmit={handleSubmit}>
         {({ methods }) => (
           <form onSubmit={methods.handleSubmit(handleSubmit)}>

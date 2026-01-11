@@ -1,8 +1,8 @@
 // @formality-ui/react - GroupContext
 // Group-level context for nested disabled/visible state propagation
 
-import { createContext, useContext } from 'react';
-import type { ConditionDescriptor, GroupConfig } from '@formality-ui/core';
+import { createContext, useContext } from "react";
+import type { ConditionDescriptor, GroupConfig } from "@formality-ui/core";
 
 /**
  * GroupState - Current computed state for a FieldGroup
@@ -78,9 +78,10 @@ const defaultGroupContext: GroupContextValue = {
  * Provides inherited disabled/visible state from parent groups
  * to child fields and nested groups.
  */
-export const GroupContext = createContext<GroupContextValue>(defaultGroupContext);
+export const GroupContext =
+  createContext<GroupContextValue>(defaultGroupContext);
 
-GroupContext.displayName = 'FormalityGroupContext';
+GroupContext.displayName = "FormalityGroupContext";
 
 /**
  * useGroupContext - Hook to access group-level context

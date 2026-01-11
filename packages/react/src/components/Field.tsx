@@ -8,13 +8,13 @@ import {
   useState,
   useRef,
   type ReactNode,
-} from 'react';
+} from "react";
 import {
   Controller,
   type ControllerFieldState,
   type UseFormStateReturn,
   type FieldValues,
-} from 'react-hook-form';
+} from "react-hook-form";
 import {
   resolveInputConfig,
   mergeFieldProps,
@@ -23,16 +23,16 @@ import {
   format,
   runValidator,
   resolveErrorMessage,
-} from '@formality-ui/core';
-import type { FieldConfig, InputConfig } from '@formality-ui/core';
-import { useFormContext } from '../context/FormContext';
-import { useConfigContext } from '../context/ConfigContext';
-import { useGroupContext } from '../context/GroupContext';
-import { useConditions } from '../hooks/useConditions';
-import { usePropsEvaluation } from '../hooks/usePropsEvaluation';
-import { useInferredInputs } from '../hooks/useInferredInputs';
-import { useSubscriptions } from '../hooks/useSubscriptions';
-import type { WatcherSetterFn } from '../types';
+} from "@formality-ui/core";
+import type { FieldConfig, InputConfig } from "@formality-ui/core";
+import { useFormContext } from "../context/FormContext";
+import { useConfigContext } from "../context/ConfigContext";
+import { useGroupContext } from "../context/GroupContext";
+import { useConditions } from "../hooks/useConditions";
+import { usePropsEvaluation } from "../hooks/usePropsEvaluation";
+import { useInferredInputs } from "../hooks/useInferredInputs";
+import { useSubscriptions } from "../hooks/useSubscriptions";
+import type { WatcherSetterFn } from "../types";
 
 /**
  * Field component props
@@ -137,24 +137,34 @@ export function Field({
   const fieldConfig: FieldConfig = config[name] ?? {};
 
   // Resolve type
-  const type = typeProp ?? fieldConfig.type ?? 'textField';
+  const type = typeProp ?? fieldConfig.type ?? "textField";
 
   // Resolve input config (merge provider + form)
   const inputConfig = useMemo((): InputConfig => {
     const formInputs =
-      typeof formConfig.inputs === 'function'
+      typeof formConfig.inputs === "function"
         ? formConfig.inputs(providerConfig.inputs)
-        : formConfig.inputs ?? {};
+        : (formConfig.inputs ?? {});
 
     // Merge provider inputs with form-level overrides
-    const mergedInputs: Record<string, InputConfig> = { ...providerConfig.inputs };
+    const mergedInputs: Record<string, InputConfig> = {
+      ...providerConfig.inputs,
+    };
     for (const [key, override] of Object.entries(formInputs)) {
       if (mergedInputs[key]) {
-        mergedInputs[key] = { ...mergedInputs[key], ...override } as InputConfig;
+        mergedInputs[key] = {
+          ...mergedInputs[key],
+          ...override,
+        } as InputConfig;
       }
     }
 
-    return resolveInputConfig(type, mergedInputs) ?? { component: 'input', defaultValue: '' };
+    return (
+      resolveInputConfig(type, mergedInputs) ?? {
+        component: "input",
+        defaultValue: "",
+      }
+    );
   }, [type, providerConfig.inputs, formConfig.inputs]);
 
   // === REGISTRATION ===
@@ -185,7 +195,9 @@ export function Field({
 
   // Merge with group subscriptions
   const allSubscriptions = useMemo(() => {
-    return [...new Set([...inferredSubscriptions, ...groupContext.subscriptions])];
+    return [
+      ...new Set([...inferredSubscriptions, ...groupContext.subscriptions]),
+    ];
   }, [inferredSubscriptions, groupContext.subscriptions]);
 
   useSubscriptions(name, allSubscriptions);
@@ -224,7 +236,10 @@ export function Field({
   ]);
 
   useEffect(() => {
-    if (effectiveSetValue.hasCondition && effectiveSetValue.value !== undefined) {
+    if (
+      effectiveSetValue.hasCondition &&
+      effectiveSetValue.value !== undefined
+    ) {
       const currentValue = getValuesRef.current(name);
       // Only update if the value is actually different to avoid infinite loops
       if (currentValue !== effectiveSetValue.value) {
@@ -262,7 +277,12 @@ export function Field({
       return conditionResult.visible ?? true;
     if (!groupContext.state.isVisible) return false;
     return true;
-  }, [hiddenProp, fieldConfig.hidden, conditionResult, groupContext.state.isVisible]);
+  }, [
+    hiddenProp,
+    fieldConfig.hidden,
+    conditionResult,
+    groupContext.state.isVisible,
+  ]);
 
   // === PROPS EVALUATION ===
 
@@ -292,7 +312,7 @@ export function Field({
               fieldConfig.validator,
               value,
               methods.getValues(),
-              providerConfig.validators
+              providerConfig.validators,
             );
             if (result !== true && result !== undefined) {
               return resolveErrorMessage(result, providerConfig.errorMessages);
@@ -305,7 +325,7 @@ export function Field({
               inputConfig.validator,
               value,
               methods.getValues(),
-              providerConfig.validators
+              providerConfig.validators,
             );
             if (result !== true && result !== undefined) {
               return resolveErrorMessage(result, providerConfig.errorMessages);
@@ -337,7 +357,7 @@ export function Field({
       const parsedValue = parse(
         newValue,
         inputConfig.parser,
-        providerConfig.parsers
+        providerConfig.parsers,
       );
 
       // Update form value
@@ -346,7 +366,7 @@ export function Field({
       // Notify subscribers
       changeField(name, parsedValue);
     },
-    [inputConfig.parser, providerConfig.parsers, changeField, name]
+    [inputConfig.parser, providerConfig.parsers, changeField, name],
   );
 
   // Don't render if not visible
@@ -366,7 +386,7 @@ export function Field({
         const formattedValue = format(
           field.value,
           inputConfig.formatter,
-          providerConfig.formatters
+          providerConfig.formatters,
         );
 
         // Merge props (8 layers)
@@ -384,7 +404,7 @@ export function Field({
             label,
             disabled: isDisabled,
             error: fieldState.error?.message,
-            [inputConfig.inputFieldProp ?? 'value']: formattedValue,
+            [inputConfig.inputFieldProp ?? "value"]: formattedValue,
             onChange: handleChange(field.onChange),
             onBlur: field.onBlur,
             ref: field.ref,
@@ -416,7 +436,7 @@ export function Field({
         );
 
         // Render children if function
-        if (typeof children === 'function') {
+        if (typeof children === "function") {
           const result = children({
             fieldState,
             renderedField,

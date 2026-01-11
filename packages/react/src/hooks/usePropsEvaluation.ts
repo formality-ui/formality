@@ -1,17 +1,17 @@
 // @formality-ui/react - usePropsEvaluation Hook
 // Evaluates selectProps against current field values
 
-import { useMemo } from 'react';
-import { useWatch } from 'react-hook-form';
+import { useMemo } from "react";
+import { useWatch } from "react-hook-form";
 import {
   evaluateDescriptor,
   buildFieldContext,
   type FormState,
-} from '@formality-ui/core';
-import type { SelectValue } from '@formality-ui/core';
-import { useFormContext } from '../context/FormContext';
-import { useInferredInputs } from './useInferredInputs';
-import { makeProxyState } from '../utils/makeProxyState';
+} from "@formality-ui/core";
+import type { SelectValue } from "@formality-ui/core";
+import { useFormContext } from "../context/FormContext";
+import { useInferredInputs } from "./useInferredInputs";
+import { makeProxyState } from "../utils/makeProxyState";
 
 interface UsePropsEvaluationOptions {
   /** Dynamic props descriptor to evaluate */
@@ -50,7 +50,7 @@ interface UsePropsEvaluationOptions {
  * ```
  */
 export function usePropsEvaluation(
-  options: UsePropsEvaluationOptions
+  options: UsePropsEvaluationOptions,
 ): Record<string, unknown> {
   const { selectProps, subscribesTo, fieldName } = options;
   const { record, methods } = useFormContext();
@@ -76,12 +76,16 @@ export function usePropsEvaluation(
 
     if (watchFields.length > 0) {
       // Handle single vs multiple watched values
-      const values = watchFields.length === 1
-        ? { [watchFields[0]]: watchedValues }
-        : watchFields.reduce((acc, field, i) => {
-            acc[field] = (watchedValues as unknown[])[i];
-            return acc;
-          }, {} as Record<string, unknown>);
+      const values =
+        watchFields.length === 1
+          ? { [watchFields[0]]: watchedValues }
+          : watchFields.reduce(
+              (acc, field, i) => {
+                acc[field] = (watchedValues as unknown[])[i];
+                return acc;
+              },
+              {} as Record<string, unknown>,
+            );
 
       watchFields.forEach((name) => {
         // Create minimal proxy state with just the value
@@ -119,7 +123,7 @@ export function usePropsEvaluation(
     }
 
     // Handle function selectProps
-    if (typeof selectProps === 'function') {
+    if (typeof selectProps === "function") {
       const result = selectProps(formState, methods);
       return (result as Record<string, unknown>) ?? {};
     }

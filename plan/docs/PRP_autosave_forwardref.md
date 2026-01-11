@@ -9,6 +9,7 @@
 **Deliverable**: Modified `packages/react/src/__tests__/autosave-validation.test.tsx` with TestInput and TestSwitch components wrapped in forwardRef.
 
 **Success Definition**:
+
 - All tests in autosave-validation.test.tsx pass without warnings
 - No "Function components cannot be given refs" warnings in test output
 - Components follow the established pattern from completed subtasks (S1-S5)
@@ -22,11 +23,13 @@
 **Use Case**: Running the autosave validation test suite without React ref warnings cluttering the output
 
 **User Journey**:
+
 1. Developer runs `pnpm test` or `pnpm test:watch`
 2. Tests execute without React ref forwarding warnings
 3. Clean test output allows easy identification of real issues
 
 **Pain Points Addressed**:
+
 - React warnings about refs on function components clutter test output
 - Warnings indicate potential ref-passing issues when used with React Hook Form's Controller
 
@@ -44,6 +47,7 @@
 ## What
 
 Update two test components in `packages/react/src/__tests__/autosave-validation.test.tsx`:
+
 1. **TestInput** (lines 27-34) - Text input wrapper
 2. **TestSwitch** (lines 36-44) - Checkbox input wrapper
 
@@ -67,6 +71,7 @@ Each component must be wrapped with `React.forwardRef`, forward the ref to the u
 Before writing this PRP, validated: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"
 
 **Answer**: Yes. This PRP includes:
+
 - Exact file locations and line numbers
 - Complete before/after code patterns
 - Links to React documentation
@@ -256,7 +261,7 @@ Task 5: REWRITE TestSwitch component (lines 36-44)
 const TestInput = ({ value, onChange, name, ...props }: any) => (
   <input
     data-testid={name}
-    value={value ?? ''}
+    value={value ?? ""}
     onChange={(e) => onChange(e.target.value)}
     {...props}
   />
@@ -268,16 +273,15 @@ const TestInput = ({ value, onChange, name, ...props }: any) => (
 const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
   ({ value, onChange, name, ...props }, ref) => (
     <input
-      ref={ref}           // ADD: Forward ref to input
+      ref={ref} // ADD: Forward ref to input
       data-testid={name}
-      value={value ?? ''}
-      onChange={(e) => onChange?.(e.target.value)}  // ADD: Optional chaining
+      value={value ?? ""}
+      onChange={(e) => onChange?.(e.target.value)} // ADD: Optional chaining
       {...props}
     />
-  )
+  ),
 );
-TestInput.displayName = 'TestInput';  // ADD: displayName
-
+TestInput.displayName = "TestInput"; // ADD: displayName
 
 // ============================================================
 // BEFORE (Current - lines 36-44)
@@ -298,16 +302,16 @@ const TestSwitch = ({ value, onChange, name, ...props }: any) => (
 const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
   ({ value, onChange, name, ...props }, ref) => (
     <input
-      ref={ref}           // ADD: Forward ref to input
+      ref={ref} // ADD: Forward ref to input
       type="checkbox"
       data-testid={name}
-      checked={value ?? false}        // CHANGE: Use ?? instead of !!
-      onChange={(e) => onChange?.(e.target.checked)}  // ADD: Optional chaining
+      checked={value ?? false} // CHANGE: Use ?? instead of !!
+      onChange={(e) => onChange?.(e.target.checked)} // ADD: Optional chaining
       {...props}
     />
-  )
+  ),
 );
-TestSwitch.displayName = 'TestSwitch';  // ADD: displayName
+TestSwitch.displayName = "TestSwitch"; // ADD: displayName
 ```
 
 ### Integration Points
@@ -462,6 +466,7 @@ pnpm --filter @formality-ui/react test autosave-validation --reporter=verbose
 **Score: 10/10**
 
 **Rationale**:
+
 - Pattern is well-established from 5 completed subtasks (S1-S5)
 - Only 2 components need modification
 - Changes are mechanical and straightforward
@@ -476,7 +481,7 @@ pnpm --filter @formality-ui/react test autosave-validation --reporter=verbose
 ### TestInput Component (Final Version)
 
 ```tsx
-import React, { forwardRef } from 'react';
+import React, { forwardRef } from "react";
 
 interface TestInputProps {
   value?: any;
@@ -490,20 +495,20 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
     <input
       ref={ref}
       data-testid={name}
-      value={value ?? ''}
+      value={value ?? ""}
       onChange={(e) => onChange?.(e.target.value)}
       {...props}
     />
-  )
+  ),
 );
 
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 ```
 
 ### TestSwitch Component (Final Version)
 
 ```tsx
-import React, { forwardRef } from 'react';
+import React, { forwardRef } from "react";
 
 interface TestSwitchProps {
   value?: any;
@@ -522,8 +527,8 @@ const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
       onChange={(e) => onChange?.(e.target.checked)}
       {...props}
     />
-  )
+  ),
 );
 
-TestSwitch.displayName = 'TestSwitch';
+TestSwitch.displayName = "TestSwitch";
 ```

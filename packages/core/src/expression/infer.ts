@@ -1,7 +1,7 @@
 // @formality-ui/core - Field Dependency Inference
 // Extracts field dependencies from expressions for automatic subscription
 
-import { QUALIFIED_PREFIXES, KEYWORDS } from './context';
+import { QUALIFIED_PREFIXES, KEYWORDS } from "./context";
 
 /**
  * Regular expression to match valid JavaScript identifiers
@@ -56,7 +56,7 @@ export function inferFieldsFromExpression(expr: string): string[] {
     const lastNonWhitespace = beforeMatch.trimEnd().slice(-1);
 
     // If preceded by '.', it's a property access, skip it
-    if (lastNonWhitespace === '.') {
+    if (lastNonWhitespace === ".") {
       continue;
     }
 
@@ -64,7 +64,7 @@ export function inferFieldsFromExpression(expr: string): string[] {
     // (e.g., "fields" in "fields.client" - skip it)
     // But "fields" NOT followed by a dot is a field reference
     const afterMatch = expr.slice(match.index + identifier.length);
-    if (afterMatch.startsWith('.') && QUALIFIED_PREFIX_SET.has(identifier)) {
+    if (afterMatch.startsWith(".") && QUALIFIED_PREFIX_SET.has(identifier)) {
       continue;
     }
 
@@ -92,12 +92,12 @@ export function inferFieldsFromExpression(expr: string): string[] {
  */
 export function inferFieldsFromDescriptor(descriptor: unknown): string[] {
   // String: extract fields from expression
-  if (typeof descriptor === 'string') {
+  if (typeof descriptor === "string") {
     return inferFieldsFromExpression(descriptor);
   }
 
   // Function: cannot analyze, return empty (needs explicit subscribesTo)
-  if (typeof descriptor === 'function') {
+  if (typeof descriptor === "function") {
     return [];
   }
 
@@ -111,7 +111,7 @@ export function inferFieldsFromDescriptor(descriptor: unknown): string[] {
   }
 
   // Object: collect fields from all values
-  if (descriptor !== null && typeof descriptor === 'object') {
+  if (descriptor !== null && typeof descriptor === "object") {
     const allFields: string[] = [];
     for (const value of Object.values(descriptor)) {
       allFields.push(...inferFieldsFromDescriptor(value));

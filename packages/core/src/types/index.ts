@@ -12,10 +12,10 @@ export type {
   FormConfig,
   FormalityProviderConfig,
   InputTemplateProps,
-} from './config';
+} from "./config";
 
 // State types
-export type { FieldError, FieldState, FormState } from './state';
+export type { FieldError, FieldState, FormState } from "./state";
 
 // Condition types
 export type {
@@ -23,7 +23,7 @@ export type {
   ConditionResult,
   FieldMatcher,
   WhenMultiField,
-} from './conditions';
+} from "./conditions";
 
 // Validation types
 export type {
@@ -33,4 +33,4 @@ export type {
   ValidatorFactory,
   ValidatorsConfig,
   ErrorMessagesConfig,
-} from './validation';
+} from "./validation";

@@ -4,17 +4,17 @@ This directory contains comprehensive, runnable examples demonstrating every fea
 
 ## Example Index
 
-| Example | Description | Key Features |
-|---------|-------------|--------------|
-| [01-basic-form](./01-basic-form.tsx) | Getting started | FormalityProvider, Form, Field, onSubmit |
-| [02-input-types](./02-input-types.tsx) | Input configuration | component, valueField, parser/formatter, templates |
-| [03-conditions](./03-conditions.tsx) | Conditional logic | when, is, truthy, disabled, visible, set, selectSet |
-| [04-validation](./04-validation.tsx) | Validation system | sync/async validators, composition, error messages |
-| [05-field-dependencies](./05-field-dependencies.tsx) | Dynamic props | selectProps, cascading selects, expressions |
-| [06-auto-save](./06-auto-save.tsx) | Auto-save | autoSave, debounce, immediate submission |
-| [07-advanced-features](./07-advanced-features.tsx) | Advanced features | UnusedFields, ordering, recordKey, templates |
-| [08-real-world-example](./08-real-world-example.tsx) | Complete example | All features combined in a Quote form |
-| [09-string-vs-function](./09-string-vs-function.tsx) | Configuration styles | String expressions vs callback functions |
+| Example                                              | Description          | Key Features                                        |
+| ---------------------------------------------------- | -------------------- | --------------------------------------------------- |
+| [01-basic-form](./01-basic-form.tsx)                 | Getting started      | FormalityProvider, Form, Field, onSubmit            |
+| [02-input-types](./02-input-types.tsx)               | Input configuration  | component, valueField, parser/formatter, templates  |
+| [03-conditions](./03-conditions.tsx)                 | Conditional logic    | when, is, truthy, disabled, visible, set, selectSet |
+| [04-validation](./04-validation.tsx)                 | Validation system    | sync/async validators, composition, error messages  |
+| [05-field-dependencies](./05-field-dependencies.tsx) | Dynamic props        | selectProps, cascading selects, expressions         |
+| [06-auto-save](./06-auto-save.tsx)                   | Auto-save            | autoSave, debounce, immediate submission            |
+| [07-advanced-features](./07-advanced-features.tsx)   | Advanced features    | UnusedFields, ordering, recordKey, templates        |
+| [08-real-world-example](./08-real-world-example.tsx) | Complete example     | All features combined in a Quote form               |
+| [09-string-vs-function](./09-string-vs-function.tsx) | Configuration styles | String expressions vs callback functions            |
 
 ---
 
@@ -23,22 +23,22 @@ This directory contains comprehensive, runnable examples demonstrating every fea
 Start with `01-basic-form.tsx` to understand the fundamental building blocks:
 
 ```tsx
-import { FormalityProvider, Form, Field } from '@formality-ui/react';
+import { FormalityProvider, Form, Field } from "@formality-ui/react";
 
 // 1. Define input types (reusable across your app)
 const inputs = {
   textField: {
     component: ({ value, onChange, label }) => (
-      <input value={value ?? ''} onChange={e => onChange(e.target.value)} />
+      <input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
     ),
-    defaultValue: '',
+    defaultValue: "",
   },
 };
 
 // 2. Define field configuration
 const config = {
-  name: { type: 'textField', label: 'Name' },
-  email: { type: 'textField', label: 'Email' },
+  name: { type: "textField", label: "Name" },
+  email: { type: "textField", label: "Email" },
 };
 
 // 3. Render the form
@@ -69,12 +69,12 @@ Show, hide, or disable fields based on form state:
 
 ```tsx
 const config = {
-  showDetails: { type: 'switch' },
+  showDetails: { type: "switch" },
   details: {
-    type: 'textField',
+    type: "textField",
     conditions: [
       // Hide when showDetails is false
-      { when: 'showDetails', truthy: false, visible: false }
+      { when: "showDetails", truthy: false, visible: false },
     ],
   },
 };
@@ -86,12 +86,12 @@ Compute props from other field values:
 
 ```tsx
 const config = {
-  country: { type: 'select' },
+  country: { type: "select" },
   state: {
-    type: 'select',
+    type: "select",
     selectProps: {
-      queryParams: 'country.id',  // Pass country ID to state options hook
-      disabled: '!country',       // Disable until country selected
+      queryParams: "country.id", // Pass country ID to state options hook
+      disabled: "!country", // Disable until country selected
     },
   },
 };
@@ -104,13 +104,13 @@ Compose multiple validators with async support:
 ```tsx
 const config = {
   email: {
-    type: 'textField',
+    type: "textField",
     validator: [
-      'required',
-      'email',
+      "required",
+      "email",
       async (value) => {
         const exists = await checkEmailExists(value);
-        if (exists) return 'Email already registered';
+        if (exists) return "Email already registered";
         return true;
       },
     ],
@@ -125,6 +125,7 @@ const config = {
 Most configuration options accept **both** string expressions and callback functions:
 
 ### String Expression (Auto-infers dependencies)
+
 ```tsx
 {
   selectProps: {
@@ -135,6 +136,7 @@ Most configuration options accept **both** string expressions and callback funct
 ```
 
 ### Callback Function (Requires subscribesTo)
+
 ```tsx
 {
   subscribesTo: ['price', 'quantity'],  // REQUIRED for functions!
@@ -150,17 +152,17 @@ Most configuration options accept **both** string expressions and callback funct
 
 ### When to Use Each
 
-| Use Case | Recommended |
-|----------|-------------|
-| Simple field access | String: `'fieldName'` |
-| Property access | String: `'client.id'` |
-| Basic arithmetic | String: `'price * qty'` |
-| Comparisons | String: `'age >= 21'` |
+| Use Case             | Recommended                     |
+| -------------------- | ------------------------------- |
+| Simple field access  | String: `'fieldName'`           |
+| Property access      | String: `'client.id'`           |
+| Basic arithmetic     | String: `'price * qty'`         |
+| Comparisons          | String: `'age >= 21'`           |
 | Complex calculations | Function (rounding, formatting) |
-| String manipulation | Function (toUpperCase, trim) |
-| Business logic | Function |
-| Type safety | Function (TypeScript) |
-| Serializable config | String (JSON-safe) |
+| String manipulation  | Function (toUpperCase, trim)    |
+| Business logic       | Function                        |
+| Type safety          | Function (TypeScript)           |
+| Serializable config  | String (JSON-safe)              |
 
 ---
 
@@ -169,6 +171,7 @@ Most configuration options accept **both** string expressions and callback funct
 These examples are designed to be copy-pasted into your React application. To run them:
 
 1. Install dependencies:
+
    ```bash
    npm install @formality-ui/react react-hook-form
    ```

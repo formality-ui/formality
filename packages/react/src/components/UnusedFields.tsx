@@ -1,10 +1,10 @@
 // @formality-ui/react - UnusedFields Component
 // Renders fields declared in config but not explicitly rendered
 
-import { type ReactNode, useMemo } from 'react';
-import { sortFieldsByOrder } from '@formality-ui/core';
-import { useFormContext } from '../context/FormContext';
-import { Field } from './Field';
+import { type ReactNode, useMemo } from "react";
+import { sortFieldsByOrder } from "@formality-ui/core";
+import { useFormContext } from "../context/FormContext";
+import { Field } from "./Field";
 
 /**
  * UnusedFields component props
@@ -68,7 +68,7 @@ export function UnusedFields({ children }: UnusedFieldsProps): JSX.Element {
             name,
             // CRITICAL: shouldRegister={false} prevents infinite loop (PRD 5.5, 18.9)
             component: <Field key={name} name={name} shouldRegister={false} />,
-          })
+          }),
         )}
       </>
     );

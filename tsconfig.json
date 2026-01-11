@@ -13,8 +13,5 @@
     "verbatimModuleSyntax": true
   },
   "files": [],
-  "references": [
-    { "path": "packages/core" },
-    { "path": "packages/react" }
-  ]
+  "references": [{ "path": "packages/core" }, { "path": "packages/react" }]
 }

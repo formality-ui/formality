@@ -10,7 +10,7 @@
  * - subscribesTo: Manual subscription declarations
  */
 
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo } from "react";
 import {
   FormalityProvider,
   Form,
@@ -18,62 +18,62 @@ import {
   type InputConfig,
   type FormFieldsConfig,
   type FormConfig,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 
 // =============================================================================
 // Mock Data for Examples
 // =============================================================================
 
 const countries = [
-  { id: 'us', name: 'United States' },
-  { id: 'ca', name: 'Canada' },
-  { id: 'uk', name: 'United Kingdom' },
-  { id: 'au', name: 'Australia' },
+  { id: "us", name: "United States" },
+  { id: "ca", name: "Canada" },
+  { id: "uk", name: "United Kingdom" },
+  { id: "au", name: "Australia" },
 ];
 
 const statesByCountry: Record<string, Array<{ id: string; name: string }>> = {
   us: [
-    { id: 'ca', name: 'California' },
-    { id: 'ny', name: 'New York' },
-    { id: 'tx', name: 'Texas' },
+    { id: "ca", name: "California" },
+    { id: "ny", name: "New York" },
+    { id: "tx", name: "Texas" },
   ],
   ca: [
-    { id: 'on', name: 'Ontario' },
-    { id: 'bc', name: 'British Columbia' },
-    { id: 'qc', name: 'Quebec' },
+    { id: "on", name: "Ontario" },
+    { id: "bc", name: "British Columbia" },
+    { id: "qc", name: "Quebec" },
   ],
   uk: [
-    { id: 'eng', name: 'England' },
-    { id: 'sco', name: 'Scotland' },
-    { id: 'wal', name: 'Wales' },
+    { id: "eng", name: "England" },
+    { id: "sco", name: "Scotland" },
+    { id: "wal", name: "Wales" },
   ],
   au: [
-    { id: 'nsw', name: 'New South Wales' },
-    { id: 'vic', name: 'Victoria' },
-    { id: 'qld', name: 'Queensland' },
+    { id: "nsw", name: "New South Wales" },
+    { id: "vic", name: "Victoria" },
+    { id: "qld", name: "Queensland" },
   ],
 };
 
 const citiesByState: Record<string, Array<{ id: string; name: string }>> = {
   ca: [
-    { id: 'la', name: 'Los Angeles' },
-    { id: 'sf', name: 'San Francisco' },
+    { id: "la", name: "Los Angeles" },
+    { id: "sf", name: "San Francisco" },
   ],
   ny: [
-    { id: 'nyc', name: 'New York City' },
-    { id: 'buf', name: 'Buffalo' },
+    { id: "nyc", name: "New York City" },
+    { id: "buf", name: "Buffalo" },
   ],
   tx: [
-    { id: 'hou', name: 'Houston' },
-    { id: 'aus', name: 'Austin' },
+    { id: "hou", name: "Houston" },
+    { id: "aus", name: "Austin" },
   ],
   on: [
-    { id: 'tor', name: 'Toronto' },
-    { id: 'ott', name: 'Ottawa' },
+    { id: "tor", name: "Toronto" },
+    { id: "ott", name: "Ottawa" },
   ],
   bc: [
-    { id: 'van', name: 'Vancouver' },
-    { id: 'vic', name: 'Victoria' },
+    { id: "van", name: "Vancouver" },
+    { id: "vic", name: "Victoria" },
   ],
   // ... more cities
 };
@@ -99,42 +99,51 @@ const inputs: Record<string, InputConfig> = {
       <div className="field">
         <label>{label}</label>
         <input
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
 
   // Select that accepts useOptions hook and queryParams
   select: {
-    component: memo(({ value, onChange, label, disabled, useOptions, queryParams }) => {
-      // Call the provided hook with queryParams
-      const { data: options, isLoading } = useOptions?.(queryParams) ?? { data: [], isLoading: false };
+    component: memo(
+      ({ value, onChange, label, disabled, useOptions, queryParams }) => {
+        // Call the provided hook with queryParams
+        const { data: options, isLoading } = useOptions?.(queryParams) ?? {
+          data: [],
+          isLoading: false,
+        };
 
-      return (
-        <div className="field">
-          <label>{label}</label>
-          <select
-            value={value?.id ?? ''}
-            onChange={(e) => {
-              const selected = options?.find((o: { id: string }) => o.id === e.target.value);
-              onChange(selected ?? null);
-            }}
-            disabled={disabled || isLoading}
-          >
-            <option value="">{isLoading ? 'Loading...' : 'Select...'}</option>
-            {options?.map((opt: { id: string; name: string }) => (
-              <option key={opt.id} value={opt.id}>{opt.name}</option>
-            ))}
-          </select>
-        </div>
-      );
-    }),
+        return (
+          <div className="field">
+            <label>{label}</label>
+            <select
+              value={value?.id ?? ""}
+              onChange={(e) => {
+                const selected = options?.find(
+                  (o: { id: string }) => o.id === e.target.value,
+                );
+                onChange(selected ?? null);
+              }}
+              disabled={disabled || isLoading}
+            >
+              <option value="">{isLoading ? "Loading..." : "Select..."}</option>
+              {options?.map((opt: { id: string; name: string }) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      },
+    ),
     defaultValue: null,
-    valueField: 'id',
+    valueField: "id",
     getSubmitField: (name) => `${name}Id`,
   },
 
@@ -144,8 +153,10 @@ const inputs: Record<string, InputConfig> = {
         <label>{label}</label>
         <input
           type="number"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+          value={value ?? ""}
+          onChange={(e) =>
+            onChange(e.target.value ? Number(e.target.value) : null)
+          }
           min={min}
           max={max}
           disabled={disabled}
@@ -168,7 +179,7 @@ const inputs: Record<string, InputConfig> = {
       </label>
     )),
     defaultValue: false,
-    inputFieldProp: 'checked',
+    inputFieldProp: "checked",
     debounce: false,
   },
 };
@@ -180,33 +191,33 @@ const inputs: Record<string, InputConfig> = {
 
 const cascadingConfig: FormFieldsConfig = {
   country: {
-    type: 'select',
-    label: 'Country',
+    type: "select",
+    label: "Country",
     props: {
       useOptions: useCountries,
     },
   },
   state: {
-    type: 'select',
-    label: 'State/Province',
+    type: "select",
+    label: "State/Province",
     props: {
       useOptions: useStates,
     },
     // Dynamic queryParams based on country selection
     selectProps: {
-      queryParams: 'country.id', // Evaluates to country field's value.id
-      disabled: '!country', // Disabled when no country selected
+      queryParams: "country.id", // Evaluates to country field's value.id
+      disabled: "!country", // Disabled when no country selected
     },
   },
   city: {
-    type: 'select',
-    label: 'City',
+    type: "select",
+    label: "City",
     props: {
       useOptions: useCities,
     },
     selectProps: {
-      queryParams: 'state.id',
-      disabled: '!state',
+      queryParams: "state.id",
+      disabled: "!state",
     },
   },
 };
@@ -237,25 +248,25 @@ export function CascadingSelectsExample() {
 
 const expressionConfig: FormFieldsConfig = {
   basePrice: {
-    type: 'numberField',
-    label: 'Base Price',
+    type: "numberField",
+    label: "Base Price",
   },
   quantity: {
-    type: 'numberField',
-    label: 'Quantity',
+    type: "numberField",
+    label: "Quantity",
   },
   discount: {
-    type: 'numberField',
-    label: 'Discount %',
+    type: "numberField",
+    label: "Discount %",
   },
   calculatedTotal: {
-    type: 'textField',
-    label: 'Calculated Total',
+    type: "textField",
+    label: "Calculated Total",
     // Multiple expressions in selectProps
     selectProps: {
       // Arithmetic expression
-      value: 'basePrice * quantity * (1 - discount / 100)',
-      disabled: 'true', // Read-only computed field
+      value: "basePrice * quantity * (1 - discount / 100)",
+      disabled: "true", // Read-only computed field
     },
   },
 };
@@ -287,19 +298,19 @@ export function ExpressionSyntaxExample() {
 
 const qualifiedPathConfig: FormFieldsConfig = {
   firstName: {
-    type: 'textField',
-    label: 'First Name',
+    type: "textField",
+    label: "First Name",
   },
   lastName: {
-    type: 'textField',
-    label: 'Last Name',
+    type: "textField",
+    label: "Last Name",
   },
   displayInfo: {
-    type: 'textField',
-    label: 'Display (shows qualified paths)',
+    type: "textField",
+    label: "Display (shows qualified paths)",
     selectProps: {
       // Access field values (shorthand)
-      value: 'firstName', // Same as fields.firstName.value
+      value: "firstName", // Same as fields.firstName.value
 
       // Access field metadata
       // 'fields.firstName.isTouched' - has the field been focused?
@@ -318,14 +329,18 @@ const qualifiedPathConfig: FormFieldsConfig = {
 
 // With record data for comparison
 const recordForExample = {
-  firstName: 'Jane',
-  lastName: 'Doe',
+  firstName: "Jane",
+  lastName: "Doe",
 };
 
 export function QualifiedPathsExample() {
   return (
     <FormalityProvider inputs={inputs}>
-      <Form config={qualifiedPathConfig} record={recordForExample} onSubmit={console.log}>
+      <Form
+        config={qualifiedPathConfig}
+        record={recordForExample}
+        onSubmit={console.log}
+      >
         {({ methods }) => (
           <form onSubmit={methods.handleSubmit(console.log)}>
             <h3>Qualified Paths in Expressions</h3>
@@ -356,31 +371,31 @@ Available prefixes:
 
 const defaultPropsConfig: FormFieldsConfig = {
   enableAll: {
-    type: 'switch',
-    label: 'Enable All Fields',
+    type: "switch",
+    label: "Enable All Fields",
   },
   field1: {
-    type: 'textField',
-    label: 'Field 1',
+    type: "textField",
+    label: "Field 1",
   },
   field2: {
-    type: 'textField',
-    label: 'Field 2',
+    type: "textField",
+    label: "Field 2",
   },
   field3: {
-    type: 'textField',
-    label: 'Field 3',
+    type: "textField",
+    label: "Field 3",
   },
 };
 
 const defaultPropsFormConfig: FormConfig = {
   // These props are evaluated for EVERY field
   selectDefaultFieldProps: {
-    disabled: '!enableAll', // All fields disabled when enableAll is false
+    disabled: "!enableAll", // All fields disabled when enableAll is false
   },
   // Static default props
   defaultFieldProps: {
-    className: 'form-field',
+    className: "form-field",
   },
 };
 
@@ -414,16 +429,16 @@ export function SelectDefaultFieldPropsExample() {
 // Auto-generate labels from field names
 
 const dynamicLabelConfig: FormFieldsConfig = {
-  firstName: { type: 'textField' },
-  lastName: { type: 'textField' },
-  emailAddress: { type: 'textField' },
-  phoneNumber: { type: 'textField' },
+  firstName: { type: "textField" },
+  lastName: { type: "textField" },
+  emailAddress: { type: "textField" },
+  phoneNumber: { type: "textField" },
 };
 
 const dynamicLabelFormConfig: FormConfig = {
   selectDefaultFieldProps: {
     // Evaluates props.name for each field
-    label: 'props.name', // Will be humanized: "firstName" -> "First Name"
+    label: "props.name", // Will be humanized: "firstName" -> "First Name"
   },
 };
 
@@ -458,22 +473,22 @@ export function DynamicLabelsExample() {
 
 const functionSelectPropsConfig: FormFieldsConfig = {
   items: {
-    type: 'numberField',
-    label: 'Number of Items',
+    type: "numberField",
+    label: "Number of Items",
   },
   pricePerItem: {
-    type: 'numberField',
-    label: 'Price Per Item',
+    type: "numberField",
+    label: "Price Per Item",
   },
   taxRate: {
-    type: 'numberField',
-    label: 'Tax Rate %',
+    type: "numberField",
+    label: "Tax Rate %",
   },
   summary: {
-    type: 'textField',
-    label: 'Order Summary',
+    type: "textField",
+    label: "Order Summary",
     // When using functions, must declare subscribesTo
-    subscribesTo: ['items', 'pricePerItem', 'taxRate'],
+    subscribesTo: ["items", "pricePerItem", "taxRate"],
     selectProps: {
       // Function for complex string formatting
       value: ({ fields }) => {
@@ -519,42 +534,50 @@ export function FunctionSelectPropsExample() {
 
 const nestedObjectConfig: FormFieldsConfig = {
   client: {
-    type: 'select',
-    label: 'Client',
+    type: "select",
+    label: "Client",
     props: {
       useOptions: () => ({
         data: [
-          { id: 1, name: 'Acme Corp', settings: { currency: 'USD', tier: 'premium' } },
-          { id: 2, name: 'Globex', settings: { currency: 'EUR', tier: 'standard' } },
+          {
+            id: 1,
+            name: "Acme Corp",
+            settings: { currency: "USD", tier: "premium" },
+          },
+          {
+            id: 2,
+            name: "Globex",
+            settings: { currency: "EUR", tier: "standard" },
+          },
         ],
         isLoading: false,
       }),
     },
   },
   currencyDisplay: {
-    type: 'textField',
-    label: 'Client Currency',
+    type: "textField",
+    label: "Client Currency",
     selectProps: {
       // Access nested property
-      value: 'client.settings.currency',
-      disabled: 'true',
+      value: "client.settings.currency",
+      disabled: "true",
     },
   },
   tierDisplay: {
-    type: 'textField',
-    label: 'Client Tier',
+    type: "textField",
+    label: "Client Tier",
     selectProps: {
-      value: 'client.settings.tier',
-      disabled: 'true',
+      value: "client.settings.tier",
+      disabled: "true",
     },
   },
   isPremium: {
-    type: 'switch',
-    label: 'Is Premium Client',
+    type: "switch",
+    label: "Is Premium Client",
     selectProps: {
       // Expression with nested access
       checked: 'client.settings.tier === "premium"',
-      disabled: 'true',
+      disabled: "true",
     },
   },
 };

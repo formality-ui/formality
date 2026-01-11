@@ -10,4 +10,4 @@ export {
   sortFieldsByOrder,
   getUnusedFields,
   getOrderedUnusedFields,
-} from './resolve';
+} from "./resolve";

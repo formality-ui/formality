@@ -1,14 +1,14 @@
 // @formality-ui/react - AutoSave Validation Tests
 // Tests for coordinated validation during auto-save
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import React, { forwardRef } from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { Form } from '../components/Form';
-import { Field } from '../components/Field';
-import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig } from '@formality-ui/core';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import React, { forwardRef } from "react";
+import { render, screen, waitFor, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Form } from "../components/Form";
+import { Field } from "../components/Field";
+import { FormalityProvider } from "../components/FormalityProvider";
+import type { InputConfig } from "@formality-ui/core";
 
 // Track validation calls
 let validationCalls: string[] = [];
@@ -36,13 +36,13 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
     <input
       ref={ref}
       data-testid={name}
-      value={value ?? ''}
+      value={value ?? ""}
       onChange={(e) => onChange?.(e.target.value)}
       {...props}
     />
-  )
+  ),
 );
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 
 interface TestSwitchProps {
   value?: any;
@@ -61,15 +61,15 @@ const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
       onChange={(e) => onChange?.(e.target.checked)}
       {...props}
     />
-  )
+  ),
 );
-TestSwitch.displayName = 'TestSwitch';
+TestSwitch.displayName = "TestSwitch";
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {
   textField: {
     component: TestInput,
-    defaultValue: '',
+    defaultValue: "",
   },
   switch: {
     component: TestSwitch,
@@ -77,7 +77,7 @@ const testInputs: Record<string, InputConfig> = {
   },
 };
 
-describe('AutoSave Validation Coordination', () => {
+describe("AutoSave Validation Coordination", () => {
   let submitHandler: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -90,15 +90,24 @@ describe('AutoSave Validation Coordination', () => {
     vi.useRealTimers();
   });
 
-  describe('ROOT CAUSE: All fields validating on any change', () => {
-    it('should NOT validate ALL fields when ONE field changes with autoSave', async () => {
+  describe("ROOT CAUSE: All fields validating on any change", () => {
+    it("should NOT validate ALL fields when ONE field changes with autoSave", async () => {
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
             config={{
-              fieldA: { type: 'textField', validator: createAsyncValidator('fieldA') },
-              fieldB: { type: 'textField', validator: createAsyncValidator('fieldB') },
-              fieldC: { type: 'textField', validator: createAsyncValidator('fieldC') },
+              fieldA: {
+                type: "textField",
+                validator: createAsyncValidator("fieldA"),
+              },
+              fieldB: {
+                type: "textField",
+                validator: createAsyncValidator("fieldB"),
+              },
+              fieldC: {
+                type: "textField",
+                validator: createAsyncValidator("fieldC"),
+              },
             }}
             onSubmit={submitHandler}
             autoSave
@@ -108,7 +117,7 @@ describe('AutoSave Validation Coordination', () => {
             <Field name="fieldB" />
             <Field name="fieldC" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Wait for initial render and clear any initial validations
@@ -118,9 +127,9 @@ describe('AutoSave Validation Coordination', () => {
       validationCalls = [];
 
       // Change ONLY fieldA
-      const fieldA = screen.getByTestId('fieldA');
+      const fieldA = screen.getByTestId("fieldA");
       await act(async () => {
-        await userEvent.type(fieldA, 'x', { delay: null });
+        await userEvent.type(fieldA, "x", { delay: null });
       });
 
       // Advance past debounce period
@@ -130,8 +139,12 @@ describe('AutoSave Validation Coordination', () => {
 
       // CRITICAL ASSERTION: Only fieldA should have validated, NOT fieldB or fieldC
       // This is the ROOT CAUSE test - if this fails, all fields are validating on every change
-      const fieldBValidations = validationCalls.filter((c) => c.startsWith('fieldB'));
-      const fieldCValidations = validationCalls.filter((c) => c.startsWith('fieldC'));
+      const fieldBValidations = validationCalls.filter((c) =>
+        c.startsWith("fieldB"),
+      );
+      const fieldCValidations = validationCalls.filter((c) =>
+        c.startsWith("fieldC"),
+      );
 
       // These should be empty - fieldB and fieldC should NOT validate when only fieldA changed
       expect(fieldBValidations).toHaveLength(0);
@@ -139,21 +152,24 @@ describe('AutoSave Validation Coordination', () => {
     });
   });
 
-  describe('Dependent Field Validation', () => {
-    it('should validate dependent fields but NOT independent fields', async () => {
+  describe("Dependent Field Validation", () => {
+    it("should validate dependent fields but NOT independent fields", async () => {
       // fieldB depends on fieldA via condition
       // fieldC is independent
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
             config={{
-              fieldA: { type: 'switch' },
+              fieldA: { type: "switch" },
               fieldB: {
-                type: 'textField',
-                validator: createAsyncValidator('fieldB'),
-                conditions: [{ when: 'fieldA', is: true, disabled: true }],
+                type: "textField",
+                validator: createAsyncValidator("fieldB"),
+                conditions: [{ when: "fieldA", is: true, disabled: true }],
               },
-              fieldC: { type: 'textField', validator: createAsyncValidator('fieldC') },
+              fieldC: {
+                type: "textField",
+                validator: createAsyncValidator("fieldC"),
+              },
             }}
             onSubmit={submitHandler}
             autoSave
@@ -163,7 +179,7 @@ describe('AutoSave Validation Coordination', () => {
             <Field name="fieldB" />
             <Field name="fieldC" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Wait for initial render
@@ -173,7 +189,7 @@ describe('AutoSave Validation Coordination', () => {
       validationCalls = [];
 
       // Change fieldA (which affects fieldB via condition)
-      const fieldA = screen.getByTestId('fieldA');
+      const fieldA = screen.getByTestId("fieldA");
       await act(async () => {
         await userEvent.click(fieldA);
       });
@@ -184,20 +200,22 @@ describe('AutoSave Validation Coordination', () => {
       });
 
       // fieldC should NOT validate (it's independent of fieldA)
-      const fieldCValidations = validationCalls.filter((c) => c.startsWith('fieldC'));
+      const fieldCValidations = validationCalls.filter((c) =>
+        c.startsWith("fieldC"),
+      );
       expect(fieldCValidations).toHaveLength(0);
     });
   });
 
-  describe('Async Validation Waiting', () => {
-    it('should wait for async validators to complete before submitting', async () => {
+  describe("Async Validation Waiting", () => {
+    it("should wait for async validators to complete before submitting", async () => {
       // Test that submit happens AFTER async validation completes, not before
       const validationLog: string[] = [];
 
       const asyncValidator = async (value: unknown) => {
-        validationLog.push('validation:start');
+        validationLog.push("validation:start");
         await new Promise((r) => setTimeout(r, 100));
-        validationLog.push('validation:end');
+        validationLog.push("validation:end");
         return true;
       };
 
@@ -205,10 +223,10 @@ describe('AutoSave Validation Coordination', () => {
         <FormalityProvider inputs={testInputs}>
           <Form
             config={{
-              fieldA: { type: 'textField', validator: asyncValidator },
+              fieldA: { type: "textField", validator: asyncValidator },
             }}
             onSubmit={() => {
-              validationLog.push('submit');
+              validationLog.push("submit");
               submitHandler();
             }}
             autoSave
@@ -216,13 +234,13 @@ describe('AutoSave Validation Coordination', () => {
           >
             <Field name="fieldA" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Change field
-      const fieldA = screen.getByTestId('fieldA');
+      const fieldA = screen.getByTestId("fieldA");
       await act(async () => {
-        await userEvent.type(fieldA, 'test', { delay: null });
+        await userEvent.type(fieldA, "test", { delay: null });
       });
 
       // Advance past debounce
@@ -241,19 +259,19 @@ describe('AutoSave Validation Coordination', () => {
       });
 
       // Verify submit happened AFTER validation completed
-      const submitIndex = validationLog.indexOf('submit');
-      const validationEndIndex = validationLog.lastIndexOf('validation:end');
+      const submitIndex = validationLog.indexOf("submit");
+      const validationEndIndex = validationLog.lastIndexOf("validation:end");
       expect(submitIndex).toBeGreaterThan(validationEndIndex);
     });
   });
 
-  describe('Cascading Changes', () => {
-    it('should debounce multiple rapid changes and only submit once', async () => {
+  describe("Cascading Changes", () => {
+    it("should debounce multiple rapid changes and only submit once", async () => {
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
             config={{
-              fieldA: { type: 'textField' },
+              fieldA: { type: "textField" },
             }}
             onSubmit={submitHandler}
             autoSave
@@ -261,14 +279,14 @@ describe('AutoSave Validation Coordination', () => {
           >
             <Field name="fieldA" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      const fieldA = screen.getByTestId('fieldA');
+      const fieldA = screen.getByTestId("fieldA");
 
       // Type multiple characters rapidly
       await act(async () => {
-        await userEvent.type(fieldA, 'hello', { delay: null });
+        await userEvent.type(fieldA, "hello", { delay: null });
       });
 
       // Advance past debounce
@@ -283,18 +301,18 @@ describe('AutoSave Validation Coordination', () => {
 
       expect(submitHandler).toHaveBeenCalledWith(
         expect.objectContaining({
-          fieldA: 'hello',
-        })
+          fieldA: "hello",
+        }),
       );
     });
 
-    it('should reset debounce timer when new change comes in', async () => {
+    it("should reset debounce timer when new change comes in", async () => {
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
             config={{
-              fieldA: { type: 'textField' },
-              fieldB: { type: 'textField' },
+              fieldA: { type: "textField" },
+              fieldB: { type: "textField" },
             }}
             onSubmit={submitHandler}
             autoSave
@@ -303,13 +321,13 @@ describe('AutoSave Validation Coordination', () => {
             <Field name="fieldA" />
             <Field name="fieldB" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Change fieldA
-      const fieldA = screen.getByTestId('fieldA');
+      const fieldA = screen.getByTestId("fieldA");
       await act(async () => {
-        await userEvent.type(fieldA, 'a', { delay: null });
+        await userEvent.type(fieldA, "a", { delay: null });
       });
 
       // Wait 300ms (less than debounce)
@@ -321,9 +339,9 @@ describe('AutoSave Validation Coordination', () => {
       expect(submitHandler).not.toHaveBeenCalled();
 
       // Change fieldB before debounce completes
-      const fieldB = screen.getByTestId('fieldB');
+      const fieldB = screen.getByTestId("fieldB");
       await act(async () => {
-        await userEvent.type(fieldB, 'b', { delay: null });
+        await userEvent.type(fieldB, "b", { delay: null });
       });
 
       // Wait another 300ms (600ms total from first change, 300ms from second)
@@ -346,24 +364,24 @@ describe('AutoSave Validation Coordination', () => {
 
       expect(submitHandler).toHaveBeenCalledWith(
         expect.objectContaining({
-          fieldA: 'a',
-          fieldB: 'b',
-        })
+          fieldA: "a",
+          fieldB: "b",
+        }),
       );
     });
   });
 
-  describe('Validation Errors', () => {
-    it('should NOT submit if validation fails', async () => {
+  describe("Validation Errors", () => {
+    it("should NOT submit if validation fails", async () => {
       const failingValidator = async () => {
-        return 'Validation failed';
+        return "Validation failed";
       };
 
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
             config={{
-              fieldA: { type: 'textField', validator: failingValidator },
+              fieldA: { type: "textField", validator: failingValidator },
             }}
             onSubmit={submitHandler}
             autoSave
@@ -371,13 +389,13 @@ describe('AutoSave Validation Coordination', () => {
           >
             <Field name="fieldA" />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Change field
-      const fieldA = screen.getByTestId('fieldA');
+      const fieldA = screen.getByTestId("fieldA");
       await act(async () => {
-        await userEvent.type(fieldA, 'test', { delay: null });
+        await userEvent.type(fieldA, "test", { delay: null });
       });
 
       // Advance past debounce

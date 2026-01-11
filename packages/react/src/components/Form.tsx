@@ -8,14 +8,14 @@ import {
   useState,
   useEffect,
   type ReactNode,
-} from 'react';
+} from "react";
 import {
   useForm,
   FormProvider,
   type FieldValues,
   type UseFormReturn,
-} from 'react-hook-form';
-import { debounce } from 'lodash-es';
+} from "react-hook-form";
+import { debounce } from "lodash-es";
 import {
   resolveAllInitialValues,
   resolveFormTitle,
@@ -23,18 +23,18 @@ import {
   buildFormContext,
   extractValueField,
   transformFieldName,
-} from '@formality-ui/core';
+} from "@formality-ui/core";
 import type {
   FormFieldsConfig,
   FormConfig,
   FormState,
   InputConfig,
-} from '@formality-ui/core';
-import { FormContext, type FormContextValue } from '../context/FormContext';
-import { GroupContext } from '../context/GroupContext';
-import { useConfigContext } from '../context/ConfigContext';
-import { makeProxyState } from '../utils/makeProxyState';
-import type { WatcherSetterFn, DebouncedFunction } from '../types';
+} from "@formality-ui/core";
+import { FormContext, type FormContextValue } from "../context/FormContext";
+import { GroupContext } from "../context/GroupContext";
+import { useConfigContext } from "../context/ConfigContext";
+import { makeProxyState } from "../utils/makeProxyState";
+import type { WatcherSetterFn, DebouncedFunction } from "../types";
 
 /**
  * Form component props
@@ -63,7 +63,7 @@ export interface FormProps<TFieldValues extends FieldValues = FieldValues> {
 
   /** Form-level validation */
   validate?: (
-    values: Partial<TFieldValues>
+    values: Partial<TFieldValues>,
   ) => Record<string, string> | Promise<Record<string, string>>;
 }
 
@@ -75,7 +75,7 @@ export interface FormRenderAPI<TFieldValues extends FieldValues = FieldValues> {
   unusedFields: string[];
 
   /** React Hook Form formState */
-  formState: UseFormReturn<TFieldValues>['formState'];
+  formState: UseFormReturn<TFieldValues>["formState"];
 
   /** React Hook Form methods */
   methods: UseFormReturn<TFieldValues>;
@@ -142,9 +142,9 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   // Merge input configs (form overrides provider)
   const mergedInputs = useMemo((): Record<string, InputConfig> => {
     const formInputs =
-      typeof formConfig.inputs === 'function'
+      typeof formConfig.inputs === "function"
         ? formConfig.inputs(providerConfig.inputs)
-        : formConfig.inputs ?? {};
+        : (formConfig.inputs ?? {});
 
     // Merge provider inputs with form-level overrides
     const result: Record<string, InputConfig> = { ...providerConfig.inputs };
@@ -163,7 +163,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
   // Initialize React Hook Form
   const methods = useForm<TFieldValues>({
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: defaultValues as any,
     values: record as any,
   });
@@ -173,7 +173,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   // Field registration
   const fieldRegistry = useRef(new Set<string>());
   const [registeredFields, setRegisteredFields] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   // Subscription management (inverted index: target → subscribers)
@@ -242,7 +242,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         });
       }
     },
-    []
+    [],
   );
 
   const registerWatcherSetter = useCallback(
@@ -262,7 +262,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         pendingWatcherUpdates.current.delete(name);
       }
     },
-    []
+    [],
   );
 
   const unregisterWatcherSetter = useCallback((name: string) => {
@@ -313,14 +313,14 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         debouncedSubmit();
       }
     },
-    [autoSave, getAffectedFields]
+    [autoSave, getAffectedFields],
   );
 
   const setFieldValidating = useCallback(
     (name: string, isValidating: boolean) => {
       validatingFields.current.set(name, isValidating);
     },
-    []
+    [],
   );
 
   // === STATE ACCESS ===
@@ -340,9 +340,9 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         isValidating: validatingFields.current.get(name) ?? false,
         error: fieldState.error
           ? {
-            type: fieldState.error.type,
-            message: fieldState.error.message,
-          }
+              type: fieldState.error.type,
+              message: fieldState.error.message,
+            }
           : undefined,
         invalid: fieldState.invalid,
       });
@@ -383,11 +383,15 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       }
 
       // Transform values for submission
-      const submitValues = transformValuesForSubmit(values, config, mergedInputs);
+      const submitValues = transformValuesForSubmit(
+        values,
+        config,
+        mergedInputs,
+      );
 
       await onSubmit?.(submitValues);
     },
-    [validate, methods, onSubmit, config, mergedInputs]
+    [validate, methods, onSubmit, config, mergedInputs],
   );
 
   // Debounced submit for auto-save
@@ -411,7 +415,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
         // Check if all fields have completed validation
         const allDone = fields.every(
-          (field) => !validatingFields.current.get(field)
+          (field) => !validatingFields.current.get(field),
         );
         if (allDone) {
           return true;
@@ -424,7 +428,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       // Timeout - proceed anyway
       return true;
     },
-    []
+    [],
   );
 
   /**
@@ -455,11 +459,14 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     // Wait for any in-flight validations on these fields to complete
     const validationsComplete = await waitForFieldValidation(
       fieldsToWaitFor,
-      executionVersion
+      executionVersion,
     );
 
     // If version changed while waiting, abort (new changes came in)
-    if (!validationsComplete || executionVersionRef.current !== executionVersion) {
+    if (
+      !validationsComplete ||
+      executionVersionRef.current !== executionVersion
+    ) {
       return;
     }
 
@@ -489,10 +496,13 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       // Wait for triggered validations to complete
       const postTriggerComplete = await waitForFieldValidation(
         fieldsToTrigger,
-        executionVersion
+        executionVersion,
       );
 
-      if (!postTriggerComplete || executionVersionRef.current !== executionVersion) {
+      if (
+        !postTriggerComplete ||
+        executionVersionRef.current !== executionVersion
+      ) {
         return;
       }
     }
@@ -556,7 +566,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         formState.errors,
         formState.defaultValues,
         formState.touchedFields,
-        formState.dirtyFields
+        formState.dirtyFields,
       );
       const evaluated = evaluateDescriptor(formConfig.selectTitle, context);
       return resolveFormTitle(formConfig.title, evaluated);
@@ -605,7 +615,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       submitImmediate,
       unusedFields,
       methods,
-    ]
+    ],
   );
 
   // === RENDER ===
@@ -613,7 +623,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   // CRITICAL: Only access methods.formState when children is a function
   // Accessing formState ANYWHERE creates a subscription to the entire form state
   // This would cause ALL children to re-render on ANY field change
-  const isRenderFunction = typeof children === 'function';
+  const isRenderFunction = typeof children === "function";
 
   return (
     <FormProvider {...methods}>
@@ -642,13 +652,13 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 function transformValuesForSubmit<T extends FieldValues>(
   values: T,
   config: FormFieldsConfig,
-  inputs: Record<string, InputConfig>
+  inputs: Record<string, InputConfig>,
 ): Partial<T> {
   const result: Record<string, unknown> = {};
 
   for (const [name, value] of Object.entries(values)) {
     const fieldConfig = config[name];
-    const type = fieldConfig?.type ?? 'textField';
+    const type = fieldConfig?.type ?? "textField";
     const inputConfig = inputs[type];
 
     if (inputConfig) {

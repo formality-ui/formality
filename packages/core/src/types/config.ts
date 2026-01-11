@@ -1,9 +1,13 @@
 // @formality-ui/core - Configuration Types
 // This file defines all configuration interfaces for the Formality framework
 
-import type { ConditionDescriptor } from './conditions';
-import type { ValidatorSpec, ValidatorsConfig, ErrorMessagesConfig } from './validation';
-import type { FormState } from './state';
+import type { ConditionDescriptor } from "./conditions";
+import type {
+  ValidatorSpec,
+  ValidatorsConfig,
+  ErrorMessagesConfig,
+} from "./validation";
+import type { FormState } from "./state";
 
 /**
  * SelectValue - The core polymorphic type for all select* properties
@@ -29,7 +33,7 @@ export type SelectValue<TReturn = unknown> =
  */
 export type SelectFunction<TReturn = unknown> = (
   formState: FormState,
-  methods: unknown
+  methods: unknown,
 ) => TReturn;
 
 /**
@@ -157,7 +161,9 @@ export interface FormConfig {
    */
   inputs?:
     | Record<string, Partial<InputConfig>>
-    | ((allInputs: Record<string, InputConfig>) => Record<string, Partial<InputConfig>>);
+    | ((
+        allInputs: Record<string, InputConfig>,
+      ) => Record<string, Partial<InputConfig>>);
 
   /** Named field groups with their conditions */
   groups?: Record<string, GroupConfig>;

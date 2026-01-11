@@ -79,7 +79,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S7",
                   "title": "Update render-isolation.test.tsx test components",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/render-isolation.test.tsx:19-33 include TestInput and TestSwitch without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/render-isolation.test.tsx with TestInput (lines 19-26) and TestSwitch (lines 28-33).\n3. LOGIC: Apply forwardRef pattern to both components. Wrap with React.forwardRef. Forward refs to input elements. Set displayNames.\n4. OUTPUT: Updated test components. Clean test output for performance tests."

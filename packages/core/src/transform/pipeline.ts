@@ -56,7 +56,7 @@ export type FormattersConfig = Record<string, FormatterFunction>;
 export function parse(
   value: unknown,
   parserSpec?: ParserSpec,
-  namedParsers?: ParsersConfig
+  namedParsers?: ParsersConfig,
 ): unknown {
   // No parser - return value as-is
   if (parserSpec === undefined) {
@@ -64,10 +64,10 @@ export function parse(
   }
 
   // Named parser
-  if (typeof parserSpec === 'string') {
+  if (typeof parserSpec === "string") {
     const parser = namedParsers?.[parserSpec];
     if (!parser) {
-      if (process.env.NODE_ENV !== 'production') {
+      if (process.env.NODE_ENV !== "production") {
         console.warn(`Parser "${parserSpec}" not found in parsers config`);
       }
       return value;
@@ -75,7 +75,7 @@ export function parse(
     try {
       return parser(value);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
+      if (process.env.NODE_ENV !== "production") {
         console.warn(`Parser "${parserSpec}" threw error:`, error);
       }
       return value;
@@ -83,12 +83,12 @@ export function parse(
   }
 
   // Inline parser function
-  if (typeof parserSpec === 'function') {
+  if (typeof parserSpec === "function") {
     try {
       return parserSpec(value);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('Inline parser threw error:', error);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Inline parser threw error:", error);
       }
       return value;
     }
@@ -119,7 +119,7 @@ export function parse(
 export function format(
   value: unknown,
   formatterSpec?: FormatterSpec,
-  namedFormatters?: FormattersConfig
+  namedFormatters?: FormattersConfig,
 ): unknown {
   // No formatter - return value as-is
   if (formatterSpec === undefined) {
@@ -127,18 +127,20 @@ export function format(
   }
 
   // Named formatter
-  if (typeof formatterSpec === 'string') {
+  if (typeof formatterSpec === "string") {
     const formatter = namedFormatters?.[formatterSpec];
     if (!formatter) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn(`Formatter "${formatterSpec}" not found in formatters config`);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `Formatter "${formatterSpec}" not found in formatters config`,
+        );
       }
       return value;
     }
     try {
       return formatter(value);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
+      if (process.env.NODE_ENV !== "production") {
         console.warn(`Formatter "${formatterSpec}" threw error:`, error);
       }
       return value;
@@ -146,12 +148,12 @@ export function format(
   }
 
   // Inline formatter function
-  if (typeof formatterSpec === 'function') {
+  if (typeof formatterSpec === "function") {
     try {
       return formatterSpec(value);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('Inline formatter threw error:', error);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Inline formatter threw error:", error);
       }
       return value;
     }
@@ -179,7 +181,7 @@ export function format(
  */
 export function extractValueField(
   value: unknown,
-  valueField?: string
+  valueField?: string,
 ): unknown {
   // No valueField - return as-is
   if (!valueField) {
@@ -192,7 +194,7 @@ export function extractValueField(
   }
 
   // Value is not an object - return as-is
-  if (typeof value !== 'object') {
+  if (typeof value !== "object") {
     return value;
   }
 
@@ -216,7 +218,7 @@ export function extractValueField(
  */
 export function transformFieldName(
   fieldName: string,
-  getSubmitField?: (name: string) => string
+  getSubmitField?: (name: string) => string,
 ): string {
   if (!getSubmitField) {
     return fieldName;
@@ -245,8 +247,8 @@ export function createFloatParser(fallback: number = 0): ParserFunction {
  */
 export function createFloatFormatter(precision: number = 2): FormatterFunction {
   return (value: unknown) => {
-    if (typeof value !== 'number' || isNaN(value)) {
-      return '';
+    if (typeof value !== "number" || isNaN(value)) {
+      return "";
     }
     return value.toFixed(precision);
   };
@@ -272,7 +274,7 @@ export function createIntParser(fallback: number = 0): ParserFunction {
  */
 export function createTrimParser(): ParserFunction {
   return (value: unknown) => {
-    if (typeof value !== 'string') {
+    if (typeof value !== "string") {
       return value;
     }
     return value.trim();
@@ -290,7 +292,7 @@ export function createDefaultParsers(): ParsersConfig {
     int: createIntParser(),
     integer: createIntParser(),
     trim: createTrimParser(),
-    string: (value) => String(value ?? ''),
+    string: (value) => String(value ?? ""),
   };
 }
 
@@ -308,11 +310,11 @@ export function createDefaultFormatters(): FormattersConfig {
     percent: createFloatFormatter(2),
     percent3: createFloatFormatter(3),
     integer: (value) => {
-      if (typeof value !== 'number' || isNaN(value)) {
-        return '';
+      if (typeof value !== "number" || isNaN(value)) {
+        return "";
       }
       return Math.round(value).toString();
     },
-    string: (value) => String(value ?? ''),
+    string: (value) => String(value ?? ""),
   };
 }

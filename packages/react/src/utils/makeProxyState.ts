@@ -76,7 +76,7 @@ export function makeDeepProxyState<T extends object>(source: T): T {
           const currentValue = source[key];
           if (
             currentValue !== null &&
-            typeof currentValue === 'object' &&
+            typeof currentValue === "object" &&
             !Array.isArray(currentValue)
           ) {
             return makeDeepProxyState(currentValue as object);

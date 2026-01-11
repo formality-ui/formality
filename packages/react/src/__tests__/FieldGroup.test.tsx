@@ -1,12 +1,16 @@
 // @formality-ui/react - FieldGroup Component Tests
-import React, { forwardRef } from 'react';
-import { describe, it, expect } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import { Form } from '../components/Form';
-import { Field } from '../components/Field';
-import { FieldGroup } from '../components/FieldGroup';
-import { FormalityProvider } from '../components/FormalityProvider';
-import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality-ui/core';
+import React, { forwardRef } from "react";
+import { describe, it, expect } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { Form } from "../components/Form";
+import { Field } from "../components/Field";
+import { FieldGroup } from "../components/FieldGroup";
+import { FormalityProvider } from "../components/FormalityProvider";
+import type {
+  InputConfig,
+  FormFieldsConfig,
+  FormConfig,
+} from "@formality-ui/core";
 
 // Test input component
 interface TestInputProps {
@@ -22,15 +26,15 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
     <input
       ref={ref}
       data-testid={name}
-      value={value ?? ''}
+      value={value ?? ""}
       onChange={(e) => onChange?.(e.target.value)}
       disabled={disabled}
       {...props}
     />
-  )
+  ),
 );
 
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 
 // Switch input for visibility conditions
 interface TestSwitchProps {
@@ -52,16 +56,16 @@ const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
       disabled={disabled}
       {...props}
     />
-  )
+  ),
 );
 
-TestSwitch.displayName = 'TestSwitch';
+TestSwitch.displayName = "TestSwitch";
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {
   textField: {
     component: TestInput,
-    defaultValue: '',
+    defaultValue: "",
   },
   switch: {
     component: TestSwitch,
@@ -69,45 +73,51 @@ const testInputs: Record<string, InputConfig> = {
   },
 };
 
-describe('FieldGroup', () => {
-  describe('visibility', () => {
-    it('should render children with span wrapper when visible', async () => {
+describe("FieldGroup", () => {
+  describe("visibility", () => {
+    it("should render children with span wrapper when visible", async () => {
       const config: FormFieldsConfig = {
-        signed: { type: 'switch' },
-        name: { type: 'textField' },
+        signed: { type: "switch" },
+        name: { type: "textField" },
       };
 
       const formConfig: FormConfig = {
         groups: {
           details: {
             // Hide when signed is false (falsy)
-            conditions: [{ when: 'signed', truthy: false, visible: false }],
+            conditions: [{ when: "signed", truthy: false, visible: false }],
           },
         },
       };
 
       render(
         <FormalityProvider inputs={testInputs}>
-          <Form config={config} formConfig={formConfig} record={{ signed: true }}>
+          <Form
+            config={config}
+            formConfig={formConfig}
+            record={{ signed: true }}
+          >
             <Field name="signed" />
             <FieldGroup name="details">
               <Field name="name" />
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Group should be visible (display should not be 'none')
       await waitFor(() => {
-        const groupSpan = document.querySelector('[data-formality-group="details"]');
+        const groupSpan = document.querySelector(
+          '[data-formality-group="details"]',
+        );
         expect(groupSpan).toBeInTheDocument();
-        expect(groupSpan).not.toHaveStyle({ display: 'none' });
+        expect(groupSpan).not.toHaveStyle({ display: "none" });
       });
     });
 
-    it('should always render children in DOM (span wrapper preserves children)', () => {
+    it("should always render children in DOM (span wrapper preserves children)", () => {
       const config: FormFieldsConfig = {
-        name: { type: 'textField' },
+        name: { type: "textField" },
       };
 
       const formConfig: FormConfig = {
@@ -123,21 +133,21 @@ describe('FieldGroup', () => {
               <Field name="name" />
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Group span should exist with data-formality-group attribute
       const span = document.querySelector('[data-formality-group="details"]');
       expect(span).toBeInTheDocument();
       // Child field should be in the DOM
-      expect(screen.getByTestId('name')).toBeInTheDocument();
+      expect(screen.getByTestId("name")).toBeInTheDocument();
     });
 
-    it('should have span wrapper element (not return null when hidden)', () => {
+    it("should have span wrapper element (not return null when hidden)", () => {
       // This test verifies the key fix: FieldGroup uses span wrapper
       // instead of returning null when not visible
       const config: FormFieldsConfig = {
-        name: { type: 'textField' },
+        name: { type: "textField" },
       };
 
       const formConfig: FormConfig = {
@@ -153,21 +163,21 @@ describe('FieldGroup', () => {
               <Field name="name" />
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // The span wrapper should always exist
       const span = document.querySelector('[data-formality-group="myGroup"]');
       expect(span).toBeInTheDocument();
-      expect(span?.tagName).toBe('SPAN');
+      expect(span?.tagName).toBe("SPAN");
     });
   });
 
-  describe('disabled propagation', () => {
-    it('should provide group context to child fields', () => {
+  describe("disabled propagation", () => {
+    it("should provide group context to child fields", () => {
       // Verify that FieldGroup provides a context that children can use
       const config: FormFieldsConfig = {
-        name: { type: 'textField' },
+        name: { type: "textField" },
       };
 
       const formConfig: FormConfig = {
@@ -183,18 +193,18 @@ describe('FieldGroup', () => {
               <Field name="name" />
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Field should render within the group
-      expect(screen.getByTestId('name')).toBeInTheDocument();
+      expect(screen.getByTestId("name")).toBeInTheDocument();
     });
   });
 
-  describe('nesting', () => {
-    it('should support nested FieldGroup components', () => {
+  describe("nesting", () => {
+    it("should support nested FieldGroup components", () => {
       const config: FormFieldsConfig = {
-        field: { type: 'textField' },
+        field: { type: "textField" },
       };
 
       const formConfig: FormConfig = {
@@ -213,22 +223,26 @@ describe('FieldGroup', () => {
               </FieldGroup>
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Both groups should have their span wrappers
-      const outerSpan = document.querySelector('[data-formality-group="outerGroup"]');
-      const innerSpan = document.querySelector('[data-formality-group="innerGroup"]');
+      const outerSpan = document.querySelector(
+        '[data-formality-group="outerGroup"]',
+      );
+      const innerSpan = document.querySelector(
+        '[data-formality-group="innerGroup"]',
+      );
       expect(outerSpan).toBeInTheDocument();
       expect(innerSpan).toBeInTheDocument();
 
       // Field should be nested correctly
-      expect(screen.getByTestId('field')).toBeInTheDocument();
+      expect(screen.getByTestId("field")).toBeInTheDocument();
     });
 
-    it('should render nested groups with correct hierarchy', () => {
+    it("should render nested groups with correct hierarchy", () => {
       const config: FormFieldsConfig = {
-        field: { type: 'textField' },
+        field: { type: "textField" },
       };
 
       const formConfig: FormConfig = {
@@ -247,20 +261,24 @@ describe('FieldGroup', () => {
               </FieldGroup>
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Inner group should be nested inside outer group
-      const outerSpan = document.querySelector('[data-formality-group="outer"]');
-      const innerSpan = document.querySelector('[data-formality-group="inner"]');
+      const outerSpan = document.querySelector(
+        '[data-formality-group="outer"]',
+      );
+      const innerSpan = document.querySelector(
+        '[data-formality-group="inner"]',
+      );
       expect(outerSpan?.contains(innerSpan)).toBe(true);
     });
   });
 
-  describe('group without config', () => {
-    it('should work with undefined group config (defaults to visible and enabled)', () => {
+  describe("group without config", () => {
+    it("should work with undefined group config (defaults to visible and enabled)", () => {
       const config: FormFieldsConfig = {
-        name: { type: 'textField' },
+        name: { type: "textField" },
       };
 
       // No formConfig.groups defined
@@ -271,22 +289,24 @@ describe('FieldGroup', () => {
               <Field name="name" />
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Should render normally
-      expect(screen.getByTestId('name')).toBeInTheDocument();
-      expect(screen.getByTestId('name')).not.toBeDisabled();
+      expect(screen.getByTestId("name")).toBeInTheDocument();
+      expect(screen.getByTestId("name")).not.toBeDisabled();
 
-      const groupSpan = document.querySelector('[data-formality-group="undefinedGroup"]');
-      expect(groupSpan).not.toHaveStyle({ display: 'none' });
+      const groupSpan = document.querySelector(
+        '[data-formality-group="undefinedGroup"]',
+      );
+      expect(groupSpan).not.toHaveStyle({ display: "none" });
     });
   });
 
-  describe('data attribute', () => {
-    it('should have data-formality-group attribute for testing', () => {
+  describe("data attribute", () => {
+    it("should have data-formality-group attribute for testing", () => {
       const config: FormFieldsConfig = {
-        name: { type: 'textField' },
+        name: { type: "textField" },
       };
 
       const formConfig: FormConfig = {
@@ -302,10 +322,12 @@ describe('FieldGroup', () => {
               <Field name="name" />
             </FieldGroup>
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      const groupSpan = document.querySelector('[data-formality-group="myGroup"]');
+      const groupSpan = document.querySelector(
+        '[data-formality-group="myGroup"]',
+      );
       expect(groupSpan).toBeInTheDocument();
     });
   });

@@ -7,7 +7,7 @@ import type {
   ValidatorSpec,
   ValidatorFunction,
   ValidatorsConfig,
-} from '../types';
+} from "../types";
 
 /**
  * Run a single validator against a value
@@ -22,15 +22,15 @@ import type {
 function runSingleValidator(
   validator: ValidatorFunction,
   value: unknown,
-  formValues: Record<string, unknown>
+  formValues: Record<string, unknown>,
 ): ValidationResult | Promise<ValidationResult> {
   try {
     return validator(value, formValues);
   } catch (error) {
     // If validator throws, treat as validation failure
     return {
-      type: 'validation_error',
-      message: error instanceof Error ? error.message : 'Validation error',
+      type: "validation_error",
+      message: error instanceof Error ? error.message : "Validation error",
     };
   }
 }
@@ -44,11 +44,11 @@ function runSingleValidator(
  */
 function resolveNamedValidator(
   name: string,
-  validators: ValidatorsConfig
+  validators: ValidatorsConfig,
 ): ValidatorFunction | undefined {
   const validator = validators[name];
 
-  if (typeof validator === 'function') {
+  if (typeof validator === "function") {
     // Check if it's a factory (takes args and returns a function)
     // We detect this by checking if calling with no args returns a function
     // For simple validators, they return ValidationResult directly
@@ -87,12 +87,17 @@ export async function runValidator(
   spec: ValidatorSpec,
   value: unknown,
   formValues: Record<string, unknown>,
-  namedValidators?: ValidatorsConfig
+  namedValidators?: ValidatorsConfig,
 ): Promise<ValidationResult> {
   // Handle array of validators - run in sequence
   if (Array.isArray(spec)) {
     for (const item of spec) {
-      const result = await runValidator(item, value, formValues, namedValidators);
+      const result = await runValidator(
+        item,
+        value,
+        formValues,
+        namedValidators,
+      );
       // Short-circuit on first failure
       if (!isValid(result)) {
         return result;
@@ -102,9 +107,11 @@ export async function runValidator(
   }
 
   // Handle string (named validator)
-  if (typeof spec === 'string') {
+  if (typeof spec === "string") {
     if (!namedValidators) {
-      console.warn(`Named validator "${spec}" requested but no validators provided`);
+      console.warn(
+        `Named validator "${spec}" requested but no validators provided`,
+      );
       return true; // Pass if no validators configured
     }
 
@@ -119,7 +126,7 @@ export async function runValidator(
   }
 
   // Handle function (inline validator)
-  if (typeof spec === 'function') {
+  if (typeof spec === "function") {
     const result = runSingleValidator(spec, value, formValues);
     return Promise.resolve(result);
   }
@@ -141,7 +148,7 @@ export function runValidatorSync(
   spec: ValidatorSpec,
   value: unknown,
   formValues: Record<string, unknown>,
-  namedValidators?: ValidatorsConfig
+  namedValidators?: ValidatorsConfig,
 ): ValidationResult {
   // Handle array of validators
   if (Array.isArray(spec)) {
@@ -155,7 +162,7 @@ export function runValidatorSync(
   }
 
   // Handle string (named validator)
-  if (typeof spec === 'string') {
+  if (typeof spec === "string") {
     if (!namedValidators) {
       return true;
     }
@@ -172,7 +179,7 @@ export function runValidatorSync(
   }
 
   // Handle function
-  if (typeof spec === 'function') {
+  if (typeof spec === "function") {
     const result = spec(value, formValues);
     return result as ValidationResult;
   }
@@ -202,11 +209,16 @@ export function isValid(result: ValidationResult): boolean {
  */
 export function composeValidators(
   validators: ValidatorSpec[],
-  namedValidators?: ValidatorsConfig
+  namedValidators?: ValidatorsConfig,
 ): ValidatorFunction {
   return async (value: unknown, formValues: Record<string, unknown>) => {
     for (const spec of validators) {
-      const result = await runValidator(spec, value, formValues, namedValidators);
+      const result = await runValidator(
+        spec,
+        value,
+        formValues,
+        namedValidators,
+      );
       if (!isValid(result)) {
         return result;
       }
@@ -222,11 +234,11 @@ export function composeValidators(
  */
 export function required(): ValidatorFunction {
   return (value: unknown) => {
-    if (value === undefined || value === null || value === '') {
-      return { type: 'required', message: 'This field is required' };
+    if (value === undefined || value === null || value === "") {
+      return { type: "required", message: "This field is required" };
     }
     if (Array.isArray(value) && value.length === 0) {
-      return { type: 'required', message: 'This field is required' };
+      return { type: "required", message: "This field is required" };
     }
     return true;
   };
@@ -240,12 +252,12 @@ export function required(): ValidatorFunction {
  */
 export function minLength(length: number): ValidatorFunction {
   return (value: unknown) => {
-    if (typeof value !== 'string') {
+    if (typeof value !== "string") {
       return true; // Skip non-strings
     }
     if (value.length < length) {
       return {
-        type: 'minLength',
+        type: "minLength",
         message: `Must be at least ${length} characters`,
       };
     }
@@ -261,12 +273,12 @@ export function minLength(length: number): ValidatorFunction {
  */
 export function maxLength(length: number): ValidatorFunction {
   return (value: unknown) => {
-    if (typeof value !== 'string') {
+    if (typeof value !== "string") {
       return true;
     }
     if (value.length > length) {
       return {
-        type: 'maxLength',
+        type: "maxLength",
         message: `Must be at most ${length} characters`,
       };
     }
@@ -283,13 +295,13 @@ export function maxLength(length: number): ValidatorFunction {
  */
 export function pattern(pattern: RegExp, message?: string): ValidatorFunction {
   return (value: unknown) => {
-    if (typeof value !== 'string') {
+    if (typeof value !== "string") {
       return true;
     }
     if (!pattern.test(value)) {
       return {
-        type: 'pattern',
-        message: message ?? 'Invalid format',
+        type: "pattern",
+        message: message ?? "Invalid format",
       };
     }
     return true;

@@ -1,8 +1,8 @@
 // @formality-ui/react - useSubscriptions Hook
 // Manages field subscriptions in the Form's inverted index
 
-import { useEffect, useRef } from 'react';
-import { useFormContext } from '../context/FormContext';
+import { useEffect, useRef } from "react";
+import { useFormContext } from "../context/FormContext";
 
 /**
  * Manages field subscriptions
@@ -27,7 +27,7 @@ import { useFormContext } from '../context/FormContext';
  */
 export function useSubscriptions(
   fieldName: string,
-  subscriptions: string[]
+  subscriptions: string[],
 ): void {
   const { addSubscription, removeSubscription } = useFormContext();
 
@@ -39,12 +39,12 @@ export function useSubscriptions(
 
     // Find subscriptions to remove (in prev but not in current)
     const toRemove = prevSubscriptions.filter(
-      (target) => !subscriptions.includes(target)
+      (target) => !subscriptions.includes(target),
     );
 
     // Find subscriptions to add (in current but not in prev)
     const toAdd = subscriptions.filter(
-      (target) => !prevSubscriptions.includes(target)
+      (target) => !prevSubscriptions.includes(target),
     );
 
     // Remove old subscriptions

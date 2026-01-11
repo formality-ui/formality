@@ -25,7 +25,7 @@ export type ValidationResult =
  */
 export type ValidatorFunction = (
   value: unknown,
-  formValues: Record<string, unknown>
+  formValues: Record<string, unknown>,
 ) => ValidationResult | Promise<ValidationResult>;
 
 /**
@@ -47,7 +47,7 @@ export type ValidatorSpec =
  * Example: minLength(5) returns a ValidatorFunction
  */
 export type ValidatorFactory<TArgs = unknown> = (
-  args: TArgs
+  args: TArgs,
 ) => ValidatorFunction;
 
 /**

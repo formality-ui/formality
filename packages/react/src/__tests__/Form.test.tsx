@@ -1,12 +1,12 @@
 // @formality-ui/react - Form Component Tests
-import React, { forwardRef } from 'react';
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { Form } from '../components/Form';
-import { FormalityProvider } from '../components/FormalityProvider';
-import { useFormContext } from '../context/FormContext';
-import type { InputConfig, FormFieldsConfig } from '@formality-ui/core';
+import React, { forwardRef } from "react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Form } from "../components/Form";
+import { FormalityProvider } from "../components/FormalityProvider";
+import { useFormContext } from "../context/FormContext";
+import type { InputConfig, FormFieldsConfig } from "@formality-ui/core";
 
 // Test input component
 interface TestInputProps {
@@ -22,15 +22,15 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
     <input
       ref={ref}
       data-testid={name}
-      value={value ?? ''}
+      value={value ?? ""}
       onChange={(e) => onChange?.(e.target.value)}
       disabled={disabled}
       {...props}
     />
-  )
+  ),
 );
 
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 
 // Switch input for tests
 interface TestSwitchProps {
@@ -52,16 +52,16 @@ const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
       disabled={disabled}
       {...props}
     />
-  )
+  ),
 );
 
-TestSwitch.displayName = 'TestSwitch';
+TestSwitch.displayName = "TestSwitch";
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {
   textField: {
     component: TestInput,
-    defaultValue: '',
+    defaultValue: "",
   },
   switch: {
     component: TestSwitch,
@@ -74,52 +74,52 @@ function ContextConsumer() {
   const ctx = useFormContext();
   return (
     <div>
-      <span data-testid="config-keys">{Object.keys(ctx.config).join(',')}</span>
-      <span data-testid="unused-fields">{ctx.unusedFields.join(',')}</span>
+      <span data-testid="config-keys">{Object.keys(ctx.config).join(",")}</span>
+      <span data-testid="unused-fields">{ctx.unusedFields.join(",")}</span>
     </div>
   );
 }
 
-describe('Form', () => {
+describe("Form", () => {
   const config: FormFieldsConfig = {
-    name: { type: 'textField' },
-    email: { type: 'textField' },
-    active: { type: 'switch' },
+    name: { type: "textField" },
+    email: { type: "textField" },
+    active: { type: "switch" },
   };
 
-  it('should provide FormContext to children', () => {
+  it("should provide FormContext to children", () => {
     render(
       <FormalityProvider inputs={testInputs}>
         <Form config={config}>
           <ContextConsumer />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('config-keys')).toHaveTextContent(
-      'name,email,active'
+    expect(screen.getByTestId("config-keys")).toHaveTextContent(
+      "name,email,active",
     );
   });
 
-  it('should track unused fields', () => {
+  it("should track unused fields", () => {
     render(
       <FormalityProvider inputs={testInputs}>
         <Form config={config}>
           <ContextConsumer />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // All fields are unused initially
-    expect(screen.getByTestId('unused-fields')).toHaveTextContent(
-      'name,email,active'
+    expect(screen.getByTestId("unused-fields")).toHaveTextContent(
+      "name,email,active",
     );
   });
 
-  it('should expose render API via function children', () => {
+  it("should expose render API via function children", () => {
     render(
       <FormalityProvider inputs={testInputs}>
-        <Form config={config} formConfig={{ title: 'Test Form' }}>
+        <Form config={config} formConfig={{ title: "Test Form" }}>
           {({ resolvedTitle, unusedFields }) => (
             <div>
               <span data-testid="title">{resolvedTitle}</span>
@@ -127,65 +127,68 @@ describe('Form', () => {
             </div>
           )}
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('title')).toHaveTextContent('Test Form');
-    expect(screen.getByTestId('unused')).toHaveTextContent('3');
+    expect(screen.getByTestId("title")).toHaveTextContent("Test Form");
+    expect(screen.getByTestId("unused")).toHaveTextContent("3");
   });
 
-  it('should initialize with default values from input config', () => {
+  it("should initialize with default values from input config", () => {
     const configWithDefaults: FormFieldsConfig = {
-      name: { type: 'textField' },
+      name: { type: "textField" },
     };
 
     render(
       <FormalityProvider inputs={testInputs}>
         <Form config={configWithDefaults}>
           {({ methods }) => {
-            const value = methods.getValues('name');
+            const value = methods.getValues("name");
             return (
               <span data-testid="value">
-                {value === '' ? 'empty-string' : value ?? 'undefined'}
+                {value === "" ? "empty-string" : (value ?? "undefined")}
               </span>
             );
           }}
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // Default value should be from InputConfig.defaultValue (empty string)
-    expect(screen.getByTestId('value')).toHaveTextContent('empty-string');
+    expect(screen.getByTestId("value")).toHaveTextContent("empty-string");
   });
 
-  it('should initialize with record values', () => {
+  it("should initialize with record values", () => {
     render(
       <FormalityProvider inputs={testInputs}>
-        <Form config={config} record={{ name: 'John', email: 'john@example.com' }}>
+        <Form
+          config={config}
+          record={{ name: "John", email: "john@example.com" }}
+        >
           {({ methods }) => (
             <div>
-              <span data-testid="name">{methods.getValues('name')}</span>
-              <span data-testid="email">{methods.getValues('email')}</span>
+              <span data-testid="name">{methods.getValues("name")}</span>
+              <span data-testid="email">{methods.getValues("email")}</span>
             </div>
           )}
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('name')).toHaveTextContent('John');
-    expect(screen.getByTestId('email')).toHaveTextContent('john@example.com');
+    expect(screen.getByTestId("name")).toHaveTextContent("John");
+    expect(screen.getByTestId("email")).toHaveTextContent("john@example.com");
   });
 
-  it('should call onSubmit with form values', async () => {
+  it("should call onSubmit with form values", async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
 
     render(
       <FormalityProvider inputs={testInputs}>
         <Form
-          config={{ name: { type: 'textField' } }}
+          config={{ name: { type: "textField" } }}
           onSubmit={onSubmit}
-          record={{ name: 'Test' }}
+          record={{ name: "Test" }}
         >
           {({ methods }) => (
             <form onSubmit={methods.handleSubmit(onSubmit)}>
@@ -195,50 +198,50 @@ describe('Form', () => {
             </form>
           )}
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    await user.click(screen.getByTestId('submit'));
+    await user.click(screen.getByTestId("submit"));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalled();
     });
   });
 
-  it('should expose methods via render API', () => {
+  it("should expose methods via render API", () => {
     render(
       <FormalityProvider inputs={testInputs}>
         <Form config={config}>
           {({ methods }) => (
             <span data-testid="has-methods">
-              {typeof methods.register === 'function' ? 'yes' : 'no'}
+              {typeof methods.register === "function" ? "yes" : "no"}
             </span>
           )}
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
-    expect(screen.getByTestId('has-methods')).toHaveTextContent('yes');
+    expect(screen.getByTestId("has-methods")).toHaveTextContent("yes");
   });
 
-  it('should expose formState via render API', () => {
+  it("should expose formState via render API", () => {
     render(
       <FormalityProvider inputs={testInputs}>
         <Form config={config}>
           {({ formState }) => (
             <span data-testid="is-valid">
-              {formState.isValid ? 'valid' : 'invalid'}
+              {formState.isValid ? "valid" : "invalid"}
             </span>
           )}
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // Form should be valid by default (no validation rules)
-    expect(screen.getByTestId('is-valid')).toHaveTextContent('valid');
+    expect(screen.getByTestId("is-valid")).toHaveTextContent("valid");
   });
 
-  it('should merge form-level input overrides with provider inputs', () => {
+  it("should merge form-level input overrides with provider inputs", () => {
     // Capture the merged inputs via context
     let capturedConfig: any;
 
@@ -260,7 +263,7 @@ describe('Form', () => {
         >
           <ConfigCapture />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     expect(capturedConfig.inputs).toEqual({
@@ -268,62 +271,62 @@ describe('Form', () => {
     });
   });
 
-  describe('Auto-Save', () => {
-    it('should accept autoSave prop', () => {
+  describe("Auto-Save", () => {
+    it("should accept autoSave prop", () => {
       const onSubmit = vi.fn();
 
       // Verify the Form component accepts autoSave prop without error
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
-            config={{ name: { type: 'textField' } }}
+            config={{ name: { type: "textField" } }}
             autoSave={true}
             onSubmit={onSubmit}
           >
             <TestInput name="name" value="" onChange={() => {}} />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('name')).toBeInTheDocument();
+      expect(screen.getByTestId("name")).toBeInTheDocument();
     });
 
-    it('should accept debounce prop', () => {
+    it("should accept debounce prop", () => {
       const onSubmit = vi.fn();
 
       // Verify the Form component accepts debounce prop
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
-            config={{ name: { type: 'textField' } }}
+            config={{ name: { type: "textField" } }}
             autoSave
             debounce={500}
             onSubmit={onSubmit}
           >
             <TestInput name="name" value="" onChange={() => {}} />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
-      expect(screen.getByTestId('name')).toBeInTheDocument();
+      expect(screen.getByTestId("name")).toBeInTheDocument();
     });
 
-    it('should allow immediate submit via handleSubmit', async () => {
+    it("should allow immediate submit via handleSubmit", async () => {
       const onSubmit = vi.fn();
 
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
-            config={{ name: { type: 'textField' } }}
+            config={{ name: { type: "textField" } }}
             onSubmit={onSubmit}
-            record={{ name: 'initial' }}
+            record={{ name: "initial" }}
           >
             {({ methods }) => (
               <form onSubmit={methods.handleSubmit(onSubmit)}>
                 <TestInput
                   name="name"
-                  value={methods.watch('name')}
-                  onChange={(v: string) => methods.setValue('name', v)}
+                  value={methods.watch("name")}
+                  onChange={(v: string) => methods.setValue("name", v)}
                 />
                 <button type="submit" data-testid="submit">
                   Submit
@@ -331,18 +334,18 @@ describe('Form', () => {
               </form>
             )}
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       const user = userEvent.setup();
-      await user.click(screen.getByTestId('submit'));
+      await user.click(screen.getByTestId("submit"));
 
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalled();
       });
     });
 
-    it('should expose debouncedSubmit and submitImmediate via FormContext', () => {
+    it("should expose debouncedSubmit and submitImmediate via FormContext", () => {
       let formContextValue: any;
 
       function ContextCapture() {
@@ -353,18 +356,18 @@ describe('Form', () => {
       render(
         <FormalityProvider inputs={testInputs}>
           <Form
-            config={{ name: { type: 'textField' } }}
+            config={{ name: { type: "textField" } }}
             autoSave
             debounce={500}
           >
             <ContextCapture />
           </Form>
-        </FormalityProvider>
+        </FormalityProvider>,
       );
 
       // Auto-save related functions should be available in context
       expect(formContextValue.submitImmediate).toBeDefined();
-      expect(typeof formContextValue.submitImmediate).toBe('function');
+      expect(typeof formContextValue.submitImmediate).toBe("function");
     });
   });
 });

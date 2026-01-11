@@ -15,6 +15,7 @@ Formality is a production-ready form framework built with a three-layer architec
 3. **Placeholder Packages** (`@formality-ui/svelte`, `@formality-ui/vue`) - Future adapters
 
 **Current Status:**
+
 - Production-ready with 329 passing tests
 - Core package: ~100% coverage of critical paths
 - React package: ~83% coverage
@@ -39,6 +40,7 @@ Field/FieldGroup (Components)
 **Purpose:** Manage reactive dependencies between form fields.
 
 **Implementation:**
+
 - **Data Structure:** `Map<target, Set<subscribers>>` (inverted index)
 - **Location:** `packages/react/src/components/Form.tsx:180-230`
 - **Hook:** `useSubscriptions.ts` manages lifecycle
@@ -51,11 +53,13 @@ Field/FieldGroup (Components)
 **Purpose:** Evaluate conditional expressions for field visibility/enabled state.
 
 **Tech Stack:**
+
 - **Parser:** `jsep` (JavaScript Expression Parser)
 - **Evaluation:** Custom AST walker with short-circuit logic
 - **Location:** `packages/core/src/expression/evaluate.ts`
 
 **Features:**
+
 - Member access: `form.values.user.age`
 - Logical operators: `&&`, `||`, `!`
 - Comparison operators: `===`, `!==`, `>`, `<`, etc.
@@ -67,6 +71,7 @@ Field/FieldGroup (Components)
 **Purpose:** Only validate affected fields when values change.
 
 **Implementation:**
+
 - **Location:** `packages/core/src/validation/validate.ts`
 - **Strategy:** Dependent field tracking via subscription system
 - **Performance:** Prevents full form validation on every keystroke
@@ -76,6 +81,7 @@ Field/FieldGroup (Components)
 **Purpose:** Optimize field state access performance.
 
 **Implementation:**
+
 - **Location:** `packages/react/src/utils/makeProxyState.ts`
 - **Benefit:** Prevents unnecessary re-renders of unrelated fields
 
@@ -88,6 +94,7 @@ Field/FieldGroup (Components)
 **Workspace Configuration:** `vitest.workspace.ts`
 
 **Core Tests:** 145 tests
+
 - Expression evaluation
 - Condition logic
 - Validation pipeline
@@ -96,6 +103,7 @@ Field/FieldGroup (Components)
 - Label resolution
 
 **React Tests:** 184 tests
+
 - Component integration
 - Auto-save coordination
 - Render isolation
@@ -105,6 +113,7 @@ Field/FieldGroup (Components)
 ### Test Component Pattern
 
 **Current Implementation:**
+
 ```typescript
 const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) => (
   <div data-testid={`field-wrapper-${props.name}`}>
@@ -130,6 +139,7 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ### Package Manager: pnpm Workspace
 
 **Root Scripts:**
+
 ```json
 {
   "build": "pnpm -r build",
@@ -142,11 +152,13 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ### Build Tool: tsup
 
 **Output Format:** Dual ESM/CJS
+
 - ESM: `./dist/index.js`
 - CJS: `./dist/index.cjs`
 - Types: `./dist/index.d.ts`
 
 **Features:**
+
 - Source maps enabled
 - Tree-shaking supported
 - Clean builds (dist cleared before build)
@@ -156,6 +168,7 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ## Key Dependencies
 
 ### Core Package
+
 ```json
 {
   "jsep": "^1.4.0",
@@ -164,6 +177,7 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ```
 
 ### React Package
+
 ```json
 {
   "peerDependencies": {
@@ -182,21 +196,25 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ## Critical Issues to Address
 
 ### 1. React Ref Warnings (Major)
+
 - **Impact:** Test output clutter, potential integration issues
 - **Root Cause:** Test components not wrapped with `forwardRef`
 - **Fix Pattern:** Wrap all test input components
 
 ### 2. FieldGroup Config Warning (Major)
+
 - **Impact:** Developers may miss console warnings
 - **Root Cause:** Uses `console.warn` instead of throwing errors
 - **Fix Pattern:** Throw errors in development mode
 
 ### 3. Circular Dependency Detection (Major)
+
 - **Impact:** Runtime errors, infinite loops
 - **Root Cause:** No cycle detection in subscription system
 - **Fix Pattern:** Add DFS-based cycle detection
 
 ### 4-10. Minor Enhancements
+
 - UnusedFields render prop (already implemented!)
 - Expression error handling configurability
 - Stronger validation for missing configs
@@ -209,6 +227,7 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ## Development Workflow
 
 1. **Making Changes:**
+
    ```bash
    pnpm test              # Run all tests
    pnpm test:watch        # Watch mode

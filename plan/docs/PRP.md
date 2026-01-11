@@ -172,11 +172,12 @@ formality/
 No new data models needed. The change is purely structural for the TestInput component.
 
 **Current TestInput structure (lines 11-18):**
+
 ```tsx
 const TestInput = ({ value, onChange, ...props }: any) => (
   <input
     data-testid={props.name}
-    value={value ?? ''}
+    value={value ?? ""}
     onChange={(e) => onChange(e.target.value)}
     {...props}
   />
@@ -184,6 +185,7 @@ const TestInput = ({ value, onChange, ...props }: any) => (
 ```
 
 **Target TestInput structure (to implement):**
+
 ```tsx
 interface TestInputProps {
   value?: any;
@@ -197,14 +199,14 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
     <input
       ref={ref}
       data-testid={name}
-      value={value ?? ''}
+      value={value ?? ""}
       onChange={(e) => onChange?.(e.target.value)}
       {...props}
     />
-  )
+  ),
 );
 
-TestInput.displayName = 'TestInput';
+TestInput.displayName = "TestInput";
 ```
 
 ### Implementation Tasks (ordered by dependencies)

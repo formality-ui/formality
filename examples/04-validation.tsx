@@ -12,7 +12,7 @@
  * - Error message resolution by type
  */
 
-import React, { memo } from 'react';
+import React, { memo } from "react";
 import {
   FormalityProvider,
   Form,
@@ -21,7 +21,7 @@ import {
   type FormFieldsConfig,
   type ValidatorsConfig,
   type ErrorMessagesConfig,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 
 // =============================================================================
 // Input Types with Built-in Error Display
@@ -30,66 +30,68 @@ import {
 const inputs: Record<string, InputConfig> = {
   textField: {
     component: memo(({ value, onChange, label, name, error, disabled }) => (
-      <div className={`field ${error ? 'has-error' : ''}`}>
+      <div className={`field ${error ? "has-error" : ""}`}>
         <label htmlFor={name}>{label}</label>
         <input
           id={name}
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
         {error && <span className="error">{error}</span>}
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
   emailField: {
     component: memo(({ value, onChange, label, name, error }) => (
-      <div className={`field ${error ? 'has-error' : ''}`}>
+      <div className={`field ${error ? "has-error" : ""}`}>
         <label htmlFor={name}>{label}</label>
         <input
           id={name}
           type="email"
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
         />
         {error && <span className="error">{error}</span>}
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
     // Type-level validator: ALL email fields require valid email format
-    validator: 'email',
+    validator: "email",
   },
   passwordField: {
     component: memo(({ value, onChange, label, name, error, isValidating }) => (
-      <div className={`field ${error ? 'has-error' : ''}`}>
+      <div className={`field ${error ? "has-error" : ""}`}>
         <label htmlFor={name}>{label}</label>
         <input
           id={name}
           type="password"
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
         />
         {isValidating && <span className="loading">Checking...</span>}
         {error && <span className="error">{error}</span>}
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
   numberField: {
     component: memo(({ value, onChange, label, name, error }) => (
-      <div className={`field ${error ? 'has-error' : ''}`}>
+      <div className={`field ${error ? "has-error" : ""}`}>
         <label htmlFor={name}>{label}</label>
         <input
           id={name}
           type="number"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? Number(e.target.value) : '')}
+          value={value ?? ""}
+          onChange={(e) =>
+            onChange(e.target.value ? Number(e.target.value) : "")
+          }
         />
         {error && <span className="error">{error}</span>}
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
 };
 
@@ -100,8 +102,13 @@ const inputs: Record<string, InputConfig> = {
 const validators: ValidatorsConfig = {
   // Simple required validator
   required: (value) => {
-    if (value === undefined || value === null || value === '' || value === false) {
-      return { type: 'required' }; // Returns type for message lookup
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      value === false
+    ) {
+      return { type: "required" }; // Returns type for message lookup
     }
     return true;
   },
@@ -110,7 +117,7 @@ const validators: ValidatorsConfig = {
   email: (value) => {
     if (!value) return true; // Let 'required' handle empty values
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(String(value))) {
-      return { type: 'email' };
+      return { type: "email" };
     }
     return true;
   },
@@ -119,7 +126,10 @@ const validators: ValidatorsConfig = {
   minLength: (min: number) => (value) => {
     if (!value) return true;
     if (String(value).length < min) {
-      return { type: 'minLength', message: `Must be at least ${min} characters` };
+      return {
+        type: "minLength",
+        message: `Must be at least ${min} characters`,
+      };
     }
     return true;
   },
@@ -128,25 +138,28 @@ const validators: ValidatorsConfig = {
   maxLength: (max: number) => (value) => {
     if (!value) return true;
     if (String(value).length > max) {
-      return { type: 'maxLength', message: `Must be at most ${max} characters` };
+      return {
+        type: "maxLength",
+        message: `Must be at most ${max} characters`,
+      };
     }
     return true;
   },
 
   // Parameterized validator factory: min(0)
   min: (minVal: number) => (value) => {
-    if (value === '' || value === null || value === undefined) return true;
+    if (value === "" || value === null || value === undefined) return true;
     if (Number(value) < minVal) {
-      return { type: 'min', message: `Must be at least ${minVal}` };
+      return { type: "min", message: `Must be at least ${minVal}` };
     }
     return true;
   },
 
   // Parameterized validator factory: max(100)
   max: (maxVal: number) => (value) => {
-    if (value === '' || value === null || value === undefined) return true;
+    if (value === "" || value === null || value === undefined) return true;
     if (Number(value) > maxVal) {
-      return { type: 'max', message: `Must be at most ${maxVal}` };
+      return { type: "max", message: `Must be at most ${maxVal}` };
     }
     return true;
   },
@@ -164,7 +177,7 @@ const validators: ValidatorsConfig = {
   matchField: (fieldName: string) => (value, formValues) => {
     if (!value) return true;
     if (value !== formValues[fieldName]) {
-      return { type: 'match', message: `Must match ${fieldName}` };
+      return { type: "match", message: `Must match ${fieldName}` };
     }
     return true;
   },
@@ -175,13 +188,13 @@ const validators: ValidatorsConfig = {
 // =============================================================================
 
 const errorMessages: ErrorMessagesConfig = {
-  required: 'This field is required',
-  email: 'Please enter a valid email address',
-  minLength: 'Input is too short',
-  maxLength: 'Input is too long',
-  min: 'Value is too small',
-  max: 'Value is too large',
-  match: 'Fields do not match',
+  required: "This field is required",
+  email: "Please enter a valid email address",
+  minLength: "Input is too short",
+  maxLength: "Input is too long",
+  min: "Value is too small",
+  max: "Value is too large",
+  match: "Fields do not match",
   // Can also be functions for dynamic messages (not shown here)
 };
 
@@ -191,20 +204,20 @@ const errorMessages: ErrorMessagesConfig = {
 
 const basicConfig: FormFieldsConfig = {
   name: {
-    type: 'textField',
-    label: 'Full Name',
-    validator: 'required', // Named validator
+    type: "textField",
+    label: "Full Name",
+    validator: "required", // Named validator
   },
   email: {
-    type: 'emailField', // Has type-level 'email' validator
-    label: 'Email',
-    validator: 'required', // Adds required on top of email validation
+    type: "emailField", // Has type-level 'email' validator
+    label: "Email",
+    validator: "required", // Adds required on top of email validation
   },
   age: {
-    type: 'numberField',
-    label: 'Age',
+    type: "numberField",
+    label: "Age",
     // Compose multiple validators
-    validator: ['required', validators.min(18), validators.max(120)],
+    validator: ["required", validators.min(18), validators.max(120)],
   },
 };
 
@@ -236,14 +249,14 @@ export function BasicValidationExample() {
 
 const inlineConfig: FormFieldsConfig = {
   username: {
-    type: 'textField',
-    label: 'Username',
+    type: "textField",
+    label: "Username",
     validator: [
-      'required',
+      "required",
       // Inline validator function
       (value) => {
         if (!/^[a-zA-Z0-9_]+$/.test(String(value))) {
-          return 'Username can only contain letters, numbers, and underscores';
+          return "Username can only contain letters, numbers, and underscores";
         }
         return true;
       },
@@ -252,12 +265,12 @@ const inlineConfig: FormFieldsConfig = {
     ],
   },
   bio: {
-    type: 'textField',
-    label: 'Bio',
+    type: "textField",
+    label: "Bio",
     // Single inline validator
     validator: (value) => {
       if (value && String(value).length > 500) {
-        return 'Bio must be 500 characters or less';
+        return "Bio must be 500 characters or less";
       }
       return true;
     },
@@ -292,44 +305,44 @@ export function InlineValidationExample() {
 // Simulated API check
 const checkUsernameAvailable = async (username: string): Promise<boolean> => {
   await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-  const taken = ['admin', 'root', 'system', 'administrator'];
+  const taken = ["admin", "root", "system", "administrator"];
   return !taken.includes(username.toLowerCase());
 };
 
 const checkEmailRegistered = async (email: string): Promise<boolean> => {
   await new Promise((resolve) => setTimeout(resolve, 800));
-  const registered = ['test@example.com', 'admin@example.com'];
+  const registered = ["test@example.com", "admin@example.com"];
   return !registered.includes(email.toLowerCase());
 };
 
 const asyncConfig: FormFieldsConfig = {
   username: {
-    type: 'textField',
-    label: 'Username',
+    type: "textField",
+    label: "Username",
     validator: [
-      'required',
+      "required",
       validators.minLength(3),
       // Async validator
       async (value) => {
         if (!value) return true;
         const available = await checkUsernameAvailable(String(value));
         if (!available) {
-          return 'This username is already taken';
+          return "This username is already taken";
         }
         return true;
       },
     ],
   },
   email: {
-    type: 'emailField',
-    label: 'Email',
+    type: "emailField",
+    label: "Email",
     validator: [
-      'required',
+      "required",
       async (value) => {
         if (!value) return true;
         const available = await checkEmailRegistered(String(value));
         if (!available) {
-          return 'This email is already registered';
+          return "This email is already registered";
         }
         return true;
       },
@@ -352,7 +365,7 @@ export function AsyncValidationExample() {
             <Field name="username" />
             <Field name="email" />
             <button type="submit" disabled={methods.formState.isValidating}>
-              {methods.formState.isValidating ? 'Checking...' : 'Submit'}
+              {methods.formState.isValidating ? "Checking..." : "Submit"}
             </button>
           </form>
         )}
@@ -367,28 +380,28 @@ export function AsyncValidationExample() {
 
 const crossFieldConfig: FormFieldsConfig = {
   password: {
-    type: 'passwordField',
-    label: 'Password',
+    type: "passwordField",
+    label: "Password",
     validator: [
-      'required',
+      "required",
       validators.minLength(8),
       // Custom password strength validator
       (value) => {
         const pwd = String(value);
-        if (!/[A-Z]/.test(pwd)) return 'Must contain uppercase letter';
-        if (!/[a-z]/.test(pwd)) return 'Must contain lowercase letter';
-        if (!/[0-9]/.test(pwd)) return 'Must contain number';
+        if (!/[A-Z]/.test(pwd)) return "Must contain uppercase letter";
+        if (!/[a-z]/.test(pwd)) return "Must contain lowercase letter";
+        if (!/[0-9]/.test(pwd)) return "Must contain number";
         return true;
       },
     ],
   },
   confirmPassword: {
-    type: 'passwordField',
-    label: 'Confirm Password',
+    type: "passwordField",
+    label: "Confirm Password",
     validator: [
-      'required',
+      "required",
       // Cross-field: must match password
-      validators.matchField('password'),
+      validators.matchField("password"),
     ],
   },
 };
@@ -420,42 +433,42 @@ export function CrossFieldValidationExample() {
 
 const conditionalValidationConfig: FormFieldsConfig = {
   hasCompany: {
-    type: 'textField', // Using as a checkbox stand-in
-    label: 'Are you registering as a business?',
+    type: "textField", // Using as a checkbox stand-in
+    label: "Are you registering as a business?",
   },
   companyName: {
-    type: 'textField',
-    label: 'Company Name',
+    type: "textField",
+    label: "Company Name",
     // This field is only required when hasCompany is truthy
     validator: (value, formValues) => {
       if (formValues.hasCompany && !value) {
-        return 'Company name is required for business registration';
+        return "Company name is required for business registration";
       }
       return true;
     },
     conditions: [
       {
-        when: 'hasCompany',
+        when: "hasCompany",
         truthy: false,
         visible: false,
       },
     ],
   },
   taxId: {
-    type: 'textField',
-    label: 'Tax ID',
+    type: "textField",
+    label: "Tax ID",
     validator: (value, formValues) => {
       if (formValues.hasCompany && !value) {
-        return 'Tax ID is required for business registration';
+        return "Tax ID is required for business registration";
       }
       if (value && !/^\d{2}-\d{7}$/.test(String(value))) {
-        return 'Tax ID must be in format XX-XXXXXXX';
+        return "Tax ID must be in format XX-XXXXXXX";
       }
       return true;
     },
     conditions: [
       {
-        when: 'hasCompany',
+        when: "hasCompany",
         truthy: false,
         visible: false,
       },
@@ -492,35 +505,35 @@ export function ConditionalValidationExample() {
 
 const allReturnTypesConfig: FormFieldsConfig = {
   returnTrue: {
-    type: 'textField',
-    label: 'Returns true (always valid)',
+    type: "textField",
+    label: "Returns true (always valid)",
     validator: () => true,
   },
   returnUndefined: {
-    type: 'textField',
-    label: 'Returns undefined (always valid)',
+    type: "textField",
+    label: "Returns undefined (always valid)",
     validator: () => undefined,
   },
   returnFalse: {
-    type: 'textField',
-    label: 'Returns false (generic error)',
-    validator: (value) => (value === 'invalid' ? false : true),
+    type: "textField",
+    label: "Returns false (generic error)",
+    validator: (value) => (value === "invalid" ? false : true),
   },
   returnString: {
-    type: 'textField',
-    label: 'Returns string (custom message)',
-    validator: (value) => (value === 'error' ? 'Custom error message' : true),
+    type: "textField",
+    label: "Returns string (custom message)",
+    validator: (value) => (value === "error" ? "Custom error message" : true),
   },
   returnTypeObject: {
-    type: 'textField',
-    label: 'Returns { type } (lookup message)',
-    validator: (value) => (value === 'type' ? { type: 'required' } : true),
+    type: "textField",
+    label: "Returns { type } (lookup message)",
+    validator: (value) => (value === "type" ? { type: "required" } : true),
   },
   returnTypeWithMessage: {
-    type: 'textField',
-    label: 'Returns { type, message }',
+    type: "textField",
+    label: "Returns { type, message }",
     validator: (value) =>
-      value === 'both' ? { type: 'custom', message: 'Inline message' } : true,
+      value === "both" ? { type: "custom", message: "Inline message" } : true,
   },
 };
 

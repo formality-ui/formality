@@ -10,8 +10,9 @@
 ### Development vs Production Mode
 
 **Pattern:**
+
 ```typescript
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
   // Throw errors for developer-facing issues
   throw new Error(`Configuration error: ${message}`);
 } else {
@@ -22,16 +23,20 @@ if (process.env.NODE_ENV !== 'production') {
 ```
 
 **Use Cases:**
+
 - Missing validators/parsers/formatters
 - Invalid field configuration
 - Circular dependencies
 
 **Example from Codebase:**
+
 ```typescript
 // packages/core/src/validation/validate.ts:107-114
-if (typeof spec === 'string') {
+if (typeof spec === "string") {
   if (!namedValidators) {
-    console.warn(`Named validator "${spec}" requested but no validators provided`);
+    console.warn(
+      `Named validator "${spec}" requested but no validators provided`,
+    );
     return true; // Pass if no validators configured
   }
 
@@ -46,22 +51,24 @@ if (typeof spec === 'string') {
 ### Console Warn Pattern
 
 **Current Convention:**
+
 ```typescript
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
   console.warn(
     `ComponentName: Clear message about the issue.\n` +
-    `Suggestion: How to fix it.`
+      `Suggestion: How to fix it.`,
   );
 }
 ```
 
 **Example:**
+
 ```typescript
 // packages/react/src/components/FieldGroup.tsx:73-78
-if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
+if (process.env.NODE_ENV !== "production" && !formConfig.groups?.[name]) {
   console.warn(
     `FieldGroup: No config found for group "${name}". ` +
-    `Make sure to define it in formConfig.groups.`
+      `Make sure to define it in formConfig.groups.`,
   );
 }
 ```
@@ -73,6 +80,7 @@ if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
 ### Generic Component Types
 
 **Pattern for forwardRef:**
+
 ```typescript
 interface ComponentProps {
   value: any;
@@ -83,33 +91,30 @@ interface ComponentProps {
   name: string;
 }
 
-const Component = forwardRef<HTMLInputElement, ComponentProps>(
-  (props, ref) => {
-    // Implementation
-  }
-);
+const Component = forwardRef<HTMLInputElement, ComponentProps>((props, ref) => {
+  // Implementation
+});
 
-Component.displayName = 'Component';
+Component.displayName = "Component";
 ```
 
 ### Generic Function Types
 
 **Pattern:**
+
 ```typescript
 type SelectFunction<TReturn = unknown> = (
   formState: FormState,
-  methods: UseFormReturn
+  methods: UseFormReturn,
 ) => TReturn;
 ```
 
 **Enhancement (Issue #7):**
+
 ```typescript
-type SelectFunction<
-  TFields extends Record<string, any>,
-  TReturn = unknown
-> = (
+type SelectFunction<TFields extends Record<string, any>, TReturn = unknown> = (
   formState: FormState & { fields: TFields },
-  methods: UseFormReturn
+  methods: UseFormReturn,
 ) => TReturn;
 ```
 
@@ -120,6 +125,7 @@ type SelectFunction<
 ### Standard Test Input Structure
 
 **Current Pattern (to be updated):**
+
 ```typescript
 const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) => (
   <div data-testid={`field-wrapper-${props.name}`}>
@@ -139,6 +145,7 @@ const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) =
 ```
 
 **Updated Pattern (with forwardRef):**
+
 ```typescript
 const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
   ({ value, onChange, disabled, label, error, name, ...props }, ref) => {
@@ -167,12 +174,14 @@ TestInput.displayName = 'TestInput';
 ### Test Setup Pattern
 
 **All test files should:**
+
 1. Import test utilities from `@testing-library/react`
 2. Use `setup` file for global configuration
 3. Clean up after each test (automatic with vitest + @testing-library)
 4. Use descriptive test names
 
 **Example:**
+
 ```typescript
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
@@ -200,6 +209,7 @@ describe('Feature Name', () => {
 ### Functional Component Structure
 
 **Standard Pattern:**
+
 ```typescript
 import { useCallback, useMemo, useEffect } from 'react';
 
@@ -233,6 +243,7 @@ export function ComponentName({ prop1, prop2 }: ComponentProps) {
 ### Context Provider Pattern
 
 **Form Context Pattern:**
+
 ```typescript
 interface FormContextValue {
   // Methods
@@ -249,7 +260,7 @@ export const FormContext = createContext<FormContextValue | null>(null);
 export function useFormContext(): FormContextValue {
   const context = useContext(FormContext);
   if (!context) {
-    throw new Error('useFormContext must be used within Form');
+    throw new Error("useFormContext must be used within Form");
   }
   return context;
 }
@@ -258,11 +269,12 @@ export function useFormContext(): FormContextValue {
 ### Custom Hook Pattern
 
 **Hook Structure:**
+
 ```typescript
 export function useSubscriptions({
   fieldName,
   subscribesTo,
-  formState
+  formState,
 }: UseSubscriptionsParams): void {
   const { addSubscription, removeSubscription } = useFormContext();
 
@@ -289,11 +301,12 @@ export function useSubscriptions({
 ### Validator Structure
 
 **Named Validator:**
+
 ```typescript
 const validators = {
   required: (value: any) => {
-    if (value === undefined || value === null || value === '') {
-      return 'This field is required';
+    if (value === undefined || value === null || value === "") {
+      return "This field is required";
     }
     return true;
   },
@@ -307,10 +320,10 @@ const validators = {
 
   email: (value: string) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      return 'Must be a valid email address';
+      return "Must be a valid email address";
     }
     return true;
-  }
+  },
 };
 ```
 
@@ -323,10 +336,10 @@ const asyncValidators = {
     const data = await response.json();
 
     if (data.exists) {
-      return 'Email is already taken';
+      return "Email is already taken";
     }
     return true;
-  }
+  },
 };
 ```
 
@@ -337,50 +350,46 @@ const asyncValidators = {
 ### Expression Type Safety
 
 **Pattern:**
+
 ```typescript
-import { evaluate } from '@formality-ui/core';
+import { evaluate } from "@formality-ui/core";
 
 // Type-safe expression evaluation
-const result = evaluate(
-  'form.values.user.age > 18',
-  {
-    form: {
-      values: {
-        user: { age: 25 }
-      }
-    }
-  }
-); // Returns: true
+const result = evaluate("form.values.user.age > 18", {
+  form: {
+    values: {
+      user: { age: 25 },
+    },
+  },
+}); // Returns: true
 
 // Error handling
-const invalidResult = evaluate(
-  'form.values.nonExistent.field',
-  context
-); // Returns: undefined (with console.warn)
+const invalidResult = evaluate("form.values.nonExistent.field", context); // Returns: undefined (with console.warn)
 ```
 
 ### Expression Context Building
 
 **Pattern:**
+
 ```typescript
 function buildExpressionContext(formState: FormState, methods: UseFormReturn) {
   return {
     form: {
-      values: formState.values,  // Use recordValues for subscription checks
+      values: formState.values, // Use recordValues for subscription checks
       state: formState,
-      errors: formState.errors
+      errors: formState.errors,
     },
     methods: {
       setValue: methods.setValue,
       trigger: methods.trigger,
-      getValues: methods.getValues
+      getValues: methods.getValues,
     },
     utils: {
       hasValue: (fieldName: string) => {
         const value = get(formState.values, fieldName);
-        return value !== undefined && value !== null && value !== '';
-      }
-    }
+        return value !== undefined && value !== null && value !== "";
+      },
+    },
   };
 }
 ```
@@ -392,11 +401,13 @@ function buildExpressionContext(formState: FormState, methods: UseFormReturn) {
 ### Memoization Strategy
 
 **When to Memoize:**
+
 - ✅ Expensive calculations (expression evaluation, complex sorting)
 - ✅ Array/object transformations (field sorting, filtering)
 - ❌ Simple value access (use raw values)
 
 **Pattern:**
+
 ```typescript
 const sortedFields = useMemo(() => {
   return sortFieldsByOrder(fieldNames, config);
@@ -410,14 +421,18 @@ const proxyState = useMemo(() => {
 ### Callback Optimization
 
 **Pattern:**
+
 ```typescript
 const addSubscription = useCallback((target: string, subscriber: string) => {
   // Implementation
 }, []); // Empty deps if no external dependencies
 
-const handleSubmit = useCallback(async (data: FormValues) => {
-  await onSubmit(data);
-}, [onSubmit]);
+const handleSubmit = useCallback(
+  async (data: FormValues) => {
+    await onSubmit(data);
+  },
+  [onSubmit],
+);
 ```
 
 ---
@@ -457,17 +472,20 @@ packages/react/src/
 ## Naming Conventions
 
 ### Component Naming
+
 - **PascalCase** for components: `Form`, `Field`, `FieldGroup`
 - **camelCase** for hooks: `useFormState`, `useSubscriptions`
 - **camelCase** for utilities: `sortFieldsByOrder`, `humanizeLabel`
 
 ### File Naming
+
 - **Components:** `Form.tsx`, `Field.tsx` (PascalCase)
 - **Hooks:** `useFormState.ts` (camelCase with use prefix)
 - **Utilities:** `makeProxyState.ts` (camelCase)
 - **Types:** `types.ts`, `config.ts` (camelCase)
 
 ### Test Naming
+
 - **Test Files:** `Form.test.tsx`, `useFormState.test.ts` (matches source)
 - **Test Descriptions:** `should [verb] [expected outcome]`
   - ✅ `should validate only changed fields`
@@ -478,6 +496,7 @@ packages/react/src/
 ## Git Commit Patterns
 
 **Commit Message Format:**
+
 ```
 type(scope): brief description
 
@@ -487,6 +506,7 @@ Refs: #issue-number
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -495,6 +515,7 @@ Refs: #issue-number
 - `chore`: Build/config changes
 
 **Examples:**
+
 ```
 fix(react): add circular dependency detection in subscriptions
 
@@ -516,16 +537,19 @@ Refs: #5
 ## Code Quality Standards
 
 ### TypeScript Strict Mode
+
 - All code must compile with `strict: true`
 - No `any` types unless absolutely necessary
 - Proper generic typing for reusable components
 
 ### Test Coverage
+
 - Core package: ~100% coverage of critical paths
 - React package: ~83% coverage (excellent for components)
 - All new code must have corresponding tests
 
 ### Linting
+
 - Use ESLint with React and TypeScript rules
 - No console.log in production code
 - Prefer const over let
@@ -536,6 +560,7 @@ Refs: #5
 ## Summary
 
 **Key Takeaways:**
+
 1. **Error Handling:** Throw errors in dev, warn in prod
 2. **TypeScript:** Use strict typing, avoid `any`
 3. **Testing:** Wrap test components with `forwardRef`

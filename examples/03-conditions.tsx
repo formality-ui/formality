@@ -15,7 +15,7 @@
  * - Nested FieldGroups: Hierarchical conditional logic
  */
 
-import React, { memo } from 'react';
+import React, { memo } from "react";
 import {
   FormalityProvider,
   Form,
@@ -24,7 +24,7 @@ import {
   type InputConfig,
   type FormFieldsConfig,
   type FormConfig,
-} from '@formality-ui/react';
+} from "@formality-ui/react";
 
 // =============================================================================
 // Minimal Input Types for Examples
@@ -36,14 +36,14 @@ const inputs: Record<string, InputConfig> = {
       <div className="field">
         <label>{label}</label>
         <input
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className={disabled ? 'disabled' : ''}
+          className={disabled ? "disabled" : ""}
         />
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
   switch: {
     component: memo(({ checked, onChange, label, disabled }) => (
@@ -58,7 +58,7 @@ const inputs: Record<string, InputConfig> = {
       </label>
     )),
     defaultValue: false,
-    inputFieldProp: 'checked',
+    inputFieldProp: "checked",
     debounce: false,
   },
   select: {
@@ -66,18 +66,20 @@ const inputs: Record<string, InputConfig> = {
       <div className="field">
         <label>{label}</label>
         <select
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         >
           <option value="">Select...</option>
           {options?.map((opt: string) => (
-            <option key={opt} value={opt}>{opt}</option>
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
           ))}
         </select>
       </div>
     )),
-    defaultValue: '',
+    defaultValue: "",
   },
   number: {
     component: memo(({ value, onChange, label, disabled }) => (
@@ -85,8 +87,10 @@ const inputs: Record<string, InputConfig> = {
         <label>{label}</label>
         <input
           type="number"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+          value={value ?? ""}
+          onChange={(e) =>
+            onChange(e.target.value ? Number(e.target.value) : null)
+          }
           disabled={disabled}
         />
       </div>
@@ -102,15 +106,15 @@ const inputs: Record<string, InputConfig> = {
 
 const visibilityConfig: FormFieldsConfig = {
   showDetails: {
-    type: 'switch',
-    label: 'Show Additional Details',
+    type: "switch",
+    label: "Show Additional Details",
   },
   additionalDetails: {
-    type: 'textField',
-    label: 'Additional Details',
+    type: "textField",
+    label: "Additional Details",
     conditions: [
       {
-        when: 'showDetails',
+        when: "showDetails",
         truthy: false,
         visible: false, // Hidden when showDetails is false
       },
@@ -142,15 +146,15 @@ export function VisibilityExample() {
 
 const disabledConfig: FormFieldsConfig = {
   isLocked: {
-    type: 'switch',
-    label: 'Lock Form',
+    type: "switch",
+    label: "Lock Form",
   },
   editableField: {
-    type: 'textField',
-    label: 'Editable When Unlocked',
+    type: "textField",
+    label: "Editable When Unlocked",
     conditions: [
       {
-        when: 'isLocked',
+        when: "isLocked",
         truthy: true,
         disabled: true, // Disabled when isLocked is true
       },
@@ -182,58 +186,58 @@ export function DisabledExample() {
 
 const exactMatchConfig: FormFieldsConfig = {
   paymentMethod: {
-    type: 'select',
-    label: 'Payment Method',
+    type: "select",
+    label: "Payment Method",
     props: {
-      options: ['Credit Card', 'Bank Transfer', 'PayPal', 'Check'],
+      options: ["Credit Card", "Bank Transfer", "PayPal", "Check"],
     },
   },
   cardNumber: {
-    type: 'textField',
-    label: 'Card Number',
+    type: "textField",
+    label: "Card Number",
     conditions: [
       {
-        when: 'paymentMethod',
-        is: 'Credit Card', // Only show when exactly 'Credit Card'
+        when: "paymentMethod",
+        is: "Credit Card", // Only show when exactly 'Credit Card'
         visible: true,
       },
       {
-        when: 'paymentMethod',
-        is: 'Credit Card',
+        when: "paymentMethod",
+        is: "Credit Card",
         truthy: false, // When NOT 'Credit Card', hide
         visible: false,
       },
     ],
   },
   bankAccount: {
-    type: 'textField',
-    label: 'Bank Account Number',
+    type: "textField",
+    label: "Bank Account Number",
     conditions: [
       {
-        when: 'paymentMethod',
-        is: 'Bank Transfer',
+        when: "paymentMethod",
+        is: "Bank Transfer",
         visible: true,
       },
       {
-        when: 'paymentMethod',
-        is: 'Bank Transfer',
+        when: "paymentMethod",
+        is: "Bank Transfer",
         truthy: false,
         visible: false,
       },
     ],
   },
   paypalEmail: {
-    type: 'textField',
-    label: 'PayPal Email',
+    type: "textField",
+    label: "PayPal Email",
     conditions: [
       {
-        when: 'paymentMethod',
-        is: 'PayPal',
+        when: "paymentMethod",
+        is: "PayPal",
         visible: true,
       },
       {
-        when: 'paymentMethod',
-        is: 'PayPal',
+        when: "paymentMethod",
+        is: "PayPal",
         truthy: false,
         visible: false,
       },
@@ -267,17 +271,17 @@ export function ExactMatchExample() {
 
 const setValueConfig: FormFieldsConfig = {
   useDefaultAddress: {
-    type: 'switch',
-    label: 'Use Default Shipping Address',
+    type: "switch",
+    label: "Use Default Shipping Address",
   },
   shippingAddress: {
-    type: 'textField',
-    label: 'Shipping Address',
+    type: "textField",
+    label: "Shipping Address",
     conditions: [
       {
-        when: 'useDefaultAddress',
+        when: "useDefaultAddress",
         truthy: true,
-        set: '123 Main Street, City, Country', // Set static value
+        set: "123 Main Street, City, Country", // Set static value
         disabled: true, // Also disable when using default
       },
     ],
@@ -308,32 +312,32 @@ export function SetValueExample() {
 
 const selectSetConfig: FormFieldsConfig = {
   basePrice: {
-    type: 'number',
-    label: 'Base Price ($)',
+    type: "number",
+    label: "Base Price ($)",
   },
   quantity: {
-    type: 'number',
-    label: 'Quantity',
+    type: "number",
+    label: "Quantity",
   },
   applyDiscount: {
-    type: 'switch',
-    label: 'Apply 20% Discount',
+    type: "switch",
+    label: "Apply 20% Discount",
   },
   totalPrice: {
-    type: 'number',
-    label: 'Total Price ($)',
+    type: "number",
+    label: "Total Price ($)",
     conditions: [
       {
-        when: 'applyDiscount',
+        when: "applyDiscount",
         is: false,
         // Calculate: basePrice * quantity
-        selectSet: 'basePrice * quantity',
+        selectSet: "basePrice * quantity",
       },
       {
-        when: 'applyDiscount',
+        when: "applyDiscount",
         is: true,
         // Calculate with discount: basePrice * quantity * 0.8
-        selectSet: 'basePrice * quantity * 0.8',
+        selectSet: "basePrice * quantity * 0.8",
       },
     ],
   },
@@ -365,30 +369,30 @@ export function SelectSetExample() {
 
 const complexConditionConfig: FormFieldsConfig = {
   age: {
-    type: 'number',
-    label: 'Age',
+    type: "number",
+    label: "Age",
   },
   hasLicense: {
-    type: 'switch',
-    label: 'Has Driving License',
+    type: "switch",
+    label: "Has Driving License",
   },
   yearsExperience: {
-    type: 'number',
-    label: 'Years of Driving Experience',
+    type: "number",
+    label: "Years of Driving Experience",
   },
   insuranceDiscount: {
-    type: 'textField',
-    label: 'Insurance Discount',
+    type: "textField",
+    label: "Insurance Discount",
     conditions: [
       {
         // Complex condition: age >= 25 AND has license AND 3+ years experience
-        selectWhen: 'age >= 25 && hasLicense && yearsExperience >= 3',
-        set: 'Eligible for 15% discount!',
+        selectWhen: "age >= 25 && hasLicense && yearsExperience >= 3",
+        set: "Eligible for 15% discount!",
       },
       {
         // Default case
-        selectWhen: '!(age >= 25 && hasLicense && yearsExperience >= 3)',
-        set: 'No discount available',
+        selectWhen: "!(age >= 25 && hasLicense && yearsExperience >= 3)",
+        set: "No discount available",
       },
     ],
   },
@@ -420,26 +424,26 @@ export function ComplexConditionExample() {
 
 const fieldGroupConfig: FormFieldsConfig = {
   accountType: {
-    type: 'select',
-    label: 'Account Type',
+    type: "select",
+    label: "Account Type",
     props: {
-      options: ['Personal', 'Business'],
+      options: ["Personal", "Business"],
     },
   },
   // These fields will be controlled by the FieldGroup
   companyName: {
-    type: 'textField',
-    label: 'Company Name',
+    type: "textField",
+    label: "Company Name",
   },
   taxId: {
-    type: 'textField',
-    label: 'Tax ID',
+    type: "textField",
+    label: "Tax ID",
   },
   companySize: {
-    type: 'select',
-    label: 'Company Size',
+    type: "select",
+    label: "Company Size",
     props: {
-      options: ['1-10', '11-50', '51-200', '200+'],
+      options: ["1-10", "11-50", "51-200", "200+"],
     },
   },
 };
@@ -449,8 +453,8 @@ const fieldGroupFormConfig: FormConfig = {
     businessFields: {
       conditions: [
         {
-          when: 'accountType',
-          is: 'Personal', // When Personal, hide business fields
+          when: "accountType",
+          is: "Personal", // When Personal, hide business fields
           visible: false,
         },
       ],
@@ -461,7 +465,11 @@ const fieldGroupFormConfig: FormConfig = {
 export function FieldGroupExample() {
   return (
     <FormalityProvider inputs={inputs}>
-      <Form config={fieldGroupConfig} formConfig={fieldGroupFormConfig} onSubmit={console.log}>
+      <Form
+        config={fieldGroupConfig}
+        formConfig={fieldGroupFormConfig}
+        onSubmit={console.log}
+      >
         {({ methods }) => (
           <form onSubmit={methods.handleSubmit(console.log)}>
             <h3>FieldGroup Conditions</h3>
@@ -489,28 +497,28 @@ export function FieldGroupExample() {
 
 const nestedGroupConfig: FormFieldsConfig = {
   enableSection: {
-    type: 'switch',
-    label: 'Enable Advanced Options',
+    type: "switch",
+    label: "Enable Advanced Options",
   },
   enableSubsection: {
-    type: 'switch',
-    label: 'Enable Expert Settings',
+    type: "switch",
+    label: "Enable Expert Settings",
   },
   advancedOption1: {
-    type: 'textField',
-    label: 'Advanced Option 1',
+    type: "textField",
+    label: "Advanced Option 1",
   },
   advancedOption2: {
-    type: 'textField',
-    label: 'Advanced Option 2',
+    type: "textField",
+    label: "Advanced Option 2",
   },
   expertOption1: {
-    type: 'textField',
-    label: 'Expert Option 1',
+    type: "textField",
+    label: "Expert Option 1",
   },
   expertOption2: {
-    type: 'textField',
-    label: 'Expert Option 2',
+    type: "textField",
+    label: "Expert Option 2",
   },
 };
 
@@ -519,7 +527,7 @@ const nestedGroupFormConfig: FormConfig = {
     advancedSection: {
       conditions: [
         {
-          when: 'enableSection',
+          when: "enableSection",
           truthy: false,
           disabled: true,
         },
@@ -528,7 +536,7 @@ const nestedGroupFormConfig: FormConfig = {
     expertSection: {
       conditions: [
         {
-          when: 'enableSubsection',
+          when: "enableSubsection",
           truthy: false,
           disabled: true,
         },
@@ -540,7 +548,11 @@ const nestedGroupFormConfig: FormConfig = {
 export function NestedFieldGroupExample() {
   return (
     <FormalityProvider inputs={inputs}>
-      <Form config={nestedGroupConfig} formConfig={nestedGroupFormConfig} onSubmit={console.log}>
+      <Form
+        config={nestedGroupConfig}
+        formConfig={nestedGroupFormConfig}
+        onSubmit={console.log}
+      >
         {({ methods }) => (
           <form onSubmit={methods.handleSubmit(console.log)}>
             <h3>Nested FieldGroups</h3>
@@ -576,24 +588,24 @@ export function NestedFieldGroupExample() {
 
 const functionConditionConfig: FormFieldsConfig = {
   firstName: {
-    type: 'textField',
-    label: 'First Name',
+    type: "textField",
+    label: "First Name",
   },
   lastName: {
-    type: 'textField',
-    label: 'Last Name',
+    type: "textField",
+    label: "Last Name",
   },
   fullName: {
-    type: 'textField',
-    label: 'Full Name (Auto-generated)',
+    type: "textField",
+    label: "Full Name (Auto-generated)",
     conditions: [
       {
         // Function-based selectSet for complex string operations
-        selectWhen: 'firstName || lastName', // Trigger when either changes
-        subscribesTo: ['firstName', 'lastName'], // Required for function conditions
+        selectWhen: "firstName || lastName", // Trigger when either changes
+        subscribesTo: ["firstName", "lastName"], // Required for function conditions
         selectSet: ({ fields }) => {
-          const first = fields.firstName?.value ?? '';
-          const last = fields.lastName?.value ?? '';
+          const first = fields.firstName?.value ?? "";
+          const last = fields.lastName?.value ?? "";
           return `${first} ${last}`.trim();
         },
         disabled: true, // Read-only computed field

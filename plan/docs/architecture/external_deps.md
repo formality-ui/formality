@@ -15,13 +15,13 @@
 
 ```typescript
 class CircularDependencyDetector {
-  private visiting = new Set<string>();  // Nodes in current DFS path
-  private visited = new Set<string>();   // Fully processed nodes
+  private visiting = new Set<string>(); // Nodes in current DFS path
+  private visited = new Set<string>(); // Fully processed nodes
 
   wouldCreateCycle(
     graph: Map<string, Set<string>>,
     target: string,
-    subscriber: string
+    subscriber: string,
   ): boolean {
     // Temporarily add the edge
     const tempGraph = this.cloneGraph(graph);
@@ -34,16 +34,13 @@ class CircularDependencyDetector {
     return this.hasCycle(tempGraph, subscriber);
   }
 
-  private hasCycle(
-    graph: Map<string, Set<string>>,
-    start: string
-  ): boolean {
+  private hasCycle(graph: Map<string, Set<string>>, start: string): boolean {
     if (this.visiting.has(start)) {
-      return true;  // Found a cycle
+      return true; // Found a cycle
     }
 
     if (this.visited.has(start)) {
-      return false;  // Already processed, no cycle from here
+      return false; // Already processed, no cycle from here
     }
 
     this.visiting.add(start);
@@ -60,7 +57,7 @@ class CircularDependencyDetector {
   }
 
   private cloneGraph(
-    graph: Map<string, Set<string>>
+    graph: Map<string, Set<string>>,
   ): Map<string, Set<string>> {
     const clone = new Map<string, Set<string>>();
     for (const [key, value] of graph) {
@@ -84,6 +81,7 @@ class CircularDependencyDetector {
 ### 1. Show the Complete Cycle Path
 
 **Good:**
+
 ```
 Circular dependency detected in form subscriptions:
   fieldA → fieldB → fieldC → fieldA
@@ -92,6 +90,7 @@ This can cause infinite render loops and performance issues.
 ```
 
 **Bad:**
+
 ```
 Circular dependency detected.
 ```
@@ -99,21 +98,23 @@ Circular dependency detected.
 ### 2. Provide Contextual Suggestions
 
 **Pattern:**
+
 ```typescript
 function createCircularDependencyError(
   cyclePath: string,
-  suggestions: string[]
+  suggestions: string[],
 ): Error {
   return new Error(
     `[CircularDependencyError] ${cyclePath}\n\n` +
-    `Possible solutions:\n` +
-    suggestions.map(s => `  - ${s}`).join('\n') +
-    `\n\nLearn more: https://formality.dev/docs/circular-deps`
+      `Possible solutions:\n` +
+      suggestions.map((s) => `  - ${s}`).join("\n") +
+      `\n\nLearn more: https://formality.dev/docs/circular-deps`,
   );
 }
 ```
 
 **Suggestions to Include:**
+
 - "Refactor your field dependencies to break the circular reference"
 - "Use computed fields for derived values instead of subscriptions"
 - "Consider consolidating related fields into a FieldGroup"
@@ -122,14 +123,15 @@ function createCircularDependencyError(
 ### 3. Include Developer-Friendly Metadata
 
 **Pattern:**
+
 ```typescript
 throw new Error(
   `Circular dependency detected: ${cyclePath}\n\n` +
-  `Field configurations:\n` +
-  `- fieldA.subscribesTo: ['fieldB']\n` +
-  `- fieldB.subscribesTo: ['fieldC']\n` +
-  `- fieldC.subscribesTo: ['fieldA']\n\n` +
-  `Fix: Remove one subscription from the cycle.`
+    `Field configurations:\n` +
+    `- fieldA.subscribesTo: ['fieldB']\n` +
+    `- fieldB.subscribesTo: ['fieldC']\n` +
+    `- fieldC.subscribesTo: ['fieldA']\n\n` +
+    `Fix: Remove one subscription from the cycle.`,
 );
 ```
 
@@ -140,6 +142,7 @@ throw new Error(
 ### React 18+ Pattern (Current Project)
 
 **Standard Implementation:**
+
 ```typescript
 import React, { forwardRef } from 'react';
 
@@ -177,6 +180,7 @@ TestInput.displayName = 'TestInput';  // Critical: For debugging
 ```
 
 **Key Points:**
+
 1. **Generic Type:** `forwardRef<RefType, PropsType>`
 2. **Ref Parameter:** Second parameter after props
 3. **Ref Forwarding:** Pass ref to the underlying HTML element
@@ -291,11 +295,13 @@ test('TestInput works with RHF Controller', () => {
 **Time Complexity:** O(V + E) where V = vertices (fields), E = edges (subscriptions)
 
 **Typical Form Sizes:**
+
 - Small form (10 fields): < 1ms
 - Medium form (50 fields): < 5ms
 - Large form (100+ fields): < 10ms
 
 **Optimization Strategy:**
+
 - Only run detection when subscriptions are **added**, not on every render
 - Cache visited nodes during form initialization
 - Early exit on first cycle found
@@ -303,6 +309,7 @@ test('TestInput works with RHF Controller', () => {
 ### Memory Optimization
 
 **Graph Structure:**
+
 ```typescript
 // Use Map for O(1) lookups
 const graph = new Map<string, Set<string>>();
@@ -318,17 +325,21 @@ if (graph.has(subscriber) && graph.get(subscriber)!.has(target)) {
 ## Additional Resources
 
 ### Circular Dependency Algorithms
+
 - [Detect cycle in Directed Graph using DFS](https://www.geeksforgeeks.org/detect-cycle-in-directed-graph-using-topological-sort/)
 - [Kahn's Algorithm for Topological Sort](https://takeuforward.org/data-structure/detect-a-cycle-in-directed-graph-topological-sort-kahns-algorithm-g-23/)
 
 ### React Hook Form Integration
+
 - [React Hook Form Controller Documentation](https://react-hook-form.com/docs/usecontroller/controller)
 - [Controller ref Prop](https://react-hook-form.com/docs/usecontroller/controller)
 
 ### React forwardRef
+
 - [React Ref Forwarding Guide](https://react.dev/reference/react/forwardRef)
 - [TypeScript forwardRef Examples](https://dev.to/kirbyaguilar/reusable-form-inputs-with-react-hook-form-and-typescript-naj)
 
 ### Error Message Design
+
 - [Writing Helpful Error Messages](https://cloudblog.microsoft.com/software-design/how-to-write-better-error-messages-98a5babf9/)
 - [Developer Experience Patterns](https://www.writethedocs.org/guide/docs-best-practices/writing-for-developers/)

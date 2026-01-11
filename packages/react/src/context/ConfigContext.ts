@@ -1,14 +1,14 @@
 // @formality-ui/react - ConfigContext
 // Global configuration context for Formality
 
-import { createContext, useContext, type ComponentType } from 'react';
+import { createContext, useContext, type ComponentType } from "react";
 import type {
   InputConfig,
   ValidatorsConfig,
   ErrorMessagesConfig,
   SelectValue,
-} from '@formality-ui/core';
-import type { InputTemplateProps } from '../types';
+} from "@formality-ui/core";
+import type { InputTemplateProps } from "../types";
 
 /**
  * ConfigContextValue - Global configuration provided by FormalityProvider
@@ -61,7 +61,7 @@ const defaultConfigContext: ConfigContextValue = {
   validators: {},
   errorMessages: {},
   inputTemplates: {},
-  defaultSubscriptionPropName: 'state',
+  defaultSubscriptionPropName: "state",
   defaultFieldProps: {},
 };
 
@@ -71,9 +71,10 @@ const defaultConfigContext: ConfigContextValue = {
  * Provides access to input types, transformers, validators, and
  * global defaults to all forms and fields in the application.
  */
-export const ConfigContext = createContext<ConfigContextValue>(defaultConfigContext);
+export const ConfigContext =
+  createContext<ConfigContextValue>(defaultConfigContext);
 
-ConfigContext.displayName = 'FormalityConfigContext';
+ConfigContext.displayName = "FormalityConfigContext";
 
 /**
  * useConfigContext - Hook to access global configuration

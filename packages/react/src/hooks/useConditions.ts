@@ -1,12 +1,16 @@
 // @formality-ui/react - useConditions Hook
 // Evaluates conditions against current field values
 
-import { useMemo } from 'react';
-import { useWatch } from 'react-hook-form';
-import { evaluateConditions, type ConditionResult, type FieldStateInput } from '@formality-ui/core';
-import type { ConditionDescriptor } from '@formality-ui/core';
-import { useFormContext } from '../context/FormContext';
-import { useInferredInputs } from './useInferredInputs';
+import { useMemo } from "react";
+import { useWatch } from "react-hook-form";
+import {
+  evaluateConditions,
+  type ConditionResult,
+  type FieldStateInput,
+} from "@formality-ui/core";
+import type { ConditionDescriptor } from "@formality-ui/core";
+import { useFormContext } from "../context/FormContext";
+import { useInferredInputs } from "./useInferredInputs";
 
 interface UseConditionsOptions {
   /** Conditions to evaluate */

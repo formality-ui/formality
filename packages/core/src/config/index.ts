@@ -8,7 +8,7 @@ export {
   mergeStaticProps,
   mergeFieldProps,
   createConfigContext,
-} from './merge';
+} from "./merge";
 
 export {
   resolveInitialValue,
@@ -16,4 +16,4 @@ export {
   isEmptyValue,
   getInputDefaultValue,
   mergeRecordWithDefaults,
-} from './defaults';
+} from "./defaults";

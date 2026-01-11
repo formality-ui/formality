@@ -1,17 +1,17 @@
 // @formality-ui/react - FieldGroup Component
 // Groups fields with shared conditions and state propagation
 
-import { useMemo, type ReactNode } from 'react';
-import type { GroupConfig } from '@formality-ui/core';
-import { useFormContext } from '../context/FormContext';
+import { useMemo, type ReactNode } from "react";
+import type { GroupConfig } from "@formality-ui/core";
+import { useFormContext } from "../context/FormContext";
 import {
   GroupContext,
   useGroupContext,
   type GroupContextValue,
   type GroupState,
-} from '../context/GroupContext';
-import { useConditions } from '../hooks/useConditions';
-import { useInferredInputs } from '../hooks/useInferredInputs';
+} from "../context/GroupContext";
+import { useConditions } from "../hooks/useConditions";
+import { useInferredInputs } from "../hooks/useInferredInputs";
 
 /**
  * FieldGroup component props
@@ -70,10 +70,10 @@ export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element {
   };
 
   // Warn if group config not found (in development)
-  if (process.env.NODE_ENV !== 'production' && !formConfig.groups?.[name]) {
+  if (process.env.NODE_ENV !== "production" && !formConfig.groups?.[name]) {
     console.warn(
       `FieldGroup: No config found for group "${name}". ` +
-        `Make sure to define it in formConfig.groups.`
+        `Make sure to define it in formConfig.groups.`,
     );
   }
 
@@ -94,13 +94,13 @@ export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element {
     // Disabled: OR logic (any parent can disable)
     const isDisabled =
       (conditionResult.hasDisabledCondition
-        ? conditionResult.disabled ?? false
+        ? (conditionResult.disabled ?? false)
         : false) || parentContext.state.isDisabled;
 
     // Visible: AND logic (any parent can hide)
     const isVisible =
       (conditionResult.hasVisibleCondition
-        ? conditionResult.visible ?? true
+        ? (conditionResult.visible ?? true)
         : true) && parentContext.state.isVisible;
 
     // setValue: This group's setValue takes priority, then parent's
@@ -140,7 +140,7 @@ export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element {
       inferredInputs,
       config: groupConfig,
     }),
-    [mergedState, inferredInputs, groupConfig]
+    [mergedState, inferredInputs, groupConfig],
   );
 
   // CRITICAL: Use span wrapper with display:none instead of returning null
@@ -148,7 +148,7 @@ export function FieldGroup({ name, children }: FieldGroupProps): JSX.Element {
   return (
     <GroupContext.Provider value={contextValue}>
       <span
-        style={{ display: mergedState.isVisible ? undefined : 'none' }}
+        style={{ display: mergedState.isVisible ? undefined : "none" }}
         data-formality-group={name}
       >
         {children}

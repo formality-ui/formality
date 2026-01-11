@@ -2,15 +2,12 @@
 // Custom hook wrapping RHF's useWatch with proxy optimization
 // CRITICAL: This hook is designed for ISOLATED field subscriptions
 
-import { useMemo } from 'react';
-import {
-  useWatch,
-  useFormContext as useRHFFormContext,
-} from 'react-hook-form';
-import type { FieldValues } from 'react-hook-form';
-import { makeProxyState } from '../utils/makeProxyState';
-import { useFormContext as useFormalityFormContext } from '../context/FormContext';
-import type { CustomFieldState, IsolatedFormState } from '../types';
+import { useMemo } from "react";
+import { useWatch, useFormContext as useRHFFormContext } from "react-hook-form";
+import type { FieldValues } from "react-hook-form";
+import { makeProxyState } from "../utils/makeProxyState";
+import { useFormContext as useFormalityFormContext } from "../context/FormContext";
+import type { CustomFieldState, IsolatedFormState } from "../types";
 
 /**
  * Options for useFormState hook
@@ -56,13 +53,15 @@ export interface UseFormStateOptions {
  * ```
  */
 export function useFormState<TFieldValues extends FieldValues = FieldValues>(
-  options: UseFormStateOptions
+  options: UseFormStateOptions,
 ): IsolatedFormState {
   // Get RHF context
   const rhfContext = useRHFFormContext<TFieldValues>();
 
   // Get Formality context (may not be available if used outside Form)
-  let formalityContext: ReturnType<typeof useFormalityFormContext<TFieldValues>> | null = null;
+  let formalityContext: ReturnType<
+    typeof useFormalityFormContext<TFieldValues>
+  > | null = null;
   try {
     formalityContext = useFormalityFormContext<TFieldValues>();
   } catch {
@@ -90,9 +89,8 @@ export function useFormState<TFieldValues extends FieldValues = FieldValues>(
     }
 
     // Handle single field vs multiple fields
-    const values = fieldNames.length === 1
-      ? [watchedValues]
-      : (watchedValues as unknown[]);
+    const values =
+      fieldNames.length === 1 ? [watchedValues] : (watchedValues as unknown[]);
 
     fieldNames.forEach((name, index) => {
       const value = values[index];
@@ -130,7 +128,7 @@ export function useFormState<TFieldValues extends FieldValues = FieldValues>(
     };
 
     // Add record property with lazy access
-    Object.defineProperty(base, 'record', {
+    Object.defineProperty(base, "record", {
       get: () => formalityContext?.record ?? {},
       enumerable: true,
       configurable: true,

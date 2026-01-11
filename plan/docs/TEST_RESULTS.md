@@ -5,6 +5,7 @@
 This document contains the results of comprehensive end-to-end validation testing of the Formality form framework implementation against the original PRD specifications.
 
 **Testing Methodology:**
+
 - Analyzed 329 existing unit and integration tests (all passing)
 - Reviewed 9 comprehensive example files
 - Examined core and React package source code
@@ -21,6 +22,7 @@ The Formality implementation is **production-ready** with excellent test coverag
 **None Found.**
 
 All core functionality works as specified. The implementation correctly handles:
+
 - Expression evaluation with proper short-circuit logic
 - Condition evaluation with OR (disabled) and AND (visible) logic
 - Validation isolation (only affected fields validate on change)
@@ -42,6 +44,7 @@ All core functionality works as specified. The implementation correctly handles:
 **Expected Behavior**: Components should not generate React warnings about refs.
 
 **Actual Behavior**: Multiple test files show React warnings:
+
 ```
 Warning: Function components cannot be given refs. Attempts to access this ref will fail.
 Did you mean to use React.forwardRef()?
@@ -49,20 +52,23 @@ Check the render method of `Controller`.
 ```
 
 **Steps to Reproduce**:
+
 1. Run `pnpm test`
 2. Observe warnings in test output for Field.test.tsx, FieldGroup.test.tsx, autosave-validation.test.tsx, etc.
 
 **Affected Files**:
-- packages/react/src/__tests__/autosave-validation.test.tsx:26
-- packages/react/src/__tests__/integration/complete-form.test.tsx:19
-- packages/react/src/__tests__/UnusedFields.test.tsx:15
-- packages/react/src/__tests__/render-isolation.test.tsx:19
-- packages/react/src/__tests__/Field.test.tsx:15
-- packages/react/src/__tests__/FieldGroup.test.tsx:33
+
+- packages/react/src/**tests**/autosave-validation.test.tsx:26
+- packages/react/src/**tests**/integration/complete-form.test.tsx:19
+- packages/react/src/**tests**/UnusedFields.test.tsx:15
+- packages/react/src/**tests**/render-isolation.test.tsx:19
+- packages/react/src/**tests**/Field.test.tsx:15
+- packages/react/src/**tests**/FieldGroup.test.tsx:33
 
 **Root Cause**: Test input components (TestInput, TestSwitch, etc.) are not wrapped with `React.forwardRef()`, but RHF's Controller attempts to pass refs to them.
 
 **Suggested Fix**: Either:
+
 1. Wrap all test input components with `React.forwardRef()` to match real-world component patterns
 2. Update documentation to note that input components should use forwardRef when integrating with RHF Controller
 3. Add a validator/linter rule to catch missing forwardRef on components used with Field
@@ -80,12 +86,14 @@ Check the render method of `Controller`.
 **Expected Behavior**: FieldGroup should work gracefully with undefined group config or provide a clearer error message.
 
 **Actual Behavior**: When a FieldGroup references a non-existent group name, console warnings are printed:
+
 ```
 FieldGroup: No config found for group "undefinedGroup".
 Make sure to define it in formConfig.groups.
 ```
 
 **Steps to Reproduce**:
+
 1. Create a FieldGroup with name="undefinedGroup"
 2. Don't define that group in formConfig.groups
 3. Observe console warnings
@@ -93,6 +101,7 @@ Make sure to define it in formConfig.groups.
 **Code Location**: packages/react/src/components/FieldGroup.tsx:74-76
 
 **Suggested Fix**:
+
 1. Consider throwing an error in development mode instead of warning, since this is likely a configuration error
 2. Provide better error context: show available group names
 3. Consider allowing FieldGroup without config (document that it defaults to visible/enabled)
@@ -112,22 +121,25 @@ Make sure to define it in formConfig.groups.
 **Actual Behavior**: As documented in PRD Section 19.2: "Prevention: None built-in. Developers must avoid circular subscriptions in config."
 
 **Steps to Reproduce**:
+
 1. Create Field A with subscribesTo: ['fieldB']
 2. Create Field B with subscribesTo: ['fieldA']
 3. React errors with "Maximum update depth exceeded"
 
 **Suggested Fix**:
+
 1. Add circular dependency detection in addSubscription()
 2. Track subscription graph and throw error on cycle detection
 3. Provide helpful error message showing the cycle path
 
 **Pseudo-code**:
+
 ```typescript
 function addSubscription(target: string, subscriber: string) {
   // Check if adding this creates a cycle
   if (wouldCreateCycle(invertedSubscriptions, target, subscriber)) {
     throw new Error(
-      `Circular dependency detected: ${subscriber} → ${target} → ... → ${subscriber}`
+      `Circular dependency detected: ${subscriber} → ${target} → ... → ${subscriber}`,
     );
   }
   // ... existing logic
@@ -151,6 +163,7 @@ function addSubscription(target: string, subscriber: string) {
 **Actual Behavior**: UnusedFields renders fields directly without supporting a render prop for custom layout.
 
 **Current Implementation**:
+
 ```typescript
 {sortedFields.map((fieldName) => (
   <Field key={fieldName} name={fieldName} shouldRegister={false} />
@@ -158,6 +171,7 @@ function addSubscription(target: string, subscriber: string) {
 ```
 
 **Suggested Fix**: Add render function support:
+
 ```typescript
 {
   typeof children === 'function'
@@ -185,6 +199,7 @@ function addSubscription(target: string, subscriber: string) {
 **Code Location**: packages/core/src/expression/evaluate.ts:248-252
 
 **Suggested Fix**: Add error handling callback to FormalityProviderConfig:
+
 ```typescript
 interface FormalityProviderConfig {
   onExpressionError?: (expr: string, error: Error) => void;
@@ -207,12 +222,14 @@ interface FormalityProviderConfig {
 **Actual Behavior**: Console warnings are issued, but execution continues with fallback values.
 
 **Code Locations**:
+
 - packages/core/src/validation/validate.ts:107-114
 - packages/core/src/transform/pipeline.ts:69-81, 132-144
 
 **Suggested Fix**:
+
 ```typescript
-if (process.env.NODE_ENV === 'development' && !validator) {
+if (process.env.NODE_ENV === "development" && !validator) {
   throw new Error(`Validator "${spec}" not found in validators config`);
 }
 ```
@@ -232,18 +249,20 @@ if (process.env.NODE_ENV === 'development' && !validator) {
 **Actual Behavior**: FormState is quite broad, making TypeScript less helpful for autocomplete.
 
 **Current Type**:
+
 ```typescript
 type SelectFunction<TReturn = unknown> = (
   formState: FormState,
-  methods: UseFormReturn
+  methods: UseFormReturn,
 ) => TReturn;
 ```
 
 **Suggested Fix**: Consider providing a more specific type for common cases:
+
 ```typescript
 type SelectFunction<TFields extends Record<string, any>, TReturn = unknown> = (
   formState: FormState & { fields: TFields },
-  methods: UseFormReturn
+  methods: UseFormReturn,
 ) => TReturn;
 ```
 
@@ -262,9 +281,15 @@ type SelectFunction<TFields extends Record<string, any>, TReturn = unknown> = (
 **Actual Behavior**: No validation that debounce is reasonable (e.g., debounce: -100 would be accepted).
 
 **Suggested Fix**: Add validation in Form component:
+
 ```typescript
-if (typeof debounce === 'number' && (debounce < 0 || !Number.isFinite(debounce))) {
-  throw new Error(`debounce must be a positive number or false, received: ${debounce}`);
+if (
+  typeof debounce === "number" &&
+  (debounce < 0 || !Number.isFinite(debounce))
+) {
+  throw new Error(
+    `debounce must be a positive number or false, received: ${debounce}`,
+  );
 }
 ```
 
@@ -285,8 +310,9 @@ if (typeof debounce === 'number' && (debounce < 0 || !Number.isFinite(debounce))
 **Code Location**: UnusedFields sorting uses `config[name].order ?? Infinity`
 
 **Suggested Fix**: Add validation:
+
 ```typescript
-if (order != null && typeof order !== 'number') {
+if (order != null && typeof order !== "number") {
   console.warn(`Field ${name} has invalid order property: ${order}`);
 }
 ```
@@ -304,6 +330,7 @@ if (order != null && typeof order !== 'number') {
 **Expected Behavior**: humanizeLabel should handle all edge cases gracefully.
 
 **Actual Behavior**: Current implementation may not handle all cases:
+
 - Consecutive numbers: "field123name" → "Field123name" (could be "Field 123 Name")
 - All caps: "URL" → "Url" (should probably stay "URL")
 - Single letter: "x" → "X" (works but could be documented)
@@ -365,6 +392,7 @@ if (order != null && typeof order !== 'number') {
 ### Edge Cases Handled Correctly
 
 The implementation correctly handles:
+
 - Mount order race conditions (pending queue)
 - Field value proxies for performance
 - Null/undefined handling in expressions
@@ -435,5 +463,6 @@ The issues identified are relatively minor and mostly focused on developer exper
 - **Test Duration**: ~2.3s
 
 **Test Coverage**:
+
 - Core Package: ~100% of critical paths
 - React Package: ~83% overall (excellent for component library)
