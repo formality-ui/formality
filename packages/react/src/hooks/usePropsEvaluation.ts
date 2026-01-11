@@ -45,6 +45,23 @@ import { makeProxyState } from "../utils/makeProxyState";
  */
 export type SelectedProps = Record<string, unknown>;
 
+/**
+ * Result of evaluating all three prop sources separately
+ *
+ * Each layer is evaluated independently so that mergeFieldProps
+ * can correctly apply the 8-layer priority order.
+ */
+export interface EvaluatedPropsResult {
+  /** Evaluated provider-level selectDefaultFieldProps (layer 7 priority) */
+  providerSelectProps: Record<string, unknown>;
+
+  /** Evaluated form-level selectDefaultFieldProps (layer 5 priority) */
+  formSelectProps: Record<string, unknown>;
+
+  /** Evaluated field-level selectProps (layer 2 priority) */
+  fieldSelectProps: Record<string, unknown>;
+}
+
 export interface UsePropsEvaluationOptions {
   /** Dynamic props descriptor to evaluate */
   selectProps?: SelectValue;
@@ -94,7 +111,7 @@ export interface UsePropsEvaluationOptions {
  */
 export function usePropsEvaluation(
   options: UsePropsEvaluationOptions,
-): SelectedProps {
+): EvaluatedPropsResult {
   const {
     selectProps,
     formDefaultFieldProps,
@@ -167,10 +184,10 @@ export function usePropsEvaluation(
     // Only depends on watchFields and watchedValues - NOT the entire form state
   }, [watchFields, watchedValues, record]);
 
-  // Evaluate props in priority order: form > provider > selectProps
+  // Evaluate props: evaluate ALL three layers separately for mergeFieldProps
   return useMemo(() => {
-    // Step 1: Evaluate providerDefaultFieldProps if provided (lowest priority)
-    let providerResult: Record<string, unknown> | null = null;
+    // Step 1: Evaluate providerDefaultFieldProps (lowest priority, layer 7)
+    let providerResult: Record<string, unknown> = {};
     if (providerDefaultFieldProps) {
       // Handle function providerDefaultFieldProps
       if (typeof providerDefaultFieldProps === "function") {
@@ -188,41 +205,46 @@ export function usePropsEvaluation(
       }
     }
 
-    // Step 2: Evaluate formDefaultFieldProps if provided (overrides provider)
+    // Step 2: Evaluate formDefaultFieldProps (medium priority, layer 5)
+    let formResult: Record<string, unknown> = {};
     if (formDefaultFieldProps) {
       // Handle function formDefaultFieldProps
       if (typeof formDefaultFieldProps === "function") {
-        const result = formDefaultFieldProps(formState, methods);
-        return (result as Record<string, unknown>) ?? {};
+        formResult =
+          (formDefaultFieldProps(formState, methods) as Record<string, unknown>) ?? {};
+      } else {
+        // Build evaluation context
+        const context = buildFieldContext(formState, fieldName);
+
+        // Evaluate descriptor (string expression, object with expressions, or array)
+        formResult =
+          (evaluateDescriptor(formDefaultFieldProps, context) as Record<string, unknown>) ??
+          {};
       }
-
-      // Build evaluation context
-      const context = buildFieldContext(formState, fieldName);
-
-      // Evaluate descriptor (string expression, object with expressions, or array)
-      const result = evaluateDescriptor(formDefaultFieldProps, context);
-
-      return (result as Record<string, unknown>) ?? {};
     }
 
-    // Step 3: Evaluate selectProps if provided (field-level, overrides provider)
+    // Step 3: Evaluate selectProps (highest priority, layer 2)
+    let fieldResult: Record<string, unknown> = {};
     if (selectProps) {
       // Handle function selectProps
       if (typeof selectProps === "function") {
-        const result = selectProps(formState, methods);
-        return (result as Record<string, unknown>) ?? {};
+        fieldResult =
+          (selectProps(formState, methods) as Record<string, unknown>) ?? {};
+      } else {
+        // Build evaluation context
+        const context = buildFieldContext(formState, fieldName);
+
+        // Evaluate descriptor (string expression, object with expressions, or array)
+        fieldResult =
+          (evaluateDescriptor(selectProps, context) as Record<string, unknown>) ?? {};
       }
-
-      // Build evaluation context
-      const context = buildFieldContext(formState, fieldName);
-
-      // Evaluate descriptor (string expression, object with expressions, or array)
-      const result = evaluateDescriptor(selectProps, context);
-
-      return (result as Record<string, unknown>) ?? {};
     }
 
-    // Step 4: Return provider result or empty object
-    return providerResult ?? {};
+    // Step 4: Return all three results for mergeFieldProps to handle priority
+    return {
+      providerSelectProps: providerResult,
+      formSelectProps: formResult,
+      fieldSelectProps: fieldResult,
+    };
   }, [providerDefaultFieldProps, formDefaultFieldProps, selectProps, formState, methods, fieldName]);
 }

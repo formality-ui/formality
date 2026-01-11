@@ -69,7 +69,7 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Integrate into Field Component",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Consume evaluated selectDefaultFieldProps in the Field component and pass them to mergeFieldProps.",
               "subtasks": [
                 {
@@ -87,7 +87,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
                   "title": "Pass to mergeFieldProps",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S1"

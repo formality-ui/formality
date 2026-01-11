@@ -286,7 +286,7 @@ export function Field({
 
   // === PROPS EVALUATION ===
 
-  const evaluatedSelectProps = usePropsEvaluation({
+  const { providerSelectProps, formSelectProps, fieldSelectProps } = usePropsEvaluation({
     selectProps: fieldConfig.selectProps,
     formDefaultFieldProps: formConfig.selectDefaultFieldProps,
     providerDefaultFieldProps: providerConfig.selectDefaultFieldProps,
@@ -296,8 +296,8 @@ export function Field({
 
   // Resolve label
   const label = useMemo(() => {
-    return resolveLabel(name, fieldConfig, evaluatedSelectProps, restProps);
-  }, [name, fieldConfig, evaluatedSelectProps, restProps]);
+    return resolveLabel(name, fieldConfig, fieldSelectProps, restProps);
+  }, [name, fieldConfig, fieldSelectProps, restProps]);
 
   // === VALIDATION ===
 
@@ -394,12 +394,12 @@ export function Field({
         // Merge props (8 layers)
         const finalProps = mergeFieldProps({
           providerDefaultFieldProps: providerConfig.defaultFieldProps,
-          providerSelectDefaultFieldProps: {}, // Evaluated at provider level if needed
+          providerSelectDefaultFieldProps: providerSelectProps,
           formDefaultFieldProps: formConfig.defaultFieldProps,
-          formSelectDefaultFieldProps: {}, // Evaluated at form level if needed
+          formSelectDefaultFieldProps: formSelectProps,
           inputProps: inputConfig.props,
           fieldConfigProps: fieldConfig.props,
-          selectProps: evaluatedSelectProps,
+          selectProps: fieldSelectProps,
           componentProps: restProps,
           coreProps: {
             name,
