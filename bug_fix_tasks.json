@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Bug Fixes & Enhancements - Sprint 1",
-      "status": "Ready",
+      "status": "Planned",
       "description": "Address major issues (React ref warnings, FieldGroup warnings, circular dependency detection) and minor enhancements to improve developer experience and framework robustness.",
       "milestones": [
         {
@@ -25,7 +25,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S1",
                   "title": "Update Field.test.tsx test components",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/Field.test.tsx:11-26 use TestInput and TestSwitch without forwardRef. RHF Controller passes refs to these components, triggering React warnings.\n2. INPUT: Existing test file packages/react/src/__tests__/Field.test.tsx with components TestInput (lines 11-20) and TestSwitch (lines 22-26).\n3. LOGIC: Wrap TestInput and TestSwitch with React.forwardRef<HTMLInputElement, TestInputProps>. Add ref parameter to component signature. Forward ref to underlying <input> element. Set displayName for debugging.\n4. OUTPUT: Updated test components that accept ref prop without warnings. Tests should pass with no React warnings in console output."
@@ -99,7 +99,16 @@
                   "title": "Verify all tests pass with no warnings",
                   "status": "Planned",
                   "story_points": 0.5,
-                  "dependencies": ["P1.M1.T1.S1", "P1.M1.T1.S2", "P1.M1.T1.S3", "P1.M1.T1.S4", "P1.M1.T1.S5", "P1.M1.T1.S6", "P1.M1.T1.S7", "P1.M1.T1.S8"],
+                  "dependencies": [
+                    "P1.M1.T1.S1",
+                    "P1.M1.T1.S2",
+                    "P1.M1.T1.S3",
+                    "P1.M1.T1.S4",
+                    "P1.M1.T1.S5",
+                    "P1.M1.T1.S6",
+                    "P1.M1.T1.S7",
+                    "P1.M1.T1.S8"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All 8 test files have been updated with forwardRef components. Need to verify no React warnings remain.\n2. INPUT: Updated test files from P1.M1.T1.S1-S8.\n3. LOGIC: Run pnpm test command. Check console output for any \"Function components cannot be given refs\" warnings. Verify all 329 tests still pass. If warnings persist, identify which test files were missed and update them.\n4. OUTPUT: Clean test run output with 329 passing tests and zero React warnings about refs."
                 }
               ]
@@ -126,7 +135,9 @@
                   "title": "Add test for enhanced FieldGroup warning",
                   "status": "Planned",
                   "story_points": 0.5,
-                  "dependencies": ["P1.M1.T2.S1"],
+                  "dependencies": [
+                    "P1.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Existing tests in packages/react/src/__tests__/FieldGroup.test.tsx may not cover missing config warning.\n2. INPUT: Updated FieldGroup component with enhanced warning message from P1.M1.T2.S1.\n3. LOGIC: Add test case that creates a FieldGroup with name='nonExistentGroup' without defining it in formConfig.groups. Use spyOn to mock console.warn and verify the warning message includes both the missing group name and the list of available groups.\n4. OUTPUT: Test verifies enhanced warning message contains helpful context about available groups."
                 },
                 {
@@ -135,7 +146,9 @@
                   "title": "Decide on throwing errors vs warnings",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T2.S1"],
+                  "dependencies": [
+                    "P1.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD suggests either throwing errors in dev or improving warnings. Need to evaluate trade-offs.\n2. INPUT: Enhanced warning implementation from P1.M1.T2.S1. Team preference for error handling strategy.\n3. LOGIC: Evaluate throwing errors vs console warnings based on project conventions. If throwing errors: modify FieldGroup.tsx to throw Error instead of console.warn when process.env.NODE_ENV !== 'production'. If keeping warnings: ensure message is comprehensive. Update P1.M1.T2.S1 implementation accordingly.\n4. OUTPUT: Decision document or code comment explaining chosen approach. Updated implementation if switching to throw Error."
                 }
               ]
@@ -162,7 +175,9 @@
                   "title": "Integrate cycle detection into Form.addSubscription",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T3.S1"],
+                  "dependencies": [
+                    "P1.M1.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: addSubscription function is at packages/react/src/components/Form.tsx:212-230. Currently no cycle detection.\n2. INPUT: Form.tsx with addSubscription function. Cycle detection utility from P1.M1.T3.S1. invertedSubscriptions is a ref containing Map<string, Set<string>>.\n3. LOGIC: Import wouldCreateCycle and getCyclePath from '../utils/cycleDetection'. At start of addSubscription, call wouldCreateCycle(invertedSubscriptions.current, target, subscriber). If true, construct comprehensive error message using getCyclePath. Throw Error with message containing: cycle path, explanation of consequences, possible solutions (refactor, computed fields, FieldGroup), and documentation link. Only proceed with subscription if no cycle detected.\n4. OUTPUT: Updated addSubscription function that detects and prevents circular dependencies before they're added to subscription graph."
                 },
                 {
@@ -171,7 +186,9 @@
                   "title": "Write tests for cycle detection utility",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T3.S1"],
+                  "dependencies": [
+                    "P1.M1.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need comprehensive test coverage for DFS algorithm and edge cases.\n2. INPUT: Cycle detection utility module from P1.M1.T3.S1.\n3. LOGIC: Create packages/react/src/utils/cycleDetection.test.ts. Write test cases: no cycle (linear chain A→B→C), simple cycle (A→B→A), complex cycle (A→B→C→A), self-cycle (A→A), disconnected graphs, large graph (50+ nodes), multiple cycles. Use describe blocks for organization. Test both wouldCreateCycle and getCyclePath functions. Mock graph structures using Map.\n4. OUTPUT: Test suite with 10+ test cases covering all cycle detection scenarios. All tests pass."
                 },
                 {
@@ -180,7 +197,9 @@
                   "title": "Write integration test for circular dependency error",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T3.S2"],
+                  "dependencies": [
+                    "P1.M1.T3.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify Form component throws error when circular subscribesTo config is provided.\n2. INPUT: Form component with integrated cycle detection from P1.M1.T3.S2.\n3. LOGIC: Create test file or add to existing Form.test.tsx. Configure two fields with circular subscribesTo (fieldA.subscribesTo = ['fieldB'], fieldB.subscribesTo = ['fieldA']). Render Form with this config. Expect Error to be thrown with message containing 'Circular dependency detected' and cycle path. Verify error message includes helpful suggestions. Test that non-circular subscriptions still work.\n4. OUTPUT: Integration test proving circular dependencies are detected and prevented with helpful error messages."
                 },
                 {
@@ -189,7 +208,10 @@
                   "title": "Verify no performance regression on subscription operations",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T3.S2", "P1.M1.T3.S4"],
+                  "dependencies": [
+                    "P1.M1.T3.S2",
+                    "P1.M1.T3.S4"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Cycle detection adds O(V+E) complexity to addSubscription. Need to ensure acceptable performance.\n2. INPUT: Form component with cycle detection. Existing test suite with 184 React tests.\n3. LOGIC: Run full test suite (pnpm test). Verify all existing tests still pass and test duration hasn't significantly increased (should stay under 3 seconds). If performance is an issue, consider optimizations like memoizing visited nodes or only checking cycles when adding new subscriptions (not removing).\n4. OUTPUT: Performance baseline documentation. All 329 tests pass. No significant test duration increase."
                 }
               ]
@@ -225,7 +247,9 @@
                   "title": "Update expression evaluator to use callback",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S1"],
+                  "dependencies": [
+                    "P1.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Expression error handling is at packages/core/src/expression/evaluate.ts:248-252. Currently uses console.warn.\n2. INPUT: evaluate.ts file with error handler at lines 248-252. FormalityConfig type from P1.M2.T1.S1 with onExpressionError callback.\n3. LOGIC: Modify catch block at line 248. Check if config.onExpressionError exists. If yes, call config.onExpressionError(expr, error as Error). If no, fall back to existing behavior (console.warn in non-production). Ensure error object is properly typed.\n4. OUTPUT: Expression evaluator that calls custom error handler if provided, otherwise falls back to console.warn."
                 },
                 {
@@ -234,7 +258,9 @@
                   "title": "Add onExpressionError to FormalityProvider props",
                   "status": "Planned",
                   "story_points": 0.5,
-                  "dependencies": ["P1.M2.T1.S2"],
+                  "dependencies": [
+                    "P1.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FormalityProvider is at packages/react/src/components/FormalityProvider.tsx. Props interface needs updating.\n2. INPUT: FormalityProviderProps interface in packages/react/src/components/FormalityProvider.tsx.\n3. LOGIC: Add onExpressionError?: (expr: string, error: Error) => void to FormalityProviderProps interface. Pass this prop through to core config when creating FormalityConfig instance.\n4. OUTPUT: FormalityProvider accepts onExpressionError prop and passes it to core configuration."
                 },
                 {
@@ -243,7 +269,9 @@
                   "title": "Write tests for expression error callback",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S3"],
+                  "dependencies": [
+                    "P1.M2.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify custom error handler is invoked when expressions fail.\n2. INPUT: FormalityProvider with onExpressionError prop. Expression evaluator updated from P1.M2.T1.S2.\n3. LOGIC: Create test case that provides onExpressionError mock function. Create invalid expression (e.g., 'nonExistent.property'). Render component with expression. Verify mock function was called with expression string and error object. Test that callback is not called for valid expressions. Test that callback works alongside or instead of console.warn.\n4. OUTPUT: Tests proving custom error handler is invoked correctly for expression errors."
                 }
               ]
@@ -288,7 +316,11 @@
                   "title": "Write tests for missing config errors",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T2.S1", "P1.M2.T2.S2", "P1.M2.T2.S3"],
+                  "dependencies": [
+                    "P1.M2.T2.S1",
+                    "P1.M2.T2.S2",
+                    "P1.M2.T2.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify errors are thrown in development but not in production.\n2. INPUT: Updated validation and transform modules from P1.M2.T2.S1-S3.\n3. LOGIC: Create test suite covering: missing validator throws error with available list, missing parser throws error, missing formatter throws error, production mode (NODE_ENV=production) returns fallback values instead of throwing. Use expect().toThrow() assertions. Mock process.env.NODE_ENV for testing both modes.\n4. OUTPUT: Test suite verifying development mode errors and production mode graceful degradation."
                 }
               ]
@@ -315,7 +347,9 @@
                   "title": "Verify TypeScript compilation and autocomplete",
                   "status": "Planned",
                   "story_points": 0.5,
-                  "dependencies": ["P1.M2.T3.S1"],
+                  "dependencies": [
+                    "P1.M2.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to ensure type changes don't break existing code and provide better autocomplete.\n2. INPUT: Updated SelectFunction type from P1.M2.T3.S1.\n3. LOGIC: Run pnpm typecheck to verify no TypeScript errors across entire project. Create test file with SelectFunction usage to verify autocomplete now provides field names when formState is typed. Check that existing usage without generics still compiles.\n4. OUTPUT: TypeScript compilation succeeds. Autocomplete improvement verified (can manually test in IDE)."
                 }
               ]
@@ -342,7 +376,9 @@
                   "title": "Write tests for debounce validation",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T4.S1"],
+                  "dependencies": [
+                    "P1.M2.T4.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to test validation catches invalid debounce values.\n2. INPUT: Form component with debounce validation from P1.M2.T4.S1.\n3. LOGIC: Add test cases: debounce=-1 throws error, debounce=Infinity throws error, debounce=NaN throws error, debounce=0 is accepted, debounce=1000 is accepted, debounce=false is accepted, debounce=undefined uses default. Use expect().toThrow() assertions.\n4. OUTPUT: Test suite verifying debounce validation catches invalid values."
                 }
               ]
@@ -369,7 +405,9 @@
                   "title": "Write tests for order validation",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T5.S1"],
+                  "dependencies": [
+                    "P1.M2.T5.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify invalid order values trigger warnings and default to Infinity.\n2. INPUT: Updated sortFieldsByOrder function from P1.M2.T5.S1.\n3. LOGIC: Create test cases: field with order='invalid' triggers warning and sorts to end, field with order=null triggers warning, field with order=undefined uses Infinity (no warning), field with order=-5 is accepted (negative numbers allowed), field with order=0 is accepted. Mock console.warn and assert it was called with expected messages.\n4. OUTPUT: Test suite verifying order validation catches invalid values and warns appropriately."
                 }
               ]
@@ -396,7 +434,9 @@
                   "title": "Add edge case tests for humanizeLabel",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T6.S1"],
+                  "dependencies": [
+                    "P1.M2.T6.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Existing tests may not cover all edge cases mentioned in documentation.\n2. INPUT: humanizeLabel function with documentation from P1.M2.T6.S1.\n3. LOGIC: Add new describe block 'humanizeLabel edge cases' to packages/core/src/__tests__/labels.test.ts. Test cases: consecutive numbers (field123name → Field123name), all-caps (URL → Url, userID → User Id), single letters (x → X), special characters (field_name → Field_name, field-name → Field-name), empty string (→ ). Ensure all documented behaviors are tested.\n4. OUTPUT: Comprehensive test coverage for humanizeLabel edge cases that matches documentation."
                 }
               ]
@@ -432,7 +472,9 @@
                   "title": "Check test coverage",
                   "status": "Planned",
                   "story_points": 0.5,
-                  "dependencies": ["P1.M3.T1.S1"],
+                  "dependencies": [
+                    "P1.M3.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test coverage should remain high: Core ~100%, React ~83%.\n2. INPUT: Codebase with passing tests from P1.M3.T1.S1.\n3. LOGIC: Run pnpm test:coverage command. Review coverage report. Ensure core package coverage remains at or near 100%. Ensure React package coverage remains around 83%. Identify any untested code paths added during bug fixes. If critical paths lack coverage, add tests.\n4. OUTPUT: Coverage report showing high coverage maintained. New code is tested."
                 }
               ]
@@ -468,7 +510,9 @@
                   "title": "Build all packages",
                   "status": "Planned",
                   "story_points": 0.5,
-                  "dependencies": ["P1.M3.T2.S1"],
+                  "dependencies": [
+                    "P1.M3.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Build process creates ESM, CJS, and type definition files.\n2. INPUT: Codebase with passing typecheck from P1.M3.T2.\n3. LOGIC: Run pnpm build command. Verify both core and react packages build successfully. Check that dist directories contain expected files: index.js (ESM), index.cjs (CJS), index.d.ts (types). Verify no build warnings or errors.\n4. OUTPUT: Successful build of all packages with proper output files."
                 }
               ]

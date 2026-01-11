@@ -1,6 +1,32 @@
+# Build artifacts
 dist
-node_modules
-.claude
-plan
-PRPs
+build
 *.tsbuildinfo
+
+# Dependencies
+node_modules
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor files
+.claude
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Plan subdirectories (keep structure, ignore contents except docs)
+# plan/ is tracked but plan/* subdirectories may be ignored
+# plan/docs/ should be tracked for documentation
+
+
+# Test coverage
+coverage/

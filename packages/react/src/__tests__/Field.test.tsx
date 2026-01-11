@@ -1,4 +1,5 @@
 // @formality-ui/react - Field Component Tests
+import React, { forwardRef } from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -8,31 +9,59 @@ import { FormalityProvider } from '../components/FormalityProvider';
 import type { InputConfig, FormFieldsConfig } from '@formality-ui/core';
 
 // Test input component with all common props
-const TestInput = ({ value, onChange, disabled, label, error, ...props }: any) => (
-  <div>
-    {label && <label data-testid={`${props.name}-label`}>{label}</label>}
+interface TestInputProps {
+  value?: any;
+  onChange?: (value: any) => void;
+  disabled?: boolean;
+  label?: string;
+  error?: string;
+  name: string;
+  [key: string]: unknown;
+}
+
+const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
+  ({ value, onChange, disabled, label, error, name, ...props }, ref) => (
+    <div>
+      {label && <label data-testid={`${name}-label`}>{label}</label>}
+      <input
+        ref={ref}
+        data-testid={name}
+        value={value ?? ''}
+        onChange={(e) => onChange?.(e.target.value)}
+        disabled={disabled}
+        {...props}
+      />
+      {error && <span data-testid={`${name}-error`}>{error}</span>}
+    </div>
+  )
+);
+
+TestInput.displayName = 'TestInput';
+
+// Test switch input
+interface TestSwitchProps {
+  value?: any;
+  onChange?: (value: any) => void;
+  disabled?: boolean;
+  name: string;
+  [key: string]: unknown;
+}
+
+const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
+  ({ value, onChange, disabled, name, ...props }, ref) => (
     <input
-      data-testid={props.name}
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value)}
+      ref={ref}
+      type="checkbox"
+      data-testid={name}
+      checked={value ?? false}
+      onChange={(e) => onChange?.(e.target.checked)}
       disabled={disabled}
       {...props}
     />
-    {error && <span data-testid={`${props.name}-error`}>{error}</span>}
-  </div>
+  )
 );
 
-// Test switch input
-const TestSwitch = ({ value, onChange, disabled, ...props }: any) => (
-  <input
-    type="checkbox"
-    data-testid={props.name}
-    checked={value ?? false}
-    onChange={(e) => onChange(e.target.checked)}
-    disabled={disabled}
-    {...props}
-  />
-);
+TestSwitch.displayName = 'TestSwitch';
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {
