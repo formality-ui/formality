@@ -288,6 +288,8 @@ export function Field({
 
   const evaluatedSelectProps = usePropsEvaluation({
     selectProps: fieldConfig.selectProps,
+    formDefaultFieldProps: formConfig.selectDefaultFieldProps,
+    providerDefaultFieldProps: providerConfig.selectDefaultFieldProps,
     subscribesTo: fieldConfig.subscribesTo,
     fieldName: name,
   });
