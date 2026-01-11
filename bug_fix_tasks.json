@@ -3,216 +3,131 @@
     {
       "type": "Phase",
       "id": "P1",
-      "title": "Bug Fixes & Enhancements - Sprint 1",
-      "status": "Planned",
-      "description": "Address major issues (React ref warnings, FieldGroup warnings, circular dependency detection) and minor enhancements to improve developer experience and framework robustness.",
+      "title": "Formality Bug Fixes - Phase 1: Critical Issues",
+      "status": "Ready",
+      "description": "Fix critical bugs that prevent core PRD features from working: selectDefaultFieldProps evaluation and debounce: false immediate submission.",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P1.M1",
-          "title": "Major Issue Resolution",
+          "title": "Implement selectDefaultFieldProps Evaluation",
           "status": "Planned",
-          "description": "Resolve all Major severity issues (Issues #1-3) that affect developer experience or can cause runtime errors.",
+          "description": "Implement the missing selectDefaultFieldProps evaluation at both provider and form levels, enabling dynamic default props based on form state.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M1.T1",
-              "title": "Fix React Ref Warnings in Test Output",
+              "title": "Extend usePropsEvaluation Hook for Default Props",
               "status": "Planned",
-              "description": "Wrap all test input components with React.forwardRef() to eliminate React warnings about refs on function components. This affects 8 test files and ensures clean test output.",
+              "description": "Modify the usePropsEvaluation hook to support evaluation of form-level and provider-level selectDefaultFieldProps in addition to the existing field-level selectProps.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T1.S1",
-                  "title": "Update Field.test.tsx test components",
-                  "status": "Complete",
+                  "title": "Add selectDefaultFieldProps parameters to usePropsEvaluation hook signature",
+                  "status": "Planned",
                   "story_points": 1,
                   "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/Field.test.tsx:11-26 use TestInput and TestSwitch without forwardRef. RHF Controller passes refs to these components, triggering React warnings.\n2. INPUT: Existing test file packages/react/src/__tests__/Field.test.tsx with components TestInput (lines 11-20) and TestSwitch (lines 22-26).\n3. LOGIC: Wrap TestInput and TestSwitch with React.forwardRef<HTMLInputElement, TestInputProps>. Add ref parameter to component signature. Forward ref to underlying <input> element. Set displayName for debugging.\n4. OUTPUT: Updated test components that accept ref prop without warnings. Tests should pass with no React warnings in console output."
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, usePropsEvaluation hook (packages/react/src/hooks/usePropsEvaluation.ts) currently only evaluates field-level selectProps. It uses useInferredInputs for dependency inference and useWatch for isolated subscriptions.\n2. INPUT: Hook receives existing selectProps parameter. Add two new parameters: formSelectDefaultFieldProps?: SelectValue<FieldProps> and providerSelectDefaultFieldProps?: SelectValue<FieldProps>. Both are SelectValue type (string or function from types/config.ts).\n3. LOGIC: Extend the hook to evaluate form and provider selectDefaultFieldProps using the same expression evaluation pattern as selectProps. Use the same proxy state wrapping for field context access. Ensure evaluated props are memoized to prevent unnecessary re-evaluation.\n4. OUTPUT: Return object containing evaluated formDefaultProps and providerDefaultProps (both type FieldProps), alongside existing evaluatedProps."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T1.S2",
-                  "title": "Update FieldGroup.test.tsx test components",
-                  "status": "Complete",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/FieldGroup.test.tsx:11-33 use TestInput and TestSwitch without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/FieldGroup.test.tsx with components TestInput (lines 11-20) and TestSwitch (lines 22-33).\n3. LOGIC: Apply same forwardRef pattern as P1.M1.T1.S1. Wrap both components with React.forwardRef. Add ref parameter to signature. Forward ref to input elements. Set displayName.\n4. OUTPUT: Updated test components. No React warnings when tests run."
+                  "title": "Implement evaluation logic for form-level selectDefaultFieldProps",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From external_deps.md, expression evaluation uses evaluate() function from packages/core/src/expression/evaluate.ts with jsep parsing. The same pattern is used in usePropsEvaluation for selectProps.\n2. INPUT: formSelectDefaultFieldProps parameter (SelectValue<FieldProps>) and proxyFieldStates from existing hook logic. If formSelectDefaultFieldProps is a function, it needs evaluation with field context.\n3. LOGIC: Check if formSelectDefaultFieldProps is a function using typeof === 'function'. If true, call it with proxyFieldStates as argument to get evaluated props. If string, return as-is (static props). Use same memoization pattern as existing selectProps evaluation with [formSelectDefaultFieldProps, proxyFieldStates] dependencies.\n4. OUTPUT: Evaluated formDefaultProps: FieldProps object to be consumed by Field component for props merging."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T1.S3",
-                  "title": "Update Form.test.tsx test component",
-                  "status": "Complete",
-                  "story_points": 0.5,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test component at packages/react/src/__tests__/Form.test.tsx:11 is TestInput without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/Form.test.tsx with TestInput component at line 11.\n3. LOGIC: Wrap TestInput with React.forwardRef. Add ref parameter. Forward ref to <input> element. Set displayName.\n4. OUTPUT: Updated TestInput component. No warnings in test output."
+                  "title": "Implement evaluation logic for provider-level selectDefaultFieldProps",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Provider-level props have lowest priority in 8-layer pipeline (codebase_analysis.md line 393). Use same evaluation pattern as form-level but with provider context.\n2. INPUT: providerSelectDefaultFieldProps parameter (SelectValue<FieldProps>) and proxyFieldStates from existing hook logic.\n3. LOGIC: Same evaluation logic as S2 but for provider-level props. Check if function, call with proxyFieldStates, memoize result. Ensure provider-level evaluation uses same dependency array pattern.\n4. OUTPUT: Evaluated providerDefaultProps: FieldProps object to be consumed by Field component."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T1.S4",
-                  "title": "Update FormalityProvider.test.tsx test component",
-                  "status": "Complete",
-                  "story_points": 0.5,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test component at packages/react/src/__tests__/FormalityProvider.test.tsx:19 is TestInput without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/FormalityProvider.test.tsx with TestInput at line 19.\n3. LOGIC: Apply forwardRef pattern. Wrap TestInput with React.forwardRef. Forward ref to input element. Set displayName.\n4. OUTPUT: Updated TestInput component. Clean test output."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M1.T1.S5",
-                  "title": "Update UnusedFields.test.tsx test component",
-                  "status": "Complete",
-                  "story_points": 0.5,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test component at packages/react/src/__tests__/UnusedFields.test.tsx:11 is TestInput without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/UnusedFields.test.tsx with TestInput at line 11.\n3. LOGIC: Wrap TestInput with React.forwardRef. Add ref parameter. Forward ref. Set displayName.\n4. OUTPUT: Updated TestInput component."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M1.T1.S6",
-                  "title": "Update autosave-validation.test.tsx test components",
-                  "status": "Complete",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/autosave-validation.test.tsx:27-36 include TestInput and TestSwitch without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/autosave-validation.test.tsx with TestInput (lines 27-30) and TestSwitch (lines 32-36).\n3. LOGIC: Apply forwardRef pattern to both components. Wrap with React.forwardRef. Forward refs to input elements. Set displayNames.\n4. OUTPUT: Updated test components. No warnings in autosave validation tests."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M1.T1.S7",
-                  "title": "Update render-isolation.test.tsx test components",
-                  "status": "Complete",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/render-isolation.test.tsx:19-33 include TestInput and TestSwitch without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/render-isolation.test.tsx with TestInput (lines 19-26) and TestSwitch (lines 28-33).\n3. LOGIC: Apply forwardRef pattern to both components. Wrap with React.forwardRef. Forward refs to input elements. Set displayNames.\n4. OUTPUT: Updated test components. Clean test output for performance tests."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M1.T1.S8",
-                  "title": "Update complete-form.test.tsx integration test components",
+                  "title": "Update TypeScript types for new hook parameters and return values",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/integration/complete-form.test.tsx:14-49 include TestInput, TestSwitch, and TestSelect without forwardRef.\n2. INPUT: Existing integration test file with TestInput (lines 14-20), TestSwitch (lines 22-29), and TestSelect (lines 31-49).\n3. LOGIC: Apply forwardRef pattern to all three components. Wrap with React.forwardRef. Forward refs to input/select elements. Set displayNames. TestSelect should use forwardRef<HTMLSelectElement, TestSelectProps>.\n4. OUTPUT: Updated test components. Integration tests run without React warnings."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M1.T1.S9",
-                  "title": "Verify all tests pass with no warnings",
-                  "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M1.T1.S1",
-                    "P1.M1.T1.S2",
-                    "P1.M1.T1.S3",
-                    "P1.M1.T1.S4",
-                    "P1.M1.T1.S5",
-                    "P1.M1.T1.S6",
-                    "P1.M1.T1.S7",
-                    "P1.M1.T1.S8"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All 8 test files have been updated with forwardRef components. Need to verify no React warnings remain.\n2. INPUT: Updated test files from P1.M1.T1.S1-S8.\n3. LOGIC: Run pnpm test command. Check console output for any \"Function components cannot be given refs\" warnings. Verify all 329 tests still pass. If warnings persist, identify which test files were missed and update them.\n4. OUTPUT: Clean test run output with 329 passing tests and zero React warnings about refs."
+                  "dependencies": ["P1.M1.T1.S1", "P1.M1.T1.S2", "P1.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, SelectValue type is defined in packages/core/src/types/config.ts as polymorphic type: string | function.\n2. INPUT: Existing hook signature types. Need to add formSelectDefaultFieldProps and providerSelectDefaultFieldProps parameters.\n3. LOGIC: Update hook function signature to include new optional parameters: formSelectDefaultFieldProps?: SelectValue<FieldProps>, providerSelectDefaultFieldProps?: SelectValue<FieldProps>. Update return type to include formDefaultProps?: FieldProps and providerDefaultProps?: FieldProps in the return object.\n4. OUTPUT: Updated TypeScript function signature and return type interface. Export updated types for consumption by Field component."
                 }
               ]
             },
             {
               "type": "Task",
               "id": "P1.M1.T2",
-              "title": "Improve FieldGroup Config Missing Warning",
+              "title": "Integrate Evaluated Default Props into Field Component",
               "status": "Planned",
-              "description": "Enhance FieldGroup component to provide better error context when referencing non-existent group configurations. Either throw errors in development mode or include available group names in the warning message.",
+              "description": "Modify the Field component to consume evaluated default props from usePropsEvaluation and pass them to the mergeFieldProps function.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
-                  "title": "Enhance FieldGroup error message with available groups",
+                  "title": "Consume evaluated form and provider default props in Field component",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Current warning at packages/react/src/components/FieldGroup.tsx:73-78 only shows missing group name, not available options.\n2. INPUT: FieldGroup.tsx file with console.warn at lines 73-78. formConfig.groups object contains available group names.\n3. LOGIC: Extract available group names using Object.keys(formConfig.groups || {}). Update console.warn message to include available groups list. Format: 'FieldGroup: No config found for group \"undefinedGroup\".\\nAvailable groups: groupA, groupB\\nMake sure to define it in formConfig.groups.'\n4. OUTPUT: Enhanced warning message showing available group names to help developers identify typos or missing configurations."
+                  "dependencies": ["P1.M1.T1.S4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, Field component is at packages/react/src/components/Field.tsx. Currently calls usePropsEvaluation for selectProps only (around line 180). Need to extend this call.\n2. INPUT: usePropsEvaluation hook now returns formDefaultProps and providerDefaultProps from S4. Form config and provider config are available via useConfigContext hook.\n3. LOGIC: Update the usePropsEvaluation call to pass formConfig.selectDefaultFieldProps and providerConfig.selectDefaultFieldProps as parameters. Destructure the returned formDefaultProps and providerDefaultProps from the hook result.\n4. OUTPUT: Local variables formDefaultProps and providerDefaultProps containing evaluated props."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
-                  "title": "Add test for enhanced FieldGroup warning",
-                  "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M1.T2.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Existing tests in packages/react/src/__tests__/FieldGroup.test.tsx may not cover missing config warning.\n2. INPUT: Updated FieldGroup component with enhanced warning message from P1.M1.T2.S1.\n3. LOGIC: Add test case that creates a FieldGroup with name='nonExistentGroup' without defining it in formConfig.groups. Use spyOn to mock console.warn and verify the warning message includes both the missing group name and the list of available groups.\n4. OUTPUT: Test verifies enhanced warning message contains helpful context about available groups."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M1.T2.S3",
-                  "title": "Decide on throwing errors vs warnings",
+                  "title": "Pass evaluated default props to mergeFieldProps function",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": [
-                    "P1.M1.T2.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: PRD suggests either throwing errors in dev or improving warnings. Need to evaluate trade-offs.\n2. INPUT: Enhanced warning implementation from P1.M1.T2.S1. Team preference for error handling strategy.\n3. LOGIC: Evaluate throwing errors vs console warnings based on project conventions. If throwing errors: modify FieldGroup.tsx to throw Error instead of console.warn when process.env.NODE_ENV !== 'production'. If keeping warnings: ensure message is comprehensive. Update P1.M1.T2.S1 implementation accordingly.\n4. OUTPUT: Decision document or code comment explaining chosen approach. Updated implementation if switching to throw Error."
+                  "dependencies": ["P1.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md lines 393-402, mergeFieldProps is called with empty objects for selectDefaultFieldProps. This is the bug location.\n2. INPUT: Evaluated formDefaultProps and providerDefaultProps from S1. Existing providerConfig, formConfig, inputConfig, fieldConfig, evaluatedSelectProps, and props (JSX).\n3. LOGIC: Locate the mergeFieldProps call (line 393-402). Replace providerSelectDefaultFieldProps: {} with providerSelectDefaultFieldProps: providerDefaultProps. Replace formSelectDefaultFieldProps: {} with formSelectDefaultFieldProps: formDefaultProps.\n4. OUTPUT: Updated mergeFieldProps call with evaluated default props instead of empty objects. Props pipeline now has all 8 layers properly evaluated."
                 }
               ]
             },
             {
               "type": "Task",
               "id": "P1.M1.T3",
-              "title": "Add Circular Dependency Detection",
+              "title": "Add Tests for selectDefaultFieldProps Evaluation",
               "status": "Planned",
-              "description": "Implement circular dependency detection in the subscription system to prevent infinite render loops. This is the most critical Major issue as it can cause runtime errors that are difficult to debug.",
+              "description": "Write comprehensive tests to verify selectDefaultFieldProps evaluation works correctly at both provider and form levels with proper expression evaluation and priority ordering.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T3.S1",
-                  "title": "Create cycle detection utility module",
+                  "title": "Test provider-level selectDefaultFieldProps evaluation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Circular dependency detection should use DFS algorithm with recursion stack tracking. External research provides algorithm patterns in plan_bugfix/architecture/external_deps.md.\n2. INPUT: New file packages/react/src/utils/cycleDetection.ts (does not exist yet). Subscription graph structure is Map<string, Set<string>> where keys are targets and values are sets of subscribers.\n3. LOGIC: Implement wouldCreateCycle(graph: Map<string, Set<string>>, target: string, subscriber: string): boolean function. Use DFS algorithm with two Sets: visiting (current path) and visited (fully processed). Temporarily add edge (subscriber → target) to graph and check for cycles starting from subscriber. Implement getCyclePath(graph: Map<string, Set<string>>, start: string): string to return cycle path like 'fieldA → fieldB → fieldC → fieldA'.\n4. OUTPUT: New utility module with exported functions wouldCreateCycle and getCyclePath. Both functions are pure and have no side effects."
+                  "dependencies": ["P1.M1.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From test_coverage.md, tests should be added to packages/react/src/__tests__/Field.test.tsx following existing patterns with FormalityProvider, Form, and Field components. Use TestInput forwardRef component.\n2. INPUT: FormalityProvider with selectDefaultFieldProps prop containing expression like \"field.value ? 'filled' : 'empty'\". Form config with textField type.\n3. LOGIC: Render provider with selectDefaultFieldProps. Render Form with Field component. Initially field value is empty string, expect className 'empty'. Type into field using userEvent, expect className changes to 'filled'. Verify expression evaluation against form state works.\n4. OUTPUT: Passing test that verifies provider-level selectDefaultFieldProps is evaluated correctly and applied to Field."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T3.S2",
-                  "title": "Integrate cycle detection into Form.addSubscription",
+                  "title": "Test form-level selectDefaultFieldProps evaluation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": [
-                    "P1.M1.T3.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: addSubscription function is at packages/react/src/components/Form.tsx:212-230. Currently no cycle detection.\n2. INPUT: Form.tsx with addSubscription function. Cycle detection utility from P1.M1.T3.S1. invertedSubscriptions is a ref containing Map<string, Set<string>>.\n3. LOGIC: Import wouldCreateCycle and getCyclePath from '../utils/cycleDetection'. At start of addSubscription, call wouldCreateCycle(invertedSubscriptions.current, target, subscriber). If true, construct comprehensive error message using getCyclePath. Throw Error with message containing: cycle path, explanation of consequences, possible solutions (refactor, computed fields, FieldGroup), and documentation link. Only proceed with subscription if no cycle detected.\n4. OUTPUT: Updated addSubscription function that detects and prevents circular dependencies before they're added to subscription graph."
+                  "dependencies": ["P1.M1.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Form-level selectDefaultFieldProps should override provider-level (8-layer priority from codebase_analysis.md).\n2. INPUT: FormalityProvider with provider-level selectDefaultFieldProps. Form config with selectDefaultFieldProps and textField type.\n3. LOGIC: Render provider with one className expression. Render form with different className expression in selectDefaultFieldProps. Verify that form-level props override provider-level props when both are present.\n4. OUTPUT: Passing test that verifies form-level selectDefaultFieldProps takes priority over provider-level."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T3.S3",
-                  "title": "Write tests for cycle detection utility",
+                  "title": "Test 8-layer props pipeline priority order",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": [
-                    "P1.M1.T3.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need comprehensive test coverage for DFS algorithm and edge cases.\n2. INPUT: Cycle detection utility module from P1.M1.T3.S1.\n3. LOGIC: Create packages/react/src/utils/cycleDetection.test.ts. Write test cases: no cycle (linear chain A→B→C), simple cycle (A→B→A), complex cycle (A→B→C→A), self-cycle (A→A), disconnected graphs, large graph (50+ nodes), multiple cycles. Use describe blocks for organization. Test both wouldCreateCycle and getCyclePath functions. Mock graph structures using Map.\n4. OUTPUT: Test suite with 10+ test cases covering all cycle detection scenarios. All tests pass."
+                  "dependencies": ["P1.M1.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, priority order (highest to lowest): 1) Component props, 2) Field selectProps, 3) Field props, 4) Input props, 5) Form selectDefaultFieldProps, 6) Form defaultFieldProps, 7) Provider selectDefaultFieldProps, 8) Provider defaultFieldProps.\n2. INPUT: Field configured with all 8 layers having different className values.\n3. LOGIC: Set className at each layer with unique value like 'component-props', 'field-selectProps', 'field-props', etc. Render Field and verify final className is from highest priority layer (component props). Remove highest layer and verify next layer is used, continuing through all 8 layers.\n4. OUTPUT: Passing test that verifies complete 8-layer priority order works correctly."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T3.S4",
-                  "title": "Write integration test for circular dependency error",
+                  "title": "Test expression evaluation with complex field state access",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": [
-                    "P1.M1.T3.S2"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify Form component throws error when circular subscribesTo config is provided.\n2. INPUT: Form component with integrated cycle detection from P1.M1.T3.S2.\n3. LOGIC: Create test file or add to existing Form.test.tsx. Configure two fields with circular subscribesTo (fieldA.subscribesTo = ['fieldB'], fieldB.subscribesTo = ['fieldA']). Render Form with this config. Expect Error to be thrown with message containing 'Circular dependency detected' and cycle path. Verify error message includes helpful suggestions. Test that non-circular subscriptions still work.\n4. OUTPUT: Integration test proving circular dependencies are detected and prevented with helpful error messages."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M1.T3.S5",
-                  "title": "Verify no performance regression on subscription operations",
-                  "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [
-                    "P1.M1.T3.S2",
-                    "P1.M1.T3.S4"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Cycle detection adds O(V+E) complexity to addSubscription. Need to ensure acceptable performance.\n2. INPUT: Form component with cycle detection. Existing test suite with 184 React tests.\n3. LOGIC: Run full test suite (pnpm test). Verify all existing tests still pass and test duration hasn't significantly increased (should stay under 3 seconds). If performance is an issue, consider optimizations like memoizing visited nodes or only checking cycles when adding new subscriptions (not removing).\n4. OUTPUT: Performance baseline documentation. All 329 tests pass. No significant test duration increase."
+                  "dependencies": ["P1.M1.T3.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From external_deps.md, expressions can access field values and metadata via proxy state pattern. Expressions like \"client.id && approved\" should work.\n2. INPUT: Form with multiple fields (client object with id, approved boolean). selectDefaultFieldProps expression accessing multiple fields.\n3. LOGIC: Create form with nested field values. Use expression like \"client.id > 100 && approved ? 'priority' : 'normal'\". Change client.id and approved field values. Verify className updates correctly based on expression evaluation against current form state.\n4. OUTPUT: Passing test that verifies complex expression evaluation works with field state proxies."
                 }
               ]
             }
@@ -221,223 +136,196 @@
         {
           "type": "Milestone",
           "id": "P1.M2",
-          "title": "Minor Enhancements",
+          "title": "Implement debounce: false Immediate Submission",
           "status": "Planned",
-          "description": "Implement minor improvements to enhance developer experience, strengthen validation, and improve type safety (Issues #5-10). Note: Issue #4 is already implemented.",
+          "description": "Implement support for per-field debounce: false configuration to trigger immediate form submission without waiting for the debounce timer.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M2.T1",
-              "title": "Add Configurable Expression Error Handling",
+              "title": "Modify Form Component to Support Immediate Submission",
               "status": "Planned",
-              "description": "Allow applications to customize how expression errors are handled through an onExpressionError callback in FormalityProviderConfig.",
+              "description": "Update the Form component's changeField callback to detect when a field has debounce: false and trigger immediate submission instead of debounced submission.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
-                  "title": "Add onExpressionError to FormalityConfig type",
+                  "title": "Add inputConfig parameter to changeField callback",
                   "status": "Planned",
-                  "story_points": 0.5,
+                  "story_points": 1,
                   "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FormalityConfig type is in packages/core/src/types/config.ts. Need to add optional callback.\n2. INPUT: Existing FormalityConfig interface in packages/core/src/types/config.ts.\n3. LOGIC: Add optional property onExpressionError?: (expr: string, error: Error) => void to FormalityConfig interface. Add JSDoc comment explaining the callback is invoked when expression evaluation fails, receives the expression string and error object.\n4. OUTPUT: Updated FormalityConfig type with onExpressionError optional callback."
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md lines 299-317, changeField callback in packages/react/src/components/Form.tsx currently only receives (name: string, value: unknown). InputConfig is needed to check debounce setting.\n2. INPUT: changeField signature needs to be updated to accept InputConfig type from @formality-ui/core/types/config.ts. InputConfig.debounce property is type 'number | false'.\n3. LOGIC: Update changeField callback signature from (name: string, value: unknown) to (name: string, value: unknown, inputConfig?: InputConfig). Make inputConfig optional to maintain backward compatibility.\n4. OUTPUT: Updated changeField callback signature that can receive input configuration."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
-                  "title": "Update expression evaluator to use callback",
+                  "title": "Implement conditional execution: immediate vs debounced submit",
                   "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [
-                    "P1.M2.T1.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Expression error handling is at packages/core/src/expression/evaluate.ts:248-252. Currently uses console.warn.\n2. INPUT: evaluate.ts file with error handler at lines 248-252. FormalityConfig type from P1.M2.T1.S1 with onExpressionError callback.\n3. LOGIC: Modify catch block at line 248. Check if config.onExpressionError exists. If yes, call config.onExpressionError(expr, error as Error). If no, fall back to existing behavior (console.warn in non-production). Ensure error object is properly typed.\n4. OUTPUT: Expression evaluator that calls custom error handler if provided, otherwise falls back to console.warn."
+                  "story_points": 2,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, changeField always calls debouncedSubmit() (line 313). Need to add conditional logic to check inputConfig.debounce === false.\n2. INPUT: inputConfig parameter from S1. Existing debouncedSubmit function and pendingChangedFields tracking.\n3. LOGIC: After adding field to pendingChangedFields set, check if inputConfig?.debounce === false. If true, call submitForm() immediately (or create submitImmediate() that bypasses debounce). If false or undefined, call existing debouncedSubmit(). Ensure pendingAffectedFields logic still applies.\n4. OUTPUT: Conditional submission logic that bypasses debounce when inputConfig.debounce === false."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T1.S3",
-                  "title": "Add onExpressionError to FormalityProvider props",
+                  "title": "Update Field component to pass inputConfig to changeField",
                   "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M2.T1.S2"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FormalityProvider is at packages/react/src/components/FormalityProvider.tsx. Props interface needs updating.\n2. INPUT: FormalityProviderProps interface in packages/react/src/components/FormalityProvider.tsx.\n3. LOGIC: Add onExpressionError?: (expr: string, error: Error) => void to FormalityProviderProps interface. Pass this prop through to core config when creating FormalityConfig instance.\n4. OUTPUT: FormalityProvider accepts onExpressionError prop and passes it to core configuration."
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Field component calls changeField via Controller's onChange. Need to find where changeField is invoked and pass inputConfig.\n2. INPUT: Field component has access to inputConfig via useConfigContext. Need to pass it to changeField call.\n3. LOGIC: Locate the onChange handler in Field component's Controller render prop. Find where methods.setValue (which triggers changeField) is called. Update the call to include inputConfig as third parameter. May need to create wrapper function or use useCallback to pass inputConfig.\n4. OUTPUT: Field component passes inputConfig to changeField callback, enabling debounce: false detection."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T1.S4",
-                  "title": "Write tests for expression error callback",
+                  "title": "Ensure Form component debounce prop respects false value",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": [
-                    "P1.M2.T1.S3"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify custom error handler is invoked when expressions fail.\n2. INPUT: FormalityProvider with onExpressionError prop. Expression evaluator updated from P1.M2.T1.S2.\n3. LOGIC: Create test case that provides onExpressionError mock function. Create invalid expression (e.g., 'nonExistent.property'). Render component with expression. Verify mock function was called with expression string and error object. Test that callback is not called for valid expressions. Test that callback works alongside or instead of console.warn.\n4. OUTPUT: Tests proving custom error handler is invoked correctly for expression errors."
+                  "dependencies": ["P1.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md line 136, Form component defaults debounceMs to 1000 if props.debounce is falsy. This breaks debounce: false support.\n2. INPUT: Form component receives debounce prop from JSX. Type is number but should support number | false.\n3. LOGIC: Update Form component props type to accept debounce?: number | false. Update the debounceMs calculation to: debounceMs = props.debounce === false ? 1000 : (props.debounce ?? 1000). This ensures false is treated specially, while undefined uses default 1000.\n4. OUTPUT: Form component properly handles debounce: false prop without defaulting to 1000."
                 }
               ]
             },
             {
               "type": "Task",
               "id": "P1.M2.T2",
-              "title": "Convert Validator/Parser/Formatter Warnings to Errors",
+              "title": "Add Tests for debounce: false Immediate Submission",
               "status": "Planned",
-              "description": "Strengthen validation for missing named validators, parsers, and formatters by throwing errors in development mode instead of issuing console warnings.",
+              "description": "Write tests to verify that fields with debounce: false trigger immediate submission while other fields continue to use debounced submission.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
-                  "title": "Update validator not found to throw errors",
+                  "title": "Test immediate submission when debounce: false",
                   "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Validator warning is at packages/core/src/validation/validate.ts:107-114. Currently console.warn and returns true (pass).\n2. INPUT: validate.ts file with validator resolution at lines 107-114. namedValidators is available in scope.\n3. LOGIC: Replace console.warn at line 113 with conditional throw. If process.env.NODE_ENV !== 'production' and !validator, throw new Error with message: 'Validator \"${spec}\" not found in validators config.\\nAvailable validators: ${Object.keys(namedValidators || {}).join(', ')}\\nMake sure to define it in your config.' Keep return true for production mode fallback.\n4. OUTPUT: Validator resolution that throws errors in development mode with helpful context about available validators."
+                  "story_points": 2,
+                  "dependencies": ["P1.M2.T1.S4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From test_coverage.md, tests should be added to packages/react/src/__tests__/Form.test.tsx. Need to measure submission timing to verify immediacy.\n2. INPUT: Input config with debounce: false. Form with autoSave and debounce={1000}. Mock onSubmit function to capture submission timing.\n3. LOGIC: Render form with field configured with debounce: false. Record time before typing. Type into field. Record time when onSubmit is called. Verify submission occurs within 100ms (immediate) not 1000ms (debounced). Use vi.useFakeTimers() if needed for precise timing control.\n4. OUTPUT: Passing test that verifies immediate submission occurs when debounce: false."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S2",
-                  "title": "Update parser not found to throw errors",
+                  "title": "Test normal debounce still works for other fields",
                   "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Parser warning is at packages/core/src/transform/pipeline.ts:69-81. Similar pattern to validator.\n2. INPUT: pipeline.ts file with parser resolution at lines 69-81. namedParsers available in scope.\n3. LOGIC: Apply same pattern as P1.M2.T2.S1. Replace console.warn with conditional throw. Include available parsers list in error message. Keep return value for production fallback.\n4. OUTPUT: Parser resolution that throws errors in development mode."
+                  "story_points": 2,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to ensure debounce: false doesn't break normal debounced behavior for fields without it.\n2. INPUT: Form with two fields: one with debounce: false, one with debounce: 1000 (or default).\n3. LOGIC: Render form with both fields. Type in debounced field, verify submission waits 1000ms using vi.advanceTimersByTime(500) and checking onSubmit not called, then vi.advanceTimersByTime(1000) and verifying it is called. Type in immediate field, verify immediate submission.\n4. OUTPUT: Passing test that verifies normal debounce behavior is preserved for fields without debounce: false."
                 },
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S3",
-                  "title": "Update formatter not found to throw errors",
-                  "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Formatter warning is at packages/core/src/transform/pipeline.ts:132-144. Similar pattern to parser.\n2. INPUT: pipeline.ts file with formatter resolution at lines 132-144. namedFormatters available in scope.\n3. LOGIC: Apply same pattern as P1.M2.T2.S1 and P1.M2.T2.S2. Replace console.warn with conditional throw. Include available formatters list in error message. Keep return value for production fallback.\n4. OUTPUT: Formatter resolution that throws errors in development mode."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M2.T2.S4",
-                  "title": "Write tests for missing config errors",
+                  "title": "Test mixed debounce settings in same form",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": [
-                    "P1.M2.T2.S1",
-                    "P1.M2.T2.S2",
-                    "P1.M2.T2.S3"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify errors are thrown in development but not in production.\n2. INPUT: Updated validation and transform modules from P1.M2.T2.S1-S3.\n3. LOGIC: Create test suite covering: missing validator throws error with available list, missing parser throws error, missing formatter throws error, production mode (NODE_ENV=production) returns fallback values instead of throwing. Use expect().toThrow() assertions. Mock process.env.NODE_ENV for testing both modes.\n4. OUTPUT: Test suite verifying development mode errors and production mode graceful degradation."
+                  "dependencies": ["P1.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Complex scenario with multiple fields having different debounce settings. Need to verify no interference.\n2. INPUT: Form with three fields: debounce: false (immediate), debounce: 500 (short), debounce: 2000 (long).\n3. LOGIC: Type in immediate field, verify immediate submit. Type in short debounce field, wait 500ms, verify submit. Type in long debounce field, wait 2000ms, verify submit. Rapidly type in multiple fields, verify only the last change's debounce timer is respected (debounce coalescing).\n4. OUTPUT: Passing test that verifies mixed debounce settings work correctly without interference."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P2",
+      "title": "Formality Bug Fixes - Phase 2: Major Issues",
+      "status": "Planned",
+      "description": "Fix major bugs related to disabled property in field states and multi-field isDisabled condition matchers.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P2.M1",
+          "title": "Implement disabled Property in Field States",
+          "status": "Planned",
+          "description": "Populate the disabled property in field states used for condition evaluation, resolving the circular dependency issue where disabled state comes from conditions but conditions need disabled state.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M1.T1",
+              "title": "Resolve Disabled State from Multiple Sources",
+              "status": "Planned",
+              "description": "Create a mechanism to resolve the actual disabled state for each field by combining disabled state from props, config, conditions, and groups.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S1",
+                  "title": "Create useFieldDisabledState hook to resolve disabled from all sources",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, disabled state has 4 sources: JSX prop (<Field disabled />), field config ({ disabled: true }), condition evaluation (conditions: [{ disabled: true }]), and group state (parent FieldGroup disabled). This is HIGH complexity.\n2. INPUT: Field name, field config, Field component props (JSX), form context, and group context. Need to check all four sources.\n3. LOGIC: Create new hook useFieldDisabledState that checks disabled sources in priority: 1) JSX prop (props.disabled), 2) Field config disabled (fieldConfig.disabled), 3) Condition evaluation result (from useConditions), 4) Group disabled state (from GroupContext). Return resolved disabled boolean. Use useMemo with proper dependencies.\n4. OUTPUT: useFieldDisabledState hook that returns disabled: boolean representing the resolved disabled state."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S2",
+                  "title": "Integrate disabled state resolution into useConditions hook",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md lines 98-119, useConditions hook builds fieldStates without disabled property. This is the bug location.\n2. INPUT: useConditions hook already has access to field names via watchFields array. Need to get disabled state for each watched field.\n3. LOGIC: For each field in watchFields, call useFieldDisabledState hook to get resolved disabled state. Include disabled property in the fieldStates object construction: states[fieldName] = { value: ..., isTouched: ..., disabled: useFieldDisabledState(fieldName) }. This creates a dependency cycle (conditions need disabled, disabled needs conditions) - must resolve by using PREVIOUS condition evaluation cycle's disabled result.\n4. OUTPUT: fieldStates object in useConditions now includes disabled property for each field."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S3",
+                  "title": "Handle circular dependency between disabled and conditions",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: CRITICAL: Circular dependency exists. Conditions evaluate disabled state, but disabled state depends on conditions. Solution: Use previous cycle's condition results or evaluate conditions in two passes.\n2. INPUT: Current condition evaluation logic that needs disabled state. Disabled state sources including condition results.\n3. LOGIC: Implement two-pass evaluation: Pass 1 evaluates conditions without isDisabled matcher to get base disabled state from config/props/group. Pass 2 evaluates isDisabled matcher using disabled state from Pass 1. Alternative: Use previous condition result (from last render) for isDisabled matcher in current render. Use ref to store previous condition results.\n4. OUTPUT: Resolved circular dependency where isDisabled conditions use previous cycle's disabled state, avoiding infinite loop."
                 }
               ]
             },
             {
               "type": "Task",
-              "id": "P1.M2.T3",
-              "title": "Improve SelectFunction Type Safety",
+              "id": "P2.M1.T2",
+              "title": "Update TypeScript Types for Disabled Property",
               "status": "Planned",
-              "description": "Enhance SelectFunction type signature to provide better TypeScript autocomplete by making formState parameter more specific.",
+              "description": "Ensure TypeScript types properly reflect that disabled property is now populated in field states.",
               "subtasks": [
                 {
                   "type": "Subtask",
-                  "id": "P1.M2.T3.S1",
-                  "title": "Update SelectFunction type signature",
+                  "id": "P2.M1.T2.S1",
+                  "title": "Verify FieldStateInput type includes disabled property",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: SelectFunction type is in packages/core/src/types/conditions.ts. Currently uses broad FormState type.\n2. INPUT: Existing SelectFunction type definition in packages/core/src/types/conditions.ts.\n3. LOGIC: Add generic type parameter TFields extending Record<string, any> to SelectFunction. Update formState parameter type from FormState to FormState & { fields: TFields }. Update methods parameter to use UseFormReturn<TFields>. Default TFields to Record<string, any> for backward compatibility.\n4. OUTPUT: Enhanced SelectFunction<TFields, TReturn> type with stronger typing for formState fields parameter."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M2.T3.S2",
-                  "title": "Verify TypeScript compilation and autocomplete",
-                  "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M2.T3.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to ensure type changes don't break existing code and provide better autocomplete.\n2. INPUT: Updated SelectFunction type from P1.M2.T3.S1.\n3. LOGIC: Run pnpm typecheck to verify no TypeScript errors across entire project. Create test file with SelectFunction usage to verify autocomplete now provides field names when formState is typed. Check that existing usage without generics still compiles.\n4. OUTPUT: TypeScript compilation succeeds. Autocomplete improvement verified (can manually test in IDE)."
+                  "dependencies": ["P2.M1.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, FieldStateInput interface in packages/core/src/types/config.ts already includes disabled?: boolean. Just need to ensure it's populated.\n2. INPUT: FieldStateInput interface definition.\n3. LOGIC: Verify FieldStateInput.disabled property is not optional (should be required boolean, not optional). If optional, change to required: disabled: boolean. This ensures TypeScript enforces that disabled is always provided.\n4. OUTPUT: FieldStateInput type with required disabled property."
                 }
               ]
             },
             {
               "type": "Task",
-              "id": "P1.M2.T4",
-              "title": "Add Auto-Save Debounce Validation",
+              "id": "P2.M1.T3",
+              "title": "Add Tests for Disabled Property in Field States",
               "status": "Planned",
-              "description": "Add validation to ensure debounce prop is a positive number when provided, preventing invalid configurations.",
+              "description": "Write tests to verify disabled property is correctly populated in field states and used by isDisabled condition matcher.",
               "subtasks": [
                 {
                   "type": "Subtask",
-                  "id": "P1.M2.T4.S1",
-                  "title": "Add debounce validation to Form component",
+                  "id": "P2.M1.T3.S1",
+                  "title": "Test disabled property populated from JSX prop",
                   "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Form component is at packages/react/src/components/Form.tsx. debounce prop declared at line 136 with no validation.\n2. INPUT: Form.tsx component with debounce?: number prop at line 136.\n3. LOGIC: Add validation check in component body before useEffect for debounce. If typeof debounce === 'number' && (debounce < 0 || !Number.isFinite(debounce)), throw new Error with message: 'Form: debounce must be a positive number or false, received: ${debounce}\\nExample: <Form debounce={1000}> or <Form debounce={false}>'. Ensure validation runs before debounce logic.\n4. OUTPUT: Form component that validates debounce prop and throws error for invalid values."
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From test_coverage.md, need integration test in packages/react/src/__tests__/Field.test.tsx with real Field component, not just core function tests.\n2. INPUT: Field component with disabled prop: <Field name="test" disabled />. Form config with test field.\n3. LOGIC: Render field with disabled prop. Access field state (may need to expose internal state or test via condition behavior). Create condition that checks isDisabled on this field. Verify condition matches because disabled is true. Test that removing disabled prop makes condition not match.\n4. OUTPUT: Passing test that verifies disabled prop is reflected in field states used by conditions."
                 },
                 {
                   "type": "Subtask",
-                  "id": "P1.M2.T4.S2",
-                  "title": "Write tests for debounce validation",
+                  "id": "P2.M1.T3.S2",
+                  "title": "Test disabled property populated from field config",
                   "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [
-                    "P1.M2.T4.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to test validation catches invalid debounce values.\n2. INPUT: Form component with debounce validation from P1.M2.T4.S1.\n3. LOGIC: Add test cases: debounce=-1 throws error, debounce=Infinity throws error, debounce=NaN throws error, debounce=0 is accepted, debounce=1000 is accepted, debounce=false is accepted, debounce=undefined uses default. Use expect().toThrow() assertions.\n4. OUTPUT: Test suite verifying debounce validation catches invalid values."
-                }
-              ]
-            },
-            {
-              "type": "Task",
-              "id": "P1.M2.T5",
-              "title": "Improve Field Order Type Safety",
-              "status": "Planned",
-              "description": "Add runtime validation to sortFieldsByOrder function to detect and warn about invalid order property values.",
-              "subtasks": [
-                {
-                  "type": "Subtask",
-                  "id": "P1.M2.T5.S1",
-                  "title": "Add order validation to sortFieldsByOrder",
-                  "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: sortFieldsByOrder function is at packages/core/src/labels/resolve.ts:177-186. Currently no validation of order property.\n2. INPUT: sortFieldsByOrder function at lines 177-186 in packages/core/src/labels/resolve.ts.\n3. LOGIC: Inside sort callback, after extracting configA and configB, add validation. If configA?.order !== undefined && typeof configA.order !== 'number', issue console.warn in non-production: 'sortFieldsByOrder: Field \"${a}\" has invalid order property: ${configA.order}. Order must be a number. Using Infinity.' Set configA.order = Infinity. Repeat for configB. This provides runtime safety while TypeScript already prevents most issues.\n4. OUTPUT: sortFieldsByOrder function with runtime validation and warnings for invalid order properties."
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T3.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Field config disabled: { test: { disabled: true } } should populate disabled property.\n2. INPUT: Form config with field having disabled: true in config.\n3. LOGIC: Render field with config-level disabled. Use condition to verify isDisabled matcher works. Test removing disabled from config and verify condition no longer matches.\n4. OUTPUT: Passing test that verifies config-level disabled populates field state."
                 },
                 {
                   "type": "Subtask",
-                  "id": "P1.M2.T5.S2",
-                  "title": "Write tests for order validation",
+                  "id": "P2.M1.T3.S3",
+                  "title": "Test disabled property populated from condition evaluation",
                   "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [
-                    "P1.M2.T5.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to verify invalid order values trigger warnings and default to Infinity.\n2. INPUT: Updated sortFieldsByOrder function from P1.M2.T5.S1.\n3. LOGIC: Create test cases: field with order='invalid' triggers warning and sorts to end, field with order=null triggers warning, field with order=undefined uses Infinity (no warning), field with order=-5 is accepted (negative numbers allowed), field with order=0 is accepted. Mock console.warn and assert it was called with expected messages.\n4. OUTPUT: Test suite verifying order validation catches invalid values and warns appropriately."
-                }
-              ]
-            },
-            {
-              "type": "Task",
-              "id": "P1.M2.T6",
-              "title": "Document Humanize Label Edge Cases",
-              "status": "Planned",
-              "description": "Add comprehensive JSDoc documentation and tests for humanizeLabel function to clarify behavior with edge cases like consecutive numbers, all-caps words, and special characters.",
-              "subtasks": [
-                {
-                  "type": "Subtask",
-                  "id": "P1.M2.T6.S1",
-                  "title": "Add JSDoc documentation to humanizeLabel",
-                  "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: humanizeLabel function is at packages/core/src/labels/resolve.ts:21-46. Currently has basic comment.\n2. INPUT: humanizeLabel function at lines 21-46 in packages/core/src/labels/resolve.ts.\n3. LOGIC: Add comprehensive JSDoc comment above function. Include @example tags for various inputs: firstName, userAge, URL, field123name, x. Add @remarks section documenting known behaviors: special characters preserved, consecutive numbers not split, all-caps normalized, single letters capitalized. Note that custom labels should use label property in field config.\n4. OUTPUT: humanizeLabel function with clear documentation of behavior and edge cases."
-                },
-                {
-                  "type": "Subtask",
-                  "id": "P1.M2.T6.S2",
-                  "title": "Add edge case tests for humanizeLabel",
-                  "status": "Planned",
-                  "story_points": 1,
-                  "dependencies": [
-                    "P1.M2.T6.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Existing tests may not cover all edge cases mentioned in documentation.\n2. INPUT: humanizeLabel function with documentation from P1.M2.T6.S1.\n3. LOGIC: Add new describe block 'humanizeLabel edge cases' to packages/core/src/__tests__/labels.test.ts. Test cases: consecutive numbers (field123name → Field123name), all-caps (URL → Url, userID → User Id), single letters (x → X), special characters (field_name → Field_name, field-name → Field-name), empty string (→ ). Ensure all documented behaviors are tested.\n4. OUTPUT: Comprehensive test coverage for humanizeLabel edge cases that matches documentation."
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T3.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: This is the circular dependency case. Field A's disabled comes from condition, Field B checks Field A's isDisabled.\n2. INPUT: Two fields: toggle (switch) and target (text). Target has condition: { when: 'toggle', is: true, disabled: true }. Another field checks: { when: 'target', isDisabled: true, disabled: true }.\n3. LOGIC: Toggle switch to true. Verify target becomes disabled via condition. Verify that checking target's isDisabled in another condition works (uses previous render's disabled state). Toggle to false, verify target is enabled and isDisabled check returns false.\n4. OUTPUT: Passing test that verifies condition-based disabled state is accessible to isDisabled matcher."
                 }
               ]
             }
@@ -445,102 +333,269 @@
         },
         {
           "type": "Milestone",
-          "id": "P1.M3",
-          "title": "Validation & Documentation",
+          "id": "P2.M2",
+          "title": "Implement Multi-Field isDisabled Condition Matcher",
           "status": "Planned",
-          "description": "Ensure all changes are thoroughly tested, documented, and the framework maintains production-ready quality.",
+          "description": "Extend the isDisabled condition matcher to work with multi-field (object) when conditions, not just single-field string when conditions.",
           "tasks": [
             {
               "type": "Task",
-              "id": "P1.M3.T1",
-              "title": "Run Full Test Suite and Verify Coverage",
+              "id": "P2.M2.T1",
+              "title": "Modify Condition Evaluation for Multi-Field isDisabled",
               "status": "Planned",
-              "description": "Execute complete test suite, verify all 329 tests pass, and ensure test coverage remains high.",
+              "description": "Update the evaluateFieldMatcher and related functions to check isDisabled matcher for each field in multi-field when conditions.",
               "subtasks": [
                 {
                   "type": "Subtask",
-                  "id": "P1.M3.T1.S1",
-                  "title": "Run full test suite",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Move isDisabled matcher check outside string-only block",
                   "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: All implementation work is complete. Need to verify no regressions.\n2. INPUT: Complete codebase with all bug fixes and enhancements from P1.M1 and P1.M2.\n3. LOGIC: Run pnpm test command. Check that all 329 tests pass. Monitor for any new warnings (especially React ref warnings). If tests fail, identify root cause and fix. Document any test failures and resolutions.\n4. OUTPUT: Clean test run with 329 passing tests. No React warnings in output."
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md lines 177-199 in packages/core/src/conditions/evaluate.ts, isDisabled matcher is only checked when typeof condition.when === 'string'. This is the bug.\n2. INPUT: evaluateFieldMatcher function that processes condition matchers. Current implementation has isDisabled check inside string-when block.\n3. LOGIC: Extract the isDisabled matcher check logic from inside the if (typeof condition.when === 'string') block. Move it outside so it runs for both string and object when conditions. For object when, need to check isDisabled for each field in the object.\n4. OUTPUT: isDisabled matcher check executes for both string and object when conditions."
                 },
                 {
                   "type": "Subtask",
-                  "id": "P1.M3.T1.S2",
-                  "title": "Check test coverage",
+                  "id": "P2.M2.T1.S2",
+                  "title": "Implement isDisabled check for each field in object when conditions",
                   "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M3.T1.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test coverage should remain high: Core ~100%, React ~83%.\n2. INPUT: Codebase with passing tests from P1.M3.T1.S1.\n3. LOGIC: Run pnpm test:coverage command. Review coverage report. Ensure core package coverage remains at or near 100%. Ensure React package coverage remains around 83%. Identify any untested code paths added during bug fixes. If critical paths lack coverage, add tests.\n4. OUTPUT: Coverage report showing high coverage maintained. New code is tested."
+                  "story_points": 2,
+                  "dependencies": ["P2.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Object when conditions have structure: { field1: { matcher1: value1 }, field2: { matcher2: value2 } }. Need to check if isDisabled matcher is present for any field.\n2. INPUT: condition.when object with field names as keys and matcher objects as values. fieldStates object with disabled property for each field.\n3. LOGIC: After moving isDisabled check outside string block, add logic to handle object when: Loop through each field in condition.when object. For each field, check if its matchers include isDisabled. If isDisabled matcher is present, compare it to fieldStates[fieldName].disabled. All isDisabled matchers must match (AND logic) for condition to match.\n4. OUTPUT: isDisabled matcher works for multi-field conditions, checking each field's disabled state."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S3",
+                  "title": "Handle mixed matchers in multi-field conditions",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Multi-field conditions can mix value matchers (is, pattern) with field state matchers (isDisabled, isValid). Example: { field1: { is: 'value' }, field2: { isDisabled: true } }.\n2. INPUT: condition.when object with mixed matcher types. fieldStates for field state matchers, fieldValues for value matchers.\n3. LOGIC: For each field in condition.when, determine which matcher type is present. Value matchers use fieldValues[fieldName] for comparison. Field state matchers (isDisabled, isValid) use fieldStates[fieldName] for comparison. Combine results with AND logic - all matchers must match for condition to match.\n4. OUTPUT: Multi-field conditions correctly evaluate mixed value and field state matchers."
                 }
               ]
             },
             {
               "type": "Task",
-              "id": "P1.M3.T2",
-              "title": "TypeScript Compilation Check",
+              "id": "P2.M2.T2",
+              "title": "Add Tests for Multi-Field isDisabled Conditions",
               "status": "Planned",
-              "description": "Verify TypeScript compilation succeeds across all packages with no type errors.",
+              "description": "Write tests to verify isDisabled matcher works correctly with multi-field when conditions.",
               "subtasks": [
                 {
                   "type": "Subtask",
-                  "id": "P1.M3.T2.S1",
-                  "title": "Run TypeScript compilation",
+                  "id": "P2.M2.T2.S1",
+                  "title": "Test isDisabled with two fields in when condition",
                   "status": "Planned",
-                  "story_points": 0.5,
+                  "story_points": 2,
+                  "dependencies": ["P2.M2.T1.S3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From test_coverage.md, add tests to packages/core/src/__tests__/conditions.test.ts for core logic.\n2. INPUT: Condition: { when: { field1: { isDisabled: true }, field2: { isDisabled: false } }, disabled: true }. fieldStates: { field1: { disabled: true }, field2: { disabled: false } }.\n3. LOGIC: Call evaluateConditions with mock fieldStates. Verify result.disabled is true when both matchers match. Test with field1.disabled = false, verify result.disabled is false. Test with field2.disabled = true, verify result.disabled is false.\n4. OUTPUT: Passing test that verifies multi-field isDisabled condition evaluation."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S2",
+                  "title": "Test mixed matchers in multi-field conditions",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Need to test combining isDisabled with value matchers like 'is'.\n2. INPUT: Condition: { when: { role: { is: 'admin' }, approved: { isDisabled: true } }, disabled: true }. fieldValues: { role: 'admin' }. fieldStates: { approved: { disabled: true } }.\n3. LOGIC: Test that condition matches only when both role is 'admin' AND approved is disabled. Test with role='user', verify no match. Test with approved not disabled, verify no match.\n4. OUTPUT: Passing test that verifies mixed matcher types work correctly together."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T2.S3",
+                  "title": "Test multi-field isDisabled in React integration",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M2.T2.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Integration test with real Field/Form components in packages/react/src/__tests__/Field.test.tsx.\n2. INPUT: Form with three fields: field1 (disabled via prop), field2 (not disabled), target (has condition checking both).\n3. LOGIC: Render form. Set field1 to disabled. Verify target becomes disabled because condition { when: { field1: { isDisabled: true }, field2: { isDisabled: false } }, disabled: true } matches. Enable field1, verify target is enabled. Disable field2, verify target is not enabled (condition fails).\n4. OUTPUT: Passing integration test that verifies multi-field isDisabled conditions work with real components."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P3",
+      "title": "Formality Bug Fixes - Phase 3: Medium Priority Issues",
+      "status": "Planned",
+      "description": "Fix medium priority issues related to memory leaks, type safety, and race conditions.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P3.M1",
+          "title": "Fix Memory Leak in Subscription Cleanup",
+          "status": "Planned",
+          "description": "Improve subscription cleanup in useSubscriptions hook to prevent orphaned subscriptions during rapid subscription changes.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M1.T1",
+              "title": "Improve Subscription Tracking and Cleanup",
+              "status": "Planned",
+              "description": "Implement more robust subscription tracking that ensures only subscriptions from the current effect invocation are cleaned up.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S1",
+                  "title": "Add per-effect subscription tracking in useSubscriptions",
+                  "status": "Planned",
+                  "story_points": 2,
                   "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Type changes in P1.M2.T3 could introduce compilation issues.\n2. INPUT: Complete codebase from P1.M3.T1.\n3. LOGIC: Run pnpm typecheck command. Verify no TypeScript errors across all packages. If errors occur, identify whether they're in new code (fix implementation) or existing code (update type definitions). Ensure strict mode compliance.\n4. OUTPUT: Clean TypeScript compilation with zero errors."
-                }
-              ]
-            },
-            {
-              "type": "Task",
-              "id": "P1.M3.T3",
-              "title": "Build Verification",
-              "status": "Planned",
-              "description": "Build all packages and verify output is generated correctly.",
-              "subtasks": [
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md, useSubscriptions hook in packages/react/src/hooks/useSubscriptions.ts manages field subscriptions. Current cleanup may not handle rapid changes properly.\n2. INPUT: Current useSubscriptions implementation with useEffect cleanup function. Subscriptions are added to inverted index.\n3. LOGIC: Use useRef to track subscriptions added in current effect invocation: const currentSubscriptionsRef = useRef<Set<string>>(new Set()). When adding subscription, add to currentSubscriptionsRef. In cleanup, only remove subscriptions that are in currentSubscriptionsRef. Clear the ref at start of effect. This ensures cleanup only removes subscriptions added in this invocation.\n4. OUTPUT: Robust subscription cleanup that prevents orphaned subscriptions during rapid changes."
+                },
                 {
                   "type": "Subtask",
-                  "id": "P1.M3.T3.S1",
-                  "title": "Build all packages",
+                  "id": "P3.M1.T1.S2",
+                  "title": "Add cleanup ordering guarantees",
                   "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [
-                    "P1.M3.T2.S1"
-                  ],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Build process creates ESM, CJS, and type definition files.\n2. INPUT: Codebase with passing typecheck from P1.M3.T2.\n3. LOGIC: Run pnpm build command. Verify both core and react packages build successfully. Check that dist directories contain expected files: index.js (ESM), index.cjs (CJS), index.d.ts (types). Verify no build warnings or errors.\n4. OUTPUT: Successful build of all packages with proper output files."
+                  "story_points": 1,
+                  "dependencies": ["P3.M1.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Ensure cleanup happens in correct order when dependencies change rapidly.\n2. INPUT: useEffect with subscription dependencies.\n3. LOGIC: Ensure cleanup function runs before new subscriptions are added (default React behavior). Document the cleanup order in comments. Consider adding useEffect cleanup logging in development mode to help debug subscription issues.\n4. OUTPUT: Guaranteed cleanup ordering with documentation."
                 }
               ]
             },
             {
               "type": "Task",
-              "id": "P1.M3.T4",
-              "title": "Update CHANGELOG and Documentation",
+              "id": "P3.M1.T2",
+              "title": "Add Memory Leak Tests",
               "status": "Planned",
-              "description": "Document all changes made during this sprint for future reference.",
+              "description": "Write tests to verify subscription cleanup works correctly and doesn't leave orphaned subscriptions.",
               "subtasks": [
                 {
                   "type": "Subtask",
-                  "id": "P1.M3.T4.S1",
-                  "title": "Create or update CHANGELOG",
+                  "id": "P3.M1.T2.S1",
+                  "title": "Test subscription cleanup on unmount",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P3.M1.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From test_coverage.md, create packages/react/src/__tests__/memory-leak.test.tsx. Need to track subscription count.\n2. INPUT: Form with fields using subscriptions. Method to get current subscription count (may need to expose internal state for testing).\n3. LOGIC: Render form with Field components that have subscriptions. Get initial subscription count from internal tracking. Unmount component. Get final subscription count. Verify final count is less than initial (subscriptions were cleaned up). May need to add getSubscriptionCount() method to internal tracking for testing.\n4. OUTPUT: Passing test that verifies subscriptions are cleaned up on unmount."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S2",
+                  "title": "Test rapid subscription changes",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P3.M1.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Simulate rapid dependency changes that cause useEffect to re-run frequently.\n2. INPUT: Form with dynamic field dependencies that change rapidly.\n3. LOGIC: Render form. Use setInterval or rapid state updates to change subscriptions 10+ times quickly. After changes, verify subscription count is correct (no orphaned subscriptions). Use vi.useFakeTimers() to control timing. Verify no memory leaks by checking subscription count equals expected final count.\n4. OUTPUT: Passing test that verifies rapid subscription changes don't cause leaks."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M2",
+          "title": "Improve Type Safety in Expression Evaluation",
+          "status": "Planned",
+          "description": "Add type checking before arithmetic operations in expression evaluation to handle non-numeric values gracefully.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M2.T1",
+              "title": "Add Type Guards for Arithmetic Operations",
+              "status": "Planned",
+              "description": "Implement type checking before arithmetic operations to prevent runtime errors with non-numeric values.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S1",
+                  "title": "Add type checking before arithmetic operations in evaluate function",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md lines 104-130 in packages/core/src/expression/evaluate.ts, arithmetic operations assume number type. Need to add type guards.\n2. INPUT: Binary expression node with operator (+, -, *, /, %) and left/right operands. Evaluation context.\n3. LOGIC: Before performing arithmetic, check if both operands are numbers using typeof === 'number' && !Number.isNaN(operand). If not numbers, return undefined or handle gracefully. For + operator, if either operand is string, perform string concatenation instead of addition. Document the type coercion behavior.\n4. OUTPUT: Arithmetic operations that handle non-numeric values gracefully without throwing errors."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S2",
+                  "title": "Add type handling for null and undefined values",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: null and undefined should be handled consistently in arithmetic.\n2. INPUT: Operands that may be null or undefined.\n3. LOGIC: If operand is null or undefined, treat as 0 for arithmetic operations (or return undefined). Document the chosen behavior. Consider making this configurable if different use cases need different handling. For now, return undefined for arithmetic with null/undefined to fail safely.\n4. OUTPUT: Consistent handling of null/undefined in arithmetic expressions."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M2.T2",
+              "title": "Add Type Safety Tests",
+              "status": "Planned",
+              "description": "Write tests to verify expression evaluation handles type mismatches gracefully.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S1",
+                  "title": "Test arithmetic with null values",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T1.S2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From test_coverage.md, add to packages/core/src/__tests__/expression.test.ts.\n2. INPUT: Expression \"null + 5\" with context containing null.\n3. LOGIC: Call evaluate with null context. Verify result is undefined (or chosen behavior) and doesn't throw error. Test \"null * 5\", \"null / 2\" similarly.\n4. OUTPUT: Passing test that verifies null arithmetic doesn't crash."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T2.S2",
+                  "title": "Test arithmetic with mixed types",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M2.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test string concatenation vs number addition.\n2. INPUT: Expressions \"'5' + 5\", \"5 + '5'\", \"5 + 5\".\n3. LOGIC: Verify \"'5' + 5\" returns \"55\" (string concat). Verify \"5 + 5\" returns 10 (number addition). Test boolean coercion: \"true + 1\" should return 2 (true → 1).\n4. OUTPUT: Passing test that verifies type coercion in arithmetic operations."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M3",
+          "title": "Strengthen Race Condition Prevention",
+          "status": "Planned",
+          "description": "Review and strengthen existing race condition safeguards in auto-save validation coordination.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M3.T1",
+              "title": "Review Existing Version Checking Logic",
+              "status": "Planned",
+              "description": "Analyze the current execution versioning implementation and identify potential edge cases.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S1",
+                  "title": "Analyze executionVersionRef usage in Form component",
                   "status": "Planned",
                   "story_points": 1,
                   "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Changes should be documented for version tracking.\n2. INPUT: List of all completed tasks from P1.M1 and P1.M2.\n3. LOGIC: Create or update CHANGELOG.md at repository root. Add section for Bug Fixes & Enhancements Sprint. List each fix/enhancement with brief description: React ref warnings fixed, circular dependency detection added, expression error handling configurable, etc. Categorize as Breaking Changes, Features, Fixes, or Internal.\n4. OUTPUT: CHANGELOG.md documenting all changes made during sprint."
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From codebase_analysis.md lines 404-430 in packages/react/src/components/Form.tsx, waitForFieldValidation uses executionVersionRef for stale detection.\n2. INPUT: Current implementation of executionVersionRef and how it's incremented and checked.\n3. LOGIC: Review the version check logic. Identify any timing windows where validation could complete after version check but before submission. Document the current safeguards. Determine if additional checks are needed.\n4. OUTPUT: Analysis document describing current safeguards and any identified gaps."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M3.T2",
+              "title": "Add Race Condition Tests",
+              "status": "Planned",
+              "description": "Write stress tests to verify race condition prevention works under extreme scenarios.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T2.S1",
+                  "title": "Test rapid successive field changes",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P3.M3.T1.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From test_coverage.md, add to packages/react/src/__tests__/autosave-validation.test.tsx.\n2. INPUT: Form with multiple fields. User typing rapidly in multiple fields.\n3. LOGIC: Render form with autoSave. Use userEvent with delay: 0 to simulate rapid typing. Type in fieldA, immediately fieldB, immediately fieldC. Verify only the final state is submitted (not intermediate states). Verify submission count is 1, not 3.\n4. OUTPUT: Passing test that verifies rapid changes are handled correctly."
                 },
                 {
                   "type": "Subtask",
-                  "id": "P1.M3.T4.S2",
-                  "title": "Document Issue #4 resolution",
+                  "id": "P3.M3.T2.S2",
+                  "title": "Test async validation completion timing",
                   "status": "Planned",
-                  "story_points": 0.5,
-                  "dependencies": [],
-                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Issue #4 (UnusedFields render prop) was already implemented.\n2. INPUT: UnusedFields component implementation.\n3. LOGIC: Add comment or documentation noting that Issue #4 was already resolved in existing codebase. Update any related documentation to clarify UnusedFields already supports render function pattern. Remove from outstanding issues list.\n4. OUTPUT: Documentation confirming Issue #4 is already implemented."
+                  "story_points": 2,
+                  "dependencies": ["P3.M3.T2.S1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test edge case where validation completes during version check window.\n2. INPUT: Form with slow async validation (uses vi.useFakeTimers()).\n3. LOGIC: Trigger field change (increments version to 1). Start async validation. Before validation completes, trigger another field change (increments version to 2). Let validation from version 1 complete. Verify it's discarded due to version mismatch. Trigger submission for version 2, verify it succeeds.\n4. OUTPUT: Passing test that verifies stale validation results are discarded."
                 }
               ]
             }
