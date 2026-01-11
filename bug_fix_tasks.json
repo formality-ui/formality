@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Critical Issues",
-      "status": "Ready",
+      "status": "Planned",
       "description": "Fix critical bugs that block core PRD functionality: selectDefaultFieldProps evaluation and debounce: false immediate submission.",
       "milestones": [
         {
@@ -25,7 +25,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S1",
                   "title": "Add new parameters to hook signature",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: From plan/bugfix/architecture/codebase_analysis.md, usePropsEvaluation hook is at /packages/react/src/hooks/usePropsEvaluation.ts and currently only handles selectProps.\n2. INPUT: Hook receives selectProps: SelectPropsDescriptor | SelectedProps | undefined and context: PropsEvaluationContext.\n3. LOGIC: Add two new parameters: formDefaultFieldProps and providerDefaultFieldProps. Both should accept the same types as selectProps (function or object with expressions).\n4. OUTPUT: Return a new object merging evaluated props from both sources, maintaining the correct priority order."
@@ -36,7 +36,9 @@
                   "title": "Implement form-level evaluation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T1.S1"],
+                  "dependencies": [
+                    "P1.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Expression evaluation engine is at /packages/core/src/expression/evaluate.ts. Use evaluate() function with context from buildEvaluationContext().\n2. INPUT: formDefaultFieldProps parameter from previous subtask, plus the existing context object.\n3. LOGIC: If formDefaultFieldProps is a function, call it with context. If it's an object, check for expression strings (strings containing field references like 'fields.name') and evaluate them using evaluate() from core package. Mock evaluate() for unit tests.\n4. OUTPUT: Return evaluated form-level props object, with expressions replaced by their computed values."
                 },
                 {
@@ -45,7 +47,9 @@
                   "title": "Implement provider-level evaluation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T1.S2"],
+                  "dependencies": [
+                    "P1.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Provider-level props have lower priority than form-level props. See mergeFieldProps in /packages/core/src/config/mergeFieldProps.ts for priority order.\n2. INPUT: providerDefaultFieldProps parameter from S1, context object, and evaluated form props from S2.\n3. LOGIC: Same evaluation logic as S2, but for provider-level props. Merge with form props using mergeFieldProps, ensuring provider props have lower priority.\n4. OUTPUT: Return merged props object where form-level props override provider-level props."
                 },
                 {
@@ -54,7 +58,9 @@
                   "title": "Update TypeScript types",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T1.S3"],
+                  "dependencies": [
+                    "P1.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: TypeScript types are in /packages/react/src/hooks/usePropsEvaluation.ts. Current type is usePropsEvaluation(selectProps, context): SelectedProps.\n2. INPUT: Existing type definitions for usePropsEvaluation parameters and return type.\n3. LOGIC: Update function signature to accept formDefaultFieldProps and providerDefaultFieldProps parameters. Both should be of type SelectPropsDescriptor | SelectedProps | undefined. Return type remains SelectedProps.\n4. OUTPUT: Updated TypeScript function signature and exported type."
                 }
               ]
@@ -72,7 +78,9 @@
                   "title": "Consume evaluated props in Field",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T1.S4"],
+                  "dependencies": [
+                    "P1.M1.T1.S4"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Field component is at /packages/react/src/components/Field.tsx. Around line 183-192, selectDefaultFieldProps is currently passed but not evaluated.\n2. INPUT: Extended usePropsEvaluation hook from P1.M1.T1, with formDefaultFieldProps from formConfig.defaultFieldProps and providerDefaultFieldProps from providerConfig.defaultFieldProps.\n3. LOGIC: Replace the current evaluatedSelectProps useMemo with a call to usePropsEvaluation({ formDefaultFieldProps, providerDefaultFieldProps, selectProps, context }). Pass formConfig.defaultFieldProps and providerConfig.defaultFieldProps.\n4. OUTPUT: Evaluated props object containing all three sources (provider, form, select) merged with correct priority."
                 },
                 {
@@ -81,7 +89,9 @@
                   "title": "Pass to mergeFieldProps",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M1.T2.S1"],
+                  "dependencies": [
+                    "P1.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: mergeFieldProps is called around line 243-260 in Field.tsx. It takes an object with 7 properties (providerDefaultFieldProps, formDefaultFieldProps, inputProps, fieldConfigProps, selectProps, componentProps, coreProps).\n2. INPUT: Evaluated props object from S1, which should contain evaluated provider and form default props.\n3. LOGIC: Update the mergeFieldProps call to use the evaluated default props instead of the raw config objects. Ensure the evaluated props maintain the correct 8-layer priority order.\n4. OUTPUT: Updated mergeFieldProps call with evaluated props, maintaining backward compatibility."
                 }
               ]
@@ -99,7 +109,9 @@
                   "title": "Test provider-level evaluation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T2.S2"],
+                  "dependencies": [
+                    "P1.M1.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test patterns are in plan/bugfix/architecture/test_coverage.md. Use forwardRef test components, data-testid selectors, and waitFor for async assertions.\n2. INPUT: FormalityProvider with defaultFieldProps containing expressions like { disabled: '!signed' }. Form config with 'signed' field.\n3. LOGIC: Create test case where provider defaultFieldProps contains expression. Verify expression evaluates correctly when dependencies change. Mock Form component for isolation. Use userEvent for interactions.\n4. OUTPUT: Test file at /packages/react/src/__tests__/selectDefaultFieldProps.test.tsx with provider-level evaluation tests."
                 },
                 {
@@ -108,7 +120,9 @@
                   "title": "Test form-level evaluation",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T3.S1"],
+                  "dependencies": [
+                    "P1.M1.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Form-level props should override provider-level props. Test priority order carefully.\n2. INPUT: Form config with defaultFieldProps containing expressions. Provider with conflicting defaultFieldProps.\n3. LOGIC: Test that form-level expressions evaluate correctly. Test that form-level props override provider-level props when both provide same property. Use waitFor for re-evaluation after dependency changes.\n4. OUTPUT: Additional test cases in same test file for form-level evaluation."
                 },
                 {
@@ -117,7 +131,9 @@
                   "title": "Test 8-layer priority order",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T3.S2"],
+                  "dependencies": [
+                    "P1.M1.T3.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The 8 layers are: providerDefaultFieldProps (layer 1), formDefaultFieldProps (layer 2), inputProps (layer 3), fieldConfigProps (layer 4), selectProps (layer 5), componentProps (layer 6), coreProps (layer 7). See mergeFieldProps in core package.\n2. INPUT: Test case with all 8 layers providing conflicting values for same property (e.g., disabled).\n3. LOGIC: Verify that highest priority layer wins. Test removing layers to verify next highest takes precedence. Mock all layer sources for test isolation.\n4. OUTPUT: Priority order test cases ensuring correct prop merging behavior."
                 },
                 {
@@ -126,7 +142,9 @@
                   "title": "Test complex expressions",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M1.T3.S3"],
+                  "dependencies": [
+                    "P1.M1.T3.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Expression engine supports arithmetic, logical, comparison, ternary operators, and field access. See /packages/core/src/expression/evaluate.ts.\n2. INPUT: Expressions like 'fields.count > 5 ? \"Many\" : \"Few\"', 'fields.clientType + \" - \" + fields.clientName', '!fields.signed && fields.count > 0'.\n3. LOGIC: Test complex expressions with multiple operators and field references. Verify re-evaluation when any dependency changes. Test expression errors are handled gracefully.\n4. OUTPUT: Complex expression test cases covering edge cases and error handling."
                 }
               ]
@@ -162,7 +180,9 @@
                   "title": "Implement conditional execution",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T1.S1"],
+                  "dependencies": [
+                    "P1.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: submitImmediate() is defined around line 392-394. It calls debouncedSubmitRef.current?.flush() to execute immediately.\n2. INPUT: inputConfig parameter from S1, with access to submitImmediate() and debouncedSubmit() functions.\n3. LOGIC: Inside changeField, check if inputConfig?.debounce === false. If true, call submitImmediate(). Otherwise, call debouncedSubmit() as before. Only execute if autoSave is enabled.\n4. OUTPUT: Conditional logic implementing immediate submission for debounce: false."
                 },
                 {
@@ -171,7 +191,9 @@
                   "title": "Update Field to pass inputConfig",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S2"],
+                  "dependencies": [
+                    "P1.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Field component onChange handler is around line 200-220. It wraps field.onChange and calls changeField.\n2. INPUT: inputConfig from Field component props, changeField function from useFormContext().\n3. LOGIC: In the handleChange wrapper, pass inputConfig as third argument to changeField: changeField(name, value, inputConfig). This enables Form to check inputConfig.debounce.\n4. OUTPUT: Updated handleChange passing inputConfig to changeField."
                 },
                 {
@@ -180,7 +202,9 @@
                   "title": "Fix Form debounce prop type",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P1.M2.T1.S3"],
+                  "dependencies": [
+                    "P1.M2.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Form component accepts debounce prop, but type may not allow false value. Check FormProps interface.\n2. INPUT: Current FormProps type definition for debounce prop.\n3. LOGIC: Update FormProps interface to allow debounce: number | false. Ensure TypeScript accepts both number and false types. Add JSDoc comment explaining false means immediate submission.\n4. OUTPUT: Updated FormProps interface with correct debounce type."
                 }
               ]
@@ -198,7 +222,9 @@
                   "title": "Test immediate submission",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T1.S4"],
+                  "dependencies": [
+                    "P1.M2.T1.S4"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Debounce testing patterns are in /packages/react/src/__tests__/autosave-validation.test.tsx. Use vi.useFakeTimers() for timing control.\n2. INPUT: Form with autoSave enabled. Field config with debounce: false. Mock onSubmit handler.\n3. LOGIC: Create test where field value changes. Verify onSubmit is called immediately without delay. Use vi.advanceTimersByTimeAsync(0) to confirm no pending debounce. No fake timers needed for immediate submission.\n4. OUTPUT: Test case in existing autosave test file verifying immediate submission."
                 },
                 {
@@ -207,7 +233,9 @@
                   "title": "Test normal debounce preserved",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T2.S1"],
+                  "dependencies": [
+                    "P1.M2.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Existing debounce tests should continue to pass. Ensure backward compatibility.\n2. INPUT: Form with autoSave and debounce={1000}. Field config without debounce setting (default behavior).\n3. LOGIC: Verify existing debounce behavior still works. Use fake timers to advance time and verify submission only after debounce period. Run all existing autosave tests to ensure no regression.\n4. OUTPUT: Verification tests confirming existing debounce behavior is unchanged."
                 },
                 {
@@ -216,7 +244,9 @@
                   "title": "Test mixed debounce settings",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P1.M2.T2.S2"],
+                  "dependencies": [
+                    "P1.M2.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify that different fields can have different debounce settings in same form.\n2. INPUT: Form with multiple fields: textField (debounce: 1000), switch (debounce: false), anotherField (no debounce config, uses form default).\n3. LOGIC: Test that textField uses debounce, switch submits immediately, anotherField uses form-level debounce. Change all fields rapidly and verify correct submission behavior for each.\n4. OUTPUT: Mixed debounce test case ensuring per-field override works correctly."
                 }
               ]
@@ -261,7 +291,9 @@
                   "title": "Integrate into useConditions",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S1"],
+                  "dependencies": [
+                    "P2.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: useConditions is at /packages/react/src/hooks/useConditions.ts. Field states are built around line 106-115.\n2. INPUT: useFieldDisabledState hook from S1, plus existing useConditions parameters.\n3. LOGIC: In the field states building loop, add disabled property by calling useFieldDisabledState for each field. This creates a circular dependency (conditions need disabled, disabled needs conditions). Use two-pass evaluation to resolve.\n4. OUTPUT: Updated useConditions with disabled property in field states, using two-pass evaluation."
                 },
                 {
@@ -270,7 +302,9 @@
                   "title": "Handle circular dependency",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T1.S2"],
+                  "dependencies": [
+                    "P2.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Circular dependency: conditions need to know disabled state, but disabled state comes from conditions. Solution is two-pass evaluation.\n2. INPUT: First pass field states (without disabled), conditions array, field configuration.\n3. LOGIC: Pass 1: Build field states without disabled property. Pass 2: Add disabled property using Pass 1 states for condition evaluation. This breaks the circular dependency while ensuring correct evaluation.\n4. OUTPUT: Two-pass evaluation implementation resolving circular dependency without infinite loops."
                 }
               ]
@@ -288,7 +322,9 @@
                   "title": "Verify FieldStateInput type",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P2.M1.T1.S3"],
+                  "dependencies": [
+                    "P2.M1.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: FieldStateInput is in /packages/core/src/state/types.ts or similar. Check if disabled is already defined.\n2. INPUT: Existing FieldStateInput type definition.\n3. LOGIC: Verify FieldStateInput includes disabled?: boolean property. If not present, add it to the type definition. Ensure consistency with other field state properties (value, isTouched, isDirty, etc.).\n4. OUTPUT: Verified or updated FieldStateInput type with disabled property."
                 }
               ]
@@ -306,7 +342,9 @@
                   "title": "Test disabled from JSX prop",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T2.S1"],
+                  "dependencies": [
+                    "P2.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: JSX prop has highest priority. Test should verify disabled prop overrides all other sources.\n2. INPUT: Field component with disabled={true} prop. Field config with disabled: false. Conditions that would set disabled: false.\n3. LOGIC: Render field with disabled prop. Verify field is disabled regardless of config or conditions. Change prop to false and verify field becomes enabled.\n4. OUTPUT: Test case verifying JSX prop has highest priority for disabled state."
                 },
                 {
@@ -315,7 +353,9 @@
                   "title": "Test disabled from config",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T3.S1"],
+                  "dependencies": [
+                    "P2.M1.T3.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Config has second priority after JSX prop. Test should verify config overrides conditions.\n2. INPUT: Field config with disabled: true. Conditions that would set disabled: false. No JSX prop.\n3. LOGIC: Render field with config disabled. Verify field is disabled regardless of conditions. Change config and verify field respects new value. Test with JSX prop to confirm priority.\n4. OUTPUT: Test case verifying config priority for disabled state."
                 },
                 {
@@ -324,7 +364,9 @@
                   "title": "Test disabled from conditions",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M1.T3.S2"],
+                  "dependencies": [
+                    "P2.M1.T3.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Conditions have third priority. Test should verify conditions are evaluated correctly and respect dependencies.\n2. INPUT: Field conditions referencing other field states (value, disabled, etc.).\n3. LOGIC: Test that conditions set disabled correctly. Test re-evaluation when dependencies change. Test complex conditions with multiple matchers. Test conditions with field that itself has disabled from conditions (circular).\n4. OUTPUT: Test cases verifying condition evaluation for disabled state, including circular dependencies."
                 }
               ]
@@ -360,7 +402,9 @@
                   "title": "Implement for object when",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T1.S1"],
+                  "dependencies": [
+                    "P2.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Object when conditions are at lines 106-120. They loop through fields checking matchers. Need to add isDisabled check.\n2. INPUT: Object when condition like { when: { field1: true, field2: false }, isDisabled: true, disabled: true }.\n3. LOGIC: For object when, check if isDisabled is defined. If so, verify ALL fields in the when object have disabled: true in their field states. If all are disabled, return { disabled: condition.isDisabled }.\n4. OUTPUT: Multi-field isDisabled check supporting object when conditions."
                 },
                 {
@@ -369,7 +413,9 @@
                   "title": "Handle mixed matchers",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T1.S2"],
+                  "dependencies": [
+                    "P2.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Mixed matchers mean some fields use value matchers (field: value) and some use field state matchers (field: { isDirty: true }).\n2. INPUT: Object when with mixed matchers and isDisabled: { when: { field1: { value: 5 }, field2: { isDisabled: true } }, isDisabled: true }.\n3. LOGIC: When checking isDisabled for object when, only check fields that use field state matchers (object values). Fields with simple value matchers should be skipped for isDisabled check. Both types of matchers should still be evaluated for the condition match.\n4. OUTPUT: Mixed matcher support for isDisabled, handling both value and field state matchers."
                 }
               ]
@@ -387,7 +433,9 @@
                   "title": "Test two-field conditions",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T1.S3"],
+                  "dependencies": [
+                    "P2.M2.T1.S3"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify isDisabled works with object when containing multiple fields.\n2. INPUT: Config with field1 and field2, both with conditions that set disabled. Result field with { when: { field1: true, field2: true }, isDisabled: true }.\n3. LOGIC: Set field1.disabled and field2.disabled to true via their conditions. Verify result field becomes disabled. Test with only one field disabled to verify ALL fields must be disabled.\n4. OUTPUT: Test case verifying two-field isDisabled condition works correctly."
                 },
                 {
@@ -396,7 +444,9 @@
                   "title": "Test mixed matchers",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T2.S1"],
+                  "dependencies": [
+                    "P2.M2.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Mixed matchers test should verify value matchers and field state matchers work together.\n2. INPUT: Object when with { field1: { value: 5 }, field2: { isDisabled: true }, field3: { isDirty: false } } and isDisabled: true.\n3. LOGIC: Verify field1 value is checked, field2.disabled is checked, field3.isDirty is checked. Only field2 should be checked for isDisabled condition. Verify condition matches when all criteria are met.\n4. OUTPUT: Test case verifying mixed matcher behavior with isDisabled."
                 },
                 {
@@ -405,7 +455,9 @@
                   "title": "Test React integration",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P2.M2.T2.S2"],
+                  "dependencies": [
+                    "P2.M2.T2.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Integration test should verify end-to-end behavior in React components.\n2. INPUT: React Form with multiple fields, conditions setting disabled, and result field with multi-field isDisabled condition.\n3. LOGIC: Render form, interact with fields to change their disabled state. Verify result field disabled state updates correctly. Use userEvent and waitFor for async updates.\n4. OUTPUT: Integration test in React test suite verifying multi-field isDisabled works in real components."
                 }
               ]
@@ -450,7 +502,9 @@
                   "title": "Add cleanup ordering",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P3.M1.T1.S1"],
+                  "dependencies": [
+                    "P3.M1.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Cleanup ordering matters when subscriptions depend on each other.\n2. INPUT: Set of subscriptions from S1 with per-effect tracking.\n3. LOGIC: Ensure cleanup happens in correct order (LIFO or FIFO depending on dependency). Add logging in development to track subscription lifecycle. Verify no double-cleanup occurs.\n4. OUTPUT: Ordered cleanup preventing orphaned subscriptions or double-cleanup."
                 }
               ]
@@ -468,7 +522,9 @@
                   "title": "Test unmount cleanup",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P3.M1.T1.S2"],
+                  "dependencies": [
+                    "P3.M1.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify all subscriptions are cleaned up on unmount.\n2. INPUT: Form component with fields that have validation subscriptions.\n3. LOGIC: Render form, trigger subscriptions by changing field values. Unmount component. Use WeakMap or custom tracking to verify all subscriptions are unsubscribed. Verify no console warnings about memory leaks.\n4. OUTPUT: Test case verifying complete cleanup on unmount."
                 },
                 {
@@ -477,7 +533,9 @@
                   "title": "Test rapid changes",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P3.M1.T2.S1"],
+                  "dependencies": [
+                    "P3.M1.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify rapid prop/config changes don't cause memory leaks.\n2. INPUT: Form component with dynamic field configuration.\n3. LOGIC: Render form, rapidly change config 10+ times. Track subscription count. Verify subscriptions are added and removed correctly. Verify final subscription count matches expected. Check for memory growth using performance APIs if available.\n4. OUTPUT: Test case verifying no memory leaks during rapid changes."
                 }
               ]
@@ -513,7 +571,9 @@
                   "title": "Handle null/undefined",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P3.M2.T1.S1"],
+                  "dependencies": [
+                    "P3.M2.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: null/undefined should be handled gracefully in expressions.\n2. INPUT: Operands that may be null or undefined.\n3. LOGIC: Extend type guard to explicitly check for null and undefined. Return undefined for arithmetic with null/undefined. Document this behavior in JSDoc. Test edge cases like 5 + null, undefined - 5.\n4. OUTPUT: Robust null/undefined handling in arithmetic operations."
                 }
               ]
@@ -531,7 +591,9 @@
                   "title": "Test null arithmetic",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P3.M2.T1.S2"],
+                  "dependencies": [
+                    "P3.M2.T1.S2"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify null/undefined in arithmetic returns undefined.\n2. INPUT: Expression strings like '5 + null', '10 - undefined', 'null * 5'.\n3. LOGIC: Call evaluate() with these expressions. Verify return is undefined. Verify no errors thrown. Test in both development and production modes to check warning behavior.\n4. OUTPUT: Test cases for null/undefined arithmetic operations."
                 },
                 {
@@ -540,7 +602,9 @@
                   "title": "Test mixed types",
                   "status": "Planned",
                   "story_points": 1,
-                  "dependencies": ["P3.M2.T2.S1"],
+                  "dependencies": [
+                    "P3.M2.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify non-numeric types return undefined.\n2. INPUT: Expression strings like '\"hello\" - 5', '{} + 5', '[] * 2', 'true + false'.\n3. LOGIC: Call evaluate() with these expressions. Verify return is undefined. Verify no errors thrown. Test that string concatenation still works: '5 + \"hello\"' should be undefined (not \"5hello\").\n4. OUTPUT: Test cases for mixed-type arithmetic operations."
                 }
               ]
@@ -585,7 +649,9 @@
                   "title": "Test rapid changes",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P3.M3.T1.S1"],
+                  "dependencies": [
+                    "P3.M3.T1.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify execution version tracking handles rapid changes.\n2. INPUT: Form with autoSave and async validation. Field that can be changed rapidly.\n3. LOGIC: Change field value 10 times rapidly. Verify only last value is submitted. Verify intermediate saves are aborted. Use fake timers to control async timing.\n4. OUTPUT: Test case verifying execution version tracking prevents stale saves."
                 },
                 {
@@ -594,7 +660,9 @@
                   "title": "Test async timing",
                   "status": "Planned",
                   "story_points": 2,
-                  "dependencies": ["P3.M3.T2.S1"],
+                  "dependencies": [
+                    "P3.M3.T2.S1"
+                  ],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test should verify timing edge cases in async validation.\n2. INPUT: Form with slow async validation (500ms). Rapid field changes during validation.\n3. LOGIC: Start validation, change value before validation completes. Verify first validation is ignored. Change value again during second validation. Verify correct value is ultimately submitted.\n4. OUTPUT: Test case verifying async timing edge cases are handled correctly."
                 }
               ]

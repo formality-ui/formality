@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This report provides comprehensive research on external dependencies used in the Formality project, covering React Hook Form integration, expression engine architecture, debouncing strategies, React patterns, and testing infrastructure.
+This report provides comprehensive research on external dependencies used in the Formality project, covering React Hook Form integration, expression engine architecture, debouncing strategies, React patterns, and testing infrastructure. The analysis is based on existing documentation in the codebase and source code examination due to external API limitations.
 
 **Key Findings:**
 - React Hook Form's `getFieldState()` does **NOT** include a `disabled` property
@@ -124,7 +124,7 @@ const values = useWatch({ name: ['email', 'name'] });
 // Returns: [string, string] (ALWAYS an array)
 ```
 
-#### Usage in Formality
+**Usage in Formality**
 
 **Location:** `/packages/react/src/hooks/useConditions.ts` (lines 66-92)
 
@@ -454,7 +454,7 @@ export function createFieldStateProxy(
 
       // Unknown property - delegate to value
       const value = target.value;
-      if (value !== null && value !== undefined && typeof value === 'object') {
+      if (value !== null && value !== undefined && typeof value === "object") {
         return (value as Record<string, unknown>)[prop as string];
       }
 
@@ -1265,7 +1265,7 @@ const values = useWatch({ name: fields });
 executionVersionRef.current++;
 const version = executionVersionRef.current;
 
-// ... async validation ...
+// ... async operations ...
 
 if (executionVersionRef.current !== version) {
   return; // New changes came in, abort

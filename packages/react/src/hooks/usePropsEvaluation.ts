@@ -17,6 +17,12 @@ interface UsePropsEvaluationOptions {
   /** Dynamic props descriptor to evaluate */
   selectProps?: SelectValue;
 
+  /** Dynamic default field props from Form config (higher priority) */
+  formDefaultFieldProps?: SelectValue;
+
+  /** Dynamic default field props from Provider config (lower priority) */
+  providerDefaultFieldProps?: SelectValue;
+
   /** Explicit field subscriptions */
   subscribesTo?: string[];
 
@@ -25,7 +31,7 @@ interface UsePropsEvaluationOptions {
 }
 
 /**
- * Evaluates selectProps against current field values
+ * Evaluates dynamic props against current field values
  *
  * This hook:
  * 1. Infers which fields to watch from selectProps expressions
@@ -34,7 +40,12 @@ interface UsePropsEvaluationOptions {
  *
  * Handles both expression-based selectProps and function-based selectProps.
  *
- * @param options - selectProps and subscription config
+ * @param options - Hook options including props to evaluate and subscription config
+ * @param {SelectValue} [options.selectProps] - Dynamic props descriptor to evaluate
+ * @param {SelectValue} [options.formDefaultFieldProps] - Dynamic default props from Form config (higher priority)
+ * @param {SelectValue} [options.providerDefaultFieldProps] - Dynamic default props from Provider config (lower priority)
+ * @param {string[]} [options.subscribesTo] - Explicit field subscriptions
+ * @param {string} options.fieldName - Current field name
  * @returns Evaluated props object
  *
  * @example
@@ -52,7 +63,13 @@ interface UsePropsEvaluationOptions {
 export function usePropsEvaluation(
   options: UsePropsEvaluationOptions,
 ): Record<string, unknown> {
-  const { selectProps, subscribesTo, fieldName } = options;
+  const {
+    selectProps,
+    formDefaultFieldProps,
+    providerDefaultFieldProps,
+    subscribesTo,
+    fieldName,
+  } = options;
   const { record, methods } = useFormContext();
 
   // Infer fields to watch from selectProps and explicit subscriptions
