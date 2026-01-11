@@ -52,7 +52,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S4",
                   "title": "Update FormalityProvider.test.tsx test component",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test component at packages/react/src/__tests__/FormalityProvider.test.tsx:19 is TestInput without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/FormalityProvider.test.tsx with TestInput at line 19.\n3. LOGIC: Apply forwardRef pattern. Wrap TestInput with React.forwardRef. Forward ref to input element. Set displayName.\n4. OUTPUT: Updated TestInput component. Clean test output."

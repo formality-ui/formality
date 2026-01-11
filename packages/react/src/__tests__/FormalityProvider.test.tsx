@@ -1,3 +1,4 @@
+import React, { forwardRef } from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FormalityProvider } from '../components/FormalityProvider';
@@ -15,8 +16,18 @@ function TestConsumer() {
   );
 }
 
+// Test input component
+interface TestInputProps {
+  [key: string]: unknown;
+}
+
+const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
+  (props, ref) => <input ref={ref} />
+);
+
+TestInput.displayName = 'TestInput';
+
 describe('FormalityProvider', () => {
-  const TestInput = () => <input />;
 
   const testInputs: Record<string, InputConfig> = {
     textField: {
