@@ -72,8 +72,10 @@ export function usePropsEvaluation(
   } = options;
   const { record, methods } = useFormContext();
 
-  // Infer fields to watch from selectProps and explicit subscriptions
+  // Infer fields to watch from providerDefaultFieldProps, formDefaultFieldProps, selectProps, and explicit subscriptions
   const watchFields = useInferredInputs({
+    providerDefaultFieldProps,
+    formDefaultFieldProps,
     selectProps,
     subscribesTo,
   });
@@ -133,9 +135,28 @@ export function usePropsEvaluation(
     // Only depends on watchFields and watchedValues - NOT the entire form state
   }, [watchFields, watchedValues, record]);
 
-  // Evaluate props - formDefaultFieldProps takes priority over selectProps
+  // Evaluate props in priority order: form > provider > selectProps
   return useMemo(() => {
-    // Evaluate formDefaultFieldProps if provided (higher priority)
+    // Step 1: Evaluate providerDefaultFieldProps if provided (lowest priority)
+    let providerResult: Record<string, unknown> | null = null;
+    if (providerDefaultFieldProps) {
+      // Handle function providerDefaultFieldProps
+      if (typeof providerDefaultFieldProps === "function") {
+        providerResult =
+          (providerDefaultFieldProps(formState, methods) as Record<string, unknown>) ??
+          {};
+      } else {
+        // Build evaluation context
+        const context = buildFieldContext(formState, fieldName);
+
+        // Evaluate descriptor (string expression, object with expressions, or array)
+        providerResult =
+          (evaluateDescriptor(providerDefaultFieldProps, context) as Record<string, unknown>) ??
+          {};
+      }
+    }
+
+    // Step 2: Evaluate formDefaultFieldProps if provided (overrides provider)
     if (formDefaultFieldProps) {
       // Handle function formDefaultFieldProps
       if (typeof formDefaultFieldProps === "function") {
@@ -152,23 +173,24 @@ export function usePropsEvaluation(
       return (result as Record<string, unknown>) ?? {};
     }
 
-    // Evaluate selectProps if provided (existing logic)
-    if (!selectProps) {
-      return {};
-    }
+    // Step 3: Evaluate selectProps if provided (field-level, overrides provider)
+    if (selectProps) {
+      // Handle function selectProps
+      if (typeof selectProps === "function") {
+        const result = selectProps(formState, methods);
+        return (result as Record<string, unknown>) ?? {};
+      }
 
-    // Handle function selectProps
-    if (typeof selectProps === "function") {
-      const result = selectProps(formState, methods);
+      // Build evaluation context
+      const context = buildFieldContext(formState, fieldName);
+
+      // Evaluate descriptor (string expression, object with expressions, or array)
+      const result = evaluateDescriptor(selectProps, context);
+
       return (result as Record<string, unknown>) ?? {};
     }
 
-    // Build evaluation context
-    const context = buildFieldContext(formState, fieldName);
-
-    // Evaluate descriptor (string expression, object with expressions, or array)
-    const result = evaluateDescriptor(selectProps, context);
-
-    return (result as Record<string, unknown>) ?? {};
-  }, [selectProps, formDefaultFieldProps, formState, methods, fieldName]);
+    // Step 4: Return provider result or empty object
+    return providerResult ?? {};
+  }, [providerDefaultFieldProps, formDefaultFieldProps, selectProps, formState, methods, fieldName]);
 }

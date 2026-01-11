@@ -12,6 +12,12 @@ interface UseInferredInputsOptions {
   /** Dynamic props descriptor to analyze for field references */
   selectProps?: SelectValue;
 
+  /** Form-level default field props to analyze for field references */
+  formDefaultFieldProps?: SelectValue;
+
+  /** Provider-level default field props to analyze for field references */
+  providerDefaultFieldProps?: SelectValue;
+
   /** Conditions to analyze for field references */
   conditions?: ConditionDescriptor[];
 
@@ -44,10 +50,26 @@ interface UseInferredInputsOptions {
  * ```
  */
 export function useInferredInputs(options: UseInferredInputsOptions): string[] {
-  const { selectProps, conditions = [], subscribesTo = [] } = options;
+  const {
+    selectProps,
+    formDefaultFieldProps,
+    providerDefaultFieldProps,
+    conditions = [],
+    subscribesTo = [],
+  } = options;
 
   return useMemo(() => {
     const inferred: string[] = [...subscribesTo];
+
+    // Infer from providerDefaultFieldProps expression/descriptor
+    if (providerDefaultFieldProps) {
+      inferred.push(...inferFieldsFromDescriptor(providerDefaultFieldProps));
+    }
+
+    // Infer from formDefaultFieldProps expression/descriptor
+    if (formDefaultFieldProps) {
+      inferred.push(...inferFieldsFromDescriptor(formDefaultFieldProps));
+    }
 
     // Infer from selectProps expression/descriptor
     if (selectProps) {
@@ -61,5 +83,5 @@ export function useInferredInputs(options: UseInferredInputsOptions): string[] {
 
     // Return unique field names
     return [...new Set(inferred)];
-  }, [selectProps, conditions, subscribesTo]);
+  }, [providerDefaultFieldProps, formDefaultFieldProps, selectProps, conditions, subscribesTo]);
 }
