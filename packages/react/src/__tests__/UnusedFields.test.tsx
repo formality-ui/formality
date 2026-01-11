@@ -1,5 +1,6 @@
 // @formality-ui/react - UnusedFields Component Tests
 import { describe, it, expect } from 'vitest';
+import React, { forwardRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Form } from '../components/Form';
 import { Field } from '../components/Field';
@@ -8,14 +9,26 @@ import { FormalityProvider } from '../components/FormalityProvider';
 import type { InputConfig, FormFieldsConfig } from '@formality-ui/core';
 
 // Test input component
-const TestInput = ({ value, onChange, ...props }: any) => (
-  <input
-    data-testid={props.name}
-    value={value ?? ''}
-    onChange={(e) => onChange(e.target.value)}
-    {...props}
-  />
+interface TestInputProps {
+  value?: any;
+  onChange?: (value: any) => void;
+  name: string;
+  [key: string]: unknown;
+}
+
+const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
+  ({ value, onChange, name, ...props }, ref) => (
+    <input
+      ref={ref}
+      data-testid={name}
+      value={value ?? ''}
+      onChange={(e) => onChange?.(e.target.value)}
+      {...props}
+    />
+  )
 );
+
+TestInput.displayName = 'TestInput';
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {
