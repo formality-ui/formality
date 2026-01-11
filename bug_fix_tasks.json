@@ -107,7 +107,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S1",
                   "title": "Test provider-level evaluation",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T2.S2"
