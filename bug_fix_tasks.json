@@ -18,7 +18,7 @@
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Extend usePropsEvaluation Hook",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Extend the usePropsEvaluation hook to evaluate expressions in selectDefaultFieldProps from both form and provider levels.",
               "subtasks": [
                 {
@@ -56,7 +56,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S4",
                   "title": "Update TypeScript types",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S3"

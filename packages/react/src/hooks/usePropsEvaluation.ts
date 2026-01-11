@@ -13,7 +13,39 @@ import { useFormContext } from "../context/FormContext";
 import { useInferredInputs } from "./useInferredInputs";
 import { makeProxyState } from "../utils/makeProxyState";
 
-interface UsePropsEvaluationOptions {
+/**
+ * Evaluated props object returned by usePropsEvaluation
+ *
+ * Result of evaluating SelectValue expressions (selectProps, formDefaultFieldProps,
+ * providerDefaultFieldProps) against current form state.
+ *
+ * The evaluation follows the priority system where higher-priority props override
+ * lower-priority ones:
+ * 1. Field-level selectProps (highest priority)
+ * 2. Form-level formDefaultFieldProps (medium priority)
+ * 3. Provider-level providerDefaultFieldProps (lowest priority)
+ *
+ * @example
+ * ```tsx
+ * // Expression evaluation
+ * const props = usePropsEvaluation({
+ *   selectProps: { disabled: '!signed' },
+ *   fieldName: 'contact',
+ * });
+ * // When signed=false, props = { disabled: true }
+ *
+ * // Function callback evaluation
+ * const props = usePropsEvaluation({
+ *   selectProps: (formState) => ({
+ *     variant: formState.fields.type?.value === 'premium' ? 'filled' : 'outlined'
+ *   }),
+ *   fieldName: 'variant',
+ * });
+ * ```
+ */
+export type SelectedProps = Record<string, unknown>;
+
+export interface UsePropsEvaluationOptions {
   /** Dynamic props descriptor to evaluate */
   selectProps?: SelectValue;
 
@@ -62,7 +94,7 @@ interface UsePropsEvaluationOptions {
  */
 export function usePropsEvaluation(
   options: UsePropsEvaluationOptions,
-): Record<string, unknown> {
+): SelectedProps {
   const {
     selectProps,
     formDefaultFieldProps,
