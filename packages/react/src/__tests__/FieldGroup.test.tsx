@@ -1,4 +1,5 @@
 // @formality-ui/react - FieldGroup Component Tests
+import React, { forwardRef } from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { Form } from '../components/Form';
@@ -8,26 +9,53 @@ import { FormalityProvider } from '../components/FormalityProvider';
 import type { InputConfig, FormFieldsConfig, FormConfig } from '@formality-ui/core';
 
 // Test input component
-const TestInput = ({ value, onChange, disabled, ...props }: any) => (
-  <input
-    data-testid={props.name}
-    value={value ?? ''}
-    onChange={(e) => onChange(e.target.value)}
-    disabled={disabled}
-    {...props}
-  />
+interface TestInputProps {
+  value?: any;
+  onChange?: (value: any) => void;
+  disabled?: boolean;
+  name: string;
+  [key: string]: unknown;
+}
+
+const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
+  ({ value, onChange, disabled, name, ...props }, ref) => (
+    <input
+      ref={ref}
+      data-testid={name}
+      value={value ?? ''}
+      onChange={(e) => onChange?.(e.target.value)}
+      disabled={disabled}
+      {...props}
+    />
+  )
 );
 
+TestInput.displayName = 'TestInput';
+
 // Switch input for visibility conditions
-const TestSwitch = ({ value, onChange, ...props }: any) => (
-  <input
-    type="checkbox"
-    data-testid={props.name}
-    checked={value ?? false}
-    onChange={(e) => onChange(e.target.checked)}
-    {...props}
-  />
+interface TestSwitchProps {
+  value?: any;
+  onChange?: (value: any) => void;
+  disabled?: boolean;
+  name: string;
+  [key: string]: unknown;
+}
+
+const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
+  ({ value, onChange, disabled, name, ...props }, ref) => (
+    <input
+      ref={ref}
+      type="checkbox"
+      data-testid={name}
+      checked={value ?? false}
+      onChange={(e) => onChange?.(e.target.checked)}
+      disabled={disabled}
+      {...props}
+    />
+  )
 );
+
+TestSwitch.displayName = 'TestSwitch';
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {

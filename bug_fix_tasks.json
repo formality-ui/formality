@@ -34,7 +34,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S2",
                   "title": "Update FieldGroup.test.tsx test components",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Test components at packages/react/src/__tests__/FieldGroup.test.tsx:11-33 use TestInput and TestSwitch without forwardRef.\n2. INPUT: Existing test file packages/react/src/__tests__/FieldGroup.test.tsx with components TestInput (lines 11-20) and TestSwitch (lines 22-33).\n3. LOGIC: Apply same forwardRef pattern as P1.M1.T1.S1. Wrap both components with React.forwardRef. Add ref parameter to signature. Forward ref to input elements. Set displayName.\n4. OUTPUT: Updated test components. No React warnings when tests run."
