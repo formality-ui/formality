@@ -133,8 +133,26 @@ export function usePropsEvaluation(
     // Only depends on watchFields and watchedValues - NOT the entire form state
   }, [watchFields, watchedValues, record]);
 
-  // Evaluate selectProps
+  // Evaluate props - formDefaultFieldProps takes priority over selectProps
   return useMemo(() => {
+    // Evaluate formDefaultFieldProps if provided (higher priority)
+    if (formDefaultFieldProps) {
+      // Handle function formDefaultFieldProps
+      if (typeof formDefaultFieldProps === "function") {
+        const result = formDefaultFieldProps(formState, methods);
+        return (result as Record<string, unknown>) ?? {};
+      }
+
+      // Build evaluation context
+      const context = buildFieldContext(formState, fieldName);
+
+      // Evaluate descriptor (string expression, object with expressions, or array)
+      const result = evaluateDescriptor(formDefaultFieldProps, context);
+
+      return (result as Record<string, unknown>) ?? {};
+    }
+
+    // Evaluate selectProps if provided (existing logic)
     if (!selectProps) {
       return {};
     }
@@ -152,5 +170,5 @@ export function usePropsEvaluation(
     const result = evaluateDescriptor(selectProps, context);
 
     return (result as Record<string, unknown>) ?? {};
-  }, [selectProps, formState, methods, fieldName]);
+  }, [selectProps, formDefaultFieldProps, formState, methods, fieldName]);
 }
