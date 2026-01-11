@@ -2,7 +2,7 @@
 // Tests for coordinated validation during auto-save
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Form } from '../components/Form';
@@ -24,24 +24,46 @@ function createAsyncValidator(fieldName: string, delayMs: number = 50) {
 }
 
 // Test input components
-const TestInput = ({ value, onChange, name, ...props }: any) => (
-  <input
-    data-testid={name}
-    value={value ?? ''}
-    onChange={(e) => onChange(e.target.value)}
-    {...props}
-  />
-);
+interface TestInputProps {
+  value?: any;
+  onChange?: (value: any) => void;
+  name: string;
+  [key: string]: unknown;
+}
 
-const TestSwitch = ({ value, onChange, name, ...props }: any) => (
-  <input
-    type="checkbox"
-    data-testid={name}
-    checked={!!value}
-    onChange={(e) => onChange(e.target.checked)}
-    {...props}
-  />
+const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
+  ({ value, onChange, name, ...props }, ref) => (
+    <input
+      ref={ref}
+      data-testid={name}
+      value={value ?? ''}
+      onChange={(e) => onChange?.(e.target.value)}
+      {...props}
+    />
+  )
 );
+TestInput.displayName = 'TestInput';
+
+interface TestSwitchProps {
+  value?: any;
+  onChange?: (value: any) => void;
+  name: string;
+  [key: string]: unknown;
+}
+
+const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
+  ({ value, onChange, name, ...props }, ref) => (
+    <input
+      ref={ref}
+      type="checkbox"
+      data-testid={name}
+      checked={value ?? false}
+      onChange={(e) => onChange?.(e.target.checked)}
+      {...props}
+    />
+  )
+);
+TestSwitch.displayName = 'TestSwitch';
 
 // Test inputs config
 const testInputs: Record<string, InputConfig> = {
