@@ -129,7 +129,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S3",
                   "title": "Test 8-layer priority order",
-                  "status": "Implementing",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T3.S2"
