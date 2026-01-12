@@ -14,8 +14,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
     "clean": "pnpm -r exec rm -rf dist",
-    "yalc:publish": "pnpm build && pnpm -r exec yalc publish",
-    "yalc:push": "pnpm build && pnpm -r exec yalc push",
+    "changeset": "changeset",
     "release": "pnpm build && pnpm changeset version && pnpm changeset publish"
   },
   "devDependencies": {
