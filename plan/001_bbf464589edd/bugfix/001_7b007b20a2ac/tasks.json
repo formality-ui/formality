@@ -266,7 +266,7 @@
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Disabled Property in Field States",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Populate disabled property in field states to enable expressions referencing field disabled state.",
           "tasks": [
             {
@@ -333,7 +333,7 @@
               "type": "Task",
               "id": "P2.M1.T3",
               "title": "Add Tests for Disabled Property",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Add tests for disabled property from JSX prop, config, and conditions.",
               "subtasks": [
                 {
@@ -351,7 +351,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T3.S2",
                   "title": "Test disabled from config",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T3.S1"
@@ -362,7 +362,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T3.S3",
                   "title": "Test disabled from conditions",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T3.S2"
