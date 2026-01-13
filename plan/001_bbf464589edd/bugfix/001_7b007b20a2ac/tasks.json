@@ -280,7 +280,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Create useFieldDisabledState hook",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Hook patterns are in plan/bugfix/architecture/codebase_analysis.md. Follow useConditions pattern for consistency.\n2. INPUT: fieldName: string, conditions: Condition[], fieldStates: Record<string, FieldStateInput>, disabledProp?: boolean.\n3. LOGIC: Implement priority order: JSX prop > field config > conditions > group state. Use useMemo for performance. Evaluate conditions to extract disabled result. Return boolean indicating if field should be disabled.\n4. OUTPUT: New hook at /packages/react/src/hooks/useFieldDisabledState.ts returning disabled boolean."
@@ -289,7 +289,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Integrate into useConditions",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S1"
