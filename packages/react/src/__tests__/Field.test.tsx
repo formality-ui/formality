@@ -466,6 +466,127 @@ describe("Field", () => {
     });
   });
 
+  describe("JSX disabled prop highest priority - ALL sources active", () => {
+    it("should disable field when JSX={true} overrides config={false} + conditions={false}", () => {
+      // Test that JSX disabled={true} overrides ALL other sources with disabled={false}
+      // Config says enabled, conditions say enabled, JSX forces disabled
+      const config: FormFieldsConfig = {
+        otherField: { type: "textField" },
+        field: {
+          type: "textField",
+          disabled: false, // Config says enabled
+          conditions: [
+            { when: "otherField", is: "match", disabled: false }, // Condition says enabled
+          ],
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ otherField: "match" }}>
+            <Field name="otherField" />
+            <Field name="field" disabled={true} /> {/* JSX forces disabled */}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // JSX prop (true) should override config (false) + conditions (false)
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("should enable field when JSX={false} overrides config={true} + conditions={true}", () => {
+      // Test that JSX disabled={false} overrides ALL other sources with disabled={true}
+      // Config says disabled, conditions say disabled, JSX forces enabled
+      const config: FormFieldsConfig = {
+        otherField: { type: "textField" },
+        field: {
+          type: "textField",
+          disabled: true, // Config says disabled
+          conditions: [
+            { when: "otherField", is: "match", disabled: true }, // Condition says disabled
+          ],
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ otherField: "match" }}>
+            <Field name="otherField" />
+            <Field name="field" disabled={false} /> {/* JSX forces enabled */}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // JSX prop (false) should override config (true) + conditions (true)
+      expect(screen.getByTestId("field")).not.toBeDisabled();
+    });
+
+    it("should update disabled state when JSX prop changes while all sources active", () => {
+      // Test that dynamic prop changes work while all other sources remain active
+      const config: FormFieldsConfig = {
+        otherField: { type: "textField" },
+        field: {
+          type: "textField",
+          disabled: false,
+          conditions: [{ when: "otherField", is: "x", disabled: false }],
+        },
+      };
+
+      const { rerender } = render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ otherField: "x" }}>
+            <Field name="otherField" />
+            <Field name="field" disabled={true} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Initially disabled by JSX prop
+      expect(screen.getByTestId("field")).toBeDisabled();
+
+      // Change JSX prop to false
+      rerender(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ otherField: "x" }}>
+            <Field name="otherField" />
+            <Field name="field" disabled={false} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Should now be enabled
+      expect(screen.getByTestId("field")).not.toBeDisabled();
+    });
+
+    it("should prevent user interaction when JSX disabled={true}", async () => {
+      // Test that users cannot interact with disabled fields
+      const user = userEvent.setup();
+      const config: FormFieldsConfig = {
+        otherField: { type: "textField" },
+        field: {
+          type: "textField",
+          disabled: false, // Config says enabled
+          conditions: [{ when: "otherField", is: "x", disabled: false }],
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ otherField: "x" }}>
+            <Field name="otherField" />
+            <Field name="field" disabled={true} /> {/* JSX forces disabled */}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Try to type in disabled field
+      await user.type(screen.getByTestId("field"), "test");
+
+      // Value should not change (field remains empty)
+      expect(screen.getByTestId("field")).toHaveValue("");
+    });
+  });
+
   describe("render prop", () => {
     it("should pass field API to render function", () => {
       render(

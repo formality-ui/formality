@@ -340,7 +340,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T3.S1",
                   "title": "Test disabled from JSX prop",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S1"
@@ -351,7 +351,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T3.S2",
                   "title": "Test disabled from config",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T3.S1"
