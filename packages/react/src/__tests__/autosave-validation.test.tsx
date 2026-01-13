@@ -526,4 +526,246 @@ describe("AutoSave Validation Coordination", () => {
       );
     });
   });
+
+  describe("Normal Debounce Preserved (Regression)", () => {
+    // These tests explicitly verify that normal debounce behavior is preserved
+    // after adding the debounce: false feature. They serve as regression tests
+    // and documentation for expected behavior.
+
+    beforeEach(() => {
+      // Use the same setup from existing tests
+      validationCalls = [];
+      submitHandler = vi.fn();
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should use default 1000ms debounce when no debounce prop provided", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            // Note: No debounce prop - should use default 1000ms
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+      await act(async () => {
+        await userEvent.type(fieldA, "test", { delay: null });
+      });
+
+      // CRITICAL: No immediate submission (normal debounce is active)
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Advance past default 1000ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1100); // 1000ms + buffer
+      });
+
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fieldA: "test",
+        }),
+      );
+    });
+
+    it("should use form-level debounce prop when provided", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={750} // Custom debounce value
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+      await act(async () => {
+        await userEvent.type(fieldA, "test", { delay: null });
+      });
+
+      // No immediate submission
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Advance past 750ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(850); // 750ms + buffer
+      });
+
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it("should use normal debounce when inputConfig is undefined", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            {/* Field without inputConfig - uses normal debounce */}
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+      await act(async () => {
+        await userEvent.type(fieldA, "test", { delay: null });
+      });
+
+      // CRITICAL: No immediate submission
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Advance past debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it("should use normal debounce when inputConfig exists without debounce", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            {/* Field with empty inputConfig - uses normal debounce */}
+            <Field name="fieldA" inputConfig={{}} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+      await act(async () => {
+        await userEvent.type(fieldA, "test", { delay: null });
+      });
+
+      // No immediate submission
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Advance past debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it("should wait for debounce period before submitting (regression)", async () => {
+      // This test explicitly documents that normal debounce waits for the
+      // configured delay period before submitting. This is the key difference
+      // from the debounce: false behavior (which submits immediately).
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+
+      // Change field value
+      await act(async () => {
+        await userEvent.type(fieldA, "test", { delay: null });
+      });
+
+      // CRITICAL ASSERTION: submitHandler should NOT be called immediately
+      // This is the key difference from debounce: false behavior
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Partial debounce (300ms of 500ms)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // STILL no submission
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Complete debounce (remaining 200ms + buffer)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // NOW submission should happen
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fieldA: "test",
+        }),
+      );
+    });
+  });
 });

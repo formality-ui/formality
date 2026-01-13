@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Critical Issues",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Fix critical bugs that block core PRD functionality: selectDefaultFieldProps evaluation and debounce: false immediate submission.",
       "milestones": [
         {
@@ -155,7 +155,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "debounce: false Immediate Submission",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Implement support for debounce: false at field level to enable immediate submission for switches and toggles.",
           "tasks": [
             {
@@ -213,7 +213,7 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Add Tests for debounce: false",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Add tests for immediate submission when debounce: false, and verify normal debounce is preserved.",
               "subtasks": [
                 {
@@ -231,7 +231,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S2",
                   "title": "Test normal debounce preserved",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T2.S1"
@@ -242,7 +242,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S3",
                   "title": "Test mixed debounce settings",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T2.S2"

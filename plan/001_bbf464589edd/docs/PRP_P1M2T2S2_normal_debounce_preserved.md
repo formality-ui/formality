@@ -47,6 +47,7 @@ Verify that normal debounce behavior works as expected when fields do NOT have `
 - [ ] New test verifies 1000ms default debounce value
 - [ ] New test verifies form-level debounce override works
 - [ ] New test verifies undefined inputConfig uses normal debounce
+- [ ] New test verifies empty inputConfig uses normal debounce
 - [ ] Tests explicitly state "normal debounce preserved" for clarity
 - [ ] `pnpm test` runs successfully with all tests passing
 
@@ -97,7 +98,7 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
 # REFERENCE - FORM COMPONENT
 - file: packages/react/src/components/Form.tsx
   why: Contains the debounce implementation being tested
-  pattern: changeField function (lines 299-321) with conditional logic
+  pattern: changeField function (lines 299-324) with conditional logic
   pattern: useEffect hook (lines 525-558) creating debounced function
   exact: Default debounce value is 1000ms (line 136)
   critical: Normal debounce path is the `else` branch in changeField
@@ -145,7 +146,7 @@ _Before writing this PRP, validate: "If someone knew nothing about this codebase
 │   └── react/
 │       ├── src/
 │       │   ├── components/
-│       │   │   └── Form.tsx                     # changeField (lines 299-321), useEffect (lines 525-558)
+│       │   │   └── Form.tsx                     # changeField (lines 299-324), useEffect (lines 525-558)
 │       │   └── __tests__/
 │       │       └── autosave-validation.test.tsx  # TARGET: Add regression tests here
 │                   ├── Lines 94-408: Existing normal debounce tests
@@ -597,7 +598,7 @@ TEST_FILE:
 
 FORM_COMPONENT:
   - file: packages/react/src/components/Form.tsx
-  - test: changeField function (lines 299-321)
+  - test: changeField function (lines 299-324)
   - verify: else branch (debouncedSubmit()) is executed when inputConfig?.debounce !== false
 
 PREVIOUS_TESTS:
