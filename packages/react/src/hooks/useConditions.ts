@@ -138,6 +138,11 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
   // ============================================================================
   // Uses baseFieldStates (without disabled) to evaluate conditions
   // This prevents the circular dependency: conditions → disabled → conditions
+  //
+  // For circular dependencies (e.g., fieldA.isDisabled depends on fieldB.isDisabled),
+  // we use iterative evaluation to converge to a stable state:
+  // - Start with baseFieldStates (disabled = undefined for all)
+  // - Iteratively compute disabled states until stable or max iterations reached
   const disabledStates = useMemo(() => {
     const disabled: Record<string, boolean> = {};
 
@@ -145,25 +150,59 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
       return disabled;
     }
 
-    watchFields.forEach((fieldName) => {
-      // Get conditions for this field from allFieldsConfig
-      const fieldConfig = allFieldsConfig?.[fieldName];
-      const fieldConditions = fieldConfig?.conditions ?? [];
+    // Initial pass: compute disabled using baseFieldStates (no disabled property)
+    let currentStates = baseFieldStates;
+    let hasChanged = true;
+    let iteration = 0;
+    const maxIterations = 10; // Prevent infinite loops, should converge quickly
 
-      // Evaluate conditions for this field using baseFieldStates (Pass 1)
-      // This breaks the circular dependency since baseFieldStates don't have disabled
-      const result = evaluateConditions({
-        conditions: fieldConditions,
-        fieldValues,
-        fieldStates: baseFieldStates, // Use Pass 1 states (without disabled)
-        record,
-        props: { name: fieldName },
-      });
+    while (hasChanged && iteration < maxIterations) {
+      hasChanged = false;
+      iteration++;
 
-      // Store the disabled state for this field
-      // undefined (no disabled condition) defaults to false
-      disabled[fieldName] = result.disabled ?? false;
-    });
+      // Compute disabled for all watched fields using current states
+      const newDisabled: Record<string, boolean> = {};
+
+      for (const fieldName of watchFields) {
+        const fieldConfig = allFieldsConfig?.[fieldName];
+        const fieldConditions = fieldConfig?.conditions ?? [];
+
+        const result = evaluateConditions({
+          conditions: fieldConditions,
+          fieldValues,
+          fieldStates: currentStates,
+          record,
+          props: { name: fieldName },
+        });
+
+        newDisabled[fieldName] = result.disabled ?? false;
+      }
+
+      // Create new states with updated disabled
+      const newStates: Record<string, FieldStateInput> = {};
+      for (const fieldName of watchFields) {
+        const baseState = baseFieldStates[fieldName];
+        if (baseState) {
+          newStates[fieldName] = {
+            ...baseState,
+            disabled: newDisabled[fieldName],
+          };
+        }
+      }
+
+      // Check if disabled states have changed
+      for (const fieldName of watchFields) {
+        const oldDisabled = disabled[fieldName];
+        const newDisabledValue = newDisabled[fieldName];
+        if (oldDisabled !== newDisabledValue) {
+          hasChanged = true;
+          disabled[fieldName] = newDisabledValue;
+        }
+      }
+
+      // Use new states for next iteration
+      currentStates = newStates;
+    }
 
     return disabled;
   }, [watchFields, allFieldsConfig, fieldValues, baseFieldStates, record]);

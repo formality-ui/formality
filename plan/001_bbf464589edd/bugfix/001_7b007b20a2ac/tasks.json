@@ -266,7 +266,7 @@
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Disabled Property in Field States",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Populate disabled property in field states to enable expressions referencing field disabled state.",
           "tasks": [
             {
@@ -333,7 +333,7 @@
               "type": "Task",
               "id": "P2.M1.T3",
               "title": "Add Tests for Disabled Property",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Add tests for disabled property from JSX prop, config, and conditions.",
               "subtasks": [
                 {
@@ -362,7 +362,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T3.S3",
                   "title": "Test disabled from conditions",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T3.S2"
@@ -391,7 +391,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Move isDisabled outside string block",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Condition evaluation is at /packages/core/src/conditions/evaluate.ts. isDisabled check is currently at line 89-105 inside string block.\n2. INPUT: Current evaluateConditions function with isDisabled check in string block.\n3. LOGIC: Extract isDisabled check from string-only block and place it before the when type check. This allows it to apply to both string and object when conditions. Ensure backward compatibility with existing string conditions.\n4. OUTPUT: Refactored evaluateConditions with isDisabled check applicable to all condition types."

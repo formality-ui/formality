@@ -216,6 +216,7 @@ export function Field({
     conditions: fieldConfig.conditions ?? [],
     subscribesTo: fieldConfig.subscribesTo,
     props: { name },
+    allFieldsConfig: config, // Pass all field configs for two-pass evaluation of disabled states
   });
 
   // === APPLY SET VALUE FROM CONDITIONS ===
