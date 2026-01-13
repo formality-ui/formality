@@ -65,6 +65,12 @@ function evaluateFieldMatcher(
   const fieldValue = fieldValues[fieldName];
   const fieldState = fieldStates?.[fieldName];
 
+  // Handle primitive value matchers (shorthand for exact match)
+  // When matcher is a primitive (number, string, boolean), treat it as { is: matcher }
+  if (typeof matcher !== "object" || matcher === null) {
+    return fieldValue === matcher;
+  }
+
   // Check isValid matcher
   if (matcher.isValid !== undefined) {
     const isFieldValid = fieldState
@@ -115,6 +121,26 @@ function evaluateFieldMatcher(
 }
 
 /**
+ * Type guard to check if a value is a FieldMatcher object with state matchers
+ *
+ * Distinguishes between value matchers and field state matchers:
+ * - Primitives (5, "a", true): Value matchers - excluded from isDisabled check
+ * - Objects with value matchers (is, truthy, isTruthy): Excluded from isDisabled check
+ * - Objects with state matchers (isValid, isDisabled): Included in isDisabled check
+ *
+ * @param value - The value to check
+ * @returns true if the value is a FieldMatcher with state matchers
+ */
+function isStateFieldMatcher(value: unknown): value is FieldMatcher {
+  // Primitives are always value matchers, not state matchers
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  // Check for state matcher properties
+  return "isValid" in value || "isDisabled" in value;
+}
+
+/**
  * Check if a condition matches based on its trigger and matchers
  *
  * Handles triggers:
@@ -150,21 +176,34 @@ function evaluateConditionMatch(
     }
 
     // Check top-level isDisabled matcher for object when
-    // When isDisabled: true, ALL fields must be disabled for condition to match
-    // When isDisabled: false, ALL fields must be enabled for condition to match
+    // Only check fields that use field state matchers (object values)
+    // Skip fields with value matchers (primitive values)
     if (condition.isDisabled !== undefined) {
       // Without fieldStates, we can't verify disabled state - condition doesn't match
       if (!fieldStates) {
         return false;
       }
 
+      // Filter to only fields with field state matchers (isValid, isDisabled)
+      // Skip fields with value matchers (is, truthy, isTruthy)
+      const fieldsWithStateMatchers = Object.entries(condition.when)
+        .filter(([, matcher]) => isStateFieldMatcher(matcher))
+        .map(([fieldName]) => fieldName);
+
+      // Backward compatibility: If no state matchers exist, check all fields
+      // This preserves existing behavior for pure value matcher conditions
+      // New behavior: When state matchers are present, only check those fields
+      const fieldsToCheck = fieldsWithStateMatchers.length > 0
+        ? fieldsWithStateMatchers
+        : Object.keys(condition.when);
+
       // Check if all fields match the expected disabled state
-      for (const fieldName of Object.keys(condition.when)) {
-        const fieldDisabled = fieldStates[fieldName]?.disabled === true;
-        // If any field's disabled state doesn't match the expected state, fail
-        if (fieldDisabled !== condition.isDisabled) {
-          return false;
-        }
+      const allFieldsMatchDisabled = fieldsToCheck.every(
+        (fieldName) => fieldStates[fieldName]?.disabled === condition.isDisabled
+      );
+
+      if (!allFieldsMatchDisabled) {
+        return false;
       }
     }
 

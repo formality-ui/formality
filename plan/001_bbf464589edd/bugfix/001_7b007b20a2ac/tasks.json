@@ -384,7 +384,7 @@
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Modify Condition Evaluation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Move isDisabled check outside string block and implement for object when conditions.",
               "subtasks": [
                 {
@@ -411,7 +411,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T1.S3",
                   "title": "Handle mixed matchers",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T1.S2"
@@ -431,7 +431,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S1",
                   "title": "Test two-field conditions",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T1.S3"

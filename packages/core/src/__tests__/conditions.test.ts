@@ -1010,4 +1010,280 @@ describe("Conditions", () => {
       ]);
     });
   });
+
+  describe("object when with top-level isDisabled and mixed matchers", () => {
+    it("should only check fields with state matchers when isDisabled: true", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: 5, // Value matcher (primitive)
+            field2: { isDisabled: true }, // State matcher
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // field2 is disabled - should match (only field2 checked)
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 5, field2: "value" },
+          fieldStates: {
+            field1: { value: 5, disabled: false }, // Not checked (value matcher)
+            field2: { value: "value", disabled: true }, // Checked (state matcher)
+          },
+        }).disabled,
+      ).toBe(true);
+    });
+
+    it("should not match when state field is enabled (isDisabled: true)", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: 5, // Value matcher (primitive)
+            field2: { isDisabled: true }, // State matcher
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // field2 is enabled - should not match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 5, field2: "value" },
+          fieldStates: {
+            field1: { value: 5, disabled: false },
+            field2: { value: "value", disabled: false }, // Not disabled
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+
+    it("should only check fields with state matchers when isDisabled: false", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: 5, // Value matcher (primitive)
+            field2: { isValid: true }, // State matcher
+          },
+          isDisabled: false,
+          visible: true,
+        },
+      ];
+
+      // field2 is enabled - should match (only field2 checked)
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 5, field2: "value" },
+          fieldStates: {
+            field1: { value: 5, disabled: true }, // Not checked (value matcher)
+            field2: { value: "value", disabled: false, invalid: false }, // Checked (state matcher)
+          },
+        }).visible,
+      ).toBe(true);
+    });
+
+    it("should not match when state field is disabled (isDisabled: false)", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: 5, // Value matcher (primitive)
+            field2: { isValid: true }, // State matcher
+          },
+          isDisabled: false,
+          visible: true,
+        },
+      ];
+
+      // field2 is disabled - should not match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 5, field2: "value" },
+          fieldStates: {
+            field1: { value: 5, disabled: false },
+            field2: { value: "value", disabled: true }, // Disabled
+          },
+        }).visible,
+      ).toBeUndefined();
+    });
+
+    it("should handle multiple fields with state matchers", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: 5, // Value matcher
+            field2: { isDisabled: true }, // State matcher
+            field3: { isValid: true }, // State matcher
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // Both field2 and field3 are disabled - should match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 5, field2: "b", field3: "c" },
+          fieldStates: {
+            field1: { value: 5, disabled: false }, // Not checked
+            field2: { value: "b", disabled: true }, // Checked
+            field3: { value: "c", disabled: true, invalid: false }, // Checked
+          },
+        }).disabled,
+      ).toBe(true);
+    });
+
+    it("should not match when any state field fails disabled check", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: 5, // Value matcher
+            field2: { isDisabled: true }, // State matcher
+            field3: { isValid: true }, // State matcher
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // field3 is enabled - should not match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 5, field2: "b", field3: "c" },
+          fieldStates: {
+            field1: { value: 5, disabled: false },
+            field2: { value: "b", disabled: true },
+            field3: { value: "c", disabled: false, invalid: false }, // Not disabled
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+
+    it("should handle value matchers with object syntax", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { is: 5 }, // Value matcher (object syntax)
+            field2: { isDisabled: true }, // State matcher
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // field2 is disabled - should match (only field2 checked, field1 excluded)
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 5, field2: "value" },
+          fieldStates: {
+            field1: { value: 5, disabled: false }, // Not checked (value matcher)
+            field2: { value: "value", disabled: true }, // Checked (state matcher)
+          },
+        }).disabled,
+      ).toBe(true);
+    });
+
+    it("should handle mixed truthy and state matchers", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { truthy: true }, // Value matcher
+            field2: { isDisabled: true }, // State matcher
+          },
+          isDisabled: true,
+          set: "match",
+        },
+      ];
+
+      // field2 is disabled - should match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "yes", field2: "value" },
+          fieldStates: {
+            field1: { value: "yes", disabled: false }, // Not checked
+            field2: { value: "value", disabled: true }, // Checked
+          },
+        }).setValue,
+      ).toBe("match");
+    });
+
+    it("should require field-level matchers to pass first", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: 5, // Value matcher - must equal 5
+            field2: { isDisabled: true }, // State matcher
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // field1 value doesn't match - should not match regardless of disabled state
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: 999, field2: "value" }, // field1 is 999, not 5
+          fieldStates: {
+            field1: { value: 999, disabled: false },
+            field2: { value: "value", disabled: true },
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+
+    it("should handle complex mixed scenario with multiple state matchers", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            // Value matchers - not checked in isDisabled
+            status: { is: "active" },
+            count: { truthy: true },
+            // State matchers - checked in isDisabled
+            source: { isDisabled: true },
+            target: { isValid: true },
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // All matchers pass, all state fields are disabled - should match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { status: "active", count: 5, source: "x", target: "y" },
+          fieldStates: {
+            status: { value: "active", disabled: false }, // Not checked
+            count: { value: 5, disabled: false }, // Not checked
+            source: { value: "x", disabled: true }, // Checked - disabled
+            target: { value: "y", disabled: true, invalid: false }, // Checked - disabled
+          },
+        }).disabled,
+      ).toBe(true);
+
+      // State field target is enabled - should not match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { status: "active", count: 5, source: "x", target: "y" },
+          fieldStates: {
+            status: { value: "active", disabled: false },
+            count: { value: 5, disabled: false },
+            source: { value: "x", disabled: true },
+            target: { value: "y", disabled: false, invalid: false }, // Not disabled
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+  });
 });
