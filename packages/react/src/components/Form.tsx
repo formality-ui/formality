@@ -311,9 +311,12 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
         // Trigger auto-save (immediate or debounced based on inputConfig)
         if (inputConfig?.debounce === false) {
-          submitImmediate();
+          // Immediate submission: bypass debounce entirely
+          // This is for field-level debounce: false override
+          executeAutoSaveRef.current?.();
         } else {
-          debouncedSubmit();
+          // Normal debounced submission
+          debouncedSubmitRef.current?.();
         }
       }
     },
@@ -400,6 +403,9 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
   // Debounced submit for auto-save
   const debouncedSubmitRef = useRef<DebouncedFunction>();
+
+  // Ref to store executeAutoSave for use in changeField (to avoid initialization order issues)
+  const executeAutoSaveRef = useRef<typeof executeAutoSave>();
 
   /**
    * Wait for specific fields to complete their validation.
@@ -522,6 +528,9 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     await handleSubmit(values as TFieldValues);
   }, [methods, handleSubmit, waitForFieldValidation]);
 
+  // Keep the ref in sync with the latest executeAutoSave function
+  executeAutoSaveRef.current = executeAutoSave;
+
   useEffect(() => {
     // When debounce is false, use immediate execution (no debouncing)
     if (debounceMs === false) {
@@ -562,8 +571,14 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   }, []);
 
   const submitImmediate = useCallback(() => {
-    debouncedSubmitRef.current?.flush();
-  }, []);
+    // For form-level debounce: false, flush() will execute immediately
+    // For field-level debounce: false override, we need to execute directly
+    if (debouncedSubmitRef.current?.flush) {
+      debouncedSubmitRef.current.flush();
+    } else {
+      executeAutoSave();
+    }
+  }, [executeAutoSave]);
 
   // === UNUSED FIELDS ===
 

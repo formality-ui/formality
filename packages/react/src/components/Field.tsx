@@ -56,6 +56,9 @@ export interface FieldProps {
   /** Whether to register this field in Form's field registry (default: true) */
   shouldRegister?: boolean;
 
+  /** Override input config for this field (e.g., debounce setting) */
+  inputConfig?: Partial<InputConfig>;
+
   /** Additional props to pass to the input component */
   [key: string]: unknown;
 }
@@ -116,6 +119,7 @@ export function Field({
   hidden: hiddenProp,
   children,
   shouldRegister = true,
+  inputConfig: inputConfigProp,
   ...restProps
 }: FieldProps): JSX.Element | null {
   const {
@@ -139,7 +143,7 @@ export function Field({
   // Resolve type
   const type = typeProp ?? fieldConfig.type ?? "textField";
 
-  // Resolve input config (merge provider + form)
+  // Resolve input config (merge provider + form + prop)
   const inputConfig = useMemo((): InputConfig => {
     const formInputs =
       typeof formConfig.inputs === "function"
@@ -159,13 +163,17 @@ export function Field({
       }
     }
 
-    return (
+    const baseInputConfig =
       resolveInputConfig(type, mergedInputs) ?? {
         component: "input",
         defaultValue: "",
-      }
-    );
-  }, [type, providerConfig.inputs, formConfig.inputs]);
+      };
+
+    // Merge with inputConfig prop (prop has highest priority)
+    return inputConfigProp
+      ? ({ ...baseInputConfig, ...inputConfigProp } as InputConfig)
+      : baseInputConfig;
+  }, [type, providerConfig.inputs, formConfig.inputs, inputConfigProp]);
 
   // === REGISTRATION ===
 

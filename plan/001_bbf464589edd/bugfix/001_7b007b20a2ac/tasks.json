@@ -220,7 +220,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Test immediate submission",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T1.S4"
@@ -231,7 +231,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S2",
                   "title": "Test normal debounce preserved",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T2.S1"

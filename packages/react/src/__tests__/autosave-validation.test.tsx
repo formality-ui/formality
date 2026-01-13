@@ -407,4 +407,123 @@ describe("AutoSave Validation Coordination", () => {
       expect(submitHandler).not.toHaveBeenCalled();
     });
   });
+
+  describe("Immediate Submission (debounce: false)", () => {
+    it("should call submitHandler immediately when inputConfig.debounce is false", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="fieldA" inputConfig={{ debounce: false }} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Wait for initial render
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      // Clear any initial state
+      submitHandler.mockClear();
+
+      // Change field value (type single character to avoid multiple submissions)
+      const fieldA = screen.getByTestId("fieldA");
+      await act(async () => {
+        await userEvent.type(fieldA, "x", { delay: null });
+      });
+
+      // CRITICAL: submitHandler should be called WITHOUT waiting for debounce period
+      // We only advance a small amount for async validation to complete (< debounce delay)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fieldA: "x",
+        }),
+      );
+
+      // Verify no pending debounce timers
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(1); // Still just 1 call
+    });
+
+    it("should contrast with normal debounce behavior", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              immediateField: { type: "textField" },
+              debouncedField: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="immediateField" inputConfig={{ debounce: false }} />
+            <Field name="debouncedField" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      // Change immediateField (type single character)
+      const immediateField = screen.getByTestId("immediateField");
+      await act(async () => {
+        await userEvent.type(immediateField, "a", { delay: null });
+      });
+
+      // Should submit WITHOUT waiting for debounce (only wait for async validation)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          immediateField: "a",
+        }),
+      );
+
+      // Change debouncedField (type single character)
+      const debouncedField = screen.getByTestId("debouncedField");
+      await act(async () => {
+        await userEvent.type(debouncedField, "b", { delay: null });
+      });
+
+      // Should NOT submit yet (waiting for debounce)
+      // Advance less than debounce period
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(1); // Still just 1
+
+      // Advance past debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+
+      // Now should submit again with both values
+      expect(submitHandler).toHaveBeenCalledTimes(2);
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          immediateField: "a",
+          debouncedField: "b",
+        }),
+      );
+    });
+  });
 });
