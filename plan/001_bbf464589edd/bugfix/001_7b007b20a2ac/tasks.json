@@ -313,14 +313,14 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Update Types",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Verify FieldStateInput type includes disabled property.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Verify FieldStateInput type",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S3"
@@ -340,7 +340,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T3.S1",
                   "title": "Test disabled from JSX prop",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T2.S1"

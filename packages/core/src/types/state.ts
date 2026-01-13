@@ -36,6 +36,9 @@ export interface FieldState {
   /** Inverse of valid state for convenience */
   invalid: boolean;
 
+  /** Whether the field is disabled */
+  disabled?: boolean;
+
   /** Map of subscriber field names watching this field */
   watchers?: Record<string, boolean>;
 }
