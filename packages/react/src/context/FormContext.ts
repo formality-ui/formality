@@ -7,6 +7,7 @@ import type {
   FormFieldsConfig,
   FormConfig,
   FormState,
+  InputConfig,
 } from "@formality-ui/core";
 import type { WatcherSetterFn, DebouncedFunction } from "../types";
 
@@ -87,8 +88,9 @@ export interface FormContextValue<
    * Programmatically change a field's value
    * @param name - Field name
    * @param value - New value
+   * @param inputConfig - Optional input configuration for this field type
    */
-  changeField: (name: string, value: unknown) => void;
+  changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
 
   /**
    * Set a field's validating state

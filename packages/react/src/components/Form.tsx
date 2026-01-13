@@ -297,7 +297,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   }, []);
 
   const changeField = useCallback(
-    (name: string, value: unknown) => {
+    (name: string, value: unknown, inputConfig?: InputConfig) => {
       // Auto-save trigger
       if (autoSave) {
         // Accumulate this change
@@ -310,6 +310,12 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         }
 
         // Trigger debounced auto-save
+        // NOTE: In P1.M2.T1.S2, this will become conditional:
+        // if (inputConfig?.debounce === false) {
+        //   submitImmediate();
+        // } else {
+        //   debouncedSubmit();
+        // }
         debouncedSubmit();
       }
     },

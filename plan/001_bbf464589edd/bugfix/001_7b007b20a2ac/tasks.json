@@ -169,7 +169,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Add inputConfig parameter to changeField",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Form component is at /packages/react/src/components/Form.tsx. changeField is defined around line 465-474.\n2. INPUT: Current changeField signature is (name: string, value: unknown) => void.\n3. LOGIC: Add third parameter: inputConfig?: InputConfig. Import InputConfig type from core package. Update function signature and add inputConfig to dependency array.\n4. OUTPUT: Updated changeField function accepting inputConfig parameter."
@@ -178,7 +178,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
                   "title": "Implement conditional execution",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T1.S1"
