@@ -273,7 +273,7 @@
               "type": "Task",
               "id": "P2.M1.T1",
               "title": "Resolve Disabled State",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Create useFieldDisabledState hook and integrate into useConditions, handling circular dependency.",
               "subtasks": [
                 {
@@ -300,7 +300,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S3",
                   "title": "Handle circular dependency",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S2"
@@ -313,14 +313,14 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Update Types",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Verify FieldStateInput type includes disabled property.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Verify FieldStateInput type",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S3"
