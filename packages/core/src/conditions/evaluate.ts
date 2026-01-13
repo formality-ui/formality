@@ -148,6 +148,26 @@ function evaluateConditionMatch(
         return false;
       }
     }
+
+    // Check top-level isDisabled matcher for object when
+    // When isDisabled: true, ALL fields must be disabled for condition to match
+    // When isDisabled: false, ALL fields must be enabled for condition to match
+    if (condition.isDisabled !== undefined) {
+      // Without fieldStates, we can't verify disabled state - condition doesn't match
+      if (!fieldStates) {
+        return false;
+      }
+
+      // Check if all fields match the expected disabled state
+      for (const fieldName of Object.keys(condition.when)) {
+        const fieldDisabled = fieldStates[fieldName]?.disabled === true;
+        // If any field's disabled state doesn't match the expected state, fail
+        if (fieldDisabled !== condition.isDisabled) {
+          return false;
+        }
+      }
+    }
+
     return true;
   }
 
