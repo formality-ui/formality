@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "selectDefaultFieldProps Evaluation",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Implement expression evaluation for selectDefaultFieldProps at form and provider levels, enabling dynamic props based on form state.",
           "tasks": [
             {
@@ -100,7 +100,7 @@
               "type": "Task",
               "id": "P1.M1.T3",
               "title": "Add Tests for selectDefaultFieldProps",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Add comprehensive tests for selectDefaultFieldProps evaluation, including expression evaluation and priority order.",
               "subtasks": [
                 {
@@ -140,7 +140,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S4",
                   "title": "Test complex expressions",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T3.S3"
@@ -169,7 +169,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Add inputConfig parameter to changeField",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Form component is at /packages/react/src/components/Form.tsx. changeField is defined around line 465-474.\n2. INPUT: Current changeField signature is (name: string, value: unknown) => void.\n3. LOGIC: Add third parameter: inputConfig?: InputConfig. Import InputConfig type from core package. Update function signature and add inputConfig to dependency array.\n4. OUTPUT: Updated changeField function accepting inputConfig parameter."

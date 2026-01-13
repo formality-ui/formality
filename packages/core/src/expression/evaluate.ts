@@ -4,6 +4,10 @@
 import jsep from "jsep";
 import { unwrapFieldProxy } from "./context";
 
+// Add typeof as a unary operator to JSEP
+// JSEP doesn't support typeof by default, so we add it
+jsep.addUnaryOp("typeof");
+
 // jsep AST node types
 type Expression = jsep.Expression;
 type Identifier = jsep.Identifier;
