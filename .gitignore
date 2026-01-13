@@ -23,10 +23,5 @@ Thumbs.db
 *.swo
 *~
 
-# Plan subdirectories (keep structure, ignore contents except docs)
-# plan/ is tracked but plan/* subdirectories may be ignored
-# plan/docs/ should be tracked for documentation
-
-
 # Test coverage
 coverage/

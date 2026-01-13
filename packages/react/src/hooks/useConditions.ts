@@ -21,6 +21,10 @@ interface UseConditionsOptions {
 
   /** Additional props for expression context */
   props?: Record<string, unknown>;
+
+  /** Optional: All field configs for computing disabled states in fieldStates */
+  /** Maps field name to its conditions array */
+  allFieldsConfig?: Record<string, { conditions?: ConditionDescriptor[] }>;
 }
 
 /**
@@ -35,6 +39,11 @@ interface UseConditionsOptions {
  * - disabled: OR logic (any true = disabled)
  * - visible: AND logic (any false = hidden)
  * - setValue: last matching condition wins
+ *
+ * Uses two-pass evaluation to populate the disabled property in field states:
+ * - Pass 1: Build base field states without disabled (prevents circular dependency)
+ * - Pass 2: Compute disabled for each field using Pass 1 states
+ * - Pass 3: Merge base states with disabled into final field states
  *
  * @param options - Conditions and subscription config
  * @returns Evaluation result with disabled, visible, and setValue states
@@ -52,7 +61,7 @@ interface UseConditionsOptions {
  * ```
  */
 export function useConditions(options: UseConditionsOptions): ConditionResult {
-  const { conditions, subscribesTo, props } = options;
+  const { conditions, subscribesTo, props, allFieldsConfig } = options;
   const { record, methods } = useFormContext();
 
   // Infer fields to watch from conditions and explicit subscriptions
@@ -91,11 +100,16 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
     return values;
   }, [watchFields, watchedValues]);
 
-  // Build full field states with metadata
+  // ============================================================================
+  // PASS 1: Build base field states WITHOUT disabled property
+  // ============================================================================
   // CRITICAL: Use getFieldState() for NON-REACTIVE access to field metadata
   // This prevents subscribing to the entire form state which causes all fields to re-validate
   // Field states are read on-demand when values change, not when ANY field's metadata changes
-  const fieldStates = useMemo(() => {
+  //
+  // NOTE: This is Pass 1 of two-pass evaluation - disabled is NOT included here
+  // to break the circular dependency between conditions and disabled state.
+  const baseFieldStates = useMemo(() => {
     const states: Record<string, FieldStateInput> = {};
 
     if (watchFields.length === 0) {
@@ -112,11 +126,64 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
         error: fieldState.error,
         invalid: fieldState.invalid,
         isValidating: false, // Not easily available per-field
+        // ❌ NO disabled property - this is critical for Pass 1 to prevent circular dependency
       };
     });
 
     return states;
   }, [watchFields, fieldValues, methods]);
+
+  // ============================================================================
+  // PASS 2: Compute disabled states for each field
+  // ============================================================================
+  // Uses baseFieldStates (without disabled) to evaluate conditions
+  // This prevents the circular dependency: conditions → disabled → conditions
+  const disabledStates = useMemo(() => {
+    const disabled: Record<string, boolean> = {};
+
+    if (watchFields.length === 0) {
+      return disabled;
+    }
+
+    watchFields.forEach((fieldName) => {
+      // Get conditions for this field from allFieldsConfig
+      const fieldConfig = allFieldsConfig?.[fieldName];
+      const fieldConditions = fieldConfig?.conditions ?? [];
+
+      // Evaluate conditions for this field using baseFieldStates (Pass 1)
+      // This breaks the circular dependency since baseFieldStates don't have disabled
+      const result = evaluateConditions({
+        conditions: fieldConditions,
+        fieldValues,
+        fieldStates: baseFieldStates, // Use Pass 1 states (without disabled)
+        record,
+        props: { name: fieldName },
+      });
+
+      // Store the disabled state for this field
+      // undefined (no disabled condition) defaults to false
+      disabled[fieldName] = result.disabled ?? false;
+    });
+
+    return disabled;
+  }, [watchFields, allFieldsConfig, fieldValues, baseFieldStates, record]);
+
+  // ============================================================================
+  // PASS 3: Merge base states with disabled into final field states
+  // ============================================================================
+  // This is the final fieldStates object that includes all properties including disabled
+  const fieldStates = useMemo(() => {
+    return Object.entries(baseFieldStates).reduce(
+      (acc, [fieldName, state]) => {
+        acc[fieldName] = {
+          ...state,
+          disabled: disabledStates[fieldName],
+        };
+        return acc;
+      },
+      {} as Record<string, FieldStateInput>
+    );
+  }, [baseFieldStates, disabledStates]);
 
   // Evaluate conditions whenever field values or states change
   return useMemo(() => {
