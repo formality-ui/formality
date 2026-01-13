@@ -174,7 +174,9 @@ function evaluateConditionMatch(
     return false;
   }
 
-  // Apply field state matchers (require string 'when' trigger for field reference)
+  // Apply field state matchers (isValid, isDisabled)
+  // NOTE: These matchers require string 'when' trigger to identify which field to check
+  // For object 'when', use field-level matchers in the WhenMultiField object
   if (typeof condition.when === "string" && fieldStates) {
     const fieldState = fieldStates[condition.when];
 
