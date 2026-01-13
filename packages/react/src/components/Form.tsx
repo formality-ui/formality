@@ -58,8 +58,8 @@ export interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   /** Enable auto-save on field changes */
   autoSave?: boolean;
 
-  /** Debounce milliseconds for auto-save (default: 1000) */
-  debounce?: number;
+  /** Debounce milliseconds for auto-save. false = immediate submission, number = delay in milliseconds (default: 1000) */
+  debounce?: number | false;
 
   /** Form-level validation */
   validate?: (
@@ -523,6 +523,24 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   }, [methods, handleSubmit, waitForFieldValidation]);
 
   useEffect(() => {
+    // When debounce is false, use immediate execution (no debouncing)
+    if (debounceMs === false) {
+      const immediateFn = Object.assign(() => {
+        executeAutoSave();
+      }, {
+        cancel: () => {}, // No-op for immediate function
+        flush: () => executeAutoSave(), // Execute immediately on flush
+        pending: () => false, // Never pending when immediate
+      }) as DebouncedFunction;
+
+      debouncedSubmitRef.current = immediateFn;
+
+      return () => {
+        // No cleanup needed for immediate function
+      };
+    }
+
+    // Normal debounce behavior
     const debouncedFn = debounce(() => {
       executeAutoSave();
     }, debounceMs);
