@@ -366,9 +366,9 @@ export function Field({
       onChange(parsedValue);
 
       // Notify subscribers
-      changeField(name, parsedValue);
+      changeField(name, parsedValue, inputConfig);
     },
-    [inputConfig.parser, providerConfig.parsers, changeField, name],
+    [inputConfig.parser, providerConfig.parsers, changeField, name, inputConfig],
   );
 
   // Don't render if not visible
