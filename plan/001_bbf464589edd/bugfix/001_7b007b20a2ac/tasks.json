@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Phase 1: Critical Issues",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Fix critical bugs that block core PRD functionality: selectDefaultFieldProps evaluation and debounce: false immediate submission.",
       "milestones": [
         {
@@ -155,7 +155,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "debounce: false Immediate Submission",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Implement support for debounce: false at field level to enable immediate submission for switches and toggles.",
           "tasks": [
             {
@@ -213,7 +213,7 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Add Tests for debounce: false",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Add tests for immediate submission when debounce: false, and verify normal debounce is preserved.",
               "subtasks": [
                 {
@@ -242,7 +242,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T2.S3",
                   "title": "Test mixed debounce settings",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T2.S2"
@@ -280,7 +280,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Create useFieldDisabledState hook",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Hook patterns are in plan/bugfix/architecture/codebase_analysis.md. Follow useConditions pattern for consistency.\n2. INPUT: fieldName: string, conditions: Condition[], fieldStates: Record<string, FieldStateInput>, disabledProp?: boolean.\n3. LOGIC: Implement priority order: JSX prop > field config > conditions > group state. Use useMemo for performance. Evaluate conditions to extract disabled result. Return boolean indicating if field should be disabled.\n4. OUTPUT: New hook at /packages/react/src/hooks/useFieldDisabledState.ts returning disabled boolean."

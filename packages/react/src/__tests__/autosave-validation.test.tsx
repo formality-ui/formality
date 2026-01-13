@@ -75,6 +75,10 @@ const testInputs: Record<string, InputConfig> = {
     component: TestSwitch,
     defaultValue: false,
   },
+  anotherField: {
+    component: TestInput,
+    defaultValue: "",
+  },
 };
 
 describe("AutoSave Validation Coordination", () => {
@@ -766,6 +770,392 @@ describe("AutoSave Validation Coordination", () => {
           fieldA: "test",
         }),
       );
+    });
+  });
+
+  describe("Mixed Debounce Settings (Integration)", () => {
+    // These tests verify that fields with inputConfig.debounce === false submit
+    // immediately while other fields use the form-level debounce.
+    // This is crucial for forms containing both text fields (debounced)
+    // and switches/toggles (immediate submission).
+    //
+    // NOTE: The current implementation only supports debounce: false for
+    // immediate submission. Field-level numeric debounce values (like
+    // debounce: 1000) are NOT supported and fall back to form-level debounce.
+
+    beforeEach(() => {
+      // Use the same setup from existing tests
+      validationCalls = [];
+      submitHandler = vi.fn();
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should submit immediately for debounce: false field while waiting for debounced fields", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              textField: { type: "textField" },
+              switch: { type: "switch" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            {/* Uses form-level 500ms debounce */}
+            <Field name="textField" />
+            {/* Immediate submission */}
+            <Field name="switch" inputConfig={{ debounce: false }} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Wait for initial render
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      submitHandler.mockClear();
+
+      // CRITICAL: Change switch FIRST (immediate field)
+      const switchField = screen.getByTestId("switch");
+      await act(async () => {
+        await userEvent.click(switchField);
+      });
+
+      // Advance a small amount for async validation
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      // CRITICAL ASSERTION: submitHandler should be called IMMEDIATELY (1st call)
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          switch: true,
+        }),
+      );
+
+      // Now change textField (debounced field)
+      const textField = screen.getByTestId("textField");
+      await act(async () => {
+        await userEvent.type(textField, "test", { delay: null });
+      });
+
+      // CRITICAL: submitHandler should NOT be called yet (waiting for debounce)
+      expect(submitHandler).toHaveBeenCalledTimes(1); // Still just 1
+
+      // Advance less than form-level 500ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // STILL no submission from textField
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+
+      // Advance past form-level 500ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // NOW submitHandler should be called again (2nd call) with all values
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(2);
+      });
+
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          textField: "test",
+          switch: true,
+        }),
+      );
+    });
+
+    it("should use form-level debounce for fields without debounce: false", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              textField: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            {/* No inputConfig.debounce: false - uses form-level debounce */}
+            <Field name="textField" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const textField = screen.getByTestId("textField");
+      await act(async () => {
+        await userEvent.type(textField, "test", { delay: null });
+      });
+
+      // No immediate submission
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Advance less than form-level 500ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // STILL no submission
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Advance past form-level 500ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // NOW submission happens
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          textField: "test",
+        }),
+      );
+    });
+
+    it("should use form-level debounce for fields with empty inputConfig", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              textField: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            {/* Empty inputConfig - still uses form-level debounce */}
+            <Field name="textField" inputConfig={{}} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const textField = screen.getByTestId("textField");
+      await act(async () => {
+        await userEvent.type(textField, "test", { delay: null });
+      });
+
+      // No immediate submission
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Advance past form-level 500ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+
+      // NOW submission happens
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it("should include all field values in final submission after debounce", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              textField: { type: "textField" },
+              switch: { type: "switch" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="textField" />
+            <Field name="switch" inputConfig={{ debounce: false }} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const textField = screen.getByTestId("textField");
+      const switchField = screen.getByTestId("switch");
+
+      // Change switch (immediate)
+      await act(async () => {
+        await userEvent.click(switchField);
+      });
+
+      // Immediate submission with switch value
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ switch: true }),
+      );
+
+      // Change textField (debounced)
+      await act(async () => {
+        await userEvent.type(textField, "hello", { delay: null });
+      });
+
+      // Wait for form-level 500ms debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+
+      // Final submission should include ALL field values
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(2);
+      });
+
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          textField: "hello",
+          switch: true,
+        }),
+      );
+    });
+
+    it("should handle rapid changes across mixed debounce fields correctly", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              textField: { type: "textField" },
+              switch: { type: "switch" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="textField" />
+            <Field name="switch" inputConfig={{ debounce: false }} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const textField = screen.getByTestId("textField");
+      const switchField = screen.getByTestId("switch");
+
+      // Rapid changes across both fields
+      await act(async () => {
+        await userEvent.click(switchField); // Immediate submit
+        await userEvent.type(textField, "a", { delay: null });
+        await userEvent.click(switchField); // Another immediate submit
+        await userEvent.type(textField, "b", { delay: null });
+      });
+
+      // Should have 2 immediate submissions from switch changes
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(2);
+
+      // Advance past form-level debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+
+      // Final submission with textField's last value
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(3);
+      });
+
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          textField: "ab",
+          switch: false, // Switch was toggled twice, back to false
+        }),
+      );
+    });
+
+    it("should not cause timer conflicts between immediate and debounced fields", async () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              textField: { type: "textField" },
+              switch: { type: "switch" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="textField" />
+            <Field name="switch" inputConfig={{ debounce: false }} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const textField = screen.getByTestId("textField");
+      const switchField = screen.getByTestId("switch");
+
+      // Change switch first
+      await act(async () => {
+        await userEvent.click(switchField);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      // Immediate submission for switch
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+
+      // Verify no pending timers would trigger another immediate submission
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(1); // Still just 1
+
+      // Change textField
+      await act(async () => {
+        await userEvent.type(textField, "test", { delay: null });
+      });
+
+      // Verify switch doesn't trigger another submission
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(1); // Still just 1
+
+      // Complete form-level debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // Now we get the second submission from textField
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(2);
+      });
     });
   });
 });
