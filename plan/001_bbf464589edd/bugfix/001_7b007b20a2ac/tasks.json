@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "selectDefaultFieldProps Evaluation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Implement expression evaluation for selectDefaultFieldProps at form and provider levels, enabling dynamic props based on form state.",
           "tasks": [
             {
@@ -100,7 +100,7 @@
               "type": "Task",
               "id": "P1.M1.T3",
               "title": "Add Tests for selectDefaultFieldProps",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Add comprehensive tests for selectDefaultFieldProps evaluation, including expression evaluation and priority order.",
               "subtasks": [
                 {
@@ -129,7 +129,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S3",
                   "title": "Test 8-layer priority order",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T3.S2"
@@ -140,7 +140,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T3.S4",
                   "title": "Test complex expressions",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T3.S3"

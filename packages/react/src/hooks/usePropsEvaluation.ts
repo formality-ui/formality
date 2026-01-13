@@ -143,17 +143,18 @@ export function usePropsEvaluation(
     const fields: Record<string, any> = {};
 
     if (watchFields.length > 0) {
-      // Handle single vs multiple watched values
-      const values =
-        watchFields.length === 1
-          ? { [watchFields[0]]: watchedValues }
-          : watchFields.reduce(
-              (acc, field, i) => {
-                acc[field] = (watchedValues as unknown[])[i];
-                return acc;
-              },
-              {} as Record<string, unknown>,
-            );
+      // useWatch returns an array when given an array of field names
+      // useWatch({ name: ["f1"] }) → [v1]
+      // useWatch({ name: ["f1", "f2"] }) → [v1, v2]
+      const values = Array.isArray(watchedValues)
+        ? watchFields.reduce(
+            (acc, field, i) => {
+              acc[field] = watchedValues[i];
+              return acc;
+            },
+            {} as Record<string, unknown>,
+          )
+        : (watchedValues as Record<string, unknown>);
 
       watchFields.forEach((name) => {
         // Create minimal proxy state with just the value

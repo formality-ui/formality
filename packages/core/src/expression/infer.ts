@@ -22,8 +22,8 @@ const QUALIFIED_PREFIX_SET = new Set<string>(QUALIFIED_PREFIXES);
  * Extract field names from an expression string
  *
  * Scans the expression for unqualified identifiers that represent field names.
- * Skips JavaScript keywords. Qualified prefixes (fields, record, props, etc.)
- * are only skipped when followed by a dot.
+ * Skips JavaScript keywords and identifiers inside string literals.
+ * Qualified prefixes (fields, record, props, etc.) are only skipped when followed by a dot.
  *
  * @param expr - Expression string to analyze
  * @returns Array of unique field names referenced
@@ -34,6 +34,7 @@ const QUALIFIED_PREFIX_SET = new Set<string>(QUALIFIED_PREFIXES);
  * inferFieldsFromExpression("record.name") // → [] (qualified path)
  * inferFieldsFromExpression("true && false") // → [] (keywords)
  * inferFieldsFromExpression("fields === null") // → ["fields"] (not followed by dot)
+ * inferFieldsFromExpression('signed ? "target-on" : "target-off"') // → ["signed"] (string contents skipped)
  */
 export function inferFieldsFromExpression(expr: string): string[] {
   const fields: string[] = [];
@@ -44,6 +45,43 @@ export function inferFieldsFromExpression(expr: string): string[] {
 
   while ((match = IDENTIFIER_REGEX.exec(expr)) !== null) {
     const identifier = match[1];
+    const matchIndex = match.index;
+
+    // Check if this match is inside a string literal
+    let inString = false;
+    let stringChar = "";
+    let escapeNext = false;
+
+    for (let i = 0; i < matchIndex; i++) {
+      const char = expr[i];
+
+      if (escapeNext) {
+        escapeNext = false;
+        continue;
+      }
+
+      if (char === "\\") {
+        escapeNext = true;
+        continue;
+      }
+
+      if (!inString && (char === '"' || char === "'" || char === "`")) {
+        inString = true;
+        stringChar = char;
+        continue;
+      }
+
+      if (inString && char === stringChar) {
+        inString = false;
+        stringChar = "";
+        continue;
+      }
+    }
+
+    // Skip if inside a string literal
+    if (inString) {
+      continue;
+    }
 
     // Skip JavaScript keywords
     if (KEYWORD_SET.has(identifier)) {
@@ -52,7 +90,7 @@ export function inferFieldsFromExpression(expr: string): string[] {
 
     // Check if this identifier is a property access (e.g., .id in client.id)
     // by looking at what comes before it in the string
-    const beforeMatch = expr.slice(0, match.index);
+    const beforeMatch = expr.slice(0, matchIndex);
     const lastNonWhitespace = beforeMatch.trimEnd().slice(-1);
 
     // If preceded by '.', it's a property access, skip it
@@ -63,7 +101,7 @@ export function inferFieldsFromExpression(expr: string): string[] {
     // Check if this is a qualified prefix followed by a dot
     // (e.g., "fields" in "fields.client" - skip it)
     // But "fields" NOT followed by a dot is a field reference
-    const afterMatch = expr.slice(match.index + identifier.length);
+    const afterMatch = expr.slice(matchIndex + identifier.length);
     if (afterMatch.startsWith(".") && QUALIFIED_PREFIX_SET.has(identifier)) {
       continue;
     }
