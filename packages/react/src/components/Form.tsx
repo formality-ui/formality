@@ -309,14 +309,12 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
           pendingAffectedFields.current.add(field);
         }
 
-        // Trigger debounced auto-save
-        // NOTE: In P1.M2.T1.S2, this will become conditional:
-        // if (inputConfig?.debounce === false) {
-        //   submitImmediate();
-        // } else {
-        //   debouncedSubmit();
-        // }
-        debouncedSubmit();
+        // Trigger auto-save (immediate or debounced based on inputConfig)
+        if (inputConfig?.debounce === false) {
+          submitImmediate();
+        } else {
+          debouncedSubmit();
+        }
       }
     },
     [autoSave, getAffectedFields],
