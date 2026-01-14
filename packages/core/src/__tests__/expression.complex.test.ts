@@ -1898,4 +1898,611 @@ describe("Complex Expression Evaluation", () => {
       expect(evaluate('10 % 3', {})).toBe(1);
     });
   });
+
+  describe("Array Arithmetic", () => {
+    beforeEach(() => {
+      clearExpressionCache();
+    });
+
+    describe("Subtraction (-)", () => {
+      it("should return undefined for empty array - number", () => {
+        expect(evaluate('[] - 5', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number - empty array", () => {
+        expect(evaluate('5 - []', {})).toBeUndefined();
+      });
+
+      it("should return undefined for non-empty array - number", () => {
+        expect(evaluate('[1, 2] - 5', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number - non-empty array", () => {
+        expect(evaluate('5 - [1, 2]', {})).toBeUndefined();
+      });
+
+      it("should return undefined for array - array", () => {
+        expect(evaluate('[] - []', {})).toBeUndefined();
+        expect(evaluate('[1] - [2]', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('5 - 3', {})).toBe(2);
+        expect(evaluate('10 - 4', {})).toBe(6);
+      });
+    });
+
+    describe("Multiplication (*)", () => {
+      it("should return undefined for empty array * number", () => {
+        expect(evaluate('[] * 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number * empty array", () => {
+        expect(evaluate('2 * []', {})).toBeUndefined();
+      });
+
+      it("should return undefined for non-empty array * number", () => {
+        expect(evaluate('[1] * 3', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number * non-empty array", () => {
+        expect(evaluate('3 * [1]', {})).toBeUndefined();
+      });
+
+      it("should return undefined for array * array", () => {
+        expect(evaluate('[] * []', {})).toBeUndefined();
+        expect(evaluate('[1] * [2]', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('5 * 3', {})).toBe(15);
+        expect(evaluate('2 * 4', {})).toBe(8);
+      });
+    });
+
+    describe("Division (/)", () => {
+      it("should return undefined for empty array / number", () => {
+        expect(evaluate('[] / 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number / empty array", () => {
+        expect(evaluate('10 / []', {})).toBeUndefined();
+      });
+
+      it("should return undefined for non-empty array / number", () => {
+        expect(evaluate('[1] / 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number / non-empty array", () => {
+        expect(evaluate('10 / [1]', {})).toBeUndefined();
+      });
+
+      it("should return undefined for array / array", () => {
+        expect(evaluate('[] / []', {})).toBeUndefined();
+        expect(evaluate('[1] / [2]', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('10 / 2', {})).toBe(5);
+        expect(evaluate('7 / 2', {})).toBe(3.5);
+      });
+    });
+
+    describe("Modulo (%)", () => {
+      it("should return undefined for empty array % number", () => {
+        expect(evaluate('[] % 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number % empty array", () => {
+        expect(evaluate('10 % []', {})).toBeUndefined();
+      });
+
+      it("should return undefined for non-empty array % number", () => {
+        expect(evaluate('[1] % 3', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number % non-empty array", () => {
+        expect(evaluate('10 % [1]', {})).toBeUndefined();
+      });
+
+      it("should return undefined for array % array", () => {
+        expect(evaluate('[] % []', {})).toBeUndefined();
+        expect(evaluate('[1] % [2]', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('10 % 3', {})).toBe(1);
+        expect(evaluate('7 % 2', {})).toBe(1);
+      });
+    });
+  });
+
+  describe("Boolean Arithmetic", () => {
+    beforeEach(() => {
+      clearExpressionCache();
+    });
+
+    describe("Addition (+)", () => {
+      it("should return undefined for boolean + boolean", () => {
+        expect(evaluate('true + false', {})).toBeUndefined();
+        expect(evaluate('true + true', {})).toBeUndefined();
+        expect(evaluate('false + false', {})).toBeUndefined();
+      });
+
+      it("should return undefined for boolean + number", () => {
+        expect(evaluate('true + 5', {})).toBeUndefined();
+        expect(evaluate('false + 5', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number + boolean", () => {
+        expect(evaluate('5 + true', {})).toBeUndefined();
+        expect(evaluate('5 + false', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('5 + 3', {})).toBe(8);
+        expect(evaluate('0 + 0', {})).toBe(0);
+      });
+    });
+
+    describe("Subtraction (-)", () => {
+      it("should return undefined for boolean - boolean", () => {
+        expect(evaluate('true - false', {})).toBeUndefined();
+        expect(evaluate('true - true', {})).toBeUndefined();
+        expect(evaluate('false - false', {})).toBeUndefined();
+      });
+
+      it("should return undefined for boolean - number", () => {
+        expect(evaluate('true - 5', {})).toBeUndefined();
+        expect(evaluate('false - 5', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number - boolean", () => {
+        expect(evaluate('5 - true', {})).toBeUndefined();
+        expect(evaluate('5 - false', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('10 - 4', {})).toBe(6);
+        expect(evaluate('5 - 5', {})).toBe(0);
+      });
+    });
+
+    describe("Multiplication (*)", () => {
+      it("should return undefined for boolean * boolean", () => {
+        expect(evaluate('true * false', {})).toBeUndefined();
+        expect(evaluate('true * true', {})).toBeUndefined();
+        expect(evaluate('false * false', {})).toBeUndefined();
+      });
+
+      it("should return undefined for boolean * number", () => {
+        expect(evaluate('true * 5', {})).toBeUndefined();
+        expect(evaluate('false * 5', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number * boolean", () => {
+        expect(evaluate('5 * true', {})).toBeUndefined();
+        expect(evaluate('5 * false', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('5 * 3', {})).toBe(15);
+        expect(evaluate('0 * 100', {})).toBe(0);
+      });
+    });
+
+    describe("Division (/)", () => {
+      it("should return undefined for boolean / boolean", () => {
+        expect(evaluate('true / false', {})).toBeUndefined();
+        expect(evaluate('true / true', {})).toBeUndefined();
+        expect(evaluate('false / false', {})).toBeUndefined();
+      });
+
+      it("should return undefined for boolean / number", () => {
+        expect(evaluate('true / 5', {})).toBeUndefined();
+        expect(evaluate('false / 5', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number / boolean", () => {
+        expect(evaluate('5 / true', {})).toBeUndefined();
+        expect(evaluate('5 / false', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('10 / 2', {})).toBe(5);
+        expect(evaluate('7 / 2', {})).toBe(3.5);
+      });
+    });
+
+    describe("Modulo (%)", () => {
+      it("should return undefined for boolean % boolean", () => {
+        expect(evaluate('true % false', {})).toBeUndefined();
+        expect(evaluate('true % true', {})).toBeUndefined();
+        expect(evaluate('false % false', {})).toBeUndefined();
+      });
+
+      it("should return undefined for boolean % number", () => {
+        expect(evaluate('true % 5', {})).toBeUndefined();
+        expect(evaluate('false % 5', {})).toBeUndefined();
+      });
+
+      it("should return undefined for number % boolean", () => {
+        expect(evaluate('5 % true', {})).toBeUndefined();
+        expect(evaluate('5 % false', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers (regression test)", () => {
+        expect(evaluate('10 % 3', {})).toBe(1);
+        expect(evaluate('7 % 2', {})).toBe(1);
+      });
+    });
+  });
+
+  describe("Array Concatenation Validation", () => {
+    beforeEach(() => {
+      clearExpressionCache();
+    });
+
+    describe("Addition (+)", () => {
+      it("should concatenate empty array + number", () => {
+        // Empty array becomes empty string, then concatenated
+        expect(evaluate('[] + 5', {})).toBe("5");
+        expect(evaluate('[] + 0', {})).toBe("0");
+      });
+
+      it("should concatenate number + empty array", () => {
+        expect(evaluate('5 + []', {})).toBe("5");
+        expect(evaluate('0 + []', {})).toBe("0");
+      });
+
+      it("should concatenate non-empty array + number", () => {
+        // [1, 2] becomes "1,2" then concatenated with "3"
+        expect(evaluate('[1, 2] + 3', {})).toBe("1,23");
+        expect(evaluate('[10] + 5', {})).toBe("105");
+      });
+
+      it("should concatenate number + non-empty array", () => {
+        expect(evaluate('3 + [1, 2]', {})).toBe("31,2");
+        expect(evaluate('5 + [10]', {})).toBe("510");
+      });
+
+      it("should concatenate array + array", () => {
+        // Both arrays become empty strings
+        expect(evaluate('[] + []', {})).toBe("");
+        // Single element arrays have no comma: "1" + "2" = "12"
+        expect(evaluate('[1] + [2]', {})).toBe("12");
+        // Multi-element arrays: "1,2" + "3,4" = "1,23,4"
+        expect(evaluate('[1, 2] + [3, 4]', {})).toBe("1,23,4");
+      });
+
+      it("should concatenate array + string", () => {
+        expect(evaluate('[] + "test"', {})).toBe("test");
+        expect(evaluate('[1,2] + "test"', {})).toBe("1,2test");
+      });
+
+      it("should concatenate string + array", () => {
+        expect(evaluate('"test" + []', {})).toBe("test");
+        expect(evaluate('"test" + [1,2]', {})).toBe("test1,2");
+      });
+
+      it("should concatenate array + null (null becomes empty string)", () => {
+        expect(evaluate('[] + null', { null: null })).toBe("");
+        expect(evaluate('[1] + null', { null: null })).toBe("1");
+      });
+    });
+  });
+
+  describe("Development Warnings - Mixed Types", () => {
+    let consoleSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      clearExpressionCache();
+      consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleSpy.mockRestore();
+    });
+
+    describe("Array Arithmetic Warnings", () => {
+      it("should warn for array subtraction", () => {
+        evaluate('[] - 5', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands')
+        );
+      });
+
+      it("should show correct type information for array", () => {
+        evaluate('[] - 5', {});
+
+        // typeof [] is 'object'
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=object')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('right=number')
+        );
+      });
+
+      it("should warn for array multiplication", () => {
+        evaluate('[1] * 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+      });
+
+      it("should warn for array division", () => {
+        evaluate('[] / 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands for /')
+        );
+      });
+
+      it("should warn for array modulo", () => {
+        evaluate('[1] % 3', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands for %')
+        );
+      });
+    });
+
+    describe("Boolean Arithmetic Warnings", () => {
+      it("should warn for boolean addition", () => {
+        evaluate('true + false', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+      });
+
+      it("should show correct type information for boolean", () => {
+        evaluate('true + 5', {});
+
+        // typeof true is 'boolean'
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=boolean')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('right=number')
+        );
+      });
+
+      it("should warn for boolean subtraction", () => {
+        evaluate('false - 5', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands')
+        );
+      });
+
+      it("should warn for boolean multiplication", () => {
+        evaluate('true * 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+      });
+
+      it("should warn for boolean division", () => {
+        evaluate('false / 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+      });
+
+      it("should warn for boolean modulo", () => {
+        evaluate('true % 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands')
+        );
+      });
+    });
+
+    describe("String Arithmetic Warnings (non-addition)", () => {
+      it("should warn for string subtraction", () => {
+        evaluate('"hello" - 5', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+      });
+
+      it("should show correct type information for string", () => {
+        evaluate('"text" * 2', {});
+
+        // typeof "text" is 'string'
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=string')
+        );
+      });
+
+      it("should warn for string multiplication", () => {
+        evaluate('"hello" * 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands')
+        );
+      });
+
+      it("should warn for string division", () => {
+        evaluate('"x" / 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+      });
+
+      it("should warn for string modulo", () => {
+        evaluate('"y" % 2', {});
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+      });
+    });
+
+    describe("No Warnings for Valid Concatenation", () => {
+      it("should not warn for string + number concatenation", () => {
+        evaluate('"hello" + 5', {});
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+      });
+
+      it("should not warn for number + string concatenation", () => {
+        evaluate('5 + "world"', {});
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+      });
+
+      it("should not warn for string + string concatenation", () => {
+        evaluate('"hello" + "world"', {});
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+      });
+
+      it("should not warn for array + number concatenation", () => {
+        evaluate('[] + 5', {});
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+      });
+
+      it("should not warn for number + array concatenation", () => {
+        evaluate('5 + []', {});
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+      });
+
+      it("should not warn for array + array concatenation", () => {
+        evaluate('[] + []', {});
+        evaluate('[1] + [2]', {});
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+      });
+
+      it("should not warn for array + string concatenation", () => {
+        evaluate('[] + "test"', {});
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe("Production Mode - No Mixed-Type Warnings", () => {
+    const originalEnv = process.env.NODE_ENV;
+
+    beforeEach(() => {
+      clearExpressionCache();
+    });
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it("should not warn for array arithmetic in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('[] - 5', {});
+      evaluate('[1] * 2', {});
+      evaluate('[] / 2', {});
+      evaluate('[1] % 3', {});
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should not warn for boolean arithmetic in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('true + false', {});
+      evaluate('true - 5', {});
+      evaluate('false * 2', {});
+      evaluate('true / 2', {});
+      evaluate('false % 2', {});
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should not warn for string arithmetic in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('"hello" - 5', {});
+      evaluate('"text" * 2', {});
+      evaluate('"x" / 2', {});
+      evaluate('"y" % 2', {});
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should still return undefined in production for mixed types", () => {
+      process.env.NODE_ENV = 'production';
+
+      expect(evaluate('[] - 5', {})).toBeUndefined();
+      expect(evaluate('[1] * 2', {})).toBeUndefined();
+      expect(evaluate('true + false', {})).toBeUndefined();
+      expect(evaluate('true - 5', {})).toBeUndefined();
+      expect(evaluate('"hello" - 5', {})).toBeUndefined();
+      expect(evaluate('"text" * 2', {})).toBeUndefined();
+    });
+
+    it("should still concatenate in production", () => {
+      process.env.NODE_ENV = 'production';
+
+      expect(evaluate('"hello" + 5', {})).toBe("hello5");
+      expect(evaluate('5 + "world"', {})).toBe("5world");
+      expect(evaluate('[] + 5', {})).toBe("5");
+      expect(evaluate('[1,2] + 3', {})).toBe("1,23");
+    });
+
+    it("should not warn for concatenation in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('"hello" + 5', {});
+      evaluate('[] + 5', {});
+      evaluate('"a" + "b"', {});
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should work with valid numbers in production mode (regression test)", () => {
+      process.env.NODE_ENV = 'production';
+
+      expect(evaluate('5 + 3', {})).toBe(8);
+      expect(evaluate('10 - 4', {})).toBe(6);
+      expect(evaluate('5 * 3', {})).toBe(15);
+      expect(evaluate('10 / 2', {})).toBe(5);
+      expect(evaluate('10 % 3', {})).toBe(1);
+    });
+  });
 });
