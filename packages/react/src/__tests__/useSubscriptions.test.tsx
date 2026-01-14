@@ -1,7 +1,7 @@
 // @formality-ui/react - useSubscriptions Hook Tests
 import React, { StrictMode } from "react";
 import { renderHook, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useSubscriptions } from "../hooks/useSubscriptions";
 import { FormContext } from "../context/FormContext";
 import type { InputConfig, FormFieldsConfig } from "@formality-ui/core";
@@ -700,6 +700,351 @@ describe("useSubscriptions", () => {
       );
 
       expect(memoryLeakWarnings).toHaveLength(0);
+    });
+  });
+
+  describe("rapid changes - subscription count tracking", () => {
+    it("should maintain subscription count balance with 10+ rapid changes", () => {
+      const inspectableContext = createInspectableContext();
+      const wrapper = createWrapper(inspectableContext);
+
+      // Track add/remove calls
+      let addCount = 0;
+      let removeCount = 0;
+
+      // Override mocks to track counts
+      const originalAdd = inspectableContext.addSubscription;
+      const originalRemove = inspectableContext.removeSubscription;
+
+      inspectableContext.addSubscription = vi.fn((...args) => {
+        addCount++;
+        return originalAdd(...args);
+      });
+
+      inspectableContext.removeSubscription = vi.fn((...args) => {
+        removeCount++;
+        return originalRemove(...args);
+      });
+
+      const { rerender } = renderHook(
+        ({ subscriptions }) => useSubscriptions("field1", subscriptions),
+        {
+          wrapper,
+          initialProps: { subscriptions: ["field2"] },
+        }
+      );
+
+      // Initial subscription
+      expect(addCount).toBe(1);
+      expect(removeCount).toBe(0);
+
+      // Perform 15 rapid changes
+      for (let i = 0; i < 15; i++) {
+        rerender({ subscriptions: [`field${i + 3}`] });
+      }
+
+      // Final state: should have 1 add (initial) + 15 adds (changes) + 15 removes (cleanups)
+      expect(addCount).toBe(16);
+      expect(removeCount).toBe(15);
+
+      // Verify final subscription state
+      const state = inspectableContext.getInspectableState();
+      expect(state.invertedSubscriptions.get("field17")).toContain("field1");
+    });
+
+    it("should only have latest run entry in invertedSubscriptions after rapid changes", () => {
+      const inspectableContext = createInspectableContext();
+      const wrapper = createWrapper(inspectableContext);
+
+      const { rerender } = renderHook(
+        ({ subscriptions }) => useSubscriptions("field1", subscriptions),
+        {
+          wrapper,
+          initialProps: { subscriptions: ["field2"] },
+        }
+      );
+
+      // Perform rapid changes
+      for (let i = 0; i < 10; i++) {
+        rerender({ subscriptions: [`field${i + 3}`] });
+      }
+
+      // Check invertedSubscriptions - should only have subscription to last field
+      const state = inspectableContext.getInspectableState();
+
+      // Should only have subscription to last field (field12)
+      expect(state.invertedSubscriptions.get("field12")).toContain("field1");
+
+      // Previous fields should not have field1 as subscriber
+      for (let i = 0; i < 11; i++) {
+        const fieldName = `field${i + 2}`;
+        const watchers = state.invertedSubscriptions.get(fieldName);
+        if (i === 10) {
+          // Last one (field12) should have field1
+          expect(watchers?.has("field1") ?? false).toBe(true);
+        } else {
+          expect(watchers?.has("field1") ?? false).toBe(false);
+        }
+      }
+    });
+
+    it("should verify final subscription state matches last prop value", () => {
+      const inspectableContext = createInspectableContext();
+      const wrapper = createWrapper(inspectableContext);
+
+      const { rerender } = renderHook(
+        ({ subscriptions }) => useSubscriptions("field1", subscriptions),
+        {
+          wrapper,
+          initialProps: { subscriptions: ["fieldA", "fieldB"] },
+        }
+      );
+
+      // Rapid changes to different subscription sets
+      rerender({ subscriptions: ["fieldC"] });
+      rerender({ subscriptions: ["fieldD", "fieldE", "fieldF"] });
+      rerender({ subscriptions: ["fieldG"] });
+
+      // Verify final state matches last prop
+      const state = inspectableContext.getInspectableState();
+      expect(state.invertedSubscriptions.get("fieldG")).toContain("field1");
+      expect(state.invertedSubscriptions.get("fieldA")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("fieldB")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("fieldC")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("fieldD")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("fieldE")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("fieldF")?.has("field1") ?? false).toBe(false);
+    });
+  });
+
+  describe("rapid changes - memory leak detection", () => {
+    beforeEach(() => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("should not leak memory with 10+ rapid changes (performance.memory)", () => {
+      // Skip if performance.memory not available (Chrome/Edge only)
+      if (typeof performance === 'undefined' || !('memory' in performance)) {
+        console.warn('performance.memory not available - skipping memory test');
+        return;
+      }
+
+      const wrapper = createWrapper(createMockContext());
+
+      // Force GC before test if available
+      if (global.gc) {
+        global.gc();
+      }
+
+      const initialMemory = (performance as any).memory.usedJSHeapSize;
+
+      const { rerender } = renderHook(
+        ({ subscriptions }) => useSubscriptions("field1", subscriptions),
+        {
+          wrapper,
+          initialProps: { subscriptions: ["field2"] },
+        }
+      );
+
+      // Perform many rapid changes
+      for (let i = 0; i < 50; i++) {
+        rerender({ subscriptions: [`field${i + 3}`] });
+      }
+
+      // Force GC after test if available
+      if (global.gc) {
+        global.gc();
+      }
+
+      const finalMemory = (performance as any).memory.usedJSHeapSize;
+      const memoryGrowth = finalMemory - initialMemory;
+
+      // Memory growth should be reasonable (< 5MB for 50 changes)
+      // This is a generous threshold to account for test overhead
+      expect(memoryGrowth).toBeLessThan(5 * 1024 * 1024);
+    });
+
+    it("should not warn about memory leaks during rapid changes", () => {
+      const wrapper = createWrapper(createMockContext());
+
+      const { rerender } = renderHook(
+        ({ subscriptions }) => useSubscriptions("field1", subscriptions),
+        {
+          wrapper,
+          initialProps: { subscriptions: ["field2"] },
+        }
+      );
+
+      // Clear existing logs
+      vi.mocked(console.warn).mockClear();
+
+      // Perform rapid changes
+      for (let i = 0; i < 20; i++) {
+        rerender({ subscriptions: [`field${i + 3}`] });
+      }
+
+      // Check for memory leak warnings
+      const warnCalls = vi.mocked(console.warn).mock.calls;
+      const memoryLeakWarnings = warnCalls.filter(call =>
+        call[0]?.includes('memory leak') ||
+        call[0]?.includes('orphaned') ||
+        (call[0]?.includes('WARNING') && call[0]?.includes('Double-cleanup'))
+      );
+
+      // Development logging is expected (e.g., "Run X: cleaning up")
+      // But no memory leak or orphaned subscription warnings beyond expected cleanup
+      expect(memoryLeakWarnings).toHaveLength(0);
+    });
+
+    it("should handle 100 rapid changes without issues (stress test)", () => {
+      const inspectableContext = createInspectableContext();
+      const wrapper = createWrapper(inspectableContext);
+
+      // Track subscription counts
+      let addCount = 0;
+      let removeCount = 0;
+
+      const originalAdd = inspectableContext.addSubscription;
+      const originalRemove = inspectableContext.removeSubscription;
+
+      inspectableContext.addSubscription = vi.fn((...args) => {
+        addCount++;
+        return originalAdd(...args);
+      });
+
+      inspectableContext.removeSubscription = vi.fn((...args) => {
+        removeCount++;
+        return originalRemove(...args);
+      });
+
+      const { rerender } = renderHook(
+        ({ subscriptions }) => useSubscriptions("field1", subscriptions),
+        {
+          wrapper,
+          initialProps: { subscriptions: ["field2"] },
+        }
+      );
+
+      // Stress test with 100 rapid changes
+      for (let i = 0; i < 100; i++) {
+        rerender({ subscriptions: [`field${(i % 10) + 3}`] });
+      }
+
+      // Verify that all operations completed without errors
+      // Should have 1 initial add + 100 adds = 101 total adds
+      // And 100 removes (one for each rerender cleanup)
+      expect(addCount).toBe(101);
+      expect(removeCount).toBe(100);
+
+      // Verify no memory leak warnings
+      const warnCalls = vi.mocked(console.warn).mock.calls;
+      const memoryLeakWarnings = warnCalls.filter(call =>
+        call[0]?.includes('memory leak') ||
+        call[0]?.includes('orphaned') ||
+        (call[0]?.includes('WARNING') && call[0]?.includes('Double-cleanup'))
+      );
+      expect(memoryLeakWarnings).toHaveLength(0);
+    });
+  });
+
+  describe("rapid changes - different patterns", () => {
+    it("should handle loop-based rapid subscription changes", () => {
+      const inspectableContext = createInspectableContext();
+      const wrapper = createWrapper(inspectableContext);
+
+      const { rerender } = renderHook(
+        ({ subscriptions }) => useSubscriptions("field1", subscriptions),
+        {
+          wrapper,
+          initialProps: { subscriptions: ["field2"] },
+        }
+      );
+
+      // Loop-based changes
+      const subscriptionsList = [
+        ["field3"],
+        ["field4", "field5"],
+        ["field6"],
+        ["field7", "field8", "field9"],
+        ["field10"],
+      ];
+
+      subscriptionsList.forEach(subs => {
+        rerender({ subscriptions: subs });
+      });
+
+      // Verify final state
+      const state = inspectableContext.getInspectableState();
+      expect(state.invertedSubscriptions.get("field10")).toContain("field1");
+
+      // Previous fields should not have field1
+      expect(state.invertedSubscriptions.get("field2")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("field3")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("field4")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("field5")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("field6")?.has("field1") ?? false).toBe(false);
+    });
+
+    it("should handle rapid field name changes", () => {
+      const inspectableContext = createInspectableContext();
+      const wrapper = createWrapper(inspectableContext);
+
+      const { rerender } = renderHook(
+        ({ fieldName }) => useSubscriptions(fieldName, ["targetField"]),
+        {
+          wrapper,
+          initialProps: { fieldName: "field1" },
+        }
+      );
+
+      // Rapid field name changes
+      for (let i = 0; i < 10; i++) {
+        rerender({ fieldName: `field${i + 2}` });
+      }
+
+      // Verify only last field is subscribed
+      const state = inspectableContext.getInspectableState();
+      expect(state.invertedSubscriptions.get("targetField")).toContain("field11");
+
+      // Previous fields should not be subscribed
+      for (let i = 1; i < 11; i++) {
+        expect(state.invertedSubscriptions.get("targetField")).not.toContain(`field${i}`);
+      }
+    });
+
+    it("should handle mixed rapid changes (subscriptions + field name)", () => {
+      const inspectableContext = createInspectableContext();
+      const wrapper = createWrapper(inspectableContext);
+
+      const { rerender } = renderHook(
+        ({ fieldName, subscriptions }) => useSubscriptions(fieldName, subscriptions),
+        {
+          wrapper,
+          initialProps: {
+            fieldName: "field1",
+            subscriptions: ["target1"]
+          },
+        }
+      );
+
+      // Mixed changes
+      rerender({ fieldName: "field1", subscriptions: ["target2"] });
+      rerender({ fieldName: "field2", subscriptions: ["target2"] });
+      rerender({ fieldName: "field2", subscriptions: ["target3"] });
+      rerender({ fieldName: "field3", subscriptions: ["target3"] });
+
+      // Verify final state
+      const state = inspectableContext.getInspectableState();
+      expect(state.invertedSubscriptions.get("target3")).toContain("field3");
+
+      // Previous subscriptions should be cleaned up
+      expect(state.invertedSubscriptions.get("target1")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("target2")?.has("field1") ?? false).toBe(false);
+      expect(state.invertedSubscriptions.get("target2")?.has("field2") ?? false).toBe(false);
     });
   });
 });

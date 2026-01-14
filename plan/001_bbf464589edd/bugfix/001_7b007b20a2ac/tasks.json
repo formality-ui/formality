@@ -477,7 +477,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Memory Leak Prevention",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Improve subscription tracking to prevent memory leaks during rapid prop/config changes.",
           "tasks": [
             {
@@ -513,7 +513,7 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Add Tests for Memory Leaks",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Add tests for unmount cleanup and rapid changes.",
               "subtasks": [
                 {
@@ -531,7 +531,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S2",
                   "title": "Test rapid changes",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M1.T2.S1"
@@ -560,7 +560,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T1.S1",
                   "title": "Add type checking",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Expression evaluation is at /packages/core/src/expression/evaluate.ts. BinaryExpression case is at lines 156-164.\n2. INPUT: Current BinaryExpression handler with left and right operands.\n3. LOGIC: Before arithmetic operations (+, -, *, /, %), check typeof left === 'number' && typeof right === 'number'. If not numbers, return undefined. Add development warning for non-numeric operands. Handle NaN result.\n4. OUTPUT: Type-guarded arithmetic operations returning undefined for invalid types."
