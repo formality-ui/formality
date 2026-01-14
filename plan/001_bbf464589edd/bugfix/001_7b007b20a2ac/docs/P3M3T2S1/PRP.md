@@ -114,26 +114,33 @@
 # MUST READ - Include these in your context window
 
 # Previous PRP (Analysis Context)
-- docfile: plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T1S1/PRP.md
+- docfile: plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/docs/P3M3T1S1/PRP.md
   why: Defines the executionVersionRef implementation being tested
   section: "Goal" for understanding what executionVersionRef does
   section: "Implementation Blueprint" for the mechanism being tested
   section: "Implementation Patterns & Key Details" for version checkpoint locations
 
+# This Task's Research Documentation
+- docfile: plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T2S1/research/codebase-test-patterns.md
+  why: Existing test patterns in the codebase to follow
+  section: "autosave-validation.test.tsx" for fake timer setup
+  section: "useSubscriptions.test.tsx" for rapid change test examples
+  section: "Helper Component Patterns" for TestInput component
+  section: "Critical Gotchas" for common pitfalls to avoid
+
+- docfile: plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T2S1/research/execution-version-tracking-research.md
+  why: Detailed explanation of the mechanism being tested
+  section: "How executionVersionRef Works" for the implementation
+  section: "Three Version Checkpoints" for where aborts occur
+  section: "Test Scenarios to Cover" for what tests need to verify
+  section: "Version Tracking Flow Diagram" for visual understanding
+
 # External Research on Race Conditions
-- docfile: plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T1S1/research/external-race-condition-research.md
+- docfile: plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/docs/P3M3T1S1/research/external-race-condition-research.md
   why: Comprehensive research on version token pattern and testing approaches
   section: "Version/Token Pattern Research" for pattern explanation
   section: "Common Pitfalls and Solutions" for what to test
   section: "Recommended Testing Approach" for test categories
-
-# Codebase Test Patterns (This Task's Research)
-- docfile: plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T2S1/research/codebase-test-patterns.md
-  why: Existing test patterns in the codebase to follow
-  section: "AutoSave Test Patterns" for fake timer setup
-  section: "Rapid Changes Simulation" for how to simulate rapid input
-  section: "Verification Patterns" for how to assert correct behavior
-  section: "useSubscriptions Test Patterns" for rapid change test examples
 
 # Primary Implementation File (What we're testing)
 - file: /home/dustin/projects/formality/packages/react/src/components/Form.tsx
@@ -151,6 +158,7 @@
   pattern: Lines 87-95 (beforeEach/afterEach for timer setup)
   pattern: Lines 129, 141, 191, 203 (advanceTimersByTimeAsync usage)
   pattern: Lines 272-312 (debounce timing test example)
+  pattern: Lines 415-460 (immediate submission with debounce: false)
   gotcha: Always use `{ shouldAdvanceTime: true }` for reliable tests
   gotcha: Always wrap in `act()` when advancing timers
   gotcha: Use buffer time (debounce + 100ms) for reliable assertions
@@ -158,7 +166,7 @@
 # Reference Test: Rapid Changes Pattern
 - file: /home/dustin/projects/formality/packages/react/src/__tests__/useSubscriptions.test.tsx
   why: Shows how to test rapid changes and verify only final state persists
-  pattern: Lines 213-247 (rapid changes test)
+  pattern: Lines 213-247 (rapid changes test with rerender)
   pattern: Lines 706-753 (subscription count tracking with 15 rapid changes)
   pattern: Lines 903-951 (stress test with 100 rapid changes)
   gotcha: Use `{ delay: null }` in userEvent.type() for fastest input
@@ -383,7 +391,7 @@ Task 8: ADD comprehensive documentation
 // Follow this exact import order
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import React from "react";
+import React, { forwardRef } from "react";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Form, Field } from "../components/Form";
@@ -423,22 +431,21 @@ function createAsyncValidator(fieldName: string, delayMs: number = 50) {
 // PATTERN 4: Test Input Component
 // Use this pattern for test input components
 
-const TestInput = ({
-  name,
-  value = "",
-  onChange = () => {},
-}: {
+const TestInput = forwardRef<HTMLInputElement, {
   name: string;
   value?: string;
   onChange?: (value: string) => void;
-}) => (
+}>(({ name, value = "", onChange = () => {} }, ref) => (
   <input
+    ref={ref}
     data-testid={name}
     type="text"
     value={value}
     onChange={(e) => onChange(e.target.value)}
   />
-);
+));
+
+TestInput.displayName = "TestInput";
 
 // PATTERN 5: Rapid Single-Field Changes Test
 // This is the main test for the work item
@@ -548,9 +555,16 @@ it("should abort intermediate auto-save operations", async () => {
 
   const fieldA = screen.getByTestId("fieldA");
 
+  // Wait for initial render
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(100);
+  });
+  submitHandler.mockClear();
+
   // Simulate rapid changes with controlled timing
   for (let i = 1; i <= 10; i++) {
     await act(async () => {
+      await userEvent.clear(fieldA);
       await userEvent.type(fieldA, String(i), { delay: null });
       // Small delay to allow debounce to start but not complete
       await vi.advanceTimersByTimeAsync(100);
@@ -618,13 +632,14 @@ it("should handle rapid changes during async validation", async () => {
     await vi.advanceTimersByTimeAsync(100);
   });
   validationCalls = [];
+  submitHandler.mockClear();
 
   // First change (triggers validation)
   await act(async () => {
     await userEvent.type(fieldA, "a", { delay: null });
   });
 
-  // Advance a bit but let validation continue
+  // Advance to trigger debounce but let validation continue
   await act(async () => {
     await vi.advanceTimersByTimeAsync(100);
   });
@@ -655,8 +670,7 @@ it("should handle rapid changes during async validation", async () => {
     })
   );
 
-  // CRITICAL ASSERTION: Both validations completed
-  // But only the LAST value was submitted
+  // CRITICAL ASSERTION: Validations completed but only final value submitted
   const validationEnds = validationCalls.filter((c) => c.includes(":end"));
   expect(validationEnds.length).toBeGreaterThan(0);
 });
@@ -692,10 +706,17 @@ it("should handle rapid changes across multiple fields", async () => {
   const fieldA = screen.getByTestId("fieldA");
   const fieldB = screen.getByTestId("fieldB");
 
+  // Wait for initial render
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(100);
+  });
+  submitHandler.mockClear();
+
   // Rapid changes across fields
   await act(async () => {
     await userEvent.type(fieldA, "value1", { delay: null });
     await userEvent.type(fieldB, "value2", { delay: null });
+    await userEvent.clear(fieldA);
     await userEvent.type(fieldA, "value3", { delay: null });
   });
 
@@ -831,7 +852,7 @@ pnpm test --coverage
 
 # In Form.tsx, comment out a version checkpoint:
 # if (executionVersionRef.current !== executionVersion) {
-#   return;  // <-- Comment this out
+#   return;  # <-- Comment this out
 # }
 
 # Run tests again:
@@ -913,7 +934,7 @@ pnpm test --coverage
 
 This test task (P3.M3.T2.S1) is part of the Race Condition Prevention milestone:
 
-**P3.M3.T1: Review Existing Logic** (In Progress - P3.M3.T1.S1 parallel)
+**P3.M3.T1: Review Existing Logic** (Complete)
 - P3.M3.T1.S1: Analyze executionVersionRef (provides analysis for this test)
 
 **P3.M3.T2: Add Tests for Race Conditions** (This Task)

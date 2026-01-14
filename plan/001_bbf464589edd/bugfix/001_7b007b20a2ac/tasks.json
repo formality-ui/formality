@@ -470,7 +470,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "Phase 3: Medium Priority Issues",
-      "status": "Planned",
+      "status": "Implementing",
       "description": "Fix medium priority issues: memory leak prevention, type safety in expressions, and race condition prevention.",
       "milestones": [
         {
@@ -615,7 +615,7 @@
           "type": "Milestone",
           "id": "P3.M3",
           "title": "Race Condition Prevention",
-          "status": "Planned",
+          "status": "Implementing",
           "description": "Review and test existing race condition safeguards.",
           "tasks": [
             {
@@ -640,14 +640,14 @@
               "type": "Task",
               "id": "P3.M3.T2",
               "title": "Add Tests for Race Conditions",
-              "status": "Planned",
+              "status": "Implementing",
               "description": "Add tests for rapid changes and async timing.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M3.T2.S1",
                   "title": "Test rapid changes",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M3.T1.S1"
@@ -658,7 +658,7 @@
                   "type": "Subtask",
                   "id": "P3.M3.T2.S2",
                   "title": "Test async timing",
-                  "status": "Planned",
+                  "status": "Implementing",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M3.T2.S1"
