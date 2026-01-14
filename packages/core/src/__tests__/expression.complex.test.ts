@@ -1162,6 +1162,176 @@ describe("Complex Expression Evaluation", () => {
         expect(evaluate('7 % 2', {})).toBe(1);
       });
     });
+
+    describe("Null/Undefined Handling", () => {
+      describe("Addition (+)", () => {
+        it("should return undefined for number + null", () => {
+          // jsep parses 'null' as identifier, so provide actual null in context
+          expect(evaluate('5 + null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for null + number", () => {
+          expect(evaluate('null + 1', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for number + undefined", () => {
+          expect(evaluate('5 + undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined + number", () => {
+          expect(evaluate('undefined + 1', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for null + null", () => {
+          expect(evaluate('null + null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined + undefined", () => {
+          expect(evaluate('undefined + undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should work with valid numbers (regression test)", () => {
+          expect(evaluate('5 + 3', {})).toBe(8);
+        });
+      });
+
+      describe("Subtraction (-)", () => {
+        it("should return undefined for number - null", () => {
+          expect(evaluate('5 - null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for null - number", () => {
+          expect(evaluate('null - 1', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for number - undefined", () => {
+          expect(evaluate('5 - undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined - number", () => {
+          expect(evaluate('undefined - 1', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for null - null", () => {
+          expect(evaluate('null - null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined - undefined", () => {
+          expect(evaluate('undefined - undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should work with valid numbers (regression test)", () => {
+          expect(evaluate('10 - 4', {})).toBe(6);
+        });
+      });
+
+      describe("Multiplication (*)", () => {
+        it("should return undefined for number * null", () => {
+          expect(evaluate('10 * null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for null * number", () => {
+          expect(evaluate('null * 2', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for number * undefined", () => {
+          expect(evaluate('10 * undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined * number", () => {
+          expect(evaluate('undefined * 2', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for null * null", () => {
+          expect(evaluate('null * null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined * undefined", () => {
+          expect(evaluate('undefined * undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should work with valid numbers (regression test)", () => {
+          expect(evaluate('5 * 3', {})).toBe(15);
+        });
+      });
+
+      describe("Division (/)", () => {
+        it("should return undefined for number / null", () => {
+          expect(evaluate('10 / null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for null / number", () => {
+          expect(evaluate('null / 2', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for number / undefined", () => {
+          expect(evaluate('10 / undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined / number", () => {
+          expect(evaluate('undefined / 2', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for null / null", () => {
+          expect(evaluate('null / null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined / undefined", () => {
+          expect(evaluate('undefined / undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should work with valid numbers (regression test)", () => {
+          expect(evaluate('10 / 2', {})).toBe(5);
+        });
+      });
+
+      describe("Modulo (%)", () => {
+        it("should return undefined for number % null", () => {
+          expect(evaluate('10 % null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for null % number", () => {
+          expect(evaluate('null % 3', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for number % undefined", () => {
+          expect(evaluate('10 % undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined % number", () => {
+          expect(evaluate('undefined % 3', { undefined })).toBeUndefined();
+        });
+
+        it("should return undefined for null % null", () => {
+          expect(evaluate('null % null', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for undefined % undefined", () => {
+          expect(evaluate('undefined % undefined', { undefined })).toBeUndefined();
+        });
+
+        it("should work with valid numbers (regression test)", () => {
+          expect(evaluate('10 % 3', {})).toBe(1);
+        });
+      });
+
+      describe("Complex Expressions with Null/Undefined", () => {
+        it("should return undefined for chained arithmetic with null", () => {
+          expect(evaluate('5 + 3 - null', { null: null })).toBeUndefined();
+          expect(evaluate('10 * null + 5', { null: null })).toBeUndefined();
+        });
+
+        it("should return undefined for chained arithmetic with undefined", () => {
+          expect(evaluate('5 + 3 - undefined', { undefined })).toBeUndefined();
+          expect(evaluate('10 * undefined + 5', { undefined })).toBeUndefined();
+        });
+
+        it("should handle mixed null/undefined in complex expression", () => {
+          expect(evaluate('null + 5 * 2', { null: null })).toBeUndefined();
+          expect(evaluate('5 * undefined + 10', { undefined })).toBeUndefined();
+        });
+      });
+    });
   });
 
   describe("Development Warnings", () => {

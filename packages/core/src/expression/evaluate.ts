@@ -29,9 +29,29 @@ export type EvaluationContext = Record<string, unknown>;
 
 /**
  * Type guard to check if a value is safe for arithmetic operations
- * Excludes: NaN, Infinity, -Infinity, and non-numeric types
+ *
+ * Excludes: null, undefined, NaN, Infinity, -Infinity, and non-numeric types
+ *
+ * @param value - The value to check
+ * @returns True if the value is a safe finite number (not null, undefined, NaN, or Infinity)
+ *
+ * @example
+ * isSafeNumber(42);        // → true
+ * isSafeNumber(0);         // → true
+ * isSafeNumber(-3.14);     // → true
+ * isSafeNumber(null);      // → false (explicitly excluded)
+ * isSafeNumber(undefined); // → false (explicitly excluded)
+ * isSafeNumber(NaN);       // → false
+ * isSafeNumber(Infinity);  // → false
+ * isSafeNumber('42');      // → false
+ * isSafeNumber({});        // → false
  */
 function isSafeNumber(value: unknown): value is number {
+  // Explicitly check for null and undefined first
+  if (value === null || value === undefined) {
+    return false;
+  }
+  // Then check for valid finite number
   return typeof value === 'number' &&
          !Number.isNaN(value) &&
          Number.isFinite(value);
@@ -132,7 +152,7 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
           if (process.env.NODE_ENV !== "production") {
             console.warn(
               `[Formality Expression] Type error: ` +
-              `Invalid operands for +: ` +
+              `Invalid operands for + (null/undefined not allowed): ` +
               `left=${typeof leftValue}, right=${typeof rightValue}`
             );
           }
@@ -160,7 +180,7 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
           if (process.env.NODE_ENV !== "production") {
             console.warn(
               `[Formality Expression] Type error: ` +
-              `Invalid operands for ${binaryNode.operator}: ` +
+              `Invalid operands for ${binaryNode.operator} (null/undefined not allowed): ` +
               `left=${typeof leftValue}, right=${typeof rightValue}`
             );
           }
