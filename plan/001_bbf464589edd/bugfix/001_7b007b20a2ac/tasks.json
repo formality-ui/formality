@@ -259,7 +259,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "Phase 2: Major Issues",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Fix major bugs affecting PRD compliance: disabled property in field states and multi-field isDisabled conditions.",
       "milestones": [
         {
@@ -377,7 +377,7 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Multi-Field isDisabled Conditions",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Extend isDisabled matcher to work with object when conditions (multi-field).",
           "tasks": [
             {
@@ -424,7 +424,7 @@
               "type": "Task",
               "id": "P2.M2.T2",
               "title": "Add Tests for Multi-Field isDisabled",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Add tests for two-field conditions, mixed matchers, and React integration.",
               "subtasks": [
                 {
@@ -442,7 +442,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S2",
                   "title": "Test mixed matchers",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T2.S1"
@@ -453,7 +453,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S3",
                   "title": "Test React integration",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T2.S2"
