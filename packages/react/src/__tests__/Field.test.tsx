@@ -1175,6 +1175,206 @@ describe("Field", () => {
     });
   });
 
+  describe("multi-field isDisabled with mixed matchers", () => {
+    it("should disable result when value matcher matches and state field is disabled", () => {
+      // TEST: Mixed matcher with value + state matchers, both match
+      // EXPECT: result field is disabled
+
+      const config: FormFieldsConfig = {
+        field1: { type: "textField" },
+        field2: { type: "textField", disabled: true }, // Config-level disabled
+        result: {
+          type: "textField",
+          conditions: [
+            {
+              when: {
+                field1: { is: "active" }, // Value matcher
+                field2: { isDisabled: true }, // State matcher
+              },
+              isDisabled: true, // Top-level isDisabled check
+              disabled: true,
+            },
+          ],
+        },
+      };
+
+      // field1 value matches "active", field2 is disabled via config
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ field1: "active" }}>
+            <Field name="field1" />
+            <Field name="field2" />
+            <Field name="result" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Both field-level matchers pass AND top-level isDisabled check passes
+      expect(screen.getByTestId("result")).toBeDisabled();
+    });
+
+    it("should not disable when value matcher doesn't match", () => {
+      // TEST: Value matcher fails
+      // EXPECT: result field is NOT disabled
+
+      const config: FormFieldsConfig = {
+        field1: { type: "textField" },
+        field2: { type: "textField", disabled: true }, // Config-level disabled
+        result: {
+          type: "textField",
+          conditions: [
+            {
+              when: {
+                field1: { is: "active" },
+                field2: { isDisabled: true },
+              },
+              isDisabled: true,
+              disabled: true,
+            },
+          ],
+        },
+      };
+
+      // field1 value is "inactive" (doesn't match), field2 is disabled
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ field1: "inactive" }}>
+            <Field name="field1" />
+            <Field name="field2" />
+            <Field name="result" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // field-level matcher fails, condition doesn't match
+      expect(screen.getByTestId("result")).not.toBeDisabled();
+    });
+
+    it("should not disable when state field is enabled", () => {
+      // TEST: State matcher fails
+      // EXPECT: result field is NOT disabled
+
+      const config: FormFieldsConfig = {
+        field1: { type: "textField" },
+        field2: { type: "textField" }, // field2 is enabled (no disabled: true)
+        result: {
+          type: "textField",
+          conditions: [
+            {
+              when: {
+                field1: { is: "active" },
+                field2: { isDisabled: true },
+              },
+              isDisabled: true,
+              disabled: true,
+            },
+          ],
+        },
+      };
+
+      // field1 value matches, but field2 is NOT disabled
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ field1: "active" }}>
+            <Field name="field1" />
+            <Field name="field2" />
+            <Field name="result" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // field-level matcher fails (field2 is not disabled)
+      expect(screen.getByTestId("result")).not.toBeDisabled();
+    });
+
+    it("should handle multiple state matchers in mixed conditions", () => {
+      // TEST: Multiple state matchers with value matcher
+      // EXPECT: result field disabled only when all matchers pass
+
+      const config: FormFieldsConfig = {
+        field1: { type: "textField" },
+        field2: { type: "textField", disabled: true }, // Config-level disabled
+        field3: { type: "textField" }, // field3 is enabled (no disabled: true)
+        result: {
+          type: "textField",
+          conditions: [
+            {
+              when: {
+                field1: { is: "go" },
+                field2: { isDisabled: true },
+                field3: { isDisabled: true },
+              },
+              isDisabled: true,
+              disabled: true,
+            },
+          ],
+        },
+      };
+
+      // field1 matches, field2 disabled, field3 enabled
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ field1: "go" }}>
+            <Field name="field1" />
+            <Field name="field2" />
+            <Field name="field3" />
+            <Field name="result" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // field3 is not disabled, top-level isDisabled check fails
+      expect(screen.getByTestId("result")).not.toBeDisabled();
+    });
+
+    it("should update disabled state when source field states change", async () => {
+      // TEST: Async state update when field value changes
+      // EXPECT: result field disabled state updates correctly
+
+      const user = userEvent.setup();
+
+      const config: FormFieldsConfig = {
+        field1: { type: "textField" },
+        field2: { type: "textField", disabled: true }, // Config-level disabled
+        result: {
+          type: "textField",
+          conditions: [
+            {
+              when: {
+                field1: { is: "active" },
+                field2: { isDisabled: true },
+              },
+              isDisabled: true,
+              disabled: true,
+            },
+          ],
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} record={{ field1: "inactive" }}>
+            <Field name="field1" />
+            <Field name="field2" />
+            <Field name="result" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Initially: value matcher doesn't match, result is enabled
+      expect(screen.getByTestId("result")).not.toBeDisabled();
+
+      // User types "active" into field1
+      await user.clear(screen.getByTestId("field1"));
+      await user.type(screen.getByTestId("field1"), "active");
+
+      // Condition re-evaluates, result becomes disabled
+      await waitFor(() => {
+        expect(screen.getByTestId("result")).toBeDisabled();
+      });
+    });
+  });
+
   describe("render prop", () => {
     it("should pass field API to render function", () => {
       render(

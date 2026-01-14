@@ -259,7 +259,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "Phase 2: Major Issues",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Fix major bugs affecting PRD compliance: disabled property in field states and multi-field isDisabled conditions.",
       "milestones": [
         {
@@ -377,7 +377,7 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Multi-Field isDisabled Conditions",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Extend isDisabled matcher to work with object when conditions (multi-field).",
           "tasks": [
             {
@@ -424,7 +424,7 @@
               "type": "Task",
               "id": "P2.M2.T2",
               "title": "Add Tests for Multi-Field isDisabled",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Add tests for two-field conditions, mixed matchers, and React integration.",
               "subtasks": [
                 {
@@ -453,7 +453,7 @@
                   "type": "Subtask",
                   "id": "P2.M2.T2.S3",
                   "title": "Test React integration",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M2.T2.S2"
@@ -491,7 +491,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S1",
                   "title": "Add per-effect tracking",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Form component useEffect with subscriptions is at lines 322-340 in Form.tsx. Cleanup may remove too many subscriptions.\n2. INPUT: Current useEffect with subscription tracking using a local Set.\n3. LOGIC: Use useRef to track current effect's subscriptions. Store subscription IDs or weak references. In cleanup function, only unsubscribe from subscriptions added in current effect invocation. Use a unique identifier per effect run.\n4. OUTPUT: Improved subscription tracking preventing over-cleanup."
