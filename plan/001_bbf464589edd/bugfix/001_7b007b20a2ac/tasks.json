@@ -477,7 +477,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Memory Leak Prevention",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Improve subscription tracking to prevent memory leaks during rapid prop/config changes.",
           "tasks": [
             {
@@ -513,14 +513,14 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Add Tests for Memory Leaks",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Add tests for unmount cleanup and rapid changes.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M1.T2.S1",
                   "title": "Test unmount cleanup",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M1.T1.S2"
@@ -531,7 +531,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T2.S2",
                   "title": "Test rapid changes",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P3.M1.T2.S1"
