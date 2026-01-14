@@ -862,6 +862,222 @@ describe("Conditions", () => {
     });
   });
 
+  describe("object when with top-level isDisabled and pure field state matchers", () => {
+    it("should match when all fields are disabled with field state matchers", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { isDisabled: true },
+            field2: { isDisabled: true },
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // Both fields disabled - should match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: true },
+            field2: { value: "b", disabled: true },
+          },
+        }).disabled,
+      ).toBe(true);
+    });
+
+    it("should not match when any field is enabled with field state matchers", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { isDisabled: true },
+            field2: { isDisabled: true },
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // One field enabled - should NOT match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: true },
+            field2: { value: "b", disabled: false },
+          },
+        }).disabled,
+      ).toBeUndefined();
+
+      // Other field enabled - should NOT match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: false },
+            field2: { value: "b", disabled: true },
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+
+    it("should not match when all fields are enabled with isDisabled: true", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { isDisabled: true },
+            field2: { isDisabled: true },
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // All fields enabled - should NOT match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: false },
+            field2: { value: "b", disabled: false },
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+
+    it("should match when all fields are enabled with isDisabled: false", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { isDisabled: false },
+            field2: { isDisabled: false },
+          },
+          isDisabled: false,
+          set: "ready",
+        },
+      ];
+
+      // All fields enabled - should match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: false },
+            field2: { value: "b", disabled: false },
+          },
+        }).setValue,
+      ).toBe("ready");
+    });
+
+    it("should not match when any field is disabled with isDisabled: false", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { isDisabled: false },
+            field2: { isDisabled: false },
+          },
+          isDisabled: false,
+          set: "ready",
+        },
+      ];
+
+      // One field disabled - should NOT match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: false },
+            field2: { value: "b", disabled: true },
+          },
+        }).setValue,
+      ).toBeUndefined();
+
+      // Other field disabled - should NOT match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: true },
+            field2: { value: "b", disabled: false },
+          },
+        }).setValue,
+      ).toBeUndefined();
+    });
+
+    it("should require field-level matchers to pass first", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { isDisabled: true },
+            field2: { isDisabled: true },
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // Field-level matcher for field1 doesn't match - should NOT match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b" },
+          fieldStates: {
+            field1: { value: "a", disabled: false }, // doesn't match isDisabled: true
+            field2: { value: "b", disabled: true },
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+
+    it("should work with two or more field state matchers", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          when: {
+            field1: { isDisabled: true },
+            field2: { isDisabled: true },
+            field3: { isDisabled: true },
+          },
+          isDisabled: true,
+          disabled: true,
+        },
+      ];
+
+      // All three fields disabled - should match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b", field3: "c" },
+          fieldStates: {
+            field1: { value: "a", disabled: true },
+            field2: { value: "b", disabled: true },
+            field3: { value: "c", disabled: true },
+          },
+        }).disabled,
+      ).toBe(true);
+
+      // One field enabled - should NOT match
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { field1: "a", field2: "b", field3: "c" },
+          fieldStates: {
+            field1: { value: "a", disabled: true },
+            field2: { value: "b", disabled: true },
+            field3: { value: "c", disabled: false },
+          },
+        }).disabled,
+      ).toBeUndefined();
+    });
+  });
+
   describe("conditionMatches", () => {
     it("should check single condition match", () => {
       expect(

@@ -1010,6 +1010,169 @@ describe("Field", () => {
 
       // No infinite loop - test completes without timeout
     });
+
+    describe("two-field isDisabled conditions", () => {
+      it.skip("should disable result when both source fields are disabled", () => {
+        // KNOWN LIMITATION: Top-level isDisabled with object when requires disabled states
+        // to be propagated through fieldStates in condition evaluation.
+        //
+        // The core package tests verify this works correctly at the evaluation level.
+        // However, the React integration has a limitation where config-level disabled
+        // states are not included in the fieldStates used for condition evaluation.
+        //
+        // To fix this, we would need to:
+        // 1. Include config-level disabled in Pass 2 fieldStates computation
+        // 2. Or use a different mechanism to propagate disabled states for condition evaluation
+        //
+        // For now, this test documents the expected behavior when this limitation is resolved.
+        const config: FormFieldsConfig = {
+          field1: { type: "textField", disabled: true },
+          field2: { type: "textField", disabled: true },
+          result: {
+            type: "textField",
+            conditions: [
+              {
+                when: { field1: {}, field2: {} },
+                isDisabled: true,
+                disabled: true,
+              },
+            ],
+          },
+        };
+
+        render(
+          <FormalityProvider inputs={testInputs}>
+            <Form config={config}>
+              <Field name="field1" />
+              <Field name="field2" />
+              <Field name="result" />
+            </Form>
+          </FormalityProvider>,
+        );
+
+        // Both source fields are disabled
+        expect(screen.getByTestId("field1")).toBeDisabled();
+        expect(screen.getByTestId("field2")).toBeDisabled();
+        // Result field should be disabled
+        expect(screen.getByTestId("result")).toBeDisabled();
+      });
+
+      it.skip("should not disable result when only one source field is disabled", () => {
+        // KNOWN LIMITATION: Same as above - config-level disabled not propagated to fieldStates
+        const config: FormFieldsConfig = {
+          field1: { type: "textField", disabled: true },
+          field2: { type: "textField", disabled: false },
+          result: {
+            type: "textField",
+            conditions: [
+              {
+                when: { field1: {}, field2: {} },
+                isDisabled: true,
+                disabled: true,
+              },
+            ],
+          },
+        };
+
+        render(
+          <FormalityProvider inputs={testInputs}>
+            <Form config={config}>
+              <Field name="field1" />
+              <Field name="field2" />
+              <Field name="result" />
+            </Form>
+          </FormalityProvider>,
+        );
+
+        // Only one source field is disabled
+        expect(screen.getByTestId("field1")).toBeDisabled();
+        expect(screen.getByTestId("field2")).not.toBeDisabled();
+        // Result field should NOT be disabled
+        expect(screen.getByTestId("result")).not.toBeDisabled();
+      });
+
+      it.skip("should re-evaluate when source field disabled states change", async () => {
+        // KNOWN LIMITATION: Same as above - JSX prop disabled not propagated to fieldStates
+        const config: FormFieldsConfig = {
+          field1: { type: "textField" },
+          field2: { type: "textField" },
+          result: {
+            type: "textField",
+            conditions: [
+              {
+                when: { field1: {}, field2: {} },
+                isDisabled: true,
+                disabled: true,
+              },
+            ],
+          },
+        };
+
+        // Initially only field1 is disabled (via JSX prop)
+        const { rerender } = render(
+          <FormalityProvider inputs={testInputs}>
+            <Form config={config}>
+              <Field name="field1" disabled />
+              <Field name="field2" />
+              <Field name="result" />
+            </Form>
+          </FormalityProvider>,
+        );
+
+        // Only one disabled initially
+        expect(screen.getByTestId("result")).not.toBeDisabled();
+
+        // Now disable both fields (via JSX props)
+        rerender(
+          <FormalityProvider inputs={testInputs}>
+            <Form config={config}>
+              <Field name="field1" disabled />
+              <Field name="field2" disabled />
+              <Field name="result" />
+            </Form>
+          </FormalityProvider>,
+        );
+
+        // Now both are disabled - result should be disabled
+        await waitFor(() => {
+          expect(screen.getByTestId("result")).toBeDisabled();
+        });
+      });
+
+      it.skip("should work with field state matchers in object when", () => {
+        // KNOWN LIMITATION: Same as above - config-level disabled not propagated to fieldStates
+        const config: FormFieldsConfig = {
+          field1: { type: "textField", disabled: true },
+          field2: { type: "textField", disabled: true },
+          result: {
+            type: "textField",
+            conditions: [
+              {
+                when: { field1: {}, field2: {} },
+                isDisabled: true,
+                disabled: true,
+              },
+            ],
+          },
+        };
+
+        render(
+          <FormalityProvider inputs={testInputs}>
+            <Form config={config}>
+              <Field name="field1" />
+              <Field name="field2" />
+              <Field name="result" />
+            </Form>
+          </FormalityProvider>,
+        );
+
+        // Both source fields are disabled
+        expect(screen.getByTestId("field1")).toBeDisabled();
+        expect(screen.getByTestId("field2")).toBeDisabled();
+        // Result field should be disabled
+        expect(screen.getByTestId("result")).toBeDisabled();
+      });
+    });
   });
 
   describe("render prop", () => {

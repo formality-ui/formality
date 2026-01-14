@@ -112,11 +112,18 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
   const baseFieldStates = useMemo(() => {
     const states: Record<string, FieldStateInput> = {};
 
-    if (watchFields.length === 0) {
+    // Collect all fields to build states for: watched fields + current field
+    // Current field is needed for two-pass evaluation when it references other fields' disabled states
+    const currentFieldName = props?.name as string | undefined;
+    const allFieldsForPass1 = currentFieldName
+      ? [...new Set([...watchFields, currentFieldName])]
+      : watchFields;
+
+    if (allFieldsForPass1.length === 0) {
       return states;
     }
 
-    watchFields.forEach((fieldName) => {
+    allFieldsForPass1.forEach((fieldName) => {
       // getFieldState() reads current state without creating subscriptions
       const fieldState = methods.getFieldState(fieldName as any);
       states[fieldName] = {
@@ -131,7 +138,7 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
     });
 
     return states;
-  }, [watchFields, fieldValues, methods]);
+  }, [watchFields, fieldValues, methods, props]);
 
   // ============================================================================
   // PASS 2: Compute disabled states for each field
@@ -146,12 +153,43 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
   const disabledStates = useMemo(() => {
     const disabled: Record<string, boolean> = {};
 
-    if (watchFields.length === 0) {
+    // Collect all fields that need disabled state computation:
+    // 1. Watched fields (fields referenced in conditions)
+    // 2. Current field (so it can compute its own disabled from conditions)
+    // 3. All fields in allFieldsConfig (to ensure we have states for all referenced fields)
+    const currentFieldName = props?.name as string | undefined;
+    const configFields = allFieldsConfig ? Object.keys(allFieldsConfig) : [];
+    const allFieldsForPass2 = [...new Set([...watchFields, ...configFields])];
+    if (currentFieldName && !allFieldsForPass2.includes(currentFieldName)) {
+      allFieldsForPass2.push(currentFieldName);
+    }
+
+    if (allFieldsForPass2.length === 0) {
       return disabled;
     }
 
-    // Initial pass: compute disabled using baseFieldStates (no disabled property)
-    let currentStates = baseFieldStates;
+    // Build base states for ALL fields (not just watched fields)
+    // This ensures we have states for fields that don't have baseFieldStates yet
+    const allBaseStates: Record<string, FieldStateInput> = {};
+    for (const fieldName of allFieldsForPass2) {
+      if (baseFieldStates[fieldName]) {
+        allBaseStates[fieldName] = baseFieldStates[fieldName];
+      } else {
+        // Field not in baseFieldStates, create default state
+        const fieldState = methods.getFieldState(fieldName as any);
+        allBaseStates[fieldName] = {
+          value: fieldValues[fieldName],
+          isTouched: fieldState.isTouched,
+          isDirty: fieldState.isDirty,
+          error: fieldState.error,
+          invalid: fieldState.invalid,
+          isValidating: false,
+        };
+      }
+    }
+
+    // Initial pass: compute disabled using allBaseStates (no disabled property)
+    let currentStates = allBaseStates;
     let hasChanged = true;
     let iteration = 0;
     const maxIterations = 10; // Prevent infinite loops, should converge quickly
@@ -160,12 +198,13 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
       hasChanged = false;
       iteration++;
 
-      // Compute disabled for all watched fields using current states
+      // Compute disabled for all fields using current states
       const newDisabled: Record<string, boolean> = {};
 
-      for (const fieldName of watchFields) {
+      for (const fieldName of allFieldsForPass2) {
         const fieldConfig = allFieldsConfig?.[fieldName];
         const fieldConditions = fieldConfig?.conditions ?? [];
+        const configDisabled = fieldConfig?.disabled;
 
         const result = evaluateConditions({
           conditions: fieldConditions,
@@ -175,13 +214,15 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
           props: { name: fieldName },
         });
 
-        newDisabled[fieldName] = result.disabled ?? false;
+        // Priority: config > conditions
+        // Config-level disabled takes precedence over condition-based disabled
+        newDisabled[fieldName] = configDisabled ?? (result.disabled ?? false);
       }
 
       // Create new states with updated disabled
       const newStates: Record<string, FieldStateInput> = {};
-      for (const fieldName of watchFields) {
-        const baseState = baseFieldStates[fieldName];
+      for (const fieldName of allFieldsForPass2) {
+        const baseState = allBaseStates[fieldName];
         if (baseState) {
           newStates[fieldName] = {
             ...baseState,
@@ -191,7 +232,7 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
       }
 
       // Check if disabled states have changed
-      for (const fieldName of watchFields) {
+      for (const fieldName of allFieldsForPass2) {
         const oldDisabled = disabled[fieldName];
         const newDisabledValue = newDisabled[fieldName];
         if (oldDisabled !== newDisabledValue) {
@@ -205,24 +246,42 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
     }
 
     return disabled;
-  }, [watchFields, allFieldsConfig, fieldValues, baseFieldStates, record]);
+  }, [watchFields, allFieldsConfig, fieldValues, baseFieldStates, record, props, methods]);
 
   // ============================================================================
   // PASS 3: Merge base states with disabled into final field states
   // ============================================================================
   // This is the final fieldStates object that includes all properties including disabled
   const fieldStates = useMemo(() => {
-    return Object.entries(baseFieldStates).reduce(
-      (acc, [fieldName, state]) => {
-        acc[fieldName] = {
-          ...state,
-          disabled: disabledStates[fieldName],
+    // Start with baseFieldStates (watched fields + current field)
+    const states: Record<string, FieldStateInput> = { ...baseFieldStates };
+
+    // Add disabled states for all fields that have them (from Pass 2)
+    // This includes fields from allFieldsConfig that might not be in baseFieldStates
+    Object.entries(disabledStates).forEach(([fieldName, disabled]) => {
+      if (states[fieldName]) {
+        // Field already in baseFieldStates, just add disabled
+        states[fieldName] = {
+          ...states[fieldName],
+          disabled,
         };
-        return acc;
-      },
-      {} as Record<string, FieldStateInput>
-    );
-  }, [baseFieldStates, disabledStates]);
+      } else {
+        // Field not in baseFieldStates, create new state with disabled
+        const fieldState = methods.getFieldState(fieldName as any);
+        states[fieldName] = {
+          value: fieldValues[fieldName],
+          isTouched: fieldState.isTouched,
+          isDirty: fieldState.isDirty,
+          error: fieldState.error,
+          invalid: fieldState.invalid,
+          isValidating: false,
+          disabled,
+        };
+      }
+    });
+
+    return states;
+  }, [baseFieldStates, disabledStates, fieldValues, methods]);
 
   // Evaluate conditions whenever field values or states change
   return useMemo(() => {
