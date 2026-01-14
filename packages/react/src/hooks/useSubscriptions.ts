@@ -31,40 +31,42 @@ export function useSubscriptions(
 ): void {
   const { addSubscription, removeSubscription } = useFormContext();
 
-  // Track previous subscriptions to properly cleanup on change
-  const prevSubscriptionsRef = useRef<string[]>([]);
+  // PATTERN: Per-effect subscription tracking (similar to executionVersionRef in Form.tsx)
+  // Track the current effect run ID
+  const runIdRef = useRef<number>(0);
+
+  // Store subscriptions added in each effect run
+  // Key: run ID, Value: subscriptions array for that run
+  const runSubscriptionsRef = useRef<Map<number, string[]>>(new Map());
 
   useEffect(() => {
-    const prevSubscriptions = prevSubscriptionsRef.current;
+    // Increment run ID for this effect invocation
+    const currentRunId = ++runIdRef.current;
 
-    // Find subscriptions to remove (in prev but not in current)
-    const toRemove = prevSubscriptions.filter(
-      (target) => !subscriptions.includes(target),
-    );
+    // CRITICAL: Store subscriptions for THIS specific effect run
+    // Use [...subscriptions] to create a copy (prevent reference sharing)
+    runSubscriptionsRef.current.set(currentRunId, [...subscriptions]);
 
-    // Find subscriptions to add (in current but not in prev)
-    const toAdd = subscriptions.filter(
-      (target) => !prevSubscriptions.includes(target),
-    );
-
-    // Remove old subscriptions
-    toRemove.forEach((target) => {
-      removeSubscription(target, fieldName);
-    });
-
-    // Add new subscriptions
-    toAdd.forEach((target) => {
+    // Add all subscriptions
+    subscriptions.forEach((target) => {
       addSubscription(target, fieldName);
     });
 
-    // Update ref for next comparison
-    prevSubscriptionsRef.current = subscriptions;
-
-    // Cleanup on unmount - remove all current subscriptions
+    // Cleanup only removes subscriptions added in THIS run
     return () => {
-      subscriptions.forEach((target) => {
-        removeSubscription(target, fieldName);
-      });
+      // Get subscriptions for THIS specific run (not current subscriptions value)
+      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+
+      if (thisRunSubscriptions) {
+        // PATTERN: LIFO cleanup (Last In, First Out)
+        // Reverse order for dependent subscriptions
+        [...thisRunSubscriptions].reverse().forEach((target) => {
+          removeSubscription(target, fieldName);
+        });
+
+        // CRITICAL: Clean up tracking map to prevent memory leaks
+        runSubscriptionsRef.current.delete(currentRunId);
+      }
     };
   }, [fieldName, subscriptions, addSubscription, removeSubscription]);
 }

@@ -25,3 +25,6 @@ Thumbs.db
 
 # Test coverage
 coverage/
+
+# Vitest cache and temporary test/build artifacts in node_modules
+**/node_modules/.vite/
