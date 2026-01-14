@@ -546,7 +546,7 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Type Safety in Expressions",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Add type guards to expression evaluation for arithmetic operations.",
           "tasks": [
             {
@@ -582,14 +582,14 @@
               "type": "Task",
               "id": "P3.M2.T2",
               "title": "Add Tests for Type Safety",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Add tests for null arithmetic and mixed types.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M2.T2.S1",
                   "title": "Test null arithmetic",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T1.S2"
@@ -600,7 +600,7 @@
                   "type": "Subtask",
                   "id": "P3.M2.T2.S2",
                   "title": "Test mixed types",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M2.T2.S1"

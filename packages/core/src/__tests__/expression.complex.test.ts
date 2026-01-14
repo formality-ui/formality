@@ -1442,4 +1442,460 @@ describe("Complex Expression Evaluation", () => {
       );
     });
   });
+
+  describe("Development Warnings - Null/Undefined", () => {
+    let consoleSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      clearExpressionCache();
+      consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleSpy.mockRestore();
+    });
+
+    describe("Addition (+)", () => {
+      it("should warn for null + number with correct message", () => {
+        evaluate('null + 5', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands for +')
+        );
+      });
+
+      it("should show operand types in warning for null + number", () => {
+        evaluate('null + 5', { null: null });
+
+        // typeof null is 'object'
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=object')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('right=number')
+        );
+      });
+
+      it("should warn for number + null", () => {
+        evaluate('5 + null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined + number", () => {
+        evaluate('undefined + 5', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for number + undefined", () => {
+        evaluate('5 + undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for null + null", () => {
+        evaluate('null + null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined + undefined", () => {
+        evaluate('undefined + undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+    });
+
+    describe("Subtraction (-)", () => {
+      it("should warn for null - number with correct message", () => {
+        evaluate('null - 5', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands for -')
+        );
+      });
+
+      it("should show operand types in warning for null - number", () => {
+        evaluate('null - 5', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=object')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('right=number')
+        );
+      });
+
+      it("should warn for number - null", () => {
+        evaluate('5 - null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined - number", () => {
+        evaluate('undefined - 5', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for number - undefined", () => {
+        evaluate('5 - undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for null - null", () => {
+        evaluate('null - null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined - undefined", () => {
+        evaluate('undefined - undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+    });
+
+    describe("Multiplication (*)", () => {
+      it("should warn for null * number with correct message", () => {
+        evaluate('null * 5', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands for *')
+        );
+      });
+
+      it("should show operand types in warning for null * number", () => {
+        evaluate('null * 5', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=object')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('right=number')
+        );
+      });
+
+      it("should warn for number * null", () => {
+        evaluate('10 * null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined * number", () => {
+        evaluate('undefined * 5', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for number * undefined", () => {
+        evaluate('10 * undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for null * null", () => {
+        evaluate('null * null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined * undefined", () => {
+        evaluate('undefined * undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+    });
+
+    describe("Division (/)", () => {
+      it("should warn for null / number with correct message", () => {
+        evaluate('null / 2', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands for /')
+        );
+      });
+
+      it("should show operand types in warning for null / number", () => {
+        evaluate('null / 2', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=object')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('right=number')
+        );
+      });
+
+      it("should warn for number / null", () => {
+        evaluate('10 / null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined / number", () => {
+        evaluate('undefined / 2', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for number / undefined", () => {
+        evaluate('10 / undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for null / null", () => {
+        evaluate('null / null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined / undefined", () => {
+        evaluate('undefined / undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+    });
+
+    describe("Modulo (%)", () => {
+      it("should warn for null % number with correct message", () => {
+        evaluate('null % 3', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[Formality Expression]')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Type error')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Invalid operands for %')
+        );
+      });
+
+      it("should show operand types in warning for null % number", () => {
+        evaluate('null % 3', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('left=object')
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('right=number')
+        );
+      });
+
+      it("should warn for number % null", () => {
+        evaluate('10 % null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined % number", () => {
+        evaluate('undefined % 3', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for number % undefined", () => {
+        evaluate('10 % undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for null % null", () => {
+        evaluate('null % null', { null: null });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+
+      it("should warn for undefined % undefined", () => {
+        evaluate('undefined % undefined', { undefined });
+
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('null/undefined')
+        );
+      });
+    });
+  });
+
+  describe("Production Mode - No Warnings", () => {
+    const originalEnv = process.env.NODE_ENV;
+
+    beforeEach(() => {
+      clearExpressionCache();
+    });
+
+    afterEach(() => {
+      process.env.NODE_ENV = originalEnv;
+    });
+
+    it("should not warn for null arithmetic in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('null + 5', { null: null });
+      evaluate('undefined * 3', { undefined });
+      evaluate('10 - null', { null: null });
+      evaluate('null / 2', { null: null });
+      evaluate('15 % null', { null: null });
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should still return undefined in production mode", () => {
+      process.env.NODE_ENV = 'production';
+
+      expect(evaluate('null + 5', { null: null })).toBeUndefined();
+      expect(evaluate('undefined - 3', { undefined })).toBeUndefined();
+      expect(evaluate('null * 2', { null: null })).toBeUndefined();
+      expect(evaluate('undefined / 2', { undefined })).toBeUndefined();
+      expect(evaluate('10 % null', { null: null })).toBeUndefined();
+    });
+
+    it("should not warn for undefined arithmetic in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('undefined + 5', { undefined });
+      evaluate('undefined - 5', { undefined });
+      evaluate('undefined * 5', { undefined });
+      evaluate('undefined / 2', { undefined });
+      evaluate('undefined % 3', { undefined });
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should not warn for null + null in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('null + null', { null: null });
+      evaluate('null - null', { null: null });
+      evaluate('null * null', { null: null });
+      evaluate('null / null', { null: null });
+      evaluate('null % null', { null: null });
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should not warn for undefined + undefined in production", () => {
+      process.env.NODE_ENV = 'production';
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      evaluate('undefined + undefined', { undefined });
+      evaluate('undefined - undefined', { undefined });
+      evaluate('undefined * undefined', { undefined });
+      evaluate('undefined / undefined', { undefined });
+      evaluate('undefined % undefined', { undefined });
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it("should work with valid numbers in production mode (regression test)", () => {
+      process.env.NODE_ENV = 'production';
+
+      expect(evaluate('5 + 3', {})).toBe(8);
+      expect(evaluate('10 - 4', {})).toBe(6);
+      expect(evaluate('5 * 3', {})).toBe(15);
+      expect(evaluate('10 / 2', {})).toBe(5);
+      expect(evaluate('10 % 3', {})).toBe(1);
+    });
+  });
 });
