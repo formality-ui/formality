@@ -600,15 +600,15 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should handle division by zero", () => {
-      expect(evaluate("1 / 0", {})).toBe(Infinity);
-      expect(evaluate("0 / 0", {})).toBe(NaN);
-      expect(evaluate("10 / 0", {})).toBe(Infinity);
+      expect(evaluate("1 / 0", {})).toBeUndefined();
+      expect(evaluate("0 / 0", {})).toBeUndefined();
+      expect(evaluate("10 / 0", {})).toBeUndefined();
     });
 
     it("should handle string coercion in arithmetic", () => {
-      expect(evaluate('"5" * 2', {})).toBe(10);
-      expect(evaluate('"10" - 3', {})).toBe(7);
-      expect(evaluate('"3.5" / 2', {})).toBe(1.75);
+      expect(evaluate('"5" * 2', {})).toBeUndefined();
+      expect(evaluate('"10" - 3', {})).toBeUndefined();
+      expect(evaluate('"3.5" / 2', {})).toBeUndefined();
     });
 
     it("should handle modulo operation", () => {
@@ -729,7 +729,7 @@ describe("Complex Expression Evaluation", () => {
     describe("Missing Variables", () => {
       it("should return undefined for undefined variables", () => {
         expect(evaluate("missingVar", {})).toBeUndefined();
-        expect(evaluate("a + b", { a: 1 })).toBe(NaN); // 1 + undefined = NaN
+        expect(evaluate("a + b", { a: 1 })).toBeUndefined(); // 1 + undefined = undefined (type guard)
       });
 
       it("should return undefined for missing properties", () => {
@@ -741,7 +741,7 @@ describe("Complex Expression Evaluation", () => {
       it("should handle missing variables in arithmetic", () => {
         const context = { a: 1 };
         const result = evaluate("a + missing", context);
-        expect(result).toBe(NaN);
+        expect(result).toBeUndefined(); // Type guard prevents NaN
       });
 
       it("should handle missing variables in comparisons", () => {
@@ -752,25 +752,25 @@ describe("Complex Expression Evaluation", () => {
 
     describe("Type Errors", () => {
       it("should handle non-numeric arithmetic", () => {
-        expect(isNaN(evaluate('"text" * 2', {}) as number)).toBe(true);
-        expect(isNaN(evaluate('"text" - 1', {}) as number)).toBe(true);
-        expect(isNaN(evaluate('"text" / 2', {}) as number)).toBe(true);
-        expect(isNaN(evaluate('"text" % 2', {}) as number)).toBe(true);
+        expect(evaluate('"text" * 2', {})).toBeUndefined();
+        expect(evaluate('"text" - 1', {})).toBeUndefined();
+        expect(evaluate('"text" / 2', {})).toBeUndefined();
+        expect(evaluate('"text" % 2', {})).toBeUndefined();
       });
 
       it("should handle division by zero", () => {
-        expect(evaluate("1 / 0", {})).toBe(Infinity);
-        expect(evaluate("0 / 0", {})).toBe(NaN);
-        expect(evaluate("-1 / 0", {})).toBe(-Infinity);
+        expect(evaluate("1 / 0", {})).toBeUndefined();
+        expect(evaluate("0 / 0", {})).toBeUndefined();
+        expect(evaluate("-1 / 0", {})).toBeUndefined();
       });
 
       it("should handle object in arithmetic", () => {
-        expect(isNaN(evaluate("{} + 1", {}) as number)).toBe(true);
-        expect(isNaN(evaluate("{} * 2", {}) as number)).toBe(true);
+        expect(evaluate("{} + 1", {})).toBeUndefined();
+        expect(evaluate("{} * 2", {})).toBeUndefined();
       });
 
       it("should handle array in arithmetic", () => {
-        // Array becomes string when coerced
+        // Array concatenation is supported for + operator
         expect(evaluate("[] + 1", {})).toBe("1"); // "" + "1" = "1"
         expect(evaluate("[1, 2] + 3", {})).toBe("1,23"); // "1,2" + "3" = "1,23"
       });
@@ -1017,6 +1017,259 @@ describe("Complex Expression Evaluation", () => {
     it("should handle null and undefined top-level descriptors", () => {
       expect(evaluateDescriptor(null, {})).toBe(null);
       expect(evaluateDescriptor(undefined, {})).toBe(undefined);
+    });
+  });
+
+  describe("Type Guards - Arithmetic Operations", () => {
+    describe("Addition (+)", () => {
+      it("should concatenate string + number", () => {
+        // String concatenation is supported for + operator
+        expect(evaluate('"text" + 1', {})).toBe("text1");
+      });
+
+      it("should concatenate string + string", () => {
+        expect(evaluate('"Hello" + "World"', {})).toBe("HelloWorld");
+      });
+
+      it("should concatenate number + string", () => {
+        expect(evaluate('5 + "test"', {})).toBe("5test");
+      });
+
+      it("should return undefined for null + number", () => {
+        expect(evaluate('null + 1', {})).toBeUndefined();
+      });
+
+      it("should return undefined for undefined + number", () => {
+        expect(evaluate('undefined + 1', {})).toBeUndefined();
+      });
+
+      it("should return undefined for object + number", () => {
+        expect(evaluate('{} + 1', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers", () => {
+        expect(evaluate('5 + 3', {})).toBe(8);
+        expect(evaluate('0 + 0', {})).toBe(0);
+        expect(evaluate('-5 + 3', {})).toBe(-2);
+      });
+    });
+
+    describe("Subtraction (-)", () => {
+      it("should return undefined for string - number", () => {
+        expect(evaluate('"text" - 1', {})).toBeUndefined();
+      });
+
+      it("should return undefined for null - number", () => {
+        expect(evaluate('null - 1', {})).toBeUndefined();
+      });
+
+      it("should return undefined for undefined - number", () => {
+        expect(evaluate('undefined - 1', {})).toBeUndefined();
+      });
+
+      it("should return undefined for object - number", () => {
+        expect(evaluate('{} - 1', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers", () => {
+        expect(evaluate('10 - 4', {})).toBe(6);
+        expect(evaluate('5 - 5', {})).toBe(0);
+        expect(evaluate('3 - 10', {})).toBe(-7);
+      });
+    });
+
+    describe("Multiplication (*)", () => {
+      it("should return undefined for string * number", () => {
+        expect(evaluate('"text" * 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for null * number", () => {
+        expect(evaluate('null * 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for undefined * number", () => {
+        expect(evaluate('undefined * 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for object * number", () => {
+        expect(evaluate('{} * 2', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers", () => {
+        expect(evaluate('5 * 3', {})).toBe(15);
+        expect(evaluate('0 * 100', {})).toBe(0);
+        expect(evaluate('-5 * 3', {})).toBe(-15);
+      });
+    });
+
+    describe("Division (/)", () => {
+      it("should return undefined for string / number", () => {
+        expect(evaluate('"text" / 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for null / number", () => {
+        expect(evaluate('null / 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for undefined / number", () => {
+        expect(evaluate('undefined / 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for object / number", () => {
+        expect(evaluate('{} / 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for division by zero", () => {
+        expect(evaluate('1 / 0', {})).toBeUndefined();
+        expect(evaluate('-1 / 0', {})).toBeUndefined();
+        expect(evaluate('0 / 0', {})).toBeUndefined();
+        expect(evaluate('100 / 0', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers", () => {
+        expect(evaluate('10 / 2', {})).toBe(5);
+        expect(evaluate('7 / 2', {})).toBe(3.5);
+        expect(evaluate('-10 / 2', {})).toBe(-5);
+      });
+    });
+
+    describe("Modulo (%)", () => {
+      it("should return undefined for string % number", () => {
+        expect(evaluate('"text" % 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for null % number", () => {
+        expect(evaluate('null % 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for undefined % number", () => {
+        expect(evaluate('undefined % 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for object % number", () => {
+        expect(evaluate('{} % 2', {})).toBeUndefined();
+      });
+
+      it("should return undefined for modulo by zero", () => {
+        expect(evaluate('10 % 0', {})).toBeUndefined();
+        expect(evaluate('1 % 0', {})).toBeUndefined();
+        expect(evaluate('0 % 0', {})).toBeUndefined();
+      });
+
+      it("should work with valid numbers", () => {
+        expect(evaluate('10 % 3', {})).toBe(1);
+        expect(evaluate('15 % 4', {})).toBe(3);
+        expect(evaluate('7 % 2', {})).toBe(1);
+      });
+    });
+  });
+
+  describe("Development Warnings", () => {
+    beforeEach(() => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("should not warn for string concatenation (valid operation)", () => {
+      evaluate('"text" + 1', {});
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it("should not warn for string + string concatenation", () => {
+      evaluate('"Hello" + "World"', {});
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it("should warn for non-numeric operands in subtraction", () => {
+      evaluate('"text" - 1', {});
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('[Formality Expression]')
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid operands')
+      );
+    });
+
+    it("should warn for non-numeric operands in multiplication", () => {
+      evaluate('"text" * 2', {});
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('[Formality Expression]')
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid operands')
+      );
+    });
+
+    it("should warn for division by zero", () => {
+      evaluate('1 / 0', {});
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('[Formality Expression]')
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Division by zero')
+      );
+    });
+
+    it("should warn for modulo by zero", () => {
+      evaluate('10 % 0', {});
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('[Formality Expression]')
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Modulo by zero')
+      );
+    });
+
+    it("should warn for arithmetic overflow", () => {
+      // Using very large numbers to trigger overflow
+      evaluate('1e308 + 1e308', {});
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('[Formality Expression]')
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Arithmetic overflow')
+      );
+    });
+
+    it("should not warn for valid arithmetic", () => {
+      evaluate('5 + 3', {});
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it("should not warn for valid division", () => {
+      evaluate('10 / 2', {});
+
+      expect(console.warn).not.toHaveBeenCalled();
+    });
+
+    it("should show correct operand types in warning", () => {
+      evaluate('null + 1', {});
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('left=object')
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('right=number')
+      );
+    });
+
+    it("should warn for null + number (not a valid operation)", () => {
+      evaluate('null + 1', {});
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('[Formality Expression]')
+      );
     });
   });
 });

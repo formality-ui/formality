@@ -28,6 +28,16 @@ type Compound = jsep.Compound;
 export type EvaluationContext = Record<string, unknown>;
 
 /**
+ * Type guard to check if a value is safe for arithmetic operations
+ * Excludes: NaN, Infinity, -Infinity, and non-numeric types
+ */
+function isSafeNumber(value: unknown): value is number {
+  return typeof value === 'number' &&
+         !Number.isNaN(value) &&
+         Number.isFinite(value);
+}
+
+/**
  * Get a property from an object safely
  */
 function getProperty(obj: unknown, key: string): unknown {
@@ -103,17 +113,104 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       const leftValue = unwrapFieldProxy(left);
       const rightValue = unwrapFieldProxy(right);
 
+      // Handle string concatenation and numeric addition for +
+      if (binaryNode.operator === '+') {
+        // If either operand is a string or array (converts to string), do string concatenation
+        const leftIsString = typeof leftValue === 'string';
+        const rightIsString = typeof rightValue === 'string';
+        const leftIsArray = Array.isArray(leftValue);
+        const rightIsArray = Array.isArray(rightValue);
+
+        if (leftIsString || rightIsString || leftIsArray || rightIsArray) {
+          // Convert arrays to strings for concatenation
+          const leftStr = leftIsArray ? (leftValue as unknown[]).join(',') : String(leftValue ?? '');
+          const rightStr = rightIsArray ? (rightValue as unknown[]).join(',') : String(rightValue ?? '');
+          return leftStr + rightStr;
+        }
+        // For numeric addition, validate both are safe numbers
+        if (!isSafeNumber(leftValue) || !isSafeNumber(rightValue)) {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[Formality Expression] Type error: ` +
+              `Invalid operands for +: ` +
+              `left=${typeof leftValue}, right=${typeof rightValue}`
+            );
+          }
+          return undefined;
+        }
+        // Safe numeric addition
+        const result = (leftValue as number) + (rightValue as number);
+        if (!Number.isFinite(result)) {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[Formality Expression] Arithmetic overflow: ` +
+              `${leftValue} + ${rightValue} produced ${result}`
+            );
+          }
+          return undefined;
+        }
+        return result;
+      }
+
+      // Other arithmetic operators need strict type guard validation
+      const arithmeticOps = ['-', '*', '/', '%'];
+      if (arithmeticOps.includes(binaryNode.operator as string)) {
+        // Validate operands are safe numbers
+        if (!isSafeNumber(leftValue) || !isSafeNumber(rightValue)) {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[Formality Expression] Type error: ` +
+              `Invalid operands for ${binaryNode.operator}: ` +
+              `left=${typeof leftValue}, right=${typeof rightValue}`
+            );
+          }
+          return undefined;
+        }
+
+        // Type guard confirmed both are numbers, safe to assert
+        const l = leftValue as number;
+        const r = rightValue as number;
+
+        // Special handling for division/modulo by zero
+        if (binaryNode.operator === '/' || binaryNode.operator === '%') {
+          if (r === 0) {
+            if (process.env.NODE_ENV !== "production") {
+              const opName = binaryNode.operator === '/' ? 'Division' : 'Modulo';
+              console.warn(
+                `[Formality Expression] ${opName} by zero`
+              );
+            }
+            return undefined;
+          }
+        }
+
+        // Perform arithmetic operation
+        let result: number;
+        switch (binaryNode.operator) {
+          case '-': result = l - r; break;
+          case '*': result = l * r; break;
+          case '/': result = l / r; break;
+          case '%': result = l % r; break;
+          default:
+            throw new Error(`Unknown operator: ${binaryNode.operator}`);
+        }
+
+        // Validate result (catch overflow to Infinity)
+        if (!Number.isFinite(result)) {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[Formality Expression] Arithmetic overflow: ` +
+              `${l} ${binaryNode.operator} ${r} produced ${result}`
+            );
+          }
+          return undefined;
+        }
+
+        return result;
+      }
+
+      // Comparison operators (existing code, unchanged)
       switch (binaryNode.operator) {
-        case "+":
-          return (leftValue as number) + (rightValue as number);
-        case "-":
-          return (leftValue as number) - (rightValue as number);
-        case "*":
-          return (leftValue as number) * (rightValue as number);
-        case "/":
-          return (leftValue as number) / (rightValue as number);
-        case "%":
-          return (leftValue as number) % (rightValue as number);
         case "===":
           return leftValue === rightValue;
         case "!==":
