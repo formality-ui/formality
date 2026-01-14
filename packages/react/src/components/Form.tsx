@@ -216,6 +216,13 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     }
     invertedSubscriptions.current.get(target)!.add(subscriber);
 
+    // Log subscription addition (development only)
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[Formality Subscription] "${subscriber}" added to watch "${target}"`
+      );
+    }
+
     // Notify target field if mounted
     const setter = watcherSetters.current.get(target);
     if (setter) {
@@ -231,8 +238,28 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
   const removeSubscription = useCallback(
     (target: string, subscriber: string) => {
+      // Check if subscription exists before removal (for double-cleanup detection)
+      const subscribers = invertedSubscriptions.current.get(target);
+      const subscriptionExists = subscribers?.has(subscriber) ?? false;
+
+      // Perform removal (keep original optional chaining for safety)
       invertedSubscriptions.current.get(target)?.delete(subscriber);
 
+      // Log removal or warn about double-cleanup (development only)
+      if (process.env.NODE_ENV !== "production") {
+        if (subscriptionExists) {
+          console.warn(
+            `[Formality Subscription] "${subscriber}" removed from watching "${target}"`
+          );
+        } else {
+          console.warn(
+            `[Formality Subscription] WARNING: Double-cleanup attempt - ` +
+            `"${subscriber}" was not watching "${target}"`
+          );
+        }
+      }
+
+      // Update watcher setter
       const setter = watcherSetters.current.get(target);
       if (setter) {
         setter((prev) => {

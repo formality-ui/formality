@@ -50,6 +50,14 @@ export function useSubscriptions(
     // Add all subscriptions
     subscriptions.forEach((target) => {
       addSubscription(target, fieldName);
+
+      // Log subscription addition (development only)
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[Formality Subscription] Run ${currentRunId}: ` +
+          `"${fieldName}" subscribing to "${target}"`
+        );
+      }
     });
 
     // Cleanup only removes subscriptions added in THIS run
@@ -58,6 +66,14 @@ export function useSubscriptions(
       const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
+        // Log cleanup start (development only)
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            `[Formality Subscription] Run ${currentRunId}: ` +
+            `"${fieldName}" cleaning up [${thisRunSubscriptions.join(', ')}]`
+          );
+        }
+
         // PATTERN: LIFO cleanup (Last In, First Out)
         // Reverse order for dependent subscriptions
         [...thisRunSubscriptions].reverse().forEach((target) => {
