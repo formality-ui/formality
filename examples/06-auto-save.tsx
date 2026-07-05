@@ -14,8 +14,8 @@ import {
   FormalityProvider,
   Form,
   Field,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
 } from "@formality-ui/react";
 
 // =============================================================================
@@ -33,7 +33,7 @@ const saveToAPI = async (values: Record<string, unknown>): Promise<void> => {
 // Input Types with Various Debounce Settings
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   // Text field with 2-second debounce
   // User can keep typing without triggering saves
   textField: {
@@ -126,7 +126,7 @@ const inputs: Record<string, InputConfig> = {
 // Example 1: Basic Auto-Save
 // =============================================================================
 
-const basicAutoSaveConfig: FormFieldsConfig = {
+const basicAutoSaveConfig: ReactFormFieldsConfig = {
   title: {
     type: "textField",
     label: "Title",
@@ -190,7 +190,7 @@ export function BasicAutoSaveExample() {
 // Example 2: Custom Debounce Duration
 // =============================================================================
 
-const customDebounceConfig: FormFieldsConfig = {
+const customDebounceConfig: ReactFormFieldsConfig = {
   name: {
     type: "textField",
     label: "Name",
@@ -246,7 +246,7 @@ export function CustomDebounceExample() {
 // Example 3: Mixed Debounce Behaviors
 // =============================================================================
 
-const mixedDebounceConfig: FormFieldsConfig = {
+const mixedDebounceConfig: ReactFormFieldsConfig = {
   quickNote: {
     type: "textField",
     label: "Quick Note (2s debounce)",
@@ -321,7 +321,7 @@ export function MixedDebounceExample() {
 // =============================================================================
 // Auto-save only triggers when form is valid
 
-const validatedAutoSaveConfig: FormFieldsConfig = {
+const validatedAutoSaveConfig: ReactFormFieldsConfig = {
   email: {
     type: "textField",
     label: "Email",
@@ -393,7 +393,7 @@ export function ValidatedAutoSaveExample() {
 // =============================================================================
 // Toggle auto-save on/off at runtime
 
-const conditionalAutoSaveConfig: FormFieldsConfig = {
+const conditionalAutoSaveConfig: ReactFormFieldsConfig = {
   autoSaveEnabled: {
     type: "switch",
     label: "Enable Auto-Save",
@@ -454,7 +454,7 @@ export function ConditionalAutoSaveExample() {
 // =============================================================================
 // Combine auto-save with option to save immediately
 
-const hybridSaveConfig: FormFieldsConfig = {
+const hybridSaveConfig: ReactFormFieldsConfig = {
   name: {
     type: "textField",
     label: "Name",

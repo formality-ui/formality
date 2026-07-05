@@ -17,8 +17,8 @@ import {
   FormalityProvider,
   Form,
   Field,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
   type ValidatorsConfig,
   type ErrorMessagesConfig,
 } from "@formality-ui/react";
@@ -27,7 +27,7 @@ import {
 // Input Types with Built-in Error Display
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField: {
     component: memo(({ value, onChange, label, name, error, disabled }) => (
       <div className={`field ${error ? "has-error" : ""}`}>
@@ -202,7 +202,7 @@ const errorMessages: ErrorMessagesConfig = {
 // Example 1: Basic Validation
 // =============================================================================
 
-const basicConfig: FormFieldsConfig = {
+const basicConfig: ReactFormFieldsConfig = {
   name: {
     type: "textField",
     label: "Full Name",
@@ -247,7 +247,7 @@ export function BasicValidationExample() {
 // Example 2: Inline Validator Functions
 // =============================================================================
 
-const inlineConfig: FormFieldsConfig = {
+const inlineConfig: ReactFormFieldsConfig = {
   username: {
     type: "textField",
     label: "Username",
@@ -315,7 +315,7 @@ const checkEmailRegistered = async (email: string): Promise<boolean> => {
   return !registered.includes(email.toLowerCase());
 };
 
-const asyncConfig: FormFieldsConfig = {
+const asyncConfig: ReactFormFieldsConfig = {
   username: {
     type: "textField",
     label: "Username",
@@ -378,7 +378,7 @@ export function AsyncValidationExample() {
 // Example 4: Cross-Field Validation
 // =============================================================================
 
-const crossFieldConfig: FormFieldsConfig = {
+const crossFieldConfig: ReactFormFieldsConfig = {
   password: {
     type: "passwordField",
     label: "Password",
@@ -431,7 +431,7 @@ export function CrossFieldValidationExample() {
 // Example 5: Conditional Validation
 // =============================================================================
 
-const conditionalValidationConfig: FormFieldsConfig = {
+const conditionalValidationConfig: ReactFormFieldsConfig = {
   hasCompany: {
     type: "textField", // Using as a checkbox stand-in
     label: "Are you registering as a business?",
@@ -503,7 +503,7 @@ export function ConditionalValidationExample() {
 // Example 6: All Validator Return Types
 // =============================================================================
 
-const allReturnTypesConfig: FormFieldsConfig = {
+const allReturnTypesConfig: ReactFormFieldsConfig = {
   returnTrue: {
     type: "textField",
     label: "Returns true (always valid)",

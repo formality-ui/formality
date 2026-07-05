@@ -13,8 +13,8 @@ import {
   FormalityProvider,
   Form,
   Field,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
 } from "@formality-ui/react";
 
 // =============================================================================
@@ -23,7 +23,7 @@ import {
 // Input types define reusable components with their behaviors.
 // These are typically defined once in your app and shared across all forms.
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField: {
     component: ({ value, onChange, label, name, disabled, error }) => (
       <div className="field">
@@ -88,7 +88,7 @@ const inputs: Record<string, InputConfig> = {
 // =============================================================================
 // Field config maps field names to their types and properties.
 
-const config: FormFieldsConfig = {
+const config: ReactFormFieldsConfig = {
   firstName: {
     type: "textField",
     label: "First Name",

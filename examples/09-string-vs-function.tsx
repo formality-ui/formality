@@ -23,8 +23,8 @@ import {
   FormalityProvider,
   Form,
   Field,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
   type FormConfig,
   type FormState,
 } from "@formality-ui/react";
@@ -33,7 +33,7 @@ import {
 // Input Types
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField: {
     component: memo(({ value, onChange, label, disabled }) => (
       <div className="field">
@@ -86,7 +86,7 @@ const inputs: Record<string, InputConfig> = {
 // =============================================================================
 // Both achieve the same result - compute props dynamically
 
-const selectPropsConfig: FormFieldsConfig = {
+const selectPropsConfig: ReactFormFieldsConfig = {
   // Source fields
   firstName: { type: "textField", label: "First Name" },
   lastName: { type: "textField", label: "Last Name" },
@@ -197,7 +197,7 @@ export function SelectPropsComparisonExample() {
 // COMPARISON 2: Condition when/selectWhen
 // =============================================================================
 
-const conditionWhenConfig: FormFieldsConfig = {
+const conditionWhenConfig: ReactFormFieldsConfig = {
   age: { type: "numberField", label: "Age" },
   hasLicense: { type: "switch", label: "Has License" },
   yearsExperience: { type: "numberField", label: "Years Experience" },
@@ -302,7 +302,7 @@ export function ConditionWhenComparisonExample() {
 // COMPARISON 3: set vs selectSet
 // =============================================================================
 
-const setValueConfig: FormFieldsConfig = {
+const setValueConfig: ReactFormFieldsConfig = {
   useDefault: { type: "switch", label: "Use Default Address" },
   quantity: { type: "numberField", label: "Quantity" },
   unitPrice: { type: "numberField", label: "Unit Price" },
@@ -418,7 +418,7 @@ export function SetValueComparisonExample() {
 // COMPARISON 4: selectDefaultFieldProps
 // =============================================================================
 
-const defaultFieldPropsConfig: FormFieldsConfig = {
+const defaultFieldPropsConfig: ReactFormFieldsConfig = {
   globalToggle: { type: "switch", label: "Enable All Fields" },
   field1: { type: "textField" },
   field2: { type: "textField" },

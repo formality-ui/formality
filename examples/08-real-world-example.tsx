@@ -19,8 +19,8 @@ import {
   Form,
   Field,
   FieldGroup,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
   type FormConfig,
   type ValidatorsConfig,
   type ErrorMessagesConfig,
@@ -83,7 +83,7 @@ const usePlacementTypes = () => ({ data: placementTypes, isLoading: false });
 // Input Components
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField: {
     component: memo(({ value, onChange, label, disabled, error }) => (
       <div className={`field ${error ? "has-error" : ""}`}>
@@ -305,7 +305,7 @@ const errorMessages: ErrorMessagesConfig = {
 // Field Configuration
 // =============================================================================
 
-const quoteConfig: FormFieldsConfig = {
+const quoteConfig: ReactFormFieldsConfig = {
   // Office selection
   office: {
     type: "select",

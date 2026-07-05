@@ -19,7 +19,7 @@ import {
   FormalityProvider,
   Form,
   Field,
-  type InputConfig,
+  type ReactInputConfig,
 } from "@formality-ui/react";
 
 // =============================================================================
@@ -27,7 +27,7 @@ import {
 // =============================================================================
 // Debounce prevents validation from running on every keystroke
 
-const textField: InputConfig = {
+const textField: ReactInputConfig = {
   component: memo(({ value, onChange, label, name, error }) => (
     <div className="field">
       <label>{label}</label>
@@ -44,7 +44,7 @@ const textField: InputConfig = {
 // =============================================================================
 // Switches use 'checked' instead of 'value'
 
-const switchInput: InputConfig = {
+const switchInput: ReactInputConfig = {
   component: memo(({ checked, onChange, label, name, disabled }) => (
     <div className="field">
       <label>
@@ -74,7 +74,7 @@ interface Option {
   code?: string;
 }
 
-const autocomplete: InputConfig<Option | null> = {
+const autocomplete: ReactInputConfig<Option | null> = {
   component: memo(({ value, onChange, options, label, disabled }) => (
     <div className="field">
       <label>{label}</label>
@@ -109,7 +109,7 @@ const autocomplete: InputConfig<Option | null> = {
 // =============================================================================
 // Transform between string display and numeric form state
 
-const decimal: InputConfig = {
+const decimal: ReactInputConfig = {
   component: memo(({ value, onChange, label, error, precision = 2 }) => (
     <div className="field">
       <label>{label}</label>
@@ -131,7 +131,7 @@ const decimal: InputConfig = {
 // Input Type: Currency with Inline Parser/Formatter
 // =============================================================================
 
-const currency: InputConfig = {
+const currency: ReactInputConfig = {
   component: memo(({ value, onChange, label }) => (
     <div className="field">
       <label>{label}</label>
@@ -168,7 +168,7 @@ const currency: InputConfig = {
 // =============================================================================
 // Set default props that all instances of this type will receive
 
-const textArea: InputConfig = {
+const textArea: ReactInputConfig = {
   component: memo(({ value, onChange, label, rows, cols }) => (
     <div className="field">
       <label>{label}</label>
@@ -212,7 +212,7 @@ const FieldTemplate = memo(
   ),
 );
 
-const validatedTextField: InputConfig = {
+const validatedTextField: ReactInputConfig = {
   component: memo(({ value, onChange, label }) => (
     <div className="field">
       <label>{label}</label>
@@ -228,7 +228,7 @@ const validatedTextField: InputConfig = {
 // Combined Provider Configuration
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField,
   switch: switchInput,
   autocomplete,

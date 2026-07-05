@@ -21,8 +21,8 @@ import {
   Form,
   Field,
   FieldGroup,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
   type FormConfig,
 } from "@formality-ui/react";
 
@@ -30,7 +30,7 @@ import {
 // Minimal Input Types for Examples
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField: {
     component: memo(({ value, onChange, label, disabled }) => (
       <div className="field">
@@ -104,7 +104,7 @@ const inputs: Record<string, InputConfig> = {
 // =============================================================================
 // Show/hide a field based on another field's value
 
-const visibilityConfig: FormFieldsConfig = {
+const visibilityConfig: ReactFormFieldsConfig = {
   showDetails: {
     type: "switch",
     label: "Show Additional Details",
@@ -144,7 +144,7 @@ export function VisibilityExample() {
 // =============================================================================
 // Disable fields based on another field's value
 
-const disabledConfig: FormFieldsConfig = {
+const disabledConfig: ReactFormFieldsConfig = {
   isLocked: {
     type: "switch",
     label: "Lock Form",
@@ -184,7 +184,7 @@ export function DisabledExample() {
 // =============================================================================
 // React to specific values, not just truthy/falsy
 
-const exactMatchConfig: FormFieldsConfig = {
+const exactMatchConfig: ReactFormFieldsConfig = {
   paymentMethod: {
     type: "select",
     label: "Payment Method",
@@ -242,7 +242,7 @@ export function ExactMatchExample() {
 // =============================================================================
 // Automatically set a field's value when conditions are met
 
-const setValueConfig: FormFieldsConfig = {
+const setValueConfig: ReactFormFieldsConfig = {
   useDefaultAddress: {
     type: "switch",
     label: "Use Default Shipping Address",
@@ -283,7 +283,7 @@ export function SetValueExample() {
 // =============================================================================
 // Set a field's value based on an expression
 
-const selectSetConfig: FormFieldsConfig = {
+const selectSetConfig: ReactFormFieldsConfig = {
   basePrice: {
     type: "number",
     label: "Base Price ($)",
@@ -340,7 +340,7 @@ export function SelectSetExample() {
 // =============================================================================
 // Watch multiple fields with complex logic
 
-const complexConditionConfig: FormFieldsConfig = {
+const complexConditionConfig: ReactFormFieldsConfig = {
   age: {
     type: "number",
     label: "Age",
@@ -395,7 +395,7 @@ export function ComplexConditionExample() {
 // =============================================================================
 // Apply conditions to multiple fields at once
 
-const fieldGroupConfig: FormFieldsConfig = {
+const fieldGroupConfig: ReactFormFieldsConfig = {
   accountType: {
     type: "select",
     label: "Account Type",
@@ -468,7 +468,7 @@ export function FieldGroupExample() {
 // =============================================================================
 // Hierarchical conditions that accumulate
 
-const nestedGroupConfig: FormFieldsConfig = {
+const nestedGroupConfig: ReactFormFieldsConfig = {
   enableSection: {
     type: "switch",
     label: "Enable Advanced Options",
@@ -559,7 +559,7 @@ export function NestedFieldGroupExample() {
 // =============================================================================
 // For complex logic that can't be expressed as strings
 
-const functionConditionConfig: FormFieldsConfig = {
+const functionConditionConfig: ReactFormFieldsConfig = {
   firstName: {
     type: "textField",
     label: "First Name",

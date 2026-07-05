@@ -15,8 +15,8 @@ import {
   FormalityProvider,
   Form,
   Field,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
   type FormConfig,
 } from "@formality-ui/react";
 
@@ -93,7 +93,7 @@ const useCities = (stateId: string | null) => ({
 // Input Types
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField: {
     component: memo(({ value, onChange, label, disabled }) => (
       <div className="field">
@@ -189,7 +189,7 @@ const inputs: Record<string, InputConfig> = {
 // =============================================================================
 // Each select's options depend on the previous selection
 
-const cascadingConfig: FormFieldsConfig = {
+const cascadingConfig: ReactFormFieldsConfig = {
   country: {
     type: "select",
     label: "Country",
@@ -246,7 +246,7 @@ export function CascadingSelectsExample() {
 // =============================================================================
 // Demonstrates all the ways to reference form state
 
-const expressionConfig: FormFieldsConfig = {
+const expressionConfig: ReactFormFieldsConfig = {
   basePrice: {
     type: "numberField",
     label: "Base Price",
@@ -296,7 +296,7 @@ export function ExpressionSyntaxExample() {
 // =============================================================================
 // Access different parts of form state
 
-const qualifiedPathConfig: FormFieldsConfig = {
+const qualifiedPathConfig: ReactFormFieldsConfig = {
   firstName: {
     type: "textField",
     label: "First Name",
@@ -369,7 +369,7 @@ Available prefixes:
 // =============================================================================
 // Apply dynamic props to ALL fields
 
-const defaultPropsConfig: FormFieldsConfig = {
+const defaultPropsConfig: ReactFormFieldsConfig = {
   enableAll: {
     type: "switch",
     label: "Enable All Fields",
@@ -428,7 +428,7 @@ export function SelectDefaultFieldPropsExample() {
 // =============================================================================
 // Auto-generate labels from field names
 
-const dynamicLabelConfig: FormFieldsConfig = {
+const dynamicLabelConfig: ReactFormFieldsConfig = {
   firstName: { type: "textField" },
   lastName: { type: "textField" },
   emailAddress: { type: "textField" },
@@ -471,7 +471,7 @@ export function DynamicLabelsExample() {
 // =============================================================================
 // Complex logic that requires explicit subscriptions
 
-const functionSelectPropsConfig: FormFieldsConfig = {
+const functionSelectPropsConfig: ReactFormFieldsConfig = {
   items: {
     type: "numberField",
     label: "Number of Items",
@@ -532,7 +532,7 @@ export function FunctionSelectPropsExample() {
 // =============================================================================
 // Access deep properties in expressions
 
-const nestedObjectConfig: FormFieldsConfig = {
+const nestedObjectConfig: ReactFormFieldsConfig = {
   client: {
     type: "select",
     label: "Client",

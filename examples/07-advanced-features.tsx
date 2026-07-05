@@ -19,8 +19,8 @@ import {
   Field,
   FieldGroup,
   UnusedFields,
-  type InputConfig,
-  type FormFieldsConfig,
+  type ReactInputConfig,
+  type ReactFormFieldsConfig,
   type FormConfig,
   type InputTemplateProps,
 } from "@formality-ui/react";
@@ -29,7 +29,7 @@ import {
 // Input Types
 // =============================================================================
 
-const inputs: Record<string, InputConfig> = {
+const inputs: Record<string, ReactInputConfig> = {
   textField: {
     component: memo(({ value, onChange, label, disabled, error }) => (
       <div className="field">
@@ -123,7 +123,7 @@ const inputs: Record<string, InputConfig> = {
 // =============================================================================
 // Render fields from config that aren't explicitly placed in JSX
 
-const unusedFieldsConfig: FormFieldsConfig = {
+const unusedFieldsConfig: ReactFormFieldsConfig = {
   // These will be rendered explicitly
   firstName: { type: "textField", label: "First Name" },
   lastName: { type: "textField", label: "Last Name" },
@@ -171,7 +171,7 @@ export function UnusedFieldsExample() {
 // =============================================================================
 // Control order of fields rendered by UnusedFields
 
-const orderedFieldsConfig: FormFieldsConfig = {
+const orderedFieldsConfig: ReactFormFieldsConfig = {
   // Use order property to control UnusedFields rendering order
   zipCode: { type: "textField", label: "ZIP Code", order: 50 },
   city: { type: "textField", label: "City", order: 40 },
@@ -211,7 +211,7 @@ export function FieldOrderingExample() {
 // =============================================================================
 // Map differently-named API fields to form fields
 
-const recordKeyConfig: FormFieldsConfig = {
+const recordKeyConfig: ReactFormFieldsConfig = {
   clientContact: {
     type: "textField",
     label: "Client Contact",
@@ -268,7 +268,7 @@ export function RecordKeyExample() {
 // =============================================================================
 // Dynamic form title based on record data
 
-const formTitleConfig: FormFieldsConfig = {
+const formTitleConfig: ReactFormFieldsConfig = {
   firstName: { type: "textField", label: "First Name" },
   lastName: { type: "textField", label: "Last Name" },
   email: { type: "textField", label: "Email" },
@@ -336,7 +336,7 @@ export function FormTitleExample() {
 // Example 5: provideState - Pass Field State to Component
 // =============================================================================
 
-const provideStateConfig: FormFieldsConfig = {
+const provideStateConfig: ReactFormFieldsConfig = {
   username: {
     type: "textFieldWithState",
     label: "Username",
@@ -382,7 +382,7 @@ export function ProvideStateExample() {
 // Example 6: passSubscriptions - Access Other Fields' States
 // =============================================================================
 
-const passSubscriptionsConfig: FormFieldsConfig = {
+const passSubscriptionsConfig: ReactFormFieldsConfig = {
   baseValue: {
     type: "numberField",
     label: "Base Value",
@@ -426,7 +426,7 @@ export function PassSubscriptionsExample() {
 // Example 7: Field Render Function (Children as Function)
 // =============================================================================
 
-const renderFunctionConfig: FormFieldsConfig = {
+const renderFunctionConfig: ReactFormFieldsConfig = {
   status: {
     type: "textField",
     label: "Status",
@@ -502,7 +502,7 @@ const CustomTemplate = memo(
   ),
 );
 
-const templateInputs: Record<string, InputConfig> = {
+const templateInputs: Record<string, ReactInputConfig> = {
   ...inputs,
   templatedTextField: {
     ...inputs.textField,
@@ -510,7 +510,7 @@ const templateInputs: Record<string, InputConfig> = {
   },
 };
 
-const templateConfig: FormFieldsConfig = {
+const templateConfig: ReactFormFieldsConfig = {
   username: {
     type: "templatedTextField",
     label: "Username",
