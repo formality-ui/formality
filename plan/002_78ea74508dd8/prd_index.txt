@@ -194,13 +194,13 @@ h1.0 Formality v1.0 - Complete Specification
   h3.111 C.2.1 Repo Orientation (do this first)
   h3.112 C.3 Non-Negotiable Constraints
   h3.113 C.4 Work Items
-   h4.57 T1.1 — Type InputConfig.component as a React component  (REACT overlay)
-   h4.58 T1.2 — Type FieldConfig.rules as RegisterOptions  (REACT overlay)
-   h4.59 T1.3 — Fix template fields (align core + finish the react overlay)  (CORE cleanup + REACT)
-   h4.60 T2.1 — Tie Form<TFieldValues> config + Field name to the field-values type  (REACT, with a generic param in CORE)
-   h4.61 T2.2 — Make input type strings checkable (opt-in)  (REACT, adds one helper)
-   h4.62 T3.1 — Export the "injected props" type so consumers stop reinventing it  (REACT)
-   h4.63 T3.2 — Document or wire up InputConfig<TValue>  (CORE docs; optional REACT)
+   h4.57 T1.1 — Type InputConfig.component as a React component (REACT overlay)
+   h4.58 T1.2 — Type FieldConfig.rules as RegisterOptions (REACT overlay)
+   h4.59 T1.3 — Fix template fields (align core + finish the react overlay) (CORE cleanup + REACT)
+   h4.60 T2.1 — Tie Form<TFieldValues> config + Field name to the field-values type (REACT, with a generic param in CORE)
+   h4.61 T2.2 — Make input type strings checkable (opt-in) (REACT, adds one helper)
+   h4.62 T3.1 — Export the "injected props" type so consumers stop reinventing it (REACT)
+   h4.63 T3.2 — Document or wire up InputConfig<TValue> (CORE docs; optional REACT)
   h3.114 C.5 Suggested Order
   h3.115 C.6 Per-Item Verification Checklist (apply to every item)
   h3.116 C.7 Cross-Validation Against the Downstream Consumer (recommended before opening the PR)
