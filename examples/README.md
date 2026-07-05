@@ -1,6 +1,6 @@
 # Formality Examples
 
-This directory contains comprehensive, runnable examples demonstrating every feature of the Formality form library.
+This directory contains comprehensive, runnable examples demonstrating every feature of the Formality form library. All examples type-check under strict TypeScript — verify with `pnpm typecheck:examples` from the repo root.
 
 ## Example Index
 

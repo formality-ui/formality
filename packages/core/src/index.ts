@@ -27,6 +27,7 @@ export type {
   ValidatorFunction,
   ValidatorSpec,
   ValidatorFactory,
+  ValidatorEntry,
   ValidatorsConfig,
   ErrorMessagesConfig,
 } from "./types";

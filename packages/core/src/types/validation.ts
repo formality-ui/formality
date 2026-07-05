@@ -44,19 +44,38 @@ export type ValidatorSpec =
 /**
  * ValidatorFactory - Factory function for parameterized validators
  *
- * Example: minLength(5) returns a ValidatorFunction
+ * Accepts any number of factory arguments and returns a {@link ValidatorFunction}.
+ * The `...args: any[]` rest signature is intentional: it lets concrete factories
+ * with specific parameter types (e.g. `(min: number) => ValidatorFunction`,
+ * `(regex: RegExp, message: string) => ValidatorFunction`) be assignable to this
+ * type without parameter-invariance errors, while still producing a fully typed
+ * `ValidatorFunction` return.
+ *
+ * @example
+ * const min: ValidatorFactory = (minVal: number) => (value) =>
+ *   Number(value) < minVal ? { type: 'min' } : true;
  */
-export type ValidatorFactory<TArgs = unknown> = (
-  args: TArgs,
+export type ValidatorFactory = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- variadic factory args: `any[]` is required so concrete factories with specific param types (e.g. `(min: number)`) remain assignable without parameter-invariance errors.
+  ...args: any[]
 ) => ValidatorFunction;
+
+/**
+ * ValidatorEntry - A named validator or a validator factory.
+ *
+ * Either a direct {@link ValidatorFunction} (called with `value` + `formValues`)
+ * or a {@link ValidatorFactory} (called with factory args to produce a
+ * `ValidatorFunction`).
+ */
+export type ValidatorEntry = ValidatorFunction | ValidatorFactory;
 
 /**
  * ValidatorsConfig - Named validators configuration
  *
- * Values can be direct validators or validator factories
+ * Values can be direct {@link ValidatorFunction}s or {@link ValidatorFactory}s.
  */
 export interface ValidatorsConfig {
-  [name: string]: ValidatorFunction | ValidatorFactory;
+  [name: string]: ValidatorEntry;
 }
 
 /**

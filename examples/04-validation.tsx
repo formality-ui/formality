@@ -19,7 +19,6 @@ import {
   Field,
   type ReactInputConfig,
   type ReactFormFieldsConfig,
-  type ValidatorsConfig,
   type ErrorMessagesConfig,
 } from "@formality-ui/react";
 
@@ -99,9 +98,9 @@ const inputs: Record<string, ReactInputConfig> = {
 // Named Validators (Defined in Provider)
 // =============================================================================
 
-const validators: ValidatorsConfig = {
+const validators = {
   // Simple required validator
-  required: (value) => {
+  required: (value: unknown) => {
     if (
       value === undefined ||
       value === null ||
@@ -114,7 +113,7 @@ const validators: ValidatorsConfig = {
   },
 
   // Email format validator
-  email: (value) => {
+  email: (value: unknown) => {
     if (!value) return true; // Let 'required' handle empty values
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(String(value))) {
       return { type: "email" };
@@ -123,7 +122,7 @@ const validators: ValidatorsConfig = {
   },
 
   // Parameterized validator factory: minLength(5)
-  minLength: (min: number) => (value) => {
+  minLength: (min: number) => (value: unknown) => {
     if (!value) return true;
     if (String(value).length < min) {
       return {
@@ -135,7 +134,7 @@ const validators: ValidatorsConfig = {
   },
 
   // Parameterized validator factory: maxLength(100)
-  maxLength: (max: number) => (value) => {
+  maxLength: (max: number) => (value: unknown) => {
     if (!value) return true;
     if (String(value).length > max) {
       return {
@@ -147,7 +146,7 @@ const validators: ValidatorsConfig = {
   },
 
   // Parameterized validator factory: min(0)
-  min: (minVal: number) => (value) => {
+  min: (minVal: number) => (value: unknown) => {
     if (value === "" || value === null || value === undefined) return true;
     if (Number(value) < minVal) {
       return { type: "min", message: `Must be at least ${minVal}` };
@@ -156,7 +155,7 @@ const validators: ValidatorsConfig = {
   },
 
   // Parameterized validator factory: max(100)
-  max: (maxVal: number) => (value) => {
+  max: (maxVal: number) => (value: unknown) => {
     if (value === "" || value === null || value === undefined) return true;
     if (Number(value) > maxVal) {
       return { type: "max", message: `Must be at most ${maxVal}` };
@@ -165,7 +164,7 @@ const validators: ValidatorsConfig = {
   },
 
   // Pattern validator
-  pattern: (regex: RegExp, message: string) => (value) => {
+  pattern: (regex: RegExp, message: string) => (value: unknown) => {
     if (!value) return true;
     if (!regex.test(String(value))) {
       return message;
@@ -174,13 +173,15 @@ const validators: ValidatorsConfig = {
   },
 
   // Cross-field validation (access other form values)
-  matchField: (fieldName: string) => (value, formValues) => {
-    if (!value) return true;
-    if (value !== formValues[fieldName]) {
-      return { type: "match", message: `Must match ${fieldName}` };
-    }
-    return true;
-  },
+  matchField:
+    (fieldName: string) =>
+    (value: unknown, formValues: Record<string, unknown>) => {
+      if (!value) return true;
+      if (value !== formValues[fieldName]) {
+        return { type: "match", message: `Must match ${fieldName}` };
+      }
+      return true;
+    },
 };
 
 // =============================================================================

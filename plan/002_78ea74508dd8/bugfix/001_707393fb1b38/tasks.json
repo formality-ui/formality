@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Bug Fix — CI Coverage Gate Enforcement & Examples Type-Safety",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Resolves the two defects surfaced by the end-to-end QA validation of plan 002_78ea74508dd8 (Phase P1: Type-Safety Completion & Coverage Gate). Issue 1 (Critical): the 90% coverage gate is configured in vitest.config.ts but never invoked by CI, violating PRD §1.3.7. Issue 2 (Minor, scope-corrected): `pnpm typecheck:examples` fails with 293 errors across ALL 9 example files (the PRD understated this as 12 errors in one file), and the check is not wired into CI. Both fixes are configuration/type-only — no new runtime dependencies, no product behavior changes. See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/ for verified evidence.",
       "milestones": [
         {
@@ -46,7 +46,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "Restore example type-safety and gate it in CI (Issue 2 — Minor, scope-corrected)",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Make `pnpm typecheck:examples` exit 0 and prevent regression by adding it to CI. NOTE: the PRD understated this — verified reality is 293 errors across ALL 9 example files (not 12 in one file). Root cause is uniform: every example imports the core framework-agnostic `InputConfig` (where `component: unknown`) instead of the React overlay `ReactInputConfig` (where `component: ComponentType<any>`). Fixing the type annotations resolves the bulk of errors; a residual sweep clears expression/operator widening. This milestone ends with a Mode-B documentation sync task. See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/examples_typecheck.md for the per-file error counts and the fix patterns.",
           "tasks": [
             {
@@ -78,14 +78,14 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Clear residual expression/operator widening & arg-count errors",
-              "status": "Researching",
+              "status": "Complete",
               "description": "After the type-annotation migration (P1.M2.T1.S1) clears the bulk of errors, sweep the residuals — arithmetic/comparison operators on widened `{}` operands (TS2365/TS2362/TS2363), wrong-arg-count call sites (TS2554), and overload mismatches (TS2769) — until `pnpm typecheck:examples` exits 0. Concentrated in examples/09-string-vs-function.tsx but sweep every file.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Sweep residual widening/arg-count errors to reach `pnpm typecheck:examples` exit 0",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M2.T1.S1"
@@ -133,14 +133,14 @@
               "type": "Task",
               "id": "P1.M2.T4",
               "title": "Sync changeset-level documentation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Mode-B catch-all per SOW §5. This changeset has cross-cutting documentation implications that only make sense once the whole change is in place: README.md and packages/react/README.md assert coverage is a CI gate (true only after P1.M1.T1.S1), and the examples table / contributing sections should reflect that examples are now type-clean and typecheck:examples runs in CI. This task summarizes the entire delta and depends on every implementing subtask.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T4.S1",
                   "title": "Update README.md & packages/react/README.md CI/coverage/examples narrative",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S1",

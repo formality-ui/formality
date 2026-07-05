@@ -492,9 +492,9 @@ const functionSelectPropsConfig: ReactFormFieldsConfig = {
     selectProps: {
       // Function for complex string formatting
       value: ({ fields }) => {
-        const items = fields.items?.value ?? 0;
-        const price = fields.pricePerItem?.value ?? 0;
-        const tax = fields.taxRate?.value ?? 0;
+        const items = Number(fields.items?.value ?? 0);
+        const price = Number(fields.pricePerItem?.value ?? 0);
+        const tax = Number(fields.taxRate?.value ?? 0);
 
         const subtotal = items * price;
         const taxAmount = subtotal * (tax / 100);

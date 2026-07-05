@@ -25,6 +25,8 @@ export type {
   ValidationResult,
   ValidatorFunction,
   ValidatorSpec,
+  ValidatorFactory,
+  ValidatorEntry,
   ValidatorsConfig,
   ErrorMessagesConfig,
 } from "@formality-ui/core";

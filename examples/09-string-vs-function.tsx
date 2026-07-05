@@ -139,8 +139,8 @@ const selectPropsConfig: ReactFormFieldsConfig = {
     subscribesTo: ["basePrice", "quantity"],
     selectProps: {
       value: ({ fields }: FormState) => {
-        const price = fields.basePrice?.value ?? 0;
-        const qty = fields.quantity?.value ?? 0;
+        const price = Number(fields.basePrice?.value ?? 0);
+        const qty = Number(fields.quantity?.value ?? 0);
         // Apply tax, round to 2 decimals, etc.
         const subtotal = price * qty;
         const tax = subtotal * 0.08;
@@ -241,9 +241,9 @@ const conditionWhenConfig: ReactFormFieldsConfig = {
       {
         // Function for complex business logic
         selectWhen: ({ fields }: FormState) => {
-          const age = fields.age?.value ?? 0;
+          const age = Number(fields.age?.value ?? 0);
           const licensed = fields.hasLicense?.value ?? false;
-          const exp = fields.yearsExperience?.value ?? 0;
+          const exp = Number(fields.yearsExperience?.value ?? 0);
 
           // Complex logic that would be hard in string expression
           if (age >= 25 && licensed && exp >= 5) return true; // Senior
@@ -344,12 +344,12 @@ const setValueConfig: ReactFormFieldsConfig = {
     conditions: [
       {
         selectWhen: ({ fields }: FormState) =>
-          fields.quantity?.value && fields.unitPrice?.value,
+          Boolean(fields.quantity?.value && fields.unitPrice?.value),
         // Function with complex business rules
         selectSet: ({ fields }: FormState) => {
-          const qty = fields.quantity?.value ?? 0;
-          const price = fields.unitPrice?.value ?? 0;
-          const discount = fields.discountPercent?.value ?? 0;
+          const qty = Number(fields.quantity?.value ?? 0);
+          const price = Number(fields.unitPrice?.value ?? 0);
+          const discount = Number(fields.discountPercent?.value ?? 0);
 
           let subtotal = qty * price;
 
