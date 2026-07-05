@@ -30,6 +30,7 @@ This document provides complete, unambiguous specifications for every aspect of 
 17. [Props Evaluation Pipeline](#17-props-evaluation-pipeline)
 18. [Complete Data Flow](#18-complete-data-flow)
 19. [Edge Cases and Behaviors](#19-edge-cases-and-behaviors)
+20. [Field ref delivery via `forwardRef`](#20-field-ref-delivery-via-forwardref)
 
 ---
 
@@ -4770,6 +4771,190 @@ Different field types use different "empty" values:
   subscribesTo: ['secondaryField'],  // Not inferred from function
 }
 ```
+
+## 20. Field ref delivery via `forwardRef`
+
+**Purpose**: Make `<Field>` deliver React Hook Form's ref as a regular,
+top-level prop named `forwardRef`, so the **runtime** matches the
+`FormalityFieldComponentProps` type contract that already shipped in
+`@formality-ui/react` 0.1.0. Today `Field` delivers the ref via **React's special
+`ref` key** (see §5.3.2), which means plain function components that
+destructure `forwardRef` per the documented pattern receive `undefined` and the
+ref is never wired to the DOM input.
+
+This is a **React-layer-only** change (`packages/react`). It touches no
+framework-agnostic core logic beyond confirming pass-through (§20.2), and it
+re-types nothing — the type is already correct.
+
+### 20.1 Requirement (the change)
+
+`Field` MUST deliver RHF's `field.ref` (`RefCallBack`) as a prop named
+`forwardRef` on the rendered component. It MUST NOT rely on React's special
+`ref` key as the delivery mechanism.
+
+**Change location** — `packages/react/src/components/Field.tsx`, inside the
+`<Controller render={({ field, fieldState, formState }) => { ... }}>` block, in
+the `coreProps` object passed to `mergeFieldProps` (the same site documented in
+§5.3.2's "Core field props (always override)" block):
+
+```diff
+   coreProps: {
+     name,
+     label,
+     disabled: isDisabled,
+     error: fieldState.error?.message,
+     [inputConfig.inputFieldProp ?? "value"]: formattedValue,
+     onChange: handleChange(field.onChange),
+     onBlur: field.onBlur,
+-    ref: field.ref,
++    forwardRef: field.ref,
+   },
+```
+
+After this change `forwardRef` is a regular, enumerable prop on `finalProps`
+and reaches the rendered component via the same `{...finalProps}` spread that
+already delivers `name`, `value`, `onChange`, and `onBlur`. React no longer
+intercepts it as a special key.
+
+### 20.2 Pass-through verification (`mergeFieldProps`)
+
+`mergeFieldProps` (`packages/core/src/config/merge.ts`) MUST pass `forwardRef`
+through identically to the other `coreProps` keys. The implementer MUST confirm
+that `mergeFieldProps` → `mergeStaticProps` does not allow-list or filter
+unknown keys; if it does, removing that filtering **for `forwardRef` only** is
+in scope.
+
+**Verified against source:** `mergeFieldProps` composes its result via
+`mergeStaticProps(providerDefaultFieldProps, providerSelectDefaultFieldProps,
+formDefaultFieldProps, formSelectDefaultFieldProps, inputProps,
+fieldConfigProps, selectProps, componentProps, coreProps)` — a plain ordered
+spread with **no key filtering**. `coreProps` is applied last and wins
+outright. **No filtering fix is required**; `forwardRef` passes through
+unchanged. If a future refactor introduces key allow-listing, `forwardRef`
+MUST remain in the allow-list (it is a `coreProps` key, not a stray consumer
+prop).
+
+### 20.3 Template path requirement
+
+Custom input templates receive `forwardRef` inside `fieldProps` and MUST
+spread `fieldProps` (or explicitly forward `forwardRef`) onto the rendered
+`Field`:
+
+```tsx
+// Standard template pattern (already correct):
+const MyTemplate: ComponentType<InputTemplateProps> = ({
+  Field,
+  fieldProps,
+}) => <Field {...fieldProps} />; // forwardRef rides inside fieldProps ✓
+```
+
+Templates affected: provider `defaultInputTemplate`, provider
+`inputTemplates[type]`, and per-input `InputConfig.template` (resolution order
+per §5.3.8). A template that destructures `fieldProps` and forwards only a
+subset MUST include `forwardRef` in the forwarded set.
+
+> **Correction to the original feature brief.** The brief assumed a built-in
+> `DefaultFieldTemplate` that "already does this and needs no change." Formality
+> ships **no built-in default template** — `defaultInputTemplate` /
+> `inputTemplates` / `InputConfig.template` are all consumer-supplied and
+> optional. When none is configured, `Field` renders `<Component {...finalProps} />`
+> directly (§5.3.8), so `forwardRef` reaches the component via the spread with no
+> template involvement. The §20.3 requirement therefore applies uniformly to
+> **any** consumer-supplied template; there is no in-repo default to audit.
+
+### 20.4 Backward compatibility & migration (DECISION — sign-off required)
+
+**Decision: deliver `forwardRef` exclusively; do NOT also spread React's
+special `ref` key.**
+
+Rationale:
+
+- It matches the type contract already shipped in 0.1.0
+  (`FormalityFieldComponentProps.forwardRef`).
+- Dual-delivery is **rejected**: spreading `ref` onto a plain function
+  component re-triggers the React 18 *"Function components cannot be given
+  refs"* warning — the exact problem this work removes.
+
+**Migration for `React.forwardRef`-wrapped components.** Components that today
+rely on React intercepting the special `ref` key MUST instead read `forwardRef`
+from props. This is a **minor breaking change**, gated to components that opt
+into the ref, and aligned with the contract shipped in 0.1.0:
+
+```tsx
+// Before — relies on React intercepting the special `ref` key:
+const TextField = React.forwardRef((props, ref) =>
+  <input {...props} ref={ref} />,
+);
+
+// After (option A) — keep the wrap, forward the prop too:
+const TextField = React.forwardRef((props, ref) =>
+  <input {...props} ref={ref} forwardRef={ref} />,
+);
+
+// After (option B) — drop the wrap, consume props.forwardRef directly
+// (the documented FormalityFieldComponentProps pattern):
+const TextField: ComponentType<FormalityFieldComponentProps<Props>> = (
+  { forwardRef, ...rest },
+) => <input ref={forwardRef} {...rest} />;
+```
+
+**React 19 note.** Under React 19 ref-as-prop, consumers who passed `ref` to
+their own component MUST switch to `forwardRef`, because Formality no longer
+emits the special `ref` key.
+
+> **Single open decision (requires sign-off).** The default above is
+> `forwardRef`-exclusive. If strict non-breaking behavior is required instead,
+> the alternative is **dual-delivery** (`ref` AND `forwardRef`). That alternative
+> is **not recommended**: the only way to suppress the React 18 ref warning
+> under dual-delivery is feature-detection of ref support, which is
+> unacceptable; the clean option is `forwardRef`-only. Sign off on
+> `forwardRef`-exclusive (default) or explicitly request dual-delivery with the
+> React 18 warning trade-off documented.
+
+### 20.5 Acceptance criteria
+
+- A plain (non-`React.forwardRef`) function component typed as
+  `ComponentType<FormalityFieldComponentProps<MyProps>>` that destructures
+  `forwardRef` and attaches it to a DOM `<input>` (`ref={forwardRef}`) receives
+  a non-`undefined` ref callback, and the DOM node resolves.
+- No *"Function components cannot be given refs"* warning under React 18.
+- RHF focus-on-error reaches the input wired via `forwardRef`.
+- The template path delivers `forwardRef` inside `fieldProps` and it reaches
+  the input (for any consumer-supplied template that spreads `fieldProps`).
+- A `React.forwardRef`-wrapped component that consumes `props.forwardRef`
+  focuses correctly on error.
+
+### 20.6 Testing requirements
+
+- **Unit test:** render a plain function component and assert `forwardRef` is
+  invoked / the input DOM node is registered with RHF.
+- **Unit test:** no React 18 ref warning (assert via a `console.error` spy or
+  by asserting on the rendered tree).
+- **Behavioral test:** trigger a validation error and assert the input wired
+  via `forwardRef` is focused.
+- **Regression test:** the `React.forwardRef` migration path (consume
+  `props.forwardRef`) still focuses correctly.
+- Coverage gate: the new tests are in scope for the §1.3.7 ≥ 90% threshold.
+
+### 20.7 Documentation update
+
+Rewrite the `FormalityFieldComponentProps` JSDoc in
+`packages/react/src/overlays.ts`:
+
+- Remove the **"Runtime caveat (important)"** paragraph and all *"future
+  runtime task"* / *"out of scope for this type-only change"* wording.
+- State that `forwardRef` is delivered at runtime as a top-level prop by
+  `<Field>` (no `React.forwardRef` wrap required for plain function components).
+- Keep the "Destructure before forwarding" guidance and the MUI v9
+  `slotProps={{ input: { ref: forwardRef } }}` note (cross-ref §5.3.8).
+
+**Out of scope / future** (list only — do not specify):
+
+- `state` / `formState` injection semantics.
+- `mergeFieldProps` behavior beyond `forwardRef` pass-through.
+- Re-typing `FormalityFieldComponentProps` (the type is already correct).
+- Any `@formality-ui/core` (framework-agnostic) change — this is React-layer
+  only.
 
 ---
 
