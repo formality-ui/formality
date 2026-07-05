@@ -11,9 +11,14 @@
 // Vue/Svelte adapters with zero changes.
 
 import type { ComponentType } from "react";
-import type { RegisterOptions, FieldValues } from "react-hook-form";
+import type {
+  RegisterOptions,
+  FieldValues,
+  RefCallBack,
+  UseFormStateReturn,
+} from "react-hook-form";
 import type { InputConfig, FieldConfig } from "@formality-ui/core";
-import type { InputTemplateProps } from "./types";
+import type { InputTemplateProps, CustomFieldState } from "./types";
 
 /**
  * `InputConfig` as seen by React consumers.
@@ -130,3 +135,54 @@ export function defineInputs<T extends Record<string, ReactInputConfig>>(
 ): T {
   return inputs;
 }
+
+/**
+ * Props Formality injects onto every field component.
+ *
+ * `<Field>` renders your input component via React Hook Form's `<Controller>`.
+ * At runtime Formality merges a `coreProps` bundle onto the component (name,
+ * value, onChange, onBlur, and — as a React-special key — `ref`). The three
+ * members below are the **intended injected-props contract**: `formState`
+ * today reaches templates and render-prop children; `state` (subscribed field
+ * state) and a top-level `forwardRef` key are part of the contract this type
+ * codifies ahead of the runtime wiring (see "Runtime caveat" below).
+ *
+ * **Destructure before forwarding.** Component authors MUST destructure
+ * `state`, `formState`, and `forwardRef` OUT of props before spreading the
+ * rest onto the underlying DOM `<input>` — otherwise these non-DOM props leak
+ * to the DOM and React warns. Recommended pattern:
+ *
+ * ```tsx
+ * const TextField: ComponentType<FormalityFieldComponentProps<TextFieldProps>> =
+ *   ({ state, formState, forwardRef, ...domProps }) => (
+ *     <input ref={forwardRef} {...domProps} />
+ *   );
+ * ```
+ *
+ * **Wiring `forwardRef` to the inner input.** `forwardRef` is RHF's
+ * `RefCallBack` (a function). For a plain `<input>` use `ref={forwardRef}`.
+ * For MUI v9 components that no longer accept a top-level `inputRef`, wire it
+ * via slots: `slotProps={{ input: { ref: forwardRef } }}` (PRD §5.3.8).
+ *
+ * **Runtime caveat (important).** Today `Field` delivers the RHF ref via the
+ * React-special `ref` key (not a top-level `forwardRef` prop). To receive it
+ * as `forwardRef` on a plain function component WITHOUT a `React.forwardRef`
+ * wrap, either (a) wrap your component with `React.forwardRef`, or (b) target
+ * React 19's ref-as-prop. Making Field deliver it as a top-level `forwardRef`
+ * key for bare components is a FUTURE runtime task (out of scope for this
+ * type-only change). The type ships the intended contract now so consumers
+ * stop hand-rolling a lossy `WithFormality<P>`.
+ *
+ * @template P - the field component's own props (e.g. TextFieldProps). Defaults
+ *   to `unknown` so existing `ComponentType<any>` casts remain valid.
+ */
+export type FormalityFieldComponentProps<P = unknown> = P & {
+  /** Subscribed/own field state when `provideState`/`passSubscriptions` is on. */
+  state?: CustomFieldState | Record<string, CustomFieldState>;
+
+  /** React Hook Form form state threaded from `<Controller>`. */
+  formState?: UseFormStateReturn<FieldValues>;
+
+  /** RHF ref callback (`RefCallBack`); wire to the inner input (see JSDoc). */
+  forwardRef?: RefCallBack;
+};

@@ -93,7 +93,16 @@ export type {
   ReactInputConfig,
   ReactFieldConfig,
   ReactFormFieldsConfig,
+  FormalityFieldComponentProps,
 } from "./overlays";
+
+// Re-export the react-hook-form types FormalityFieldComponentProps depends
+// on, so consumers don't need a direct react-hook-form import.
+export type {
+  RefCallBack,
+  UseFormStateReturn,
+  FieldValues,
+} from "react-hook-form";
 
 // `defineInputs` is a VALUE export (identity function), not a type.
 export { defineInputs } from "./overlays";

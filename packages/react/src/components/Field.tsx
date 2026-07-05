@@ -25,6 +25,7 @@ import {
   resolveErrorMessage,
 } from "@formality-ui/core";
 import type { FieldConfig, InputConfig } from "@formality-ui/core";
+import type { FormalityFieldComponentProps } from "../overlays";
 import { useFormContext } from "../context/FormContext";
 import { useConfigContext } from "../context/ConfigContext";
 import { useGroupContext } from "../context/GroupContext";
@@ -465,7 +466,8 @@ export function Field<TName extends string = string>({
         });
 
         // Get component
-        const Component = inputConfig.component as React.ComponentType<any>;
+        const Component =
+          inputConfig.component as React.ComponentType<FormalityFieldComponentProps>;
 
         // Render through template if present
         const template =
