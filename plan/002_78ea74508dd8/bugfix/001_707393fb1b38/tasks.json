@@ -1,0 +1,164 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Bug Fix — CI Coverage Gate Enforcement & Examples Type-Safety",
+      "status": "Ready",
+      "description": "Resolves the two defects surfaced by the end-to-end QA validation of plan 002_78ea74508dd8 (Phase P1: Type-Safety Completion & Coverage Gate). Issue 1 (Critical): the 90% coverage gate is configured in vitest.config.ts but never invoked by CI, violating PRD §1.3.7. Issue 2 (Minor, scope-corrected): `pnpm typecheck:examples` fails with 293 errors across ALL 9 example files (the PRD understated this as 12 errors in one file), and the check is not wired into CI. Both fixes are configuration/type-only — no new runtime dependencies, no product behavior changes. See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/ for verified evidence.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Enforce the 90% coverage gate in CI (Issue 1 — Critical)",
+          "status": "Planned",
+          "description": "Make CI actually run the coverage gate so PRD §1.3.7's 'MUST maintain ≥ 90%… enforced by vitest coverage thresholds AND run in CI… the build fails if any metric drops below 90%' is satisfied in the only place enforcement matters. The vitest.config.ts thresholds block (added in P1.M2.T1.S5 of the original plan) is already correct and matches §1.3.7 verbatim; only the CI invocation is missing. This is a genuine one-line change.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Replace `pnpm test` with `pnpm test:coverage` in the CI verify job",
+              "status": "Planned",
+              "description": "The CI workflow runs `pnpm test` (= `vitest run`, no `--coverage`). Vitest only computes coverage and evaluates the thresholds block when coverage is enabled, so the 90% gate is completely inert in CI. Switch the test step to `pnpm test:coverage` (= `vitest run --coverage`) so the existing thresholds block fires and CI fails below 90%.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Switch CI test step to the coverage-gated run",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "prd_selectors": [
+                    "h1.0",
+                    "h2.1",
+                    "h2.1/h3.0",
+                    "code.0",
+                    "para.19",
+                    "list.5"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/ci_coverage_gate.md. The vitest.config.ts `thresholds` block ({ statements: 90, branches: 90, functions: 90, lines: 90 }) is CORRECT and matches PRD §1.3.7 verbatim — do NOT touch it. The ONLY defect is that CI never invokes coverage. Coverage currently sits at 97.29%/95.56%/99.07%/97.29%, comfortably above 90%, so the first gated CI run will be green.\n2. INPUT: Edit `.github/workflows/ci.yml`. The `verify` job has steps in this order: checkout → setup pnpm → setup node (cache: pnpm) → `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm typecheck` → `- run: pnpm test` (the defect, ~line 38) → build core+react. The `pnpm test:coverage` script already exists in root package.json as `vitest run --coverage`.\n3. LOGIC: Implement PRD §1.3.7 / Issue 1. Replace exactly the `- run: pnpm test` step with `- run: pnpm test:coverage`. Keep the step ordering and the subsequent build step intact. Do NOT add `pnpm test:coverage` to `.github/workflows/release.yml` (release.yml only builds + publishes via changesets and intentionally does not run tests). Do NOT duplicate threshold logic into CI — vitest.config.ts is the single source of truth. Do NOT add provider caching (optional hardening is out of scope; track separately). Validation (since CI YAML is not unit-testable in-repo): (a) confirm `pnpm test:coverage` exits 0 locally; (b) confirm vitest.config.ts `thresholds` is intact; (c) regression proof — temporarily set one threshold to 99 and confirm `pnpm test:coverage` now exits non-zero while `pnpm test` still exits 0, then REVERT the threshold. Optional: run `actionlint .github/workflows/ci.yml` if available to lint the YAML.\n4. OUTPUT: `.github/workflows/ci.yml` with the verify job's test step running `pnpm test:coverage`, restoring the PRD §1.3.7 CI guarantee. No other files change.\n5. DOCS: none — no user-facing/config/API surface change. README.md §Contributing/Testing already states coverage 'fails CI if any drops below 90%'; that claim was aspirational and becomes TRUE as a direct result of this change. The cross-cutting README narrative (CI now actually runs test:coverage + typecheck:examples) is handled by the final Mode-B documentation task P1.M2.T4.S1. Do not create a separate docs subtask here."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Restore example type-safety and gate it in CI (Issue 2 — Minor, scope-corrected)",
+          "status": "Planned",
+          "description": "Make `pnpm typecheck:examples` exit 0 and prevent regression by adding it to CI. NOTE: the PRD understated this — verified reality is 293 errors across ALL 9 example files (not 12 in one file). Root cause is uniform: every example imports the core framework-agnostic `InputConfig` (where `component: unknown`) instead of the React overlay `ReactInputConfig` (where `component: ComponentType<any>`). Fixing the type annotations resolves the bulk of errors; a residual sweep clears expression/operator widening. This milestone ends with a Mode-B documentation sync task. See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/examples_typecheck.md for the per-file error counts and the fix patterns.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Migrate example type annotations from core InputConfig to the React overlay types",
+              "status": "Planned",
+              "description": "Replace core `InputConfig` / `FormFieldsConfig` annotations with the React overlay types `ReactInputConfig` / `ReactFormFieldsConfig` (and/or `defineInputs`) across all 9 example files, updating imports accordingly. This restores `ComponentType<any>` contextual typing on inline components and resolves the bulk of the 293 errors: TS2322 (61, component: unknown → ComponentType), TS2339 (175, property access on {} props), TS7031/TS7006 (30, implicit-any params), TS2739/TS2741 (5, FormFieldsConfig vs ReactFormFieldsConfig key mismatch).",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Migrate input & field-config type annotations to React overlay types across all 9 examples",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": [],
+                  "prd_selectors": [
+                    "h1.0",
+                    "h2.3",
+                    "h2.3/h3.1",
+                    "h2.4",
+                    "para.19"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/examples_typecheck.md. ALL 9 files in examples/*.tsx import `type InputConfig` (core, `component: unknown`) and annotate `const inputs: Record<string, InputConfig>` — this is the root cause. Verified per-file error counts: 04-validation (57), 08-real-world-example (40), 02-input-types (34), 07-advanced-features (32), 05-field-dependencies (31), 09-string-vs-function (28), 03-conditions (26), 06-auto-save (24), 01-basic-form (21) = 293 total. The correct React overlay types are exported from `@formality-ui/react` (re-exported from packages/react/src/overlays.ts): `ReactInputConfig<TValue=unknown>` (component: ComponentType<any>, template?: ComponentType<InputTemplateProps>), `ReactFormFieldsConfig<V extends FieldValues = FieldValues>` (keys narrowed to Extract<keyof V, string>), `defineInputs<T extends Record<string, ReactInputConfig>>(inputs: T): T` (identity helper), `ReactFieldConfig<V>`.\n2. INPUT: Source files: examples/01-basic-form.tsx, 02-input-types.tsx, 03-conditions.tsx, 04-validation.tsx, 05-field-dependencies.tsx, 06-auto-save.tsx, 07-advanced-features.tsx, 08-real-world-example.tsx, 09-string-vs-function.tsx. No dependency on other subtasks — these are self-contained type-only edits. The `@formality-ui/react` package build (packages/react/dist) is what examples resolve; confirm `ReactInputConfig`, `ReactFormFieldsConfig`, `defineInputs` are present in packages/react/src/index.ts (verified: lines ~93, ~96, ~108).\n3. LOGIC: Implement PRD §1.3.7 / Issue 2 fix step 1. For each file: (a) change the `import { type InputConfig }` to `import { type ReactInputConfig }` (from `@formality-ui/react`); (b) change `Record<string, InputConfig>` → `Record<string, ReactInputConfig>`; (c) where a config object is annotated `FormFieldsConfig`, switch to `ReactFormFieldsConfig` (also import from `@formality-ui/react`) — this resolves TS2739 key-mismatch errors; (d) ALTERNATIVELY/ADDITIONALLY use `defineInputs({...})` for the inputs map where idiomatic (matches overlays.ts JSDoc and also enables `type InputType = keyof typeof inputs`). SPECIAL CASE examples/02-input-types.tsx declares individual inputs as `const textField: InputConfig = {...}` AND a generic one `const autocomplete: InputConfig<Option | null>` — migrate EACH to `ReactInputConfig` / `ReactInputConfig<Option | null>`. examples/07-advanced-features.tsx has a SECOND inputs map (`templateInputs`) — migrate both. These are TYPE-ONLY edits — do not change runtime behavior, JSX structure, or the demonstrated concepts. Validation: run `pnpm typecheck:examples` after migration; expect the error count to drop sharply (bulk of TS2322/TS2339/TS7031/TS7006/TS2739 resolved). Residual errors are handled by P1.M2.T2.S1.\n4. OUTPUT: All 9 example files import and use the React overlay types; `pnpm typecheck:examples` error count reduced to only residual expression/operator/arg-count errors (TS2365/TS2362/TS2363/TS2554/TS2769). Hand the remaining error list to P1.M2.T2.S1.\n5. MOCKING: None — examples compile against the already-built `@formality-ui/react` dist types; no runtime services involved.\n6. DOCS: none — these are example-internal type edits with no change to the library's public API, exported types, or config surface. The shipped examples are user-facing docs in the broad sense, but no README/config doc is touched by per-file type-annotation swaps; the cross-cutting 'examples are now type-clean' narrative is handled by the final Mode-B task P1.M2.T4.S1."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Clear residual expression/operator widening & arg-count errors",
+              "status": "Planned",
+              "description": "After the type-annotation migration (P1.M2.T1.S1) clears the bulk of errors, sweep the residuals — arithmetic/comparison operators on widened `{}` operands (TS2365/TS2362/TS2363), wrong-arg-count call sites (TS2554), and overload mismatches (TS2769) — until `pnpm typecheck:examples` exits 0. Concentrated in examples/09-string-vs-function.tsx but sweep every file.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Sweep residual widening/arg-count errors to reach `pnpm typecheck:examples` exit 0",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M2.T1.S1"],
+                  "prd_selectors": [
+                    "h1.0",
+                    "h2.3",
+                    "h2.3/h3.1",
+                    "h2.4",
+                    "para.19",
+                    "code.0"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/examples_typecheck.md. After P1.M2.T1.S1, the remaining errors are expected to be: TS2365 (6, 'Operator >= cannot be applied to types {} and number'), TS2362/TS2363 (8, arithmetic on {} operands), TS2554 (7, wrong number of arguments), TS2769 (1, toFixed/toString overload on {}). These are concentrated in examples/09-string-vs-function.tsx string-expression DSL demos (e.g. `age >= 21`, `quantity * unitPrice`) where the example deliberately shows string expressions, but the TS errors are on the CALLBACK-FUNCTION variants where `fields.age?.value` widens to `{}`. NOTE: depending on how P1.M2.T1.S1 types things, some of these may already be resolved — re-run `pnpm typecheck:examples` and fix whatever remains.\n2. INPUT: The 9 example files post-migration (dependency P1.M2.T1.S1). The current residual error list from `pnpm typecheck:examples`.\n3. LOGIC: Implement PRD §1.3.7 / Issue 2 fix step 2. Iterate: run `pnpm typecheck:examples`, read each remaining error, fix it. Patterns: (a) for callback-function selectProps/selectWhen/selectSet/selectDefaultFieldProps where operands widen, provide a `number` fallback + annotation, e.g. `const age = fields.age?.value ?? 0;` then `if (age >= 21 ...)` — ensure the `?? 0` yields `number` (may need `Number(...)` cast or explicit `: number`); (b) for arg-count errors (TS2554), align the call signature with the documented Formality callback shape `({ fields }: FormState) => ...`; (c) for overload mismatches (TS2769), cast the operand to `number` before calling. These are TYPE-SAFETY edits to shipped example docs — preserve the demonstrated concept (string vs function comparison) exactly; only make the TypeScript happy. Do NOT introduce `@ts-ignore`/`@ts-expect-error` to mask errors (that defeats the purpose of type-clean examples).\n4. OUTPUT: `pnpm typecheck:examples` exits 0 with zero errors across all 9 example files. This is the gate for P1.M2.T3.S1 (which adds the check to CI) and the final docs task.\n5. MOCKING: None.\n6. DOCS: none — example-internal type edits, no library public API/config surface change. Cross-cutting 'examples are type-clean' narrative → final Mode-B task P1.M2.T4.S1."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T3",
+              "title": "Gate `pnpm typecheck:examples` in CI",
+              "status": "Planned",
+              "description": "Once the examples are type-clean (P1.M2.T2.S1), add `pnpm typecheck:examples` as a step in the CI verify job so the 293-error regression cannot recur. This is the PRD Issue 2 explicit recommendation: 'at minimum, decide whether shipped examples must stay type-clean and wire the check into CI accordingly.'",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T3.S1",
+                  "title": "Add `pnpm typecheck:examples` step to the CI verify job",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M2.T2.S1"],
+                  "prd_selectors": [
+                    "h1.0",
+                    "h2.3",
+                    "h2.3/h3.1",
+                    "h2.4",
+                    "para.19"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/external_deps.md. The `typecheck:examples` script (`tsc -p examples/tsconfig.json --noEmit`) is NOT currently a CI step. examples/tsconfig.json is composite + jsx:react-jsx, referencing packages/core + packages/react, and is NOT part of the main `tsc --build` graph (script `typecheck`), so its errors are invisible to CI. PRD §1.3.7 excludes examples from the COVERAGE gate but examples are still shipped user-facing documentation and should compile. PRD Issue 2 explicitly recommends wiring this into CI.\n2. INPUT: `.github/workflows/ci.yml` (already modified by P1.M1.T1.S1 so the test step now runs `pnpm test:coverage`). The examples must already be clean (dependency P1.M2.T2.S1 — `pnpm typecheck:examples` exits 0). The script `typecheck:examples` already exists in root package.json.\n3. LOGIC: Implement PRD Issue 2 fix step 3. Add a new step to the `verify` job, placed immediately after the existing `pnpm typecheck` step and before (or after) the test step — recommended placement: right after `pnpm typecheck` to keep type-checking steps grouped: `- run: pnpm typecheck`. Add `- run: pnpm typecheck:examples`. Keep it BLOCKING (exit non-zero on error) — the examples are now clean, so blocking is the correct choice per PRD Issue 2's 'wire the check into CI accordingly'. Do NOT add it to release.yml. Validation: confirm `pnpm typecheck:examples` exits 0 locally before/after the edit; optionally `actionlint` the YAML.\n4. OUTPUT: `.github/workflows/ci.yml` verify job now runs `typecheck:examples`; example type regressions fail CI.\n5. DOCS: [Mode A] Update README.md §Scripts table to add a row for `pnpm typecheck:examples` (currently the table lists build/test/test:coverage/typecheck/lint only). The CI step makes this script a first-class gate, so documenting it rides WITH this work. Add the row near the `typecheck` row: `| pnpm typecheck:examples | Type-check the examples directory |` (backticks optional in the table cell). This is the per-file doc the change directly touches. The broader CI-narrative update (README §Contributing/Testing describing what CI runs) is the final Mode-B task P1.M2.T4.S1 — do not duplicate it here."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T4",
+              "title": "Sync changeset-level documentation",
+              "status": "Planned",
+              "description": "Mode-B catch-all per SOW §5. This changeset has cross-cutting documentation implications that only make sense once the whole change is in place: README.md and packages/react/README.md assert coverage is a CI gate (true only after P1.M1.T1.S1), and the examples table / contributing sections should reflect that examples are now type-clean and typecheck:examples runs in CI. This task summarizes the entire delta and depends on every implementing subtask.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T4.S1",
+                  "title": "Update README.md & packages/react/README.md CI/coverage/examples narrative",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [
+                    "P1.M1.T1.S1",
+                    "P1.M2.T1.S1",
+                    "P1.M2.T2.S1",
+                    "P1.M2.T3.S1"
+                  ],
+                  "prd_selectors": [
+                    "h1.0",
+                    "h2.0",
+                    "h2.1",
+                    "h2.3",
+                    "h2.4",
+                    "para.19"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/002_78ea74508dd8/bugfix/001_707393fb1b38/architecture/system_context.md. README.md §Contributing/Testing (around lines 730-755) already states coverage 'fails CI if any drops below 90%' — this was ASPIRATIONAL before P1.M1.T1.S1 and becomes TRUE after it. README.md §Scripts (around line 703) lists pnpm test:coverage but NOT typecheck:examples (the typecheck:examples row is added in Mode-A by P1.M2.T3.S1 — do NOT re-add it here). README.md §Examples (lines 711-723) describes all 9 examples as 'comprehensive, runnable examples' — after this changeset they are also type-clean. packages/react/README.md §Testing & Coverage (lines 625-655) similarly asserts the gate.\n2. INPUT: Depends on ALL implementing subtasks (P1.M1.T1.S1 coverage gate in CI; P1.M2.T1.S1 + P1.M2.T2.S1 examples type-clean; P1.M2.T3.S1 typecheck:examples in CI). This task runs LAST.\n3. LOGIC: Implement SOW §5 Mode-B. Sweep the two overview READMEs for accuracy given the completed changeset, making minimal, honest edits: (a) README.md §Contributing/Testing — confirm/clarify that CI runs `pnpm test:coverage` (the 90% gate) AND `pnpm typecheck:examples`; the existing prose is mostly correct, so prefer a small clarifying sentence (e.g. note that examples are type-checked in CI) over a rewrite. (b) packages/react/README.md §Testing & Coverage — same light confirmation; no rewrite needed if already accurate. (c) Do NOT fabricate new claims; if a section is already accurate post-fix, leave it. Do NOT touch the Scripts table (handled by P1.M2.T3.S1). Do NOT modify PRD.md. Validation: the two READMEs must remain internally consistent and accurate; `pnpm lint` should still pass (READMEs are not linted by eslint . unless configured, but verify nothing breaks).\n4. OUTPUT: README.md and packages/react/README.md reflect the completed changeset (CI enforces the 90% coverage gate; examples are type-clean and typecheck:examples runs in CI).\n5. DOCS: This IS the documentation task (Mode B). It owns the cross-cutting overview docs; per-file docs were handled Mode-A by the implementing subtasks (P1.M2.T3.S1 added the typecheck:examples Scripts row)."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

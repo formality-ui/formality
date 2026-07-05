@@ -1,0 +1,10 @@
+h1.0 Bug Fix Requirements
+ h2.0 Overview
+ h2.1 Critical Issues (Must Fix)
+  h3.0 Issue 1: The 90% coverage gate is NOT enforced in CI — PRD §1.3.7 is violated
+ h2.2 Major Issues (Should Fix)
+ h2.3 Minor Issues (Nice to Fix)
+  h3.1 Issue 2: pnpm typecheck:examples fails (latent — not enforced in CI)
+ h2.4 Testing Summary
+---
+code:1 para:19 list:5
