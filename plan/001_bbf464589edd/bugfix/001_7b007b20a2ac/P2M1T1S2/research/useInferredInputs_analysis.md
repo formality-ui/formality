@@ -131,6 +131,7 @@ Analyzes string expressions like `"client.id && signed"` to extract field refere
 ### inferFieldsFromConditions (for condition objects)
 
 Extracts field references from:
+
 - `when` field (single string or object with multiple fields)
 - `selectWhen` expressions (via `inferFieldsFromDescriptor`)
 - `selectSet` expressions (via `inferFieldsFromDescriptor`)
@@ -200,20 +201,20 @@ states[fieldName] = {
 
 ```typescript
 // ❌ This won't work - functions need explicit subscribesTo
-selectProps: () => client.id
+selectProps: () => client.id;
 
 // ✅ Explicit subscription required
-subscribesTo: ["client"]
+subscribesTo: ["client"];
 ```
 
 #### 2. Qualified Prefix Handling
 
 ```typescript
 // ❌ Not inferred - "record" is a qualified prefix
-selectProps: "record.client.name"
+selectProps: "record.client.name";
 
 // ✅ "client" is inferred
-selectProps: "client.name"
+selectProps: "client.name";
 ```
 
 #### 3. Multi-field When Objects
@@ -228,7 +229,7 @@ selectProps: "client.name"
 
 ```typescript
 // ❌ "target-on" is not inferred (it's in a string)
-selectProps: 'signed ? "target-on" : "target-off"'
+selectProps: 'signed ? "target-on" : "target-off"';
 // → ["signed"] only
 ```
 

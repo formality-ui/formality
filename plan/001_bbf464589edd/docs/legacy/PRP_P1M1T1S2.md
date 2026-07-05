@@ -8,6 +8,7 @@ description: |
 **Feature Goal**: Create the root package.json that provides the foundational package manager configuration, shared devDependencies, and workspace scripts for the formality-ui monorepo.
 
 **Deliverable**: A `/package.json` file at the project root with:
+
 - name: "formality"
 - private: true
 - packageManager: "pnpm@8.15.0"
@@ -21,12 +22,14 @@ description: |
 **Target User**: Developer/Build System - This file is consumed by pnpm to enable workspace-level dependency management and script execution.
 
 **Use Case**: Provide a centralized package.json that:
+
 1. Defines the monorepo root configuration
 2. Installs shared devDependencies available to all workspace packages
 3. Provides workspace-wide scripts for build, test, lint, typecheck, and release
 4. Enables changeset-based version management
 
 **User Journey**:
+
 1. Developer runs `pnpm install` to install all dependencies
 2. pnpm reads root package.json for devDependencies
 3. pnpm installs devDependencies at root level
@@ -34,6 +37,7 @@ description: |
 5. Developer runs `pnpm changeset` to create version changes
 
 **Pain Points Addressed**:
+
 - Eliminates need to duplicate devDependencies across packages
 - Provides single source of truth for tool versions
 - Enables workspace-wide commands with single script execution
@@ -298,11 +302,11 @@ tree -L 2 -a
 ```json
 // Root package.json structure
 {
-  "name": "formality",              // Root package name (not scoped)
-  "private": true,                   // Prevents publishing
-  "type": "module",                  // ES modules
-  "packageManager": "pnpm@8.15.0",   // Exact pnpm version
-  "version": "0.1.0",                // Root version (semantic)
+  "name": "formality", // Root package name (not scoped)
+  "private": true, // Prevents publishing
+  "type": "module", // ES modules
+  "packageManager": "pnpm@8.15.0", // Exact pnpm version
+  "version": "0.1.0", // Root version (semantic)
 
   "scripts": {
     // Build: Run build in all packages (respects dependency order)
@@ -789,6 +793,7 @@ P2-P6: Implementation phases (all depend on root package.json)
 ### Relationship with Previous PRP (P1.M1.T1.S1)
 
 **INPUT from P1.M1.T1.S1:**
+
 - File: `/pnpm-workspace.yaml`
 - Content: `packages: ["packages/*"]`
 - Purpose: Enables workspace discovery for pnpm
@@ -798,6 +803,7 @@ P2-P6: Implementation phases (all depend on root package.json)
 ### Outputs for Next Task (P1.M1.T2)
 
 **PROVIDED to P1.M1.T2:**
+
 - Root devDependencies available for workspace packages
 - TypeScript 5.5.0 for type system
 - tsup 8.0.0 for building packages
@@ -811,17 +817,20 @@ P2-P6: Implementation phases (all depend on root package.json)
 ### Version Strategy
 
 **Root version:** "0.1.0"
+
 - Indicates early development phase
 - Will be managed by changesets
 - Individual packages have their own versions
 
 **DevDependency version ranges:**
+
 - Use caret (^) for most dependencies
 - Allows updates within same major version
 - Gets bug fixes automatically
 - Prevents breaking changes
 
 **packageManager exact version:**
+
 - "pnpm@8.15.0" uses exact version
 - Required for Corepack integration
 - Ensures consistency across environments

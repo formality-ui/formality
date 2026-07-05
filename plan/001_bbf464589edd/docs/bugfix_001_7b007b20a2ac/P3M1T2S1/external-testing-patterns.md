@@ -10,6 +10,7 @@ This document provides external research on testing patterns for unmount cleanup
 ## 1. React Testing Library Unmount Testing Patterns
 
 ### Basic Pattern
+
 ```typescript
 const { unmount } = render(<Component />);
 // ... test behavior
@@ -18,6 +19,7 @@ unmount();
 ```
 
 ### For Hooks
+
 ```typescript
 const { unmount } = renderHook(() => useCustomHook());
 expect(cleanupSpy).not.toHaveBeenCalled();
@@ -26,6 +28,7 @@ expect(cleanupSpy).toHaveBeenCalledTimes(1);
 ```
 
 **Documentation**:
+
 - [React Testing Library API - unmount](https://testing-library.com/docs/react-testing-library/api#unmount)
 - [useEffect Documentation](https://react.dev/reference/react/useEffect)
 - [React Effects Guide](https://react.dev/learn/synchronizing-with-effects)
@@ -60,10 +63,10 @@ useEffect(() => {
 
 ```typescript
 // Spy on Map operations
-const deleteSpy = vi.spyOn(Map.prototype, 'delete');
+const deleteSpy = vi.spyOn(Map.prototype, "delete");
 
 // Run test
-const { unmount } = renderHook(() => useSubscriptions('field1', ['field2']));
+const { unmount } = renderHook(() => useSubscriptions("field1", ["field2"]));
 unmount();
 
 // Verify cleanup
@@ -73,13 +76,14 @@ expect(deleteSpy).toHaveBeenCalled();
 ## 3. Console Warning/Error Testing in Vitest
 
 ### Pattern
+
 ```typescript
-describe('console testing', () => {
-  const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+describe("console testing", () => {
+  const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
   // Trigger warning
   expect(consoleSpy).toHaveBeenCalledWith(
-    expect.stringContaining('[useSubscriptions]')
+    expect.stringContaining("[useSubscriptions]"),
   );
 
   consoleSpy.mockRestore();
@@ -87,9 +91,11 @@ describe('console testing', () => {
 ```
 
 **Documentation**:
+
 - [Vitest Mocking Guide](https://vitest.dev/guide/mocking.html)
 
 ### For P3.M1.T2.S1, Test:
+
 - Development logging for subscription additions
 - Development logging for subscription removals
 - Double-cleanup detection warnings (from P3.M1.T1.S2)
@@ -98,11 +104,13 @@ describe('console testing', () => {
 ## 4. React Strict Mode Considerations
 
 ### Key Points
+
 - Strict Mode mounts, unmounts, and remounts components in development
 - Effects run twice
 - Cleanup must be **idempotent** (safe to call multiple times)
 
 ### Testing Pattern
+
 ```typescript
 const strictModeWrapper = ({ children }) => (
   <StrictMode>
@@ -122,11 +130,13 @@ expect(() => unmount()).not.toThrow();
 ```
 
 **Documentation**:
+
 - [React Strict Mode](https://react.dev/reference/react/StrictMode)
 
 ## 5. Complete Cleanup Verification Pattern
 
 ### Pattern from React Testing Library
+
 ```typescript
 it("should completely clean up all subscriptions on unmount", () => {
   // Track all subscription additions
@@ -143,8 +153,8 @@ it("should completely clean up all subscriptions on unmount", () => {
 
   const wrapper = createWrapper({ addSubscription, removeSubscription });
   const { unmount } = renderHook(
-    () => useSubscriptions('field1', ['field2', 'field3', 'field4']),
-    { wrapper }
+    () => useSubscriptions("field1", ["field2", "field3", "field4"]),
+    { wrapper },
   );
 
   // Verify subscriptions were added
@@ -158,7 +168,9 @@ it("should completely clean up all subscriptions on unmount", () => {
 
   // Verify all subscriptions were removed
   expect(subscriptionsRemoved).toHaveLength(3);
-  expect(subscriptionsAdded).toEqual(expect.arrayContaining(subscriptionsRemoved));
+  expect(subscriptionsAdded).toEqual(
+    expect.arrayContaining(subscriptionsRemoved),
+  );
 });
 ```
 
@@ -176,6 +188,7 @@ it("should completely clean up all subscriptions on unmount", () => {
 ## 7. URLs and References
 
 ### Official Documentation
+
 - **React Testing Library API**: https://testing-library.com/docs/react-testing-library/api#unmount
 - **useEffect Documentation**: https://react.dev/reference/react/useEffect
 - **React Effects Guide**: https://react.dev/learn/synchronizing-with-effects
@@ -183,11 +196,13 @@ it("should completely clean up all subscriptions on unmount", () => {
 - **Vitest Mocking**: https://vitest.dev/guide/mocking.html
 
 ### External Resources
+
 - **A Complete Guide to useEffect**: https://overreacted.io/a-complete-guide-to-useeffect/ (Dan Abramov)
 - **Common Testing Mistakes**: https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
 - **Testing Library Cleanup**: https://testing-library.com/docs/react-testing-library/api#cleanup
 
 ### WeakMap Documentation
+
 - **MDN WeakMap**: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
 - **Using WeakMap for Memory Leak Detection**: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management
 

@@ -15,7 +15,7 @@ it("should handle rapid subscription changes without memory leaks", async () => 
     {
       wrapper,
       initialProps: { subscriptions: ["field2"] },
-    }
+    },
   );
 
   // Simulate rapid subscription changes
@@ -37,13 +37,13 @@ it("should handle rapid field addition and removal", () => {
   for (let i = 0; i < 5; i++) {
     const { unmount } = renderHook(
       () => useSubscriptions(`field${i}`, [`target${i}`]),
-      { wrapper }
+      { wrapper },
     );
     unmountFunctions.push(unmount);
   }
 
   // Unmount all fields
-  unmountFunctions.forEach(fn => fn());
+  unmountFunctions.forEach((fn) => fn());
 });
 ```
 
@@ -54,7 +54,7 @@ it("should handle rapid field addition and removal", () => {
 ```typescript
 describe("no memory leak warnings", () => {
   beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -67,7 +67,7 @@ describe("no memory leak warnings", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] },
-      }
+      },
     );
 
     // Rapid changes
@@ -83,9 +83,9 @@ describe("no memory leak warnings", () => {
 
     // Verify no memory leak warnings
     const warnCalls = vi.mocked(console.warn).mock.calls;
-    const memoryLeakWarnings = warnCalls.filter(call =>
-      call[0]?.includes('memory leak') ||
-      call[0]?.includes('orphaned')
+    const memoryLeakWarnings = warnCalls.filter(
+      (call) =>
+        call[0]?.includes("memory leak") || call[0]?.includes("orphaned"),
     );
 
     expect(memoryLeakWarnings).toHaveLength(0);

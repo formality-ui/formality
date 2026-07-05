@@ -3,7 +3,9 @@
 ## Existing Test Coverage
 
 ### useFieldDisabledState.test.tsx
+
 Tests the hook in isolation with `renderHook`:
+
 - JSX prop over config (lines 47-60)
 - JSX prop false over config true (lines 62-74)
 - JSX prop when all other sources undefined (lines 76-86)
@@ -12,7 +14,9 @@ Tests the hook in isolation with `renderHook`:
 **Limitation**: Tests hook behavior directly, not full Field component integration
 
 ### Field.test.tsx
+
 Tests the Field component:
+
 - disabled prop over condition result (lines 429-450)
 - disabled prop to force disable (lines 452-467)
 
@@ -56,6 +60,7 @@ Tests the Field component:
 ## Test Approach
 
 Use `@testing-library/react` patterns:
+
 - Render Field with conflicting disabled sources
 - Verify DOM state with `toBeDisabled()` / `not.toBeDisabled()`
 - Test dynamic prop changes with `rerender()`

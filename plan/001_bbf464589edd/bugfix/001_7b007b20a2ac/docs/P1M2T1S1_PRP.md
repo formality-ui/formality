@@ -7,6 +7,7 @@
 **Deliverable**: Updated `changeField` function signature accepting optional `inputConfig?: InputConfig` parameter across Form.tsx and FormContext.ts with proper TypeScript typing and dependency array management.
 
 **Success Definition**:
+
 - `changeField` signature updated to `(name: string, value: unknown, inputConfig?: InputConfig) => void`
 - `InputConfig` type imported from `@formality-ui/core` package
 - Dependency array includes `inputConfig` where applicable
@@ -20,12 +21,14 @@
 The Form component supports auto-save with debounced submission to prevent excessive submits. However, some input types need immediate submission (e.g., when `debounce: false` is set on InputConfig). To enable this conditional behavior in the next subtask (P1.M2.T1.S2), `changeField` must receive the field's `InputConfig` to check its `debounce` setting.
 
 **Technical Justification**:
+
 - Currently, `changeField` only receives `name` and `value` parameters
 - Field component has access to `inputConfig` but cannot pass it to `changeField`
 - This change enables per-field auto-save behavior control
 - Follows existing callback patterns in the codebase (optional parameters)
 
 **Integration Points**:
+
 - Called by: `Field.tsx` handleChange function (line 369)
 - Used by: Auto-save trigger logic in `Form.tsx` (lines 299-317)
 - Next step: P1.M2.T1.S2 will use `inputConfig?.debounce === false` for conditional immediate submission
@@ -35,6 +38,7 @@ The Form component supports auto-save with debounced submission to prevent exces
 ### Scope of Changes
 
 **Files to Modify**:
+
 1. `packages/react/src/components/Form.tsx` - Update `changeField` function definition
 2. `packages/react/src/context/FormContext.ts` - Update `FormContextValue` interface
 
@@ -125,6 +129,7 @@ changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
 **Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file locations and line numbers
 - Current and target code states
 - InputConfig type definition and import path
@@ -294,7 +299,7 @@ The `InputConfig` type provides full TypeScript IntelliSense and type checking:
 export interface InputConfig<TValue = unknown> {
   component: unknown;
   defaultValue: TValue;
-  debounce?: number | false;  // <-- Key property for P1.M2.T1.S2
+  debounce?: number | false; // <-- Key property for P1.M2.T1.S2
   inputFieldProp?: string;
   valueField?: string;
   getSubmitField?: (fieldName: string) => string;
@@ -383,7 +388,9 @@ const changeField = useCallback(
 // Pattern 2: Interface Method Signature with Optional Parameter
 // Source: packages/react/src/context/FormContext.ts:86-92
 
-export interface FormContextValue<TFieldValues extends FieldValues = FieldValues> {
+export interface FormContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+> {
   // ... other properties
 
   /**
@@ -392,7 +399,11 @@ export interface FormContextValue<TFieldValues extends FieldValues = FieldValues
    * @param value - New value
    * @param inputConfig - Optional input config for the field (for conditional execution)
    */
-  changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
+  changeField: (
+    name: string,
+    value: unknown,
+    inputConfig?: InputConfig,
+  ) => void;
 
   // ... other properties
 }
@@ -404,7 +415,7 @@ import type {
   FormFieldsConfig,
   FormConfig,
   FormState,
-  InputConfig,  // Ensure this is present
+  InputConfig, // Ensure this is present
 } from "@formality-ui/core";
 ```
 
@@ -556,30 +567,35 @@ grep -A 2 "const changeField" packages/react/src/components/Form.tsx
 ### Relationship to Other Work Items
 
 **This PRP is Part Of**: P1.M2.T1 (Modify Form Component)
+
 - P1.M2.T1.S1 (This PRP): Add inputConfig parameter to changeField
 - P1.M2.T1.S2 (Next): Implement conditional execution based on inputConfig.debounce
 - P1.M2.T1.S3 (After): Update Field to pass inputConfig to changeField
 - P1.M2.T1.S4 (After): Fix Form debounce prop type
 
 **Dependency Chain**:
+
 1. P1.M2.T1.S1 (This) → Adds parameter infrastructure
 2. P1.M2.T1.S2 → Uses parameter for conditional logic
 3. P1.M2.T1.S3 → Passes parameter from Field component
-4. P1.M2.T2.* → Tests the complete debounce: false feature
+4. P1.M2.T2.\* → Tests the complete debounce: false feature
 
 ### Why This Approach
 
 **Separation of Concerns**:
+
 - This PRP only ADDS the parameter (pure type change)
 - P1.M2.T1.S2 ADDS the logic using the parameter
 - Each PRP is independently testable and verifiable
 
 **Type-First Development**:
+
 - Adding parameter first ensures type safety
 - Subsequent implementation is guided by types
 - TypeScript catches mismatches at compile time
 
 **Backward Compatibility**:
+
 - Optional parameter = no breaking changes
 - Existing calls work without modification
 - New behavior is opt-in via passing inputConfig

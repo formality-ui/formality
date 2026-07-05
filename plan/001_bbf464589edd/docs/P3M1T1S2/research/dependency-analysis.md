@@ -15,10 +15,12 @@ const invertedSubscriptions = useRef<Map<string, Set<string>>>(new Map());
 ```
 
 **Data Structure**: `Map<string, Set<string>>`
+
 - **Key**: Target field name (the field being watched)
 - **Value**: Set of subscriber field names (fields watching the target)
 
 **Example**: If field "firstName" subscribes to field "user":
+
 ```typescript
 Map { 'user' => Set { 'firstName' } }
 ```
@@ -26,16 +28,19 @@ Map { 'user' => Set { 'firstName' } }
 ### Subscription Operations
 
 **addSubscription(target, subscriber)**: Lines 212-230
+
 - Registers a dependency: subscriber watches target
 - Updates the invertedSubscriptions map
 - Notifies target field about new subscriber
 
 **removeSubscription(target, subscriber)**: Lines 232-246
+
 - Removes a dependency
 - Cleans up empty sets from the map
 - Handles pending updates for unmounted targets
 
 **getAffectedFields(changedField)**: Lines 279-297
+
 - **BFS traversal** to find all transitive subscribers
 - Returns a Set of all fields that need updates when one field changes
 - **Already handles dependency chains**
@@ -45,6 +50,7 @@ Map { 'user' => Set { 'firstName' } }
 **Location**: `packages/react/src/hooks/useInferredInputs.ts`
 
 The `useInferredInputs` hook automatically determines dependencies from:
+
 1. **selectProps expressions**: Field references in computed properties
 2. **conditions**: Field references in when/selectWhen conditions
 3. **subscribesTo array**: Explicit subscription declarations
@@ -69,6 +75,7 @@ Field B subscribes to Field C
 ```
 
 When C changes:
+
 - getAffectedFields('C') returns {B, A}
 - Both A and B receive updates
 
@@ -102,6 +109,7 @@ This reverses the order subscriptions were added to this field.
 ### When LIFO is Sufficient
 
 For **local dependencies** (subscriptions within a single field):
+
 ```typescript
 // Field "fullName" subscribes to ["firstName", "lastName"]
 // LIFO cleanup removes lastName first, then firstName
@@ -111,6 +119,7 @@ For **local dependencies** (subscriptions within a single field):
 ### When LIFO is NOT Sufficient
 
 For **transitive field dependencies**:
+
 ```typescript
 // Field "displayName" subscribes to ["fullName"]
 // Field "fullName" subscribes to ["firstName", "lastName"]
@@ -122,6 +131,7 @@ For **transitive field dependencies**:
 ```
 
 However, **this scenario is actually handled correctly** because:
+
 1. Each field's cleanup is independent
 2. The invertedSubscriptions map tracks relationships
 3. Removing a subscription doesn't destroy the target field
@@ -149,6 +159,7 @@ Based on the analysis, P3.M1.T1.S2 should focus on:
 ### 1. Development Logging for Subscription Lifecycle
 
 Track when subscriptions are added/removed to detect issues:
+
 - Which field is subscribing to what
 - When cleanup happens
 - Any unusual patterns (rapid add/remove cycles)
@@ -156,6 +167,7 @@ Track when subscriptions are added/removed to detect issues:
 ### 2. Double-Cleanup Prevention
 
 Add guards to ensure we don't try to remove a subscription that doesn't exist:
+
 ```typescript
 // Check if subscription exists before removing
 if (invertedSubscriptions.current.get(target)?.has(subscriber)) {
@@ -166,6 +178,7 @@ if (invertedSubscriptions.current.get(target)?.has(subscriber)) {
 ### 3. Dependency Graph Logging (Development Only)
 
 For complex forms, log the dependency graph:
+
 - Which fields depend on which
 - Detect potential circular dependencies
 - Visualize update propagation

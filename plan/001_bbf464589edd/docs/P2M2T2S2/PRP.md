@@ -12,6 +12,7 @@
 ## Implementation Status
 
 **COMPLETED** - This work item has been fully implemented. The tests are present in:
+
 - `packages/core/src/__tests__/conditions.test.ts` (lines 1230-1504)
 
 **Commit**: `95fca46` - feat: Add comprehensive tests for multi-field isDisabled conditions with field state matchers
@@ -23,12 +24,14 @@
 **Feature Goal**: Add comprehensive tests for mixed matcher scenarios where value matchers (is, truthy) and field state matchers (isDisabled, isValid) are used together in the same object `when` with top-level `isDisabled`.
 
 **Deliverable**:
+
 1. Core package unit tests for mixed matcher scenarios in conditions.test.ts **[DONE]**
 2. Tests that verify only fields with field state matchers are checked for top-level `isDisabled` **[DONE]**
 3. Tests that verify value matcher fields are excluded from top-level `isDisabled` check **[DONE]**
 4. React integration tests for mixed matcher scenarios **[PENDING - P2.M2.T2.S3]**
 
 **Success Definition**:
+
 - Tests verify the filtering logic from `isStateFieldMatcher()` works correctly
 - Tests confirm value matcher fields are NOT checked for top-level `isDisabled`
 - Tests confirm field state matcher fields ARE checked for top-level `isDisabled`
@@ -43,12 +46,14 @@
 **Use Case**: Enable conditional field disabled state based on a combination of field values (value matchers) and field states (state matchers).
 
 **User Journey**:
+
 1. Developer defines a condition with mixed matchers: some fields use value matchers like `{ is: "value" }`, some use state matchers like `{ isDisabled: true }`
 2. When the top-level `isDisabled` check runs, only fields with state matchers are evaluated
 3. Fields with value matchers are excluded from the top-level `isDisabled` check
 4. The condition matches only when both field-level matchers pass AND top-level `isDisabled` check passes
 
 **Pain Points Addressed**:
+
 - Tests verify the filtering logic between value and state matchers works correctly
 - Developers have confidence that mixed matcher scenarios work as expected
 - Edge cases where value and state matchers are mixed have explicit test coverage
@@ -74,11 +79,13 @@ Tests for mixed matcher scenarios using both value matchers and field state matc
 ### Current State
 
 **Existing Tests** (conditions.test.ts):
+
 - Lines 594-863: Pure value matchers with top-level isDisabled
 - Lines 769-804: ONE mixed matcher test (field1 uses `is`, field2 uses `isDisabled: false`) - tests contradiction scenario
 - **Lines 1230-1504: COMPREHENSIVE mixed matcher tests** [NEW - IMPLEMENTED]
 
 **New Tests Added** (lines 1230-1504):
+
 1. "should only check fields with state matchers when isDisabled: true" - Verifies field2 with state matcher is checked, field1 with value matcher is excluded
 2. "should not match when state field is enabled (isDisabled: true)" - Tests negative case
 3. "should only check fields with state matchers when isDisabled: false" - Tests with `isValid` matcher
@@ -108,6 +115,7 @@ Tests for mixed matcher scenarios using both value matchers and field state matc
 _If someone knew nothing about this codebase, would they have everything needed to understand this work?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact test file locations and patterns to follow
 - Complete test scenarios with expected results
 - Detailed explanation of filtering logic
@@ -254,14 +262,15 @@ packages/core/src/__tests__/
 **No new data models needed** - this PRP documents completed test implementation.
 
 **Existing Data Structures Used**:
+
 ```typescript
 // FieldMatcher - Per-field matchers in object when
 interface FieldMatcher {
-  is?: unknown;           // Value matcher ← USED IN THIS PRP
-  truthy?: boolean;       // Value matcher ← USED IN THIS PRP
-  isTruthy?: boolean;     // Value matcher (alias) ← USED IN THIS PRP
-  isValid?: boolean;      // Field state matcher ← USED IN THIS PRP
-  isDisabled?: boolean;   // Field state matcher ← USED IN THIS PRP
+  is?: unknown; // Value matcher ← USED IN THIS PRP
+  truthy?: boolean; // Value matcher ← USED IN THIS PRP
+  isTruthy?: boolean; // Value matcher (alias) ← USED IN THIS PRP
+  isValid?: boolean; // Field state matcher ← USED IN THIS PRP
+  isDisabled?: boolean; // Field state matcher ← USED IN THIS PRP
 }
 
 // isStateFieldMatcher - Type guard for filtering
@@ -273,11 +282,11 @@ function isStateFieldMatcher(value: unknown): value is FieldMatcher {
 export interface FieldStateInput {
   value: unknown;
   isTouched?: boolean;
-  isDirty?: boolean;      // NOTE: NOT a FieldMatcher!
+  isDirty?: boolean; // NOTE: NOT a FieldMatcher!
   isValidating?: boolean;
   error?: unknown;
   invalid?: boolean;
-  disabled?: boolean;     // ← USED IN THIS PRP
+  disabled?: boolean; // ← USED IN THIS PRP
 }
 ```
 
@@ -517,11 +526,13 @@ pnpm test -v
 ### From P2.M2.T1.S3 - Handle Mixed Matchers (Complete)
 
 The P2.M2.T1.S3 PRP specifies that:
+
 1. `isStateFieldMatcher()` type guard is added to distinguish value vs state matchers
 2. Top-level isDisabled check filters to only check fields with field state matchers
 3. Mixed matcher scenarios are handled correctly
 
 **This PRP's Contract**:
+
 1. Tests for MIXED matcher scenarios (some fields use value matchers, some use state matchers) [DONE]
 2. Verify the filtering logic from P2.M2.T1.S3 works correctly [DONE]
 3. Test that ONLY fields with state matchers are checked for top-level isDisabled [DONE]
@@ -534,6 +545,7 @@ The P2.M2.T1.S3 PRP specifies that:
 The P2.M2.T2.S1 PRP tests PURE field state matcher scenarios.
 
 **This PRP's Contract**:
+
 1. Test MIXED matcher scenarios (value + state matchers) [DONE]
 2. Build on test patterns established in P2.M2.T2.S1 [DONE]
 3. Verify filtering behavior not covered in P2.M2.T2.S1 [DONE]
@@ -546,6 +558,7 @@ The P2.M2.T2.S1 PRP tests PURE field state matcher scenarios.
 The P2.M2.T2.S3 work item will test React integration for mixed matchers.
 
 **This PRP's Contract**:
+
 1. Core tests for mixed matchers are complete [DONE]
 2. Test patterns established for P2.M2.T2.S3 to follow [AVAILABLE]
 3. React integration tests will verify end-to-end behavior [PENDING]
@@ -557,6 +570,7 @@ The P2.M2.T2.S3 work item will test React integration for mixed matchers.
 **10/10** - Implementation is complete and all tests pass
 
 **Reasoning**:
+
 - Implementation is complete (commit `95fca46`)
 - All core tests pass successfully
 - Filtering logic verified to work correctly
@@ -587,6 +601,7 @@ The P2.M2.T2.S3 work item will test React integration for mixed matchers.
 ### Test Coverage
 
 This PRP documents tests that fill the following gaps:
+
 1. Explicit test verifying value matcher fields are excluded from isDisabled check
 2. Tests for successful mixed matcher matches (not just contradictions)
 3. Tests for three+ field mixed matcher scenarios

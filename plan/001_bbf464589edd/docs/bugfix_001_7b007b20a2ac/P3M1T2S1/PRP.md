@@ -14,12 +14,14 @@
 **Feature Goal**: Create comprehensive tests that verify all subscriptions are completely cleaned up when a form component unmounts, with no orphaned subscriptions or memory leaks.
 
 **Deliverable**:
+
 1. Test suite verifying complete subscription cleanup on component unmount
 2. Tests using WeakMap/custom tracking to verify no references remain
 3. Tests verifying no console warnings about memory leaks
 4. Tests covering complex scenarios (multiple fields, nested subscriptions, rapid changes)
 
 **Success Definition**:
+
 - All subscriptions are verified as removed from invertedSubscriptions after unmount
 - runSubscriptionsRef Map is verified empty after cleanup
 - No console warnings about memory leaks or orphaned subscriptions
@@ -33,11 +35,13 @@
 **Target User**: Form developers using the Formality library
 
 **Use Case**: Developing complex forms with dynamic field subscriptions, ensuring:
+
 - Forms can be mounted/unmounted without memory leaks
 - Dynamic field addition/removal doesn't leave orphaned subscriptions
 - Long-running applications don't accumulate memory from subscription leaks
 
 **User Journey**:
+
 1. Developer creates form with complex field dependencies
 2. Form is mounted, subscriptions are created
 3. Form is unmounted (fields removed, component destroyed)
@@ -45,6 +49,7 @@
 5. Developer confidence that repeated mount/unmount cycles are safe
 
 **Pain Points Addressed**:
+
 - **Memory leak anxiety**: Uncertainty if subscriptions are properly cleaned up
 - **Long-running application issues**: Memory accumulation from orphaned subscriptions
 - **Dynamic forms**: Adding/removing fields potentially leaving subscriptions behind
@@ -67,6 +72,7 @@
 
 **From P3.M1.T1.S1 Contract**:
 The previous work item (P3.M1.T1.S1) implements per-effect tracking with:
+
 - `runIdRef`: Incrementing counter for each effect run
 - `runSubscriptionsRef`: `Map<number, string[]>` storing subscriptions per run
 - LIFO cleanup: `[...thisRunSubscriptions].reverse().forEach(...)`
@@ -74,12 +80,14 @@ The previous work item (P3.M1.T1.S1) implements per-effect tracking with:
 
 **From P3.M1.T1.S2 Contract**:
 The parallel work item (P3.M1.T1.S2) adds:
+
 - Development logging for subscription lifecycle events
 - Double-cleanup detection with warnings
 - All logging is behind `process.env.NODE_ENV !== "production"` checks
 
-**Existing Tests** (packages/react/src/__tests__/useSubscriptions.test.tsx):
+**Existing Tests** (packages/react/src/**tests**/useSubscriptions.test.tsx):
 The test file already includes:
+
 - Basic functionality tests (lines 57-78)
 - Per-effect cleanup tests (lines 80-148)
 - LIFO ordering tests (lines 150-175)
@@ -89,6 +97,7 @@ The test file already includes:
 - Double-cleanup detection tests (lines 339-361)
 
 **Problem**:
+
 1. Existing tests verify `removeSubscription` is called, but don't verify the Map is actually empty
 2. No tests using WeakMap or custom tracking to verify complete cleanup
 3. No tests verifying no console warnings about memory leaks
@@ -115,6 +124,7 @@ The test file already includes:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file paths for existing tests and implementation
 - Previous PRP contracts (P3.M1.T1.S1, P3.M1.T1.S2) as foundation
 - Complete test patterns with examples from codebase
@@ -317,6 +327,7 @@ packages/react/src/
 ### Data models and structure
 
 No new data models needed. Testing existing structures:
+
 ```typescript
 // Existing data structures to verify cleanup
 type RunId = number;
@@ -473,7 +484,7 @@ describe("complete cleanup verification", () => {
 
     const { unmount } = renderHook(
       () => useSubscriptions("field1", ["field2", "field3"]),
-      { wrapper }
+      { wrapper },
     );
 
     // Verify subscriptions were added
@@ -497,12 +508,12 @@ describe("complete cleanup verification", () => {
     // Mount multiple fields
     const { unmount: unmount1 } = renderHook(
       () => useSubscriptions("field1", ["field3"]),
-      { wrapper }
+      { wrapper },
     );
 
     const { unmount: unmount2 } = renderHook(
       () => useSubscriptions("field2", ["field3"]),
-      { wrapper }
+      { wrapper },
     );
 
     // Verify both fields are watching field3
@@ -547,14 +558,17 @@ describe("WeakMap cleanup verification", () => {
 
         useSubscriptions("field1", ["field2", "field3"]);
       },
-      { wrapper }
+      { wrapper },
     );
 
     // Verify instance was tracked
     expect(componentRef).not.toBeNull();
     if (componentRef) {
       expect(trackedInstances.has(componentRef)).toBe(true);
-      expect(trackedInstances.get(componentRef)?.subscriptions).toEqual(["field2", "field3"]);
+      expect(trackedInstances.get(componentRef)?.subscriptions).toEqual([
+        "field2",
+        "field3",
+      ]);
     }
 
     // Store reference before unmount
@@ -591,12 +605,12 @@ describe("multi-field unmount scenarios", () => {
     // field2 watches field3
     const { unmount: unmount1 } = renderHook(
       () => useSubscriptions("field1", ["field2"]),
-      { wrapper }
+      { wrapper },
     );
 
     const { unmount: unmount2 } = renderHook(
       () => useSubscriptions("field2", ["field3"]),
-      { wrapper }
+      { wrapper },
     );
 
     // Verify nested subscriptions
@@ -628,7 +642,7 @@ describe("multi-field unmount scenarios", () => {
     for (let i = 0; i < 5; i++) {
       const { unmount } = renderHook(
         () => useSubscriptions(`field${i}`, [`target${i}`]),
-        { wrapper }
+        { wrapper },
       );
       unmountFunctions.push(unmount);
     }
@@ -636,11 +650,13 @@ describe("multi-field unmount scenarios", () => {
     // Verify all subscriptions exist
     let state = inspectableContext.getInspectableState();
     for (let i = 0; i < 5; i++) {
-      expect(state.invertedSubscriptions.get(`target${i}`)).toContain(`field${i}`);
+      expect(state.invertedSubscriptions.get(`target${i}`)).toContain(
+        `field${i}`,
+      );
     }
 
     // Unmount all fields
-    unmountFunctions.forEach(fn => fn());
+    unmountFunctions.forEach((fn) => fn());
 
     // Verify all subscriptions are cleaned up
     state = inspectableContext.getInspectableState();
@@ -659,7 +675,7 @@ describe("multi-field unmount scenarios", () => {
 
 describe("no memory leak warnings", () => {
   beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -671,7 +687,7 @@ describe("no memory leak warnings", () => {
 
     const { unmount } = renderHook(
       () => useSubscriptions("field1", ["field2", "field3"]),
-      { wrapper }
+      { wrapper },
     );
 
     // Clear existing logs
@@ -685,10 +701,11 @@ describe("no memory leak warnings", () => {
 
     // Expected: "[Formality Subscription] Run X: "field1" cleaning up [field2, field3]"
     // No unexpected warnings about memory leaks or orphaned subscriptions
-    const memoryLeakWarnings = warnCalls.filter(call =>
-      call[0]?.includes('memory leak') ||
-      call[0]?.includes('orphaned') ||
-      call[0]?.includes('WARNING')
+    const memoryLeakWarnings = warnCalls.filter(
+      (call) =>
+        call[0]?.includes("memory leak") ||
+        call[0]?.includes("orphaned") ||
+        call[0]?.includes("WARNING"),
     );
 
     expect(memoryLeakWarnings).toHaveLength(0);
@@ -702,7 +719,7 @@ describe("no memory leak warnings", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] as string[] },
-      }
+      },
     );
 
     // Rapid changes
@@ -718,9 +735,9 @@ describe("no memory leak warnings", () => {
 
     // Verify no memory leak warnings
     const warnCalls = vi.mocked(console.warn).mock.calls;
-    const memoryLeakWarnings = warnCalls.filter(call =>
-      call[0]?.includes('memory leak') ||
-      call[0]?.includes('orphaned')
+    const memoryLeakWarnings = warnCalls.filter(
+      (call) =>
+        call[0]?.includes("memory leak") || call[0]?.includes("orphaned"),
     );
 
     expect(memoryLeakWarnings).toHaveLength(0);
@@ -885,6 +902,7 @@ done
 The P3.M1.T1.S1 PRP implements per-effect subscription tracking.
 
 **This PRP's Contract**:
+
 1. This PRP TESTS the per-effect tracking from P3.M1.T1.S1
 2. This PRP VERIFIES that runSubscriptionsRef.delete() is called
 3. This PRP VERIFIES that all subscriptions are cleaned up on unmount
@@ -897,6 +915,7 @@ The P3.M1.T1.S1 PRP implements per-effect subscription tracking.
 The P3.M1.T1.S2 PRP adds development logging and double-cleanup detection.
 
 **This PRP's Contract**:
+
 1. This PRP TESTS the development logging from P3.M1.T1.S2
 2. This PRP VERIFIES that console.warn is called correctly
 3. This PRP VERIFIES that no unexpected warnings appear during cleanup
@@ -911,6 +930,7 @@ The P3.M1.T1.S2 PRP adds development logging and double-cleanup detection.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Clear scope: Add tests only, no implementation changes
 - Previous PRPs (P3.M1.T1.S1, P3.M1.T1.S2) provide solid foundation
 - Comprehensive research documented with code examples

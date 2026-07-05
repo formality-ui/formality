@@ -23,6 +23,7 @@ Without resolution, this causes infinite loops during condition evaluation.
 ### Concept
 
 Build field states in two separate phases:
+
 - **Pass 1**: Build base field states WITHOUT the computed property (disabled)
 - **Pass 2**: Add the computed property using Pass 1 states as input
 - **Pass 3** (optional): Merge Pass 1 and Pass 2 into final result
@@ -80,7 +81,7 @@ const fieldStates = useMemo(() => {
       };
       return acc;
     },
-    {} as Record<string, FieldStateInput>
+    {} as Record<string, FieldStateInput>,
   );
 }, [baseFieldStates, disabledStates]);
 ```
@@ -174,7 +175,7 @@ const fieldStates = useMemo(() => {
 
 ```typescript
 // ❌ WRONG: Storing derived state
-const [fullName, setFullName] = useState('');
+const [fullName, setFullName] = useState("");
 useEffect(() => {
   setFullName(`${firstName} ${lastName}`);
 }, [firstName, lastName]);
@@ -184,7 +185,7 @@ const fullName = `${firstName} ${lastName}`;
 
 // ✅ RIGHT: Expensive derivation with useMemo
 const filteredItems = useMemo(() => {
-  return items.filter(item => item.active);
+  return items.filter((item) => item.active);
 }, [items]);
 ```
 
@@ -272,13 +273,19 @@ Critical for correct two-pass evaluation:
 
 ```typescript
 // Pass 1: No dependencies on other passes
-const baseFieldStates = useMemo(() => { /* ... */ }, [watchFields, fieldValues, methods]);
+const baseFieldStates = useMemo(() => {
+  /* ... */
+}, [watchFields, fieldValues, methods]);
 
 // Pass 2: MUST depend on Pass 1
-const disabledStates = useMemo(() => { /* uses baseFieldStates */ }, [baseFieldStates, /* ... */]);
+const disabledStates = useMemo(() => {
+  /* uses baseFieldStates */
+}, [baseFieldStates /* ... */]);
 
 // Pass 3: MUST depend on Pass 1 AND Pass 2
-const fieldStates = useMemo(() => { /* merges baseFieldStates + disabledStates */ }, [baseFieldStates, disabledStates]);
+const fieldStates = useMemo(() => {
+  /* merges baseFieldStates + disabledStates */
+}, [baseFieldStates, disabledStates]);
 ```
 
 ### Performance Considerations
@@ -293,10 +300,12 @@ const fieldStates = useMemo(() => { /* merges baseFieldStates + disabledStates *
 ## Summary
 
 Two-pass evaluation is the standard pattern for resolving circular dependencies where:
+
 1. A computed value (disabled) depends on condition evaluation
 2. Condition evaluation needs access to that computed value (isDisabled matcher)
 
 The solution:
+
 1. Build base states without the computed property
 2. Compute the property using base states as input
 3. Merge results into final states

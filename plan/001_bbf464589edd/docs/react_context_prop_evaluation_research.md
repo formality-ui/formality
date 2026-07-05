@@ -51,7 +51,9 @@ This document provides comprehensive research on React Context prop evaluation p
 **File:** `/home/dustin/projects/formality/packages/react/src/context/FormContext.ts`
 
 ```typescript
-export interface FormContextValue<TFieldValues extends FieldValues = FieldValues> {
+export interface FormContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+> {
   // ========================
   // Static Configuration (rarely changes)
   // ========================
@@ -272,7 +274,13 @@ function parseExpression(expr: string): Expression {
 
 ```typescript
 const FIELD_STATE_PROPERTIES = new Set([
-  "value", "isTouched", "isDirty", "isValidating", "error", "invalid", "disabled",
+  "value",
+  "isTouched",
+  "isDirty",
+  "isValidating",
+  "error",
+  "invalid",
+  "disabled",
 ]);
 
 export function createFieldStateProxy(
@@ -326,15 +334,15 @@ export function mergeFieldProps(options: {
   coreProps?: Record<string, unknown>;
 }): Record<string, unknown> {
   return mergeStaticProps(
-    providerDefaultFieldProps,           // Layer 1: Lowest priority
-    providerSelectDefaultFieldProps,     // Layer 2
-    formDefaultFieldProps,               // Layer 3
-    formSelectDefaultFieldProps,         // Layer 4
-    inputProps,                          // Layer 5
-    fieldConfigProps,                    // Layer 6
-    selectProps,                         // Layer 7
-    componentProps,                      // Layer 8
-    coreProps,                           // Layer 9: Highest priority (always wins)
+    providerDefaultFieldProps, // Layer 1: Lowest priority
+    providerSelectDefaultFieldProps, // Layer 2
+    formDefaultFieldProps, // Layer 3
+    formSelectDefaultFieldProps, // Layer 4
+    inputProps, // Layer 5
+    fieldConfigProps, // Layer 6
+    selectProps, // Layer 7
+    componentProps, // Layer 8
+    coreProps, // Layer 9: Highest priority (always wins)
   );
 }
 ```
@@ -649,11 +657,11 @@ export function inferFieldsFromExpression(expr: string): string[] {
 **Examples:**
 
 ```typescript
-inferFieldsFromExpression("client.id")           // → ["client"]
-inferFieldsFromExpression("client && signed")     // → ["client", "signed"]
-inferFieldsFromExpression("record.name")         // → [] (qualified path)
-inferFieldsFromExpression("true && false")       // → [] (keywords)
-inferFieldsFromExpression("fields === null")     // → ["fields"] (not followed by dot)
+inferFieldsFromExpression("client.id"); // → ["client"]
+inferFieldsFromExpression("client && signed"); // → ["client", "signed"]
+inferFieldsFromExpression("record.name"); // → [] (qualified path)
+inferFieldsFromExpression("true && false"); // → [] (keywords)
+inferFieldsFromExpression("fields === null"); // → ["fields"] (not followed by dot)
 ```
 
 ---
@@ -685,11 +693,11 @@ const watchedValues = useWatch({
 
 ```typescript
 // Single field: returns single value
-const value = useWatch({ name: 'email' });
+const value = useWatch({ name: "email" });
 // → string | undefined
 
 // Multiple fields: ALWAYS returns array
-const values = useWatch({ name: ['email', 'name'] });
+const values = useWatch({ name: ["email", "name"] });
 // → [string, string]
 ```
 
@@ -829,7 +837,9 @@ function ChildForm() {
 // Formality extends FormProvider with additional context
 export const FormContext = createContext<FormContextValue | null>(null);
 
-export interface FormContextValue<TFieldValues extends FieldValues = FieldValues> {
+export interface FormContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+> {
   // React Hook Form methods
   methods: UseFormReturn<TFieldValues>;
 
@@ -994,10 +1004,10 @@ import { Field } from 'react-final-form';
 // Formality achieves similar isolation through useWatch
 const watchedValues = useWatch({
   control: methods.control,
-  name: ['firstName'], // Only re-renders when firstName changes
+  name: ["firstName"], // Only re-renders when firstName changes
 });
 
-const fieldState = methods.getFieldState('firstName');
+const fieldState = methods.getFieldState("firstName");
 ```
 
 ---
@@ -1161,15 +1171,15 @@ const finalProps = {
 ```typescript
 // GOOD: Clear priority order (Formality's 8-layer merge)
 const finalProps = mergeFieldProps({
-  providerDefaultFieldProps,           // Layer 1: Lowest
-  providerSelectDefaultFieldProps,     // Layer 2
-  formDefaultFieldProps,               // Layer 3
-  formSelectDefaultFieldProps,         // Layer 4
-  inputProps,                          // Layer 5
-  fieldConfigProps,                    // Layer 6
-  selectProps,                         // Layer 7
-  componentProps,                      // Layer 8
-  coreProps,                           // Layer 9: Highest (always wins)
+  providerDefaultFieldProps, // Layer 1: Lowest
+  providerSelectDefaultFieldProps, // Layer 2
+  formDefaultFieldProps, // Layer 3
+  formSelectDefaultFieldProps, // Layer 4
+  inputProps, // Layer 5
+  fieldConfigProps, // Layer 6
+  selectProps, // Layer 7
+  componentProps, // Layer 8
+  coreProps, // Layer 9: Highest (always wins)
 });
 ```
 
@@ -1232,6 +1242,7 @@ const finalProps = mergeFieldProps({
 ### 8.1 React Hook Form
 
 **Official Documentation:**
+
 - **FormProvider:** https://react-hook-form.com/docs/formprovider
 - **useFormContext:** https://react-hook-form.com/docs/useformcontext
 - **useWatch:** https://react-hook-form.com/docs/usewatch
@@ -1240,9 +1251,11 @@ const finalProps = mergeFieldProps({
 - **FormState:** https://react-hook-form.com/docs/useform/formstate
 
 **GitHub Repository:**
+
 - https://github.com/react-hook-form/react-hook-form
 
 **Key Patterns:**
+
 - Context provider with methods passthrough
 - Isolated field subscriptions via `useWatch`
 - Non-reactive field state access via `getFieldState`
@@ -1251,14 +1264,17 @@ const finalProps = mergeFieldProps({
 ### 8.2 Formik
 
 **Official Documentation:**
+
 - **Formik Context:** https://formik.org/docs/api/useformikcontext
 - **useField:** https://formik.org/docs/api/usefield
 - **Field Component:** https://formik.org/docs/api/field
 
 **GitHub Repository:**
+
 - https://github.com/jaredpalmer/formik
 
 **Key Patterns:**
+
 - Context-based form state distribution
 - Field-level subscription control
 - Helper functions for imperative updates
@@ -1266,13 +1282,16 @@ const finalProps = mergeFieldProps({
 ### 8.3 React Final Form
 
 **Official Documentation:**
+
 - **Field Component:** https://final-form.org/docs/react-final-form/api/Field
 - **Form Component:** https://final-form.org/docs/react-final-form/api/Form
 
 **GitHub Repository:**
+
 - https://github.com/final-form/react-final-form
 
 **Key Patterns:**
+
 - Field-level subscription control
 - Render prop pattern
 - Fine-grained update control
@@ -1280,6 +1299,7 @@ const finalProps = mergeFieldProps({
 ### 8.4 React Context Performance
 
 **Recommended Resources:**
+
 - **React Context Performance (tkdodo.eu):** https://tkdodo.eu/blog/react-context-performance-optimal-state-structure
   - Optimal state structure for Context
   - Splitting context by concern
@@ -1296,6 +1316,7 @@ const finalProps = mergeFieldProps({
   - Real-world examples
 
 **Key Patterns:**
+
 - Split context by concern
 - Use memoization for expensive computations
 - Provide stable function references
@@ -1304,12 +1325,14 @@ const finalProps = mergeFieldProps({
 ### 8.5 React Patterns
 
 **Official Documentation:**
+
 - **forwardRef:** https://react.dev/reference/react/forwardRef
 - **useMemo:** https://react.dev/reference/react/useMemo
 - **useCallback:** https://react.dev/reference/react/useCallback
 - **Hooks Rules:** https://react.dev/reference/react
 
 **Community Resources:**
+
 - **React Patterns:** https://reactpatterns.com
 - **React TypeScript Cheatsheet:** https://react-typescript-cheatsheet.netlify.app
 - **react-use (GitHub):** https://github.com/streamich/react-use

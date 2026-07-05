@@ -17,6 +17,7 @@
 The race condition prevention mechanism in Form.tsx uses a version token pattern that correctly prevents stale auto-saves during rapid changes and concurrent operations. All version checkpoints are at correct locations and necessary for complete protection.
 
 **Key Findings:**
+
 - [x] executionVersionRef lifecycle is correct and well-documented
 - [x] All 3 version checkpoints are necessary and correctly placed
 - [x] Number overflow is virtually impossible (285,374+ years to overflow)
@@ -62,6 +63,7 @@ const executeAutoSave = useCallback(async () => {
 ```
 
 **Key Implementation Detail:**
+
 - Version is incremented **before** capturing
 - The captured value (`executionVersion`) represents "this specific save operation"
 - Future increments will change `executionVersionRef.current`, breaking equality with captured `executionVersion`
@@ -79,6 +81,7 @@ pendingAffectedFields.current.clear();
 ```
 
 **Critical Order:**
+
 1. Increment version
 2. Capture version
 3. Copy pending fields (snapshot for this save)
@@ -99,6 +102,7 @@ while (Date.now() - startTime < maxWaitMs) {
 ```
 
 **Key Behavior:**
+
 - Version is checked **inside** the polling loop (every 50ms)
 - Allows immediate abort if new changes come in
 - Prevents waiting full 10 seconds if version has changed
@@ -173,11 +177,11 @@ Concurrent Operation (during step 5-10):
 
 The `executeAutoSave` function has **three version checkpoints**, each following an async operation:
 
-| Checkpoint | Location | After Operation | Purpose |
-|------------|----------|-----------------|---------|
-| 1 | Line 505 | `waitForFieldValidation(changedFields + affectedFields)` | Abort if new changes while waiting for initial validation |
-| 2 | Line 524 | `methods.trigger(affectedFields)` | Abort if new changes during trigger validation |
-| 3 | Line 541 | `waitForFieldValidation(affectedFields)` | Abort if new changes while waiting for post-trigger validation |
+| Checkpoint | Location | After Operation                                          | Purpose                                                        |
+| ---------- | -------- | -------------------------------------------------------- | -------------------------------------------------------------- |
+| 1          | Line 505 | `waitForFieldValidation(changedFields + affectedFields)` | Abort if new changes while waiting for initial validation      |
+| 2          | Line 524 | `methods.trigger(affectedFields)`                        | Abort if new changes during trigger validation                 |
+| 3          | Line 541 | `waitForFieldValidation(affectedFields)`                 | Abort if new changes while waiting for post-trigger validation |
 
 ### 2.2 Checkpoint 1: After First Validation Wait
 
@@ -190,15 +194,13 @@ const validationsComplete = await waitForFieldValidation(
 );
 
 // CHECKPOINT 1: After first validation wait
-if (
-  !validationsComplete ||
-  executionVersionRef.current !== executionVersion
-) {
-  return;  // ABORT: New changes came in while waiting
+if (!validationsComplete || executionVersionRef.current !== executionVersion) {
+  return; // ABORT: New changes came in while waiting
 }
 ```
 
 **Analysis:**
+
 - **Purpose:** Prevents stale saves when initial validation takes time
 - **Necessary:** YES - If removed, stale saves could complete after validation
 - **Example Scenario:**
@@ -227,6 +229,7 @@ if (fieldsToTrigger.length > 0) {
 ```
 
 **Analysis:**
+
 - **Purpose:** Prevents stale saves after async trigger validation
 - **Necessary:** YES - `methods.trigger()` is async and can take significant time
 - **Example Scenario:**
@@ -246,15 +249,13 @@ const postTriggerComplete = await waitForFieldValidation(
   executionVersion,
 );
 
-if (
-  !postTriggerComplete ||
-  executionVersionRef.current !== executionVersion
-) {
-  return;  // ABORT: New changes came in while waiting
+if (!postTriggerComplete || executionVersionRef.current !== executionVersion) {
+  return; // ABORT: New changes came in while waiting
 }
 ```
 
 **Analysis:**
+
 - **Purpose:** Prevents stale saves when post-trigger validation takes time
 - **Necessary:** YES - Validates triggered fields may have in-flight validations
 - **Example Scenario:**
@@ -273,11 +274,11 @@ if (
 
 **Proof by Counterexample:**
 
-| Checkpoint Removed | Stale Save Scenario |
-|-------------------|---------------------|
-| Checkpoint 1 | User types during initial validation → stale save completes |
-| Checkpoint 2 | User types during `methods.trigger()` → stale save completes |
-| Checkpoint 3 | User types during post-trigger validation → stale save completes |
+| Checkpoint Removed | Stale Save Scenario                                              |
+| ------------------ | ---------------------------------------------------------------- |
+| Checkpoint 1       | User types during initial validation → stale save completes      |
+| Checkpoint 2       | User types during `methods.trigger()` → stale save completes     |
+| Checkpoint 3       | User types during post-trigger validation → stale save completes |
 
 **Conclusion:** Each checkpoint guards a specific async operation. Removing any checkpoint would create a window for stale saves to complete.
 
@@ -288,12 +289,14 @@ if (
 **Answer:** NO - All async operations are followed by version checks.
 
 **Verification:**
+
 1. `waitForFieldValidation()` at line 497 → Checkpoint 1 at line 505 ✅
 2. `methods.trigger()` at line 521 → Checkpoint 2 at line 524 ✅
 3. `waitForFieldValidation()` at line 534 → Checkpoint 3 at line 541 ✅
 4. `handleSubmit()` at line 555 → Final operation, no further state updates ✅
 
 **Note:** There is no version check after `handleSubmit()` because:
+
 - `handleSubmit()` is the final operation
 - After submission completes, no state updates occur
 - A new save would start with a fresh version
@@ -311,11 +314,13 @@ while (Date.now() - startTime < maxWaitMs) {
 ```
 
 **Additional Protection:**
+
 - Version is checked **inside** the polling loop
 - Allows aborting mid-wait, not just at the end
 - Reduces wasted time when version has changed
 
 **Impact:**
+
 - Without this check: Could wait up to 10 seconds before aborting
 - With this check: Aborts within 50ms of version change
 
@@ -326,6 +331,7 @@ while (Date.now() - startTime < maxWaitMs) {
 ### 3.1 Mathematical Analysis
 
 **JavaScript's Maximum Safe Integer:**
+
 ```
 MAX_SAFE_INTEGER = 9007199254740991
 ```
@@ -335,6 +341,7 @@ This is the largest integer that can be safely represented without loss of preci
 ### 3.2 Time to Overflow Calculations
 
 **Scenario 1: Realistic Form Usage (~1 change/second)**
+
 ```
 Changes per second = 1
 Seconds per year = 31,536,000 (365 * 24 * 3600)
@@ -343,6 +350,7 @@ Years to overflow = 9007199254740991 / (1 * 31536000)
 ```
 
 **Scenario 2: Aggressive Typing (100 changes/second)**
+
 ```
 Changes per second = 100 (e.g., holding down a key)
 Years to overflow = 9007199254740991 / (100 * 31536000)
@@ -350,6 +358,7 @@ Years to overflow = 9007199254740991 / (100 * 31536000)
 ```
 
 **Scenario 3: Theoretical Maximum (1000 changes/second)**
+
 ```
 Changes per second = 1000 (e.g., programmatic changes)
 Years to overflow = 9007199254740991 / (1000 * 31536000)
@@ -357,6 +366,7 @@ Years to overflow = 9007199254740991 / (1000 * 31536000)
 ```
 
 **Scenario 4: Worst-Case Programmatic (10,000 changes/second)**
+
 ```
 Changes per second = 10000 (extremely rapid programmatic changes)
 Years to overflow = 9007199254740991 / (10000 * 31536000)
@@ -372,6 +382,7 @@ Even at 10,000 changes per second (an unrealistically high rate for any form), i
 ### 3.4 Comparison with Component Lifecycle
 
 **Typical Form Component Lifecycle:**
+
 - Mount: User opens form
 - Active use: 1-60 minutes
 - Unmount: User closes form or navigates away
@@ -384,11 +395,13 @@ Even at 10,000 changes per second (an unrealistically high rate for any form), i
 **Current Implementation:** No overflow protection (correct)
 
 **Rationale:**
+
 - Overflow is virtually impossible
 - Adding overflow protection would add unnecessary complexity
 - Version reset on component unmount provides natural protection
 
 **Optional Enhancement (Not Recommended):**
+
 ```typescript
 // Example of what overflow protection COULD look like (don't add this)
 const executionVersionRef = useRef(0);
@@ -413,11 +426,13 @@ const executeAutoSave = useCallback(async () => {
 ### 4.1 Edge Case 1: Rapid Changes (100+ changes within debounce period)
 
 **Scenario:**
+
 - User types 100 characters rapidly (holding down a key)
 - All 100 changes occur within the 1000ms debounce period
 - Only the last change should be saved
 
 **Behavior:**
+
 ```
 Time 0ms:    User types 'A' → pendingChangedFields = {'name'}
              debouncedSubmit scheduled for 1000ms
@@ -446,12 +461,14 @@ Time 5000ms: User stops typing
 ### 4.2 Edge Case 2: Concurrent Async Operations
 
 **Scenario:**
+
 - Field A changes → triggers save (version 1)
 - Field B starts async validation (e.g., API call takes 2 seconds)
 - User types in Field C → triggers new save (version 2)
 - Field A's save completes validation
 
 **Behavior:**
+
 ```
 T+0ms:  Field A changes
         executionVersionRef = 1
@@ -475,11 +492,13 @@ T+2100ms: Save version 2 completes successfully
 ### 4.3 Edge Case 3: Component Unmount During Async Operation
 
 **Scenario:**
+
 - User types in field → triggers save (version 1)
 - User immediately navigates away → component unmounts
 - Save operation is in progress
 
 **Behavior:**
+
 ```
 T+0ms:  User types → save triggered
         executionVersionRef = 1
@@ -494,11 +513,13 @@ T+100ms: waitForFieldValidation attempts version check
 ```
 
 **Analysis:**
+
 - **Current Behavior:** No explicit cleanup for in-flight saves
 - **Risk:** Minimal - React will cancel pending state updates
 - **Potential Issue:** Network request (handleSubmit) may complete after unmount
 
 **Enhancement Opportunity (Optional):**
+
 ```typescript
 // Add mounted flag to prevent updates after unmount
 const isMountedRef = useRef(true);
@@ -529,11 +550,13 @@ const executeAutoSave = useCallback(async () => {
 ### 4.4 Edge Case 4: React 18 Strict Mode (Double-Invocation)
 
 **Scenario:**
+
 - React 18 Strict Mode mounts → unmounts → mounts component
 - This happens in development only
 - Version token must handle double-invocation correctly
 
 **Behavior:**
+
 ```
 Development Mode (Strict Mode):
 T+0ms:   First mount
@@ -553,6 +576,7 @@ T+400ms: User types → version = 1
 ```
 
 **Analysis:**
+
 - **Correct:** Each mount gets a fresh ref starting at 0
 - **No Stale Updates:** First mount's save operation has no state to update
 - **No Cross-Mount Pollution:** Version numbers don't persist across mounts
@@ -562,11 +586,13 @@ T+400ms: User types → version = 1
 ### 4.5 Edge Case 5: Validation Error During Auto-Save
 
 **Scenario:**
+
 - User types in field → triggers save (version 1)
 - Field validation fails during auto-save
 - User continues typing → new save (version 2)
 
 **Behavior:**
+
 ```
 T+0ms:   User types invalid email
          executionVersionRef = 1
@@ -582,6 +608,7 @@ T+600ms: User fixes email and types more
 ```
 
 **Analysis:**
+
 - **Line 513 Check:** Aborts save if changed fields have errors
 - **Correct Behavior:** Invalid data is not submitted
 - **User Can Continue:** New changes trigger new save attempt
@@ -591,11 +618,13 @@ T+600ms: User fixes email and types more
 ### 4.6 Edge Case 6: Network Timeout During handleSubmit
 
 **Scenario:**
+
 - Auto-save reaches handleSubmit
 - Network request takes > 10 seconds (or hangs indefinitely)
 - User continues typing
 
 **Behavior:**
+
 ```
 T+0ms:   User types → save triggered
          executionVersionRef = 1
@@ -614,11 +643,13 @@ T+20000ms: handleSubmit completes
 ```
 
 **Analysis:**
+
 - **Potential Issue:** No version check after handleSubmit starts
 - **Risk:** handleSubmit could complete with stale data
 - **Mitigation:** Most onSubmit handlers complete quickly (< 1 second)
 
 **Enhancement Opportunity (Optional):**
+
 ```typescript
 // Add version check before handleSubmit
 const executeAutoSave = useCallback(async () => {
@@ -639,11 +670,13 @@ const executeAutoSave = useCallback(async () => {
 ### 4.7 Edge Case 7: Zero Debounce (Immediate Execution)
 
 **Scenario:**
+
 - `debounce` prop set to `false` or `0`
 - executeAutoSave runs immediately on every change
 - Rapid typing creates many concurrent save operations
 
 **Behavior:**
+
 ```
 T+0ms:   User types 'A'
          debounce = false → executeAutoSave() immediate
@@ -664,6 +697,7 @@ Meanwhile:
 ```
 
 **Analysis:**
+
 - **Correct:** Only the latest version (3) will complete
 - **Version 1:** Aborts when it detects version !== 1
 - **Version 2:** Aborts when it detects version !== 2
@@ -673,15 +707,15 @@ Meanwhile:
 
 ### 4.8 Edge Case Summary
 
-| Edge Case | Status | Notes |
-|-----------|--------|-------|
-| Rapid changes | ✅ Correct | Debounce + version check handles this |
-| Concurrent operations | ✅ Correct | Checkpoints prevent stale saves |
-| Component unmount | ✅ Acceptable | React handles state updates; mounted flag optional |
-| Strict Mode | ✅ Correct | Fresh ref on each mount |
-| Validation errors | ✅ Correct | Aborts before submission |
-| Network timeout | ⚠️ Low Risk | Optional enhancement: add version check before handleSubmit |
-| Zero debounce | ✅ Correct | Version check prevents race conditions |
+| Edge Case             | Status        | Notes                                                       |
+| --------------------- | ------------- | ----------------------------------------------------------- |
+| Rapid changes         | ✅ Correct    | Debounce + version check handles this                       |
+| Concurrent operations | ✅ Correct    | Checkpoints prevent stale saves                             |
+| Component unmount     | ✅ Acceptable | React handles state updates; mounted flag optional          |
+| Strict Mode           | ✅ Correct    | Fresh ref on each mount                                     |
+| Validation errors     | ✅ Correct    | Aborts before submission                                    |
+| Network timeout       | ⚠️ Low Risk   | Optional enhancement: add version check before handleSubmit |
+| Zero debounce         | ✅ Correct    | Version check prevents race conditions                      |
 
 ---
 
@@ -691,17 +725,18 @@ Meanwhile:
 
 Both `executionVersionRef` (Form.tsx) and `runIdRef` (useSubscriptions.ts) use the **version token pattern**:
 
-| Aspect | executionVersionRef | runIdRef |
-|--------|---------------------|----------|
-| **Storage** | `useRef(0)` | `useRef<number>(0)` |
-| **Increment** | `executionVersionRef.current++` | `++runIdRef.current` |
-| **Capture** | `const executionVersion = executionVersionRef.current` | `const currentRunId = ++runIdRef.current` |
-| **Purpose** | Track async operation versions | Track effect invocation versions |
-| **Check** | `executionVersionRef.current !== executionVersion` | `runSubscriptionsRef.current.get(currentRunId)` |
+| Aspect        | executionVersionRef                                    | runIdRef                                        |
+| ------------- | ------------------------------------------------------ | ----------------------------------------------- |
+| **Storage**   | `useRef(0)`                                            | `useRef<number>(0)`                             |
+| **Increment** | `executionVersionRef.current++`                        | `++runIdRef.current`                            |
+| **Capture**   | `const executionVersion = executionVersionRef.current` | `const currentRunId = ++runIdRef.current`       |
+| **Purpose**   | Track async operation versions                         | Track effect invocation versions                |
+| **Check**     | `executionVersionRef.current !== executionVersion`     | `runSubscriptionsRef.current.get(currentRunId)` |
 
 ### 5.2 Pattern Differences
 
 **executionVersionRef (Form.tsx):**
+
 - **Use Case:** Preventing stale auto-saves
 - **Async Operations:** Multiple sequential async ops with checkpoints
 - **Data Storage:** Captured Set copies (`new Set(pendingChangedFields.current)`)
@@ -710,6 +745,7 @@ Both `executionVersionRef` (Form.tsx) and `runIdRef` (useSubscriptions.ts) use t
 - **Scope:** Component-level (single version counter for all saves)
 
 **runIdRef (useSubscriptions.ts):**
+
 - **Use Case:** Preventing subscription double-cleanup
 - **Async Operations:** Effect lifecycle (mount/unmount)
 - **Data Storage:** Map-based (`runSubscriptionsRef.current.set(currentRunId, [...subscriptions])`)
@@ -720,6 +756,7 @@ Both `executionVersionRef` (Form.tsx) and `runIdRef` (useSubscriptions.ts) use t
 ### 5.3 Code Comparison
 
 **executionVersionRef Pattern:**
+
 ```typescript
 // Increment and capture
 executionVersionRef.current++;
@@ -736,6 +773,7 @@ if (executionVersionRef.current !== executionVersion) {
 ```
 
 **runIdRef Pattern:**
+
 ```typescript
 // Increment and capture in one operation
 const currentRunId = ++runIdRef.current;
@@ -753,12 +791,14 @@ runSubscriptionsRef.current.delete(currentRunId);
 ### 5.4 Why Each Pattern is Appropriate
 
 **executionVersionRef:**
+
 - **No Map Needed:** Only one operation active at a time (latest version wins)
 - **Set Copies:** Captures snapshot of changed fields for current save
 - **No Explicit Cleanup:** New saves just increment version; old saves abort on version check
 - **Simple Equality Check:** `current !== captured` is sufficient
 
 **runIdRef:**
+
 - **Map Needed:** Multiple runs can exist simultaneously (React Strict Mode, rapid re-renders)
 - **Version-Specific Data:** Each run needs to track its own subscriptions
 - **Explicit Cleanup:** LIFO cleanup requires knowing which subscriptions belong to which run
@@ -767,11 +807,13 @@ runSubscriptionsRef.current.delete(currentRunId);
 ### 5.5 Best Practices from runIdRef
 
 **Applicable to executionVersionRef:**
+
 1. ✅ **Increment before capture** - Both patterns do this correctly
 2. ✅ **Version-specific data** - Both capture data for the specific version/run
 3. ⚠️ **Explicit cleanup** - runIdRef cleans up its Map; executionVersionRef could benefit from mounted flag
 
 **Not Applicable:**
+
 1. ❌ **Map-based storage** - Not needed for single-operation pattern
 2. ❌ **LIFO cleanup** - Not applicable to sequential async operations
 
@@ -819,6 +861,7 @@ Based on this analysis, P3.M3.T2 should implement tests in these categories:
 ### 6.2 Rapid Changes Tests
 
 **Test 1: Single Field Rapid Changes**
+
 ```typescript
 it('should only save the last value when rapidly changing a single field', async () => {
   const onSubmit = vi.fn().mockResolvedValue(undefined);
@@ -847,6 +890,7 @@ it('should only save the last value when rapidly changing a single field', async
 ```
 
 **Test 2: Multiple Field Rapid Changes**
+
 ```typescript
 it('should handle rapid changes across multiple fields', async () => {
   const onSubmit = vi.fn().mockResolvedValue(undefined);
@@ -879,6 +923,7 @@ it('should handle rapid changes across multiple fields', async () => {
 ### 6.3 Async Timing Tests
 
 **Test 3: Version Check During Validation**
+
 ```typescript
 it('should abort save if version changes during validation', async () => {
   const onSubmit = vi.fn().mockResolvedValue(undefined);
@@ -922,8 +967,9 @@ it('should abort save if version changes during validation', async () => {
 ```
 
 **Test 4: waitForFieldValidation Version Check**
+
 ```typescript
-it('should abort waitForFieldValidation if version changes mid-wait', async () => {
+it("should abort waitForFieldValidation if version changes mid-wait", async () => {
   // This test requires internal access to waitForFieldValidation
   // Consider exposing it for testing or using inspectable context
 });
@@ -932,22 +978,25 @@ it('should abort waitForFieldValidation if version changes mid-wait', async () =
 ### 6.4 Version Checkpoint Tests
 
 **Test 5: Checkpoint 1 After First Validation**
+
 ```typescript
-it('should check version after first waitForFieldValidation', async () => {
+it("should check version after first waitForFieldValidation", async () => {
   // Verify checkpoint at line 505
 });
 ```
 
 **Test 6: Checkpoint 2 After Trigger Validation**
+
 ```typescript
-it('should check version after methods.trigger', async () => {
+it("should check version after methods.trigger", async () => {
   // Verify checkpoint at line 524
 });
 ```
 
 **Test 7: Checkpoint 3 After Second Validation**
+
 ```typescript
-it('should check version after second waitForFieldValidation', async () => {
+it("should check version after second waitForFieldValidation", async () => {
   // Verify checkpoint at line 541
 });
 ```
@@ -955,6 +1004,7 @@ it('should check version after second waitForFieldValidation', async () => {
 ### 6.5 Edge Case Tests
 
 **Test 8: Validation Error During Auto-Save**
+
 ```typescript
 it('should not submit if validation fails during auto-save', async () => {
   const onSubmit = vi.fn().mockResolvedValue(undefined);
@@ -994,6 +1044,7 @@ it('should not submit if validation fails during auto-save', async () => {
 ```
 
 **Test 9: Component Unmount During Save**
+
 ```typescript
 it('should handle component unmount during async operation', async () => {
   const onSubmit = vi.fn().mockImplementation(
@@ -1020,6 +1071,7 @@ it('should handle component unmount during async operation', async () => {
 ```
 
 **Test 10: Zero Debounce (Immediate Execution)**
+
 ```typescript
 it('should handle debounce={false} (immediate execution)', async () => {
   const onSubmit = vi.fn().mockResolvedValue(undefined);
@@ -1045,6 +1097,7 @@ it('should handle debounce={false} (immediate execution)', async () => {
 ### 6.6 React 18 Strict Mode Tests
 
 **Test 11: Strict Mode Double-Invocation**
+
 ```typescript
 it('should handle React 18 Strict Mode double-invocation', async () => {
   const onSubmit = vi.fn().mockResolvedValue(undefined);
@@ -1072,6 +1125,7 @@ it('should handle React 18 Strict Mode double-invocation', async () => {
 ### 6.7 Test Infrastructure Recommendations
 
 **1. Inspectable Context (Optional Enhancement):**
+
 ```typescript
 // Add to FormContext for testing
 const executionVersionContext = createContext({
@@ -1083,6 +1137,7 @@ expect(executionVersionContext.getExecutionVersion()).toBe(1);
 ```
 
 **2. Fake Timers Utility:**
+
 ```typescript
 // Use Vitest's fake timers for async timing tests
 vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -1091,35 +1146,32 @@ vi.useRealTimers();
 ```
 
 **3. Mock Validation:**
+
 ```typescript
 // Create fields with async validation for timing tests
 const config = {
   field: {
-    type: 'textField',
+    type: "textField",
     validate: async (value) => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       return value.length > 0;
-    }
-  }
+    },
+  },
 };
 ```
 
 ### 6.8 Test Priority
 
 **High Priority (Must Have):**
+
 1. Rapid changes test (Test 1)
 2. Version abort during validation (Test 3)
 3. Validation error handling (Test 8)
 4. Zero debounce handling (Test 10)
 
-**Medium Priority (Should Have):**
-5. Multiple field rapid changes (Test 2)
-6. Component unmount handling (Test 9)
-7. Strict Mode compatibility (Test 11)
+**Medium Priority (Should Have):** 5. Multiple field rapid changes (Test 2) 6. Component unmount handling (Test 9) 7. Strict Mode compatibility (Test 11)
 
-**Low Priority (Nice to Have):**
-8. Individual checkpoint verification (Tests 5-7)
-9. waitForFieldValidation version check (Test 4)
+**Low Priority (Nice to Have):** 8. Individual checkpoint verification (Tests 5-7) 9. waitForFieldValidation version check (Test 4)
 
 ---
 
@@ -1129,24 +1181,26 @@ const config = {
 
 **VERDICT: The `executionVersionRef` implementation is ROBUST and production-ready.**
 
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| **Lifecycle** | ✅ Correct | Increment, capture, checkpoints all properly ordered |
-| **Checkpoints** | ✅ Necessary | All 3 checkpoints are required; none missing |
-| **Number Overflow** | ✅ Safe | Overflow would take 285,374+ years |
-| **Edge Cases** | ✅ Handled | All identified edge cases work correctly |
-| **Pattern** | ✅ Best Practice | Aligns with React community standards |
-| **Code Quality** | ✅ Clean | Well-structured, readable, maintainable |
+| Aspect              | Status           | Notes                                                |
+| ------------------- | ---------------- | ---------------------------------------------------- |
+| **Lifecycle**       | ✅ Correct       | Increment, capture, checkpoints all properly ordered |
+| **Checkpoints**     | ✅ Necessary     | All 3 checkpoints are required; none missing         |
+| **Number Overflow** | ✅ Safe          | Overflow would take 285,374+ years                   |
+| **Edge Cases**      | ✅ Handled       | All identified edge cases work correctly             |
+| **Pattern**         | ✅ Best Practice | Aligns with React community standards                |
+| **Code Quality**    | ✅ Clean         | Well-structured, readable, maintainable              |
 
 ### 7.2 Specific Conclusions
 
 **1. executionVersionRef Lifecycle:**
+
 - Version is incremented before any async operations
 - Pending fields are captured and cleared in correct order
 - Version checkpoints follow each async operation
 - Abort behavior is correct at each checkpoint
 
 **2. Version Checkpoints:**
+
 - Checkpoint 1 (line 505): Necessary - prevents stale saves after initial validation
 - Checkpoint 2 (line 524): Necessary - prevents stale saves after trigger validation
 - Checkpoint 3 (line 541): Necessary - prevents stale saves after post-trigger validation
@@ -1154,12 +1208,14 @@ const config = {
 - No redundant checkpoints identified
 
 **3. Number Overflow:**
+
 - Realistic usage: ~285 million years to overflow
 - Aggressive usage: ~2.8 million years to overflow
 - Theoretical max: ~285,374 years to overflow
 - Conclusion: Overflow protection not needed
 
 **4. Edge Cases:**
+
 - Rapid changes: ✅ Handled correctly
 - Concurrent operations: ✅ Handled correctly
 - Component unmount: ✅ Acceptable (React handles this)
@@ -1169,6 +1225,7 @@ const config = {
 - Zero debounce: ✅ Handled correctly
 
 **5. Comparison with runIdRef:**
+
 - Both use version token pattern correctly
 - Differences are appropriate for respective use cases
 - No changes needed based on comparison
@@ -1176,17 +1233,20 @@ const config = {
 ### 7.3 Recommendations
 
 **For Implementation (P3.M3.T2):**
+
 1. Add comprehensive tests for identified edge cases
 2. Use fake timers for async timing tests
 3. Test React 18 Strict Mode compatibility
 4. Consider exposing executionVersion for testing (optional)
 
 **Optional Enhancements (Low Priority):**
+
 1. Add mounted flag to prevent updates after unmount
 2. Add version check before handleSubmit (network timeout edge case)
 3. Add development logging for debugging
 
 **Code Quality:**
+
 1. Current implementation is production-ready
 2. No critical issues identified
 3. No breaking changes needed
@@ -1194,6 +1254,7 @@ const config = {
 ### 7.4 Test Implementation Guidance
 
 P3.M3.T2 should implement:
+
 1. **Rapid Changes Test**: Verify only last save completes during rapid typing
 2. **Async Timing Test**: Verify version abort during validation using fake timers
 3. **Validation Error Test**: Verify invalid data is not submitted
@@ -1201,6 +1262,7 @@ P3.M3.T2 should implement:
 5. **Strict Mode Test**: Verify React 18 compatibility
 
 Test patterns should follow the approach in `useSubscriptions.test.tsx`:
+
 - Use `rerender` for rapid changes
 - Use fake timers for async timing
 - Use inspectable context for internal state verification
@@ -1212,6 +1274,7 @@ Test patterns should follow the approach in `useSubscriptions.test.tsx`:
 **GO** ✅ - The implementation is robust and ready for comprehensive testing.
 
 **Rationale:**
+
 - All version checkpoints are correct and necessary
 - Number overflow is impossible in practice
 - Edge cases are handled correctly
@@ -1219,6 +1282,7 @@ Test patterns should follow the approach in `useSubscriptions.test.tsx`:
 - Test requirements are well-defined
 
 **Next Steps:**
+
 1. Proceed with P3.M3.T2 implementation
 2. Follow test recommendations in Section 6
 3. Use patterns from `useSubscriptions.test.tsx` as reference
@@ -1229,11 +1293,13 @@ Test patterns should follow the approach in `useSubscriptions.test.tsx`:
 ## Appendix A: Code Reference Summary
 
 **Files Analyzed:**
+
 1. `/packages/react/src/components/Form.tsx` - Main implementation
 2. `/packages/react/src/hooks/useSubscriptions.ts` - Comparison pattern
 3. `/plan/.../research/external-race-condition-research.md` - External research
 
 **Key Code Locations:**
+
 - `executionVersionRef` declaration: Form.tsx:196
 - `waitForFieldValidation`: Form.tsx:441-469
 - `executeAutoSave`: Form.tsx:475-556
@@ -1242,6 +1308,7 @@ Test patterns should follow the approach in `useSubscriptions.test.tsx`:
 - Checkpoint 3: Form.tsx:539-544
 
 **Key Constants:**
+
 - `MAX_SAFE_INTEGER`: 9007199254740991
 - `waitForFieldValidation` timeout: 10000ms (10 seconds)
 - `waitForFieldValidation` poll interval: 50ms

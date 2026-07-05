@@ -1,16 +1,17 @@
-# pnpm workspace:* Protocol Research
+# pnpm workspace:\* Protocol Research
 
 ## Table of Contents
-1. [How workspace:* Protocol Works](#how-workspace-protocol-works)
+
+1. [How workspace:\* Protocol Works](#how-workspace-protocol-works)
 2. [Specifying Workspace Dependencies in package.json](#specifying-workspace-dependencies)
-3. [Changesets and workspace:* Publishing](#changesets-and-workspace-publishing)
+3. [Changesets and workspace:\* Publishing](#changesets-and-workspace-publishing)
 4. [Best Practices for Workspace Configuration](#best-practices)
-5. [workspace:* and peerDependencies](#workspace-and-peerdependencies)
+5. [workspace:\* and peerDependencies](#workspace-and-peerdependencies)
 6. [Common Patterns from Popular Monorepos](#common-patterns)
 
 ---
 
-## How workspace:* Protocol Works
+## How workspace:\* Protocol Works
 
 ### Overview
 
@@ -58,13 +59,14 @@ When you specify `"@my-org/core": "workspace:*"` in a package's dependencies:
 ### Workspace Configuration
 
 **pnpm-workspace.yaml** (required):
+
 ```yaml
 packages:
-  - 'packages/*'
-  - 'apps/*'
-  - 'tools/*'
+  - "packages/*"
+  - "apps/*"
+  - "tools/*"
   # Exclude specific patterns
-  - '!**/test/**'
+  - "!**/test/**"
 ```
 
 ### Linking Behavior
@@ -90,9 +92,10 @@ packages:
 }
 ```
 
-### Dependency Types Supporting workspace:*
+### Dependency Types Supporting workspace:\*
 
 #### 1. Regular Dependencies
+
 ```json
 {
   "dependencies": {
@@ -102,6 +105,7 @@ packages:
 ```
 
 #### 2. Development Dependencies
+
 ```json
 {
   "devDependencies": {
@@ -111,6 +115,7 @@ packages:
 ```
 
 #### 3. Peer Dependencies
+
 ```json
 {
   "peerDependencies": {
@@ -118,11 +123,13 @@ packages:
   }
 }
 ```
-**Note**: `workspace:*` in peerDependencies requires special handling - see [workspace:* and peerDependencies](#workspace-and-peerdependencies) section.
+
+**Note**: `workspace:*` in peerDependencies requires special handling - see [workspace:\* and peerDependencies](#workspace-and-peerdependencies) section.
 
 ### Real-World Example from formality
 
 **packages/react/package.json**:
+
 ```json
 {
   "name": "@formality-ui/react",
@@ -142,6 +149,7 @@ packages:
 ```
 
 **packages/svelte/package.json**:
+
 ```json
 {
   "name": "@formality-ui/svelte",
@@ -180,17 +188,18 @@ packages:
 
 ---
 
-## Changesets and workspace:* Publishing
+## Changesets and workspace:\* Publishing
 
 ### Overview
 
 Changesets is a tool for managing versioning and publishing monorepo packages. It has built-in support for the `workspace:*` protocol.
 
-### How Changesets Handles workspace:*
+### How Changesets Handles workspace:\*
 
 #### During Development
 
 Changesets reads your `package.json` files as-is with `workspace:*` protocol:
+
 ```json
 {
   "dependencies": {
@@ -202,24 +211,27 @@ Changesets reads your `package.json` files as-is with `workspace:*` protocol:
 #### During Version Bump (`changeset version`)
 
 Changesets:
+
 1. Reads all changeset files in `.changeset/`
 2. Calculates version bumps for affected packages
 3. Updates versions in `package.json` files
 4. **Preserves `workspace:*` protocol** - does NOT convert it yet
 
 Example after `changeset version`:
+
 ```json
 {
   "name": "@my-org/core",
-  "version": "1.2.0"  // bumped from 1.1.0
+  "version": "1.2.0" // bumped from 1.1.0
 }
 ```
 
 Dependencies remain:
+
 ```json
 {
   "dependencies": {
-    "@my-org/core": "workspace:*"  // still workspace:*
+    "@my-org/core": "workspace:*" // still workspace:*
   }
 }
 ```
@@ -229,6 +241,7 @@ Dependencies remain:
 Changesets **replaces `workspace:*` with actual versions**:
 
 **Before publishing**:
+
 ```json
 {
   "name": "@my-org/react",
@@ -240,29 +253,31 @@ Changesets **replaces `workspace:*` with actual versions**:
 ```
 
 **After publishing (on npm)**:
+
 ```json
 {
   "name": "@my-org/react",
   "version": "2.0.0",
   "dependencies": {
-    "@my-org/core": "^1.2.0"  // replaced with actual version
+    "@my-org/core": "^1.2.0" // replaced with actual version
   }
 }
 ```
 
 ### Version Conversion Rules
 
-| workspace:* Syntax | Published As |
-|-------------------|--------------|
-| `workspace:*` | `^<version>` |
-| `workspace:^` | `^<version>` |
-| `workspace:~` | `~<version>` |
-| `workspace:^1.2.0` | `^1.2.0` |
-| `workspace:1.2.0` | `1.2.0` |
+| workspace:\* Syntax | Published As |
+| ------------------- | ------------ |
+| `workspace:*`       | `^<version>` |
+| `workspace:^`       | `^<version>` |
+| `workspace:~`       | `~<version>` |
+| `workspace:^1.2.0`  | `^1.2.0`     |
+| `workspace:1.2.0`   | `1.2.0`      |
 
 ### Changesets Configuration
 
 **.changeset/config.json**:
+
 ```json
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
@@ -286,6 +301,7 @@ The `updateInternalDependencies` setting controls how Changesets handles workspa
 - **false**: Dependent packages are not bumped automatically
 
 Example:
+
 ```json
 {
   "updateInternalDependencies": "patch"
@@ -293,6 +309,7 @@ Example:
 ```
 
 When `@my-org/core` goes from `1.0.0` to `1.1.0`:
+
 - `@my-org/react` (which depends on `@my-org/core`) gets bumped to `2.0.1`
 
 ### Publishing Workflow
@@ -318,6 +335,7 @@ pnpm changeset publish
 ### Example: formality Publishing Workflow
 
 **package.json** (root):
+
 ```json
 {
   "scripts": {
@@ -329,6 +347,7 @@ pnpm changeset publish
 ```
 
 This workflow ensures:
+
 1. All packages are built first
 2. Versions are bumped based on changesets
 3. Publishing converts `workspace:*` to actual versions
@@ -337,9 +356,10 @@ This workflow ensures:
 
 ## Best Practices for Workspace Configuration
 
-### 1. Always Use workspace:* for Internal Dependencies
+### 1. Always Use workspace:\* for Internal Dependencies
 
 **Recommended**:
+
 ```json
 {
   "dependencies": {
@@ -349,6 +369,7 @@ This workflow ensures:
 ```
 
 **Not Recommended**:
+
 ```json
 {
   "dependencies": {
@@ -358,6 +379,7 @@ This workflow ensures:
 ```
 
 **Why**:
+
 - `workspace:*` is the official pnpm protocol
 - Properly handles version resolution
 - Works seamlessly with Changesets
@@ -380,13 +402,15 @@ This workflow ensures:
 }
 ```
 
-### 3. Keep workspace:* in Source Control
+### 3. Keep workspace:\* in Source Control
 
 **Do**:
+
 - Commit `package.json` files with `workspace:*`
 - Allow Changesets to handle conversion during publish
 
 **Don't**:
+
 - Commit `package.json` with actual version numbers for workspace deps
 - Manually update workspace dependency versions
 
@@ -395,7 +419,7 @@ This workflow ensures:
 ```yaml
 # pnpm-workspace.yaml
 packages:
-  - 'packages/*'
+  - "packages/*"
 ```
 
 ```json
@@ -462,6 +486,7 @@ pnpm ls --depth 0
 ### 8. Use .npmrc for Workspace Settings
 
 **.npmrc** (project root):
+
 ```
 # Enable workspace protocol
 workspace=true
@@ -483,6 +508,7 @@ pnpm -r build
 ### 10. Handle Circular Dependencies Carefully
 
 Avoid circular dependencies if possible. If necessary:
+
 ```json
 // packages/a/package.json
 {
@@ -503,15 +529,16 @@ Use `peerDependencies` to break the cycle.
 
 ---
 
-## workspace:* and peerDependencies
+## workspace:\* and peerDependencies
 
 ### Overview
 
 Using `workspace:*` in `peerDependencies` requires special consideration because peer dependencies are not installed by default - they are expected to be provided by the consumer.
 
-### Challenge with workspace:* in peerDependencies
+### Challenge with workspace:\* in peerDependencies
 
 **Problem**:
+
 ```json
 {
   "name": "@my-org/react-components",
@@ -523,6 +550,7 @@ Using `workspace:*` in `peerDependencies` requires special consideration because
 ```
 
 When consumers install `@my-org/react-components`:
+
 - `react` is expected to be provided by the consumer (works fine)
 - `@my-org/core` with `workspace:*` doesn't make sense for external consumers
 
@@ -545,11 +573,12 @@ When consumers install `@my-org/react-components`:
 #### For Publishing (External Consumers)
 
 After Changesets conversion:
+
 ```json
 {
   "name": "@my-org/react-components",
   "dependencies": {
-    "@my-org/core": "^1.2.0"  // Now a regular dependency
+    "@my-org/core": "^1.2.0" // Now a regular dependency
   },
   "peerDependencies": {
     "react": "^18.0.0"
@@ -590,6 +619,7 @@ After Changesets conversion:
 ```
 
 **Reasoning**:
+
 - Consumers automatically get these dependencies
 - No configuration needed by consumers
 - Versions are managed by the monorepo
@@ -608,6 +638,7 @@ After Changesets conversion:
 ```
 
 **Reasoning**:
+
 - Avoids duplicate installations
 - Allows consumer to control versions
 - Standard pattern for framework libraries
@@ -637,6 +668,7 @@ For packages that can work with or without internal dependencies:
 ### Real-World Example from formality
 
 **packages/react/package.json**:
+
 ```json
 {
   "name": "@formality-ui/react",
@@ -652,6 +684,7 @@ For packages that can work with or without internal dependencies:
 ```
 
 **Analysis**:
+
 - Internal dependency (`@formality-ui/core`) in `dependencies` with `workspace:*`
 - External dependencies (React, React DOM, React Hook Form) in `peerDependencies`
 - After publishing, consumers get `@formality-ui/core` automatically
@@ -671,6 +704,7 @@ For packages that can work with or without internal dependencies:
 ### Pattern 1: UI Library Monorepo (Radix UI, shadcn/ui)
 
 **Structure**:
+
 ```
 monorepo/
 ├── packages/
@@ -682,6 +716,7 @@ monorepo/
 ```
 
 **packages/react/package.json**:
+
 ```json
 {
   "name": "@ui/react",
@@ -697,6 +732,7 @@ monorepo/
 ```
 
 **Key Characteristics**:
+
 - Core package contains framework-agnostic logic
 - Framework-specific packages depend on core via `workspace:*`
 - Framework dependencies are peer dependencies
@@ -704,6 +740,7 @@ monorepo/
 ### Pattern 2: Design System (Chakra UI, Mantine)
 
 **Structure**:
+
 ```
 monorepo/
 ├── packages/
@@ -714,6 +751,7 @@ monorepo/
 ```
 
 **packages/components/package.json**:
+
 ```json
 {
   "name": "@design-system/components",
@@ -725,6 +763,7 @@ monorepo/
 ```
 
 **Key Characteristics**:
+
 - Layered dependencies (components → system → utilities)
 - Consistent `workspace:*` usage throughout
 - Changesets for version management
@@ -732,6 +771,7 @@ monorepo/
 ### Pattern 3: Framework + Plugins (Vite, Astro)
 
 **Structure**:
+
 ```
 monorepo/
 ├── packages/
@@ -742,6 +782,7 @@ monorepo/
 ```
 
 **packages/plugin-react/package.json**:
+
 ```json
 {
   "name": "@vitejs/plugin-react",
@@ -755,6 +796,7 @@ monorepo/
 ```
 
 **Key Characteristics**:
+
 - Plugins depend on core package via `workspace:*`
 - Also declare peer dependency for external consumers
 - Allows plugin to work with different core versions
@@ -762,6 +804,7 @@ monorepo/
 ### Pattern 4: Testing Library (Testing Library, Vitest)
 
 **Structure**:
+
 ```
 monorepo/
 ├── packages/
@@ -772,6 +815,7 @@ monorepo/
 ```
 
 **packages/react/package.json**:
+
 ```json
 {
   "name": "@testing-library/react",
@@ -785,6 +829,7 @@ monorepo/
 ```
 
 **Key Characteristics**:
+
 - Platform-specific packages depend on cross-platform core
 - Caret ranges for stable APIs
 - Framework versions in peer dependencies
@@ -792,6 +837,7 @@ monorepo/
 ### Pattern 5: Utility Library (lodash-es, date-fns)
 
 **Structure**:
+
 ```
 monorepo/
 ├── packages/
@@ -801,6 +847,7 @@ monorepo/
 ```
 
 **packages/fp/package.json**:
+
 ```json
 {
   "name": "@my-org/fp",
@@ -811,6 +858,7 @@ monorepo/
 ```
 
 **Key Characteristics**:
+
 - Flat package structure
 - All packages published to npm
 - Minimal peer dependencies
@@ -842,14 +890,15 @@ monorepo/
 
 ```yaml
 packages:
-  - 'packages/*'
-  - 'apps/*'
-  - 'examples/*'
+  - "packages/*"
+  - "apps/*"
+  - "examples/*"
 ```
 
 #### 3. TypeScript Configuration
 
 **tsconfig.json** (root):
+
 ```json
 {
   "references": [
@@ -861,6 +910,7 @@ packages:
 ```
 
 **packages/core/tsconfig.json**:
+
 ```json
 {
   "composite": true,
@@ -870,6 +920,7 @@ packages:
 ```
 
 **packages/react/tsconfig.json**:
+
 ```json
 {
   "extends": "../../tsconfig.json",
@@ -879,16 +930,14 @@ packages:
       "@my-org/core": ["../core/src"]
     }
   },
-  "references": [
-    { "path": "../core" }
-  ]
+  "references": [{ "path": "../core" }]
 }
 ```
 
 ### Best Practices from Popular Projects
 
 1. **Consistent Naming**: All packages use scoped naming (`@org/name`)
-2. **workspace:* for Internal**: All internal dependencies use `workspace:*`
+2. **workspace:\* for Internal**: All internal dependencies use `workspace:*`
 3. **peerDependencies for Frameworks**: Framework versions in peer dependencies
 4. **Changesets Integration**: Most use Changesets for versioning
 5. **Explicit Exports**: Use `exports` field in package.json
@@ -902,6 +951,7 @@ packages:
 ### Official Documentation
 
 #### pnpm Documentation
+
 - **Workspaces**: https://pnpm.io/workspaces
   - Section: Workspace protocol
 - **Workspace Protocol**: https://pnpm.io/workspace_protocol
@@ -910,6 +960,7 @@ packages:
   - Configuration options
 
 #### Changesets Documentation
+
 - **Introduction**: https://github.com/changesets/changesets
 - **Configuration**: https://github.com/changesets/changesets/blob/main/docs/config.md
   - `updateInternalDependencies` option
@@ -920,16 +971,18 @@ packages:
 ### Community Resources
 
 #### Blog Posts
+
 - **"Managing Monorepos with pnpm"**: Various Medium articles
 - **"Changesets for Monorepo Versioning"**: Community tutorials
 - **"Workspace Dependencies Best Practices"**: Dev.to articles
 
 #### Examples
+
 - **Turborepo Examples**: https://github.com/vercel/turbo/tree/main/examples
 - **pnpm Examples**: https://github.com/pnpm/examples
 - **Changesets Examples**: https://github.com/changesets/changesets/tree/main/docs
 
-### Real-World Monorepos Using pnpm + workspace:* + Changesets
+### Real-World Monorepos Using pnpm + workspace:\* + Changesets
 
 1. **React Server Components**: https://github.com/reactjs/server-components-demo
 2. **Vite**: https://github.com/vitejs/vite
@@ -949,6 +1002,7 @@ packages:
 ### Code Examples
 
 See the **formality** monorepo for working examples:
+
 - `/home/dustin/projects/formality/pnpm-workspace.yaml`
 - `/home/dustin/projects/formality/package.json`
 - `/home/dustin/projects/formality/packages/core/package.json`
@@ -962,7 +1016,7 @@ See the **formality** monorepo for working examples:
 
 ### Key Takeaways
 
-1. **workspace:* Protocol**: pnpm's solution for linking local packages without publishing
+1. **workspace:\* Protocol**: pnpm's solution for linking local packages without publishing
 2. **Syntax Variants**: `workspace:*`, `workspace:^`, `workspace:~`, `workspace:^1.2.0`
 3. **Changesets Integration**: Automatically converts `workspace:*` to versions during publish
 4. **Best Practice**: Use `workspace:*` for all internal workspace dependencies
@@ -1009,5 +1063,5 @@ pnpm changeset publish
 
 ---
 
-*Document generated for formality monorepo research*
-*Last updated: 2026-01-12*
+_Document generated for formality monorepo research_
+_Last updated: 2026-01-12_

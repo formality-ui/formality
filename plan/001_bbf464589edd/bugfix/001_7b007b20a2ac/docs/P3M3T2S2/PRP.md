@@ -11,11 +11,13 @@
 ## Goal
 
 **Feature Goal**: Create tests that verify `executionVersionRef` race condition prevention correctly handles async timing edge cases where field value changes occur while async validation is in progress, ensuring that:
+
 1. The first validation is ignored when a second value change occurs
 2. A third value change during the second validation results in the correct (third) value being submitted
 3. All intermediate async operations are properly aborted via version checkpoints
 
 **Deliverable**: Test case file `packages/react/src/__tests__/autosave-async-timing.test.tsx` containing:
+
 1. Test for "start validation, change value before validation completes" scenario
 2. Test for "change value again during second validation" scenario (triple-change scenario)
 3. Verification that correct (final) value is ultimately submitted
@@ -23,6 +25,7 @@
 5. Use of fake timers to precisely control async validation timing (500ms delay)
 
 **Success Definition**:
+
 - Test creates a Form with autoSave and a slow async validator (500ms delay)
 - Test simulates: Start validation → Change value before validation completes → Change again during second validation
 - Test advances fake timers at precise points to control when validation completes
@@ -39,12 +42,14 @@
 **Target User**: Formality library maintainers and QA engineers who need to verify that the race condition prevention mechanism correctly handles the specific timing edge case of "value changes during async validation."
 
 **Use Case**: Before releasing the race condition prevention feature, maintainers need to ensure that:
+
 1. When async validation is in progress and the value changes, the first validation result is ignored
 2. When a second validation starts and the value changes again, the second validation is also ignored
 3. Only the final (third) value validation completes and submits
 4. All version checkpoints correctly abort intermediate operations
 
 **User Journey**:
+
 1. Maintainer runs the test suite: `pnpm test`
 2. Test simulates precise timing: Value1 → (start validation) → Value2 (during validation) → Value3 (during second validation)
 3. Test verifies only Value3 is submitted after all validations complete
@@ -52,6 +57,7 @@
 5. If test fails, maintainers know a version checkpoint is missing or broken
 
 **Pain Points Addressed**:
+
 - **Async Timing Uncertainty**: Without precise timing control, it's hard to test "change during validation" scenarios
 - **Edge Case Coverage**: The triple-change scenario (value1→validate→value2→validate→value3) is a critical edge case
 - **Verification Difficulty**: Proving that intermediate validations are actually aborted requires precise test design
@@ -76,6 +82,7 @@
 **This is a TEST task - no user-visible behavior changes.**
 
 **Test Output**: A test file that validates:
+
 1. When validation starts (Value1), then value changes to Value2 before validation completes, the first validation is ignored
 2. When a second validation starts for Value2, then value changes to Value3 during that validation, the second validation is also ignored
 3. Only the final (Value3) validation completes and submits
@@ -106,6 +113,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact implementation location and file path
 - Complete test structure with code examples for triple-change scenario
 - Specific patterns from existing tests to follow
@@ -251,7 +259,7 @@ const waitForFieldValidation = useCallback(
     while (Date.now() - startTime < maxWaitMs) {
       // CRITICAL: Version check INSIDE loop - aborts immediately if version changes
       if (executionVersionRef.current !== version) {
-        return false;  // Abort mid-wait if version changed
+        return false; // Abort mid-wait if version changed
       }
       // Check validation status...
     }
@@ -267,18 +275,18 @@ const waitForFieldValidation = useCallback(
 
 // CRITICAL: Version is incremented BEFORE capturing fields
 executionVersionRef.current++;
-const executionVersion = executionVersionRef.current;  // ✅ GOOD: After increment
+const executionVersion = executionVersionRef.current; // ✅ GOOD: After increment
 const changedFields = new Set(pendingChangedFields.current);
-pendingChangedFields.current.clear();  // Cleared after capture
+pendingChangedFields.current.clear(); // Cleared after capture
 
 // CRITICAL: Fake timers MUST use { shouldAdvanceTime: true }
-vi.useFakeTimers({ shouldAdvanceTime: true });  // ✅ GOOD: Reliable timing
+vi.useFakeTimers({ shouldAdvanceTime: true }); // ✅ GOOD: Reliable timing
 // vi.useFakeTimers();                            // ❌ BAD: Unreliable, may hang
 
 // CRITICAL: Always wrap timer advances in act()
 await act(async () => {
   await vi.advanceTimersByTimeAsync(200);
-});  // ✅ GOOD: Proper React state update
+}); // ✅ GOOD: Proper React state update
 // await vi.advanceTimersByTimeAsync(200);        // ❌ BAD: May cause warnings
 
 // CRITICAL: Use 500ms delay for async validator in this test
@@ -291,7 +299,7 @@ await act(async () => {
 // - Advance to complete (third validation completes)
 const slowValidator = async (value: unknown) => {
   validationCalls.push(`${value}:start`);
-  await new Promise((resolve) => setTimeout(resolve, 500));  // 500ms delay
+  await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay
   validationCalls.push(`${value}:end`);
   return true;
 };
@@ -304,13 +312,13 @@ let validationCalls: string[] = [];
 
 // CRITICAL: Always clean up fake timers in afterEach
 afterEach(() => {
-  vi.useRealTimers();  // ✅ REQUIRED: Prevents test pollution
+  vi.useRealTimers(); // ✅ REQUIRED: Prevents test pollution
 });
 
 // CRITICAL: Use waitFor() for async assertions
 await waitFor(() => {
   expect(submitHandler).toHaveBeenCalledTimes(1);
-});  // ✅ GOOD: Waits for async operation
+}); // ✅ GOOD: Waits for async operation
 // expect(submitHandler).toHaveBeenCalledTimes(1);  // ❌ BAD: May be flaky
 
 // CRITICAL: Test file naming convention
@@ -1056,21 +1064,23 @@ pnpm test --coverage
 This test task (P3.M3.T2.S2) is part of the Race Condition Prevention milestone:
 
 **P3.M3.T1: Review Existing Logic** (Complete)
+
 - P3.M3.T1.S1: Analyze executionVersionRef (provides analysis for tests)
 
 **P3.M3.T2: Add Tests for Race Conditions** (This Task)
+
 - P3.M3.T2.S1: Test rapid changes (Complete - creates autosave-rapid-changes.test.tsx)
 - P3.M3.T2.S2: Test async timing (THIS SUBTASK - creates autosave-async-timing.test.tsx)
 
 ### Key Difference from P3.M3.T2.S1
 
-| Aspect | P3.M3.T2.S1 (Rapid Changes) | P3.M3.T2.S2 (Async Timing) |
-|--------|----------------------------|----------------------------|
-| **Scenario** | 10 rapid changes within debounce period | Change DURING async validation |
-| **Focus** | Debounce timing + version increment | Version checkpoint during validation |
-| **Timing Control** | Simulate rapid typing, advance debounce | Precise 200ms advances during validation |
-| **Validator Delay** | 50ms (fast) | 500ms (slow) |
-| **Test Name** | autosave-rapid-changes.test.tsx | autosave-async-timing.test.tsx |
+| Aspect                | P3.M3.T2.S1 (Rapid Changes)                  | P3.M3.T2.S2 (Async Timing)                             |
+| --------------------- | -------------------------------------------- | ------------------------------------------------------ |
+| **Scenario**          | 10 rapid changes within debounce period      | Change DURING async validation                         |
+| **Focus**             | Debounce timing + version increment          | Version checkpoint during validation                   |
+| **Timing Control**    | Simulate rapid typing, advance debounce      | Precise 200ms advances during validation               |
+| **Validator Delay**   | 50ms (fast)                                  | 500ms (slow)                                           |
+| **Test Name**         | autosave-rapid-changes.test.tsx              | autosave-async-timing.test.tsx                         |
 | **Primary Assertion** | Only last value submitted after rapid typing | Only final value after multiple mid-validation changes |
 
 ### Why This Test is Critical
@@ -1098,11 +1108,13 @@ Based on the analysis from P3.M3.T1.S1:
 **File:** `packages/react/src/__tests__/autosave-async-timing.test.tsx`
 
 **Naming Rationale:**
+
 - `autosave-` prefix: Indicates it's testing auto-save functionality
 - `async-timing`: Indicates the specific scenario being tested (async timing edge cases)
 - `.test.tsx`: Standard test file suffix for React components
 
 **Alternative Considered Names:**
+
 - `race-condition-async-timing.test.tsx` (too generic)
 - `executionVersion-async-timing.test.tsx` (tests implementation, not behavior)
 - `autosave-mid-validation-changes.test.tsx` (too wordy)
@@ -1143,6 +1155,7 @@ correctly aborts validations when the version changes.
 **10/10** for one-pass test implementation success
 
 **Reasoning**:
+
 - ✅ Exact file path and naming convention provided
 - ✅ Complete test structure with 4 specific test cases
 - ✅ Code examples for every test pattern including triple-change scenario

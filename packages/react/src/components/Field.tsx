@@ -35,11 +35,42 @@ import { useSubscriptions } from "../hooks/useSubscriptions";
 import type { WatcherSetterFn } from "../types";
 
 /**
- * Field component props
+ * Field component props.
+ *
+ * `FieldProps` is generic over the field `name`:
+ * `FieldProps<TName extends string = string>`. The default `TName = string`
+ * means `<Field name={anyString} />` compiles unchanged (no migration) and a
+ * bare `FieldProps` is identical to `FieldProps<string>`.
+ *
+ * To get compile-time checking of the field name, narrow `TName` explicitly —
+ * e.g. `FieldProps<"name" | "email">` or a wrapper that threads a
+ * `keyof ClientValues & string`. With a narrowed `TName`, a typo like
+ * `name="ofice"` is rejected at compile time instead of silently rendering
+ * nothing (the second half of PRD §C.4 / T2.1's "silent no-op" fix).
+ *
+ * Automatic per-form narrowing — where a `<Field>` automatically narrows its
+ * `name` against the enclosing `<Form<TFieldValues>>`'s key set — is a planned
+ * follow-up (PRD §C.4 T2.1) and is explicitly deferrable.
+ *
+ * @example
+ * ```tsx
+ * // Default usage — any string name compiles (unchanged behavior):
+ * <Field name="email" />;
+ *
+ * // Opt-in strict usage — typo names are compile errors:
+ * type Names = "name" | "email";
+ * const props: FieldProps<Names> = { name: "email" };
+ * ```
  */
-export interface FieldProps {
-  /** Field name (must match a key in Form's config) */
-  name: string;
+export interface FieldProps<TName extends string = string> {
+  /**
+   * Field name (must match a key in Form's config).
+   *
+   * When `FieldProps` is narrowed (e.g. `FieldProps<"name" | "email">`), the
+   * name is checked against `TName` at compile time. With the default
+   * (`FieldProps` / `FieldProps<string>`), any string is accepted.
+   */
+  name: TName;
 
   /** Override the input type from config */
   type?: string;
@@ -112,7 +143,7 @@ export interface FieldRenderAPI {
  * </Field>
  * ```
  */
-export function Field({
+export function Field<TName extends string = string>({
   name,
   type: typeProp,
   disabled: disabledProp,
@@ -121,7 +152,7 @@ export function Field({
   shouldRegister = true,
   inputConfig: inputConfigProp,
   ...restProps
-}: FieldProps): JSX.Element | null {
+}: FieldProps<TName>): JSX.Element | null {
   const {
     config,
     formConfig,
@@ -252,7 +283,12 @@ export function Field({
       const currentValue = getValuesRef.current(name);
       // Only update if the value is actually different to avoid infinite loops
       if (currentValue !== effectiveSetValue.value) {
-        setValueRef.current(name, effectiveSetValue.value, {
+        // `methods` comes from the un-parameterized `useFormContext()` (→
+        // UseFormReturn<FieldValues>), so setValue's name param is
+        // FieldPath<FieldValues> === string at runtime. Our generic `name: TName`
+        // (extends string) is structurally a string; cast for RHF's deep
+        // conditional type. See PRP P1.M1.T1.S2 gotchas.
+        setValueRef.current(name as string, effectiveSetValue.value, {
           shouldValidate: true,
           shouldDirty: true,
           shouldTouch: false,

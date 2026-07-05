@@ -1,11 +1,13 @@
 # AutoSave Validation Test Patterns
 
 ## Overview
+
 This document outlines the testing patterns used in the autosave-validation.test.tsx file for testing coordinated validation during auto-save functionality.
 
 ## 1. Imports and Setup
 
 ### Core Imports
+
 ```typescript
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { forwardRef } from "react";
@@ -18,6 +20,7 @@ import type { InputConfig } from "@formality-ui/core";
 ```
 
 ### Test Components Pattern
+
 Custom test components are created with `forwardRef` and include `data-testid` for easy targeting:
 
 ```typescript
@@ -38,6 +41,7 @@ TestInput.displayName = "TestInput";
 ## 2. Mocking and Tracking Patterns
 
 ### Validation Tracking
+
 Global tracking array to monitor validation calls across tests:
 
 ```typescript
@@ -56,6 +60,7 @@ function createAsyncValidator(fieldName: string, delayMs: number = 50) {
 ```
 
 ### Submit Handler Mocking
+
 ```typescript
 // In beforeEach:
 let submitHandler: ReturnType<typeof vi.fn>;
@@ -74,6 +79,7 @@ afterEach(() => {
 ## 3. Timer Setup and Teardown
 
 ### Fake Timers Configuration
+
 ```typescript
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -87,6 +93,7 @@ afterEach(() => {
 ## 4. User Interaction Simulation
 
 ### Text Input Simulation
+
 ```typescript
 const fieldA = screen.getByTestId("fieldA");
 await act(async () => {
@@ -95,6 +102,7 @@ await act(async () => {
 ```
 
 ### Click Interaction (for checkboxes/switches)
+
 ```typescript
 const fieldA = screen.getByTestId("fieldA");
 await act(async () => {
@@ -103,6 +111,7 @@ await act(async () => {
 ```
 
 ### Rapid Typing Simulation
+
 ```typescript
 const fieldA = screen.getByTestId("fieldA");
 await act(async () => {
@@ -113,6 +122,7 @@ await act(async () => {
 ## 5. Timer Advancement Patterns
 
 ### Past Debounce Period
+
 ```typescript
 await act(async () => {
   await vi.advanceTimersByTimeAsync(600); // 500ms debounce + buffer
@@ -120,6 +130,7 @@ await act(async () => {
 ```
 
 ### Past Async Validation Delay
+
 ```typescript
 await act(async () => {
   await vi.advanceTimersByTimeAsync(200); // 100ms validation delay + buffer
@@ -127,6 +138,7 @@ await act(async () => {
 ```
 
 ### Partial Debounce (for reset timer testing)
+
 ```typescript
 // Wait 300ms (less than debounce)
 await act(async () => {
@@ -137,6 +149,7 @@ await act(async () => {
 ## 6. Async Testing Patterns
 
 ### Using `act` and `waitFor` Together
+
 ```typescript
 await waitFor(() => {
   expect(submitHandler).toHaveBeenCalledTimes(1);
@@ -144,6 +157,7 @@ await waitFor(() => {
 ```
 
 ### Sequential Timer Advancement
+
 ```typescript
 // Wait for initial render and clear any initial validations
 await act(async () => {
@@ -171,14 +185,11 @@ await act(async () => {
 ## 7. Assertion Patterns
 
 ### Validation Call Filtering
+
 ```typescript
 // CRITICAL ASSERTION: Only fieldA should have validated, NOT fieldB or fieldC
-const fieldBValidations = validationCalls.filter((c) =>
-  c.startsWith("fieldB"),
-);
-const fieldCValidations = validationCalls.filter((c) =>
-  c.startsWith("fieldC"),
-);
+const fieldBValidations = validationCalls.filter((c) => c.startsWith("fieldB"));
+const fieldCValidations = validationCalls.filter((c) => c.startsWith("fieldC"));
 
 // These should be empty - fieldB and fieldC should NOT validate when only fieldA changed
 expect(fieldBValidations).toHaveLength(0);
@@ -186,6 +197,7 @@ expect(fieldCValidations).toHaveLength(0);
 ```
 
 ### Submit Handler Verification
+
 ```typescript
 // Should only submit ONCE with final value
 await waitFor(() => {
@@ -200,6 +212,7 @@ expect(submitHandler).toHaveBeenCalledWith(
 ```
 
 ### Async Ordering Verification
+
 ```typescript
 // Verify submit happened AFTER validation completed
 const submitIndex = validationLog.indexOf("submit");
@@ -208,6 +221,7 @@ expect(submitIndex).toBeGreaterThan(validationEndIndex);
 ```
 
 ### Negative Assertions
+
 ```typescript
 // No submit yet
 expect(submitHandler).not.toHaveBeenCalled();
@@ -219,11 +233,13 @@ expect(submitHandler).not.toHaveBeenCalled();
 ## 8. Test Structure Conventions
 
 ### Test Naming
+
 - Feature-focused naming: "should NOT validate ALL fields when ONE field changes"
 - Clear intent: "should wait for async validators to complete before submitting"
 - Specific behavior: "should reset debounce timer when new change comes in"
 
 ### Test Organization
+
 ```typescript
 describe("AutoSave Validation Coordination", () => {
   // Setup shared mocks
@@ -262,18 +278,23 @@ describe("AutoSave Validation Coordination", () => {
 ## 9. Common Test Scenarios
 
 ### 1. Root Cause Testing
+
 Tests that verify the specific bug scenario - only changed fields should validate.
 
 ### 2. Dependent Field Testing
+
 Tests conditional validation based on field dependencies.
 
 ### 3. Async Validation Ordering
+
 Tests that async validation completes before submission.
 
 ### 4. Debounce Reset Testing
+
 Tests that debounce timer resets on new changes.
 
 ### 5. Error Prevention Testing
+
 Tests that submission doesn't happen on validation failure.
 
 ## 10. Key Patterns Summary

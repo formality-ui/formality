@@ -19,6 +19,7 @@ const { debounce = 1000, ...otherProps } = props;
 **Default**: `1000ms` (1 second)
 
 **Behavior**:
+
 - When no `debounce` prop is provided, defaults to 1000ms
 - This is the form-level default for all auto-save submissions
 - Can be overridden by explicit `debounce` prop on Form
@@ -38,6 +39,7 @@ debounce?: number | false;
 ```
 
 **Key Points**:
+
 - `debounce` can be a `number` (milliseconds) or `false` (immediate)
 - When `false`, auto-save submissions happen immediately
 - When a number, submissions are debounced by that many milliseconds
@@ -58,11 +60,13 @@ const executionVersionRef = useRef(0);
 ```
 
 **Purpose**:
+
 - Track which fields have changed during debounce period
 - Support partial field validation (only changed + dependent fields)
 - Prevent race conditions with execution versioning
 
 **Relevance to Normal Debounce**:
+
 - These refs are used regardless of debounce mode
 - Critical for validation coordination
 - Must continue working with normal debounce
@@ -77,13 +81,16 @@ const executionVersionRef = useRef(0);
 useEffect(() => {
   // When debounce is false, use immediate execution (no debouncing)
   if (debounceMs === false) {
-    const immediateFn = Object.assign(() => {
-      executeAutoSave();
-    }, {
-      cancel: () => {}, // No-op for immediate function
-      flush: () => executeAutoSave(), // Execute immediately on flush
-      pending: () => false, // Never pending when immediate
-    }) as DebouncedFunction;
+    const immediateFn = Object.assign(
+      () => {
+        executeAutoSave();
+      },
+      {
+        cancel: () => {}, // No-op for immediate function
+        flush: () => executeAutoSave(), // Execute immediately on flush
+        pending: () => false, // Never pending when immediate
+      },
+    ) as DebouncedFunction;
 
     debouncedSubmitRef.current = immediateFn;
     return () => {};
@@ -110,6 +117,7 @@ useEffect(() => {
 ### Key Analysis
 
 **Immediate Path (`debounceMs === false`)**:
+
 - Creates a function that calls `executeAutoSave()` immediately
 - `cancel()` is a no-op (nothing to cancel)
 - `flush()` executes immediately
@@ -117,6 +125,7 @@ useEffect(() => {
 - No cleanup needed (return empty function)
 
 **Normal Debounce Path (`debounceMs` is number)**:
+
 - Uses lodash `debounce()` function
 - Waits for `debounceMs` milliseconds before calling `executeAutoSave()`
 - `cancel()` cancels pending debounce
@@ -165,16 +174,19 @@ const changeField = useCallback(
 ### Key Analysis
 
 **Immediate Path** (`inputConfig?.debounce === false`):
+
 - Calls `executeAutoSaveRef.current?.()` directly
 - Bypasses `debouncedSubmitRef` entirely
 - Used for field-level immediate submission
 
 **Normal Debounce Path** (else branch):
+
 - Calls `debouncedSubmitRef.current?.()`
 - Uses the debounced function created in useEffect
 - This is the **DEFAULT behavior** when `inputConfig` is undefined or doesn't contain `debounce: false`
 
 **Critical Point**: The normal debounce path is the `else` branch. It executes when:
+
 - `inputConfig` is `undefined` (most common case)
 - `inputConfig` exists but doesn't have `debounce: false`
 - `inputConfig.debounce` is a number (future enhancement possibility)
@@ -186,6 +198,7 @@ const changeField = useCallback(
 ### What Changes with `debounce: false` Feature?
 
 **Before** (only normal debounce):
+
 ```typescript
 // Old code path (simplified)
 const changeField = (name, value) => {
@@ -196,6 +209,7 @@ const changeField = (name, value) => {
 ```
 
 **After** (with debounce: false support):
+
 ```typescript
 // New code path
 const changeField = (name, value, inputConfig?) => {
@@ -278,18 +292,21 @@ const changeField = (name, value, inputConfig?) => {
 For P1.M2.T2.S2 (Test Normal Debounce Preserved), tests must verify:
 
 1. **undefined inputConfig uses normal debounce**
+
    ```typescript
    <Field name="fieldA" /> // No inputConfig prop
    // Should use form-level debounce
    ```
 
 2. **Empty inputConfig uses normal debounce**
+
    ```typescript
    <Field name="fieldA" inputConfig={{}} /> // Empty object
    // Should use form-level debounce
    ```
 
 3. **Form-level debounce prop is respected**
+
    ```typescript
    <Form debounce={750}> // Custom debounce value
    <Field name="fieldA" />
@@ -297,6 +314,7 @@ For P1.M2.T2.S2 (Test Normal Debounce Preserved), tests must verify:
    ```
 
 4. **Default 1000ms debounce is used**
+
    ```typescript
    <Form> // No debounce prop
    <Field name="fieldA" />
@@ -316,7 +334,8 @@ For P1.M2.T2.S2 (Test Normal Debounce Preserved), tests must verify:
 
 ```typescript
 // WRONG: Assumes inputConfig exists
-if (inputConfig.debounce === false) { // TypeError if inputConfig is undefined
+if (inputConfig.debounce === false) {
+  // TypeError if inputConfig is undefined
   // immediate
 }
 
@@ -334,12 +353,14 @@ if (inputConfig?.debounce === false) {
 
 ```typescript
 // WRONG: Makes debounce: false the default
-if (inputConfig?.debounce !== true) { // Inverted logic
+if (inputConfig?.debounce !== true) {
+  // Inverted logic
   // immediate
 }
 
 // CORRECT: Keeps normal debounce as default
-if (inputConfig?.debounce === false) { // Explicit false check
+if (inputConfig?.debounce === false) {
+  // Explicit false check
   // immediate
 } else {
   // normal debounce (default)
@@ -399,6 +420,7 @@ const changeField = (name, value, inputConfig?) => {
 ### Backward Compatibility
 
 ✅ **Guaranteed** because:
+
 - `inputConfig` is optional
 - Default behavior is in `else` branch
 - Existing debounce implementation unchanged
@@ -408,26 +430,26 @@ const changeField = (name, value, inputConfig?) => {
 
 ## Code References
 
-| Component | File | Lines | Description |
-|-----------|------|-------|-------------|
-| Form Props | packages/react/src/components/Form.tsx | 58-62 | debounce?: number \| false type |
-| Default Value | packages/react/src/components/Form.tsx | 136 | `debounce = 1000` |
-| State Refs | packages/react/src/components/Form.tsx | 191-196 | pendingChangedFields, executionVersionRef |
-| changeField | packages/react/src/components/Form.tsx | 299-324 | Conditional execution logic |
-| Debounce Setup | packages/react/src/components/Form.tsx | 534-567 | useEffect with immediate/debounce paths |
-| InputConfig Type | packages/core/src/types/config.ts | 45-78 | InputConfig interface |
+| Component        | File                                   | Lines   | Description                               |
+| ---------------- | -------------------------------------- | ------- | ----------------------------------------- |
+| Form Props       | packages/react/src/components/Form.tsx | 58-62   | debounce?: number \| false type           |
+| Default Value    | packages/react/src/components/Form.tsx | 136     | `debounce = 1000`                         |
+| State Refs       | packages/react/src/components/Form.tsx | 191-196 | pendingChangedFields, executionVersionRef |
+| changeField      | packages/react/src/components/Form.tsx | 299-324 | Conditional execution logic               |
+| Debounce Setup   | packages/react/src/components/Form.tsx | 534-567 | useEffect with immediate/debounce paths   |
+| InputConfig Type | packages/core/src/types/config.ts      | 45-78   | InputConfig interface                     |
 
 ---
 
 ## Test Coverage Matrix
 
-| Scenario | inputConfig | debounce Prop | Expected Behavior | Test Coverage |
-|----------|-------------|---------------|-------------------|---------------|
-| Default debounce | undefined | undefined | 1000ms debounce | ⚠️ Need test |
-| Custom debounce | undefined | 750 | 750ms debounce | ⚠️ Need test |
-| Field override | `{ debounce: false }` | 500 | Immediate | ✅ Test exists (P1.M2.T2.S1) |
-| Normal field | undefined | 500 | 500ms debounce | ✅ Test exists (multiple) |
-| Empty inputConfig | `{}` | 500 | 500ms debounce | ⚠️ Need test |
+| Scenario          | inputConfig           | debounce Prop | Expected Behavior | Test Coverage                |
+| ----------------- | --------------------- | ------------- | ----------------- | ---------------------------- |
+| Default debounce  | undefined             | undefined     | 1000ms debounce   | ⚠️ Need test                 |
+| Custom debounce   | undefined             | 750           | 750ms debounce    | ⚠️ Need test                 |
+| Field override    | `{ debounce: false }` | 500           | Immediate         | ✅ Test exists (P1.M2.T2.S1) |
+| Normal field      | undefined             | 500           | 500ms debounce    | ✅ Test exists (multiple)    |
+| Empty inputConfig | `{}`                  | 500           | 500ms debounce    | ⚠️ Need test                 |
 
 **Legend**: ✅ Covered | ⚠️ Needs coverage | ❌ Missing
 

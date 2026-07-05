@@ -35,11 +35,13 @@ if (matcher.isDisabled !== undefined) {
 ```
 
 **The Cycle**:
+
 1. **Conditions need `disabled`**: The `isDisabled` matcher checks `fieldState.disabled`
 2. **`disabled` comes from conditions**: Disabled state is computed by evaluating conditions
 3. **Result**: `conditions → disabled → conditions` = **infinite loop**
 
 **Without Resolution**:
+
 - Condition evaluation attempts to check `isDisabled` matcher
 - `isDisabled` needs `fieldState.disabled`
 - `fieldState.disabled` is computed from condition evaluation
@@ -126,7 +128,7 @@ const fieldStates = useMemo(() => {
       };
       return acc;
     },
-    {} as Record<string, FieldStateInput>
+    {} as Record<string, FieldStateInput>,
   );
 }, [baseFieldStates, disabledStates]);
 ```
@@ -173,7 +175,7 @@ watchFields.forEach((fieldName) => {
 
 ```typescript
 // ❌ WRONG: Storing derived state
-const [fullName, setFullName] = useState('');
+const [fullName, setFullName] = useState("");
 useEffect(() => {
   setFullName(`${firstName} ${lastName}`);
 }, [firstName, lastName]);
@@ -183,7 +185,7 @@ const fullName = `${firstName} ${lastName}`;
 
 // ✅ RIGHT: Expensive derivation with useMemo
 const filteredItems = useMemo(() => {
-  return items.filter(item => item.active);
+  return items.filter((item) => item.active);
 }, [items]);
 ```
 
@@ -252,7 +254,7 @@ const isEmailDirty = formState.dirtyFields.email;
 
 // ✅ Good: No subscription, no re-render
 const { getFieldState } = useForm();
-const emailState = getFieldState('email');
+const emailState = getFieldState("email");
 const isEmailDirty = emailState.isDirty;
 
 // ✅ Good: In useMemo for derived state
@@ -351,6 +353,7 @@ Based on research findings, here's the recommended implementation:
 **Location**: `/packages/react/src/hooks/useConditions.ts`
 
 **Current** (lines 98-119):
+
 ```typescript
 const fieldStates = useMemo(() => {
   const states: Record<string, FieldStateInput> = {};
@@ -376,6 +379,7 @@ const fieldStates = useMemo(() => {
 ```
 
 **Modified** (Two-Pass):
+
 ```typescript
 // ============================================================================
 // Pass 1: Base field states (without disabled)
@@ -440,7 +444,7 @@ const fieldStates = useMemo(() => {
       };
       return acc;
     },
-    {} as Record<string, FieldStateInput>
+    {} as Record<string, FieldStateInput>,
   );
 }, [baseFieldStates, disabledStates]);
 ```
@@ -476,7 +480,7 @@ watchFields.forEach((fieldName) => {
 
 ```typescript
 // ❌ WRONG - Array access, not object access
-const watchedValues = useWatch({ control, name: ['field1', 'field2'] });
+const watchedValues = useWatch({ control, name: ["field1", "field2"] });
 const value1 = watchedValues.field1; // undefined!
 
 // ✅ RIGHT - Array index access
@@ -492,7 +496,7 @@ const isDirty = formState.dirtyFields.email;
 
 // ✅ RIGHT - No subscription, no re-render
 const { getFieldState } = useForm();
-const emailState = getFieldState('email');
+const emailState = getFieldState("email");
 const isDirty = emailState.isDirty;
 ```
 

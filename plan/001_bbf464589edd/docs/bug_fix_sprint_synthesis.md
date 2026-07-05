@@ -17,6 +17,7 @@ This document summarizes the Lead Technical Architect's analysis and decompositi
 Three comprehensive research reports were generated in `plan/bugfix/architecture/`:
 
 #### 1. **codebase_analysis.md** (22,969 bytes)
+
 - **File Structure**: Complete inventory of core and React packages
 - **Current Implementation State**: Validation of all 8 bugs against actual code
 - **Architecture Patterns**: Expression evaluation, hook consistency, proxy state, props pipeline
@@ -24,6 +25,7 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 - **Implementation Guidance**: Specific recommendations for each bug fix
 
 **Key Findings**:
+
 - ✅ Bug #1 (selectDefaultFieldProps): Confirmed missing - passed as empty objects
 - ✅ Bug #2 (debounce: false): Confirmed missing - always uses debouncedSubmit
 - ✅ Bug #3 (disabled property): Confirmed missing - not populated in field states
@@ -33,6 +35,7 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 - ⚠️ Bug #7 (race condition): Existing safeguards are good, minor edge cases
 
 #### 2. **external_deps.md** (23,608 bytes)
+
 - **React Hook Form Integration**: Complete API documentation
   - `getFieldState()` does NOT include `disabled` property
   - `useWatch` for isolated subscriptions
@@ -50,6 +53,7 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 **Critical Insight**: React Hook Form does NOT provide disabled state - must be resolved by Formality from its own sources (prop, config, condition, group).
 
 #### 3. **test_coverage.md** (21,947 bytes)
+
 - **Test Inventory**: 8 core test files, 11 React test files (329 total tests)
 - **Coverage Gaps**: Critical gaps for all 7 bugs
 - **Test Patterns**: Conventions and best practices
@@ -66,6 +70,7 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 **File**: `./bug_fix_tasks.json`
 
 **Hierarchy**:
+
 - 3 Phases (Critical, Major, Medium priority)
 - 6 Milestones
 - 15 Tasks
@@ -78,22 +83,26 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Milestone 1: selectDefaultFieldProps Evaluation (18 SP)
 
 **Task 1: Extend usePropsEvaluation Hook** (6 SP)
+
 - S1: Add new parameters to hook signature (1 SP)
 - S2: Implement form-level evaluation (2 SP)
 - S3: Implement provider-level evaluation (2 SP)
 - S4: Update TypeScript types (1 SP)
 
 **Task 2: Integrate into Field Component** (2 SP)
+
 - S1: Consume evaluated props in Field (1 SP)
 - S2: Pass to mergeFieldProps (1 SP)
 
 **Task 3: Add Tests** (10 SP)
+
 - S1: Test provider-level evaluation (2 SP)
 - S2: Test form-level evaluation (2 SP)
 - S3: Test 8-layer priority order (2 SP)
 - S4: Test complex expressions (2 SP)
 
 **Implementation Notes**:
+
 - Follow existing `usePropsEvaluation` pattern
 - Use same expression evaluation engine
 - Maintain 8-layer priority order
@@ -104,17 +113,20 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Milestone 2: debounce: false Immediate Submission (16 SP)
 
 **Task 1: Modify Form Component** (5 SP)
+
 - S1: Add inputConfig parameter to changeField (1 SP)
 - S2: Implement conditional execution (2 SP)
 - S3: Update Field to pass inputConfig (1 SP)
 - S4: Fix Form debounce prop type (1 SP)
 
 **Task 2: Add Tests** (6 SP)
+
 - S1: Test immediate submission (2 SP)
 - S2: Test normal debounce preserved (2 SP)
 - S3: Test mixed debounce settings (2 SP)
 
 **Implementation Notes**:
+
 - Check `inputConfig.debounce === false` in changeField
 - Call submitImmediate() instead of debouncedSubmit()
 - Ensure backward compatibility
@@ -126,14 +138,17 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Milestone 1: Disabled Property in Field States (18 SP)
 
 **Task 1: Resolve Disabled State** (6 SP)
+
 - S1: Create useFieldDisabledState hook (2 SP)
 - S2: Integrate into useConditions (2 SP)
 - S3: Handle circular dependency (2 SP)
 
 **Task 2: Update Types** (1 SP)
+
 - S1: Verify FieldStateInput type (1 SP)
 
 **Task 3: Add Tests** (6 SP)
+
 - S1: Test disabled from JSX prop (2 SP)
 - S2: Test disabled from config (2 SP)
 - S3: Test disabled from conditions (2 SP)
@@ -147,16 +162,19 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Milestone 2: Multi-Field isDisabled Conditions (22 SP)
 
 **Task 1: Modify Condition Evaluation** (5 SP)
+
 - S1: Move isDisabled outside string block (1 SP)
 - S2: Implement for object when (2 SP)
 - S3: Handle mixed matchers (2 SP)
 
 **Task 2: Add Tests** (6 SP)
+
 - S1: Test two-field conditions (2 SP)
 - S2: Test mixed matchers (2 SP)
 - S3: Test React integration (2 SP)
 
 **Implementation Notes**:
+
 - Extract isDisabled check from string-only block
 - Loop through fields in object when conditions
 - Support mixed value and field state matchers
@@ -168,14 +186,17 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Milestone 1: Memory Leak Prevention (10 SP)
 
 **Task 1: Improve Subscription Tracking** (3 SP)
+
 - S1: Add per-effect tracking (2 SP)
 - S2: Add cleanup ordering (1 SP)
 
 **Task 2: Add Tests** (4 SP)
+
 - S1: Test unmount cleanup (2 SP)
 - S2: Test rapid changes (2 SP)
 
 **Implementation Notes**:
+
 - Use useRef to track current effect's subscriptions
 - Only cleanup subscriptions added in current invocation
 
@@ -184,14 +205,17 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Milestone 2: Type Safety in Expressions (8 SP)
 
 **Task 1: Add Type Guards** (3 SP)
+
 - S1: Add type checking (2 SP)
 - S2: Handle null/undefined (1 SP)
 
 **Task 2: Add Tests** (2 SP)
+
 - S1: Test null arithmetic (1 SP)
 - S2: Test mixed types (1 SP)
 
 **Implementation Notes**:
+
 - Check `typeof === 'number'` before arithmetic
 - Return undefined for non-numeric operations
 
@@ -200,9 +224,11 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Milestone 3: Race Condition Prevention (12 SP)
 
 **Task 1: Review Existing Logic** (1 SP)
+
 - S1: Analyze executionVersionRef (1 SP)
 
 **Task 2: Add Tests** (4 SP)
+
 - S1: Test rapid changes (2 SP)
 - S2: Test async timing (2 SP)
 
@@ -215,16 +241,19 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 **Total**: 104 SP
 
 **By Phase**:
+
 - Phase 1 (Critical): 34 SP (33%)
 - Phase 2 (Major): 40 SP (38%)
 - Phase 3 (Medium): 30 SP (29%)
 
 **By Complexity**:
+
 - 1 SP subtasks: 16 (simple, straightforward)
 - 2 SP subtasks: 47 (moderate complexity)
 - Average: 1.65 SP per subtask
 
 **Most Complex Subtasks**:
+
 - Circular dependency resolution (2 SP)
 - Multi-field condition evaluation (2 SP)
 - Complex expression tests (2 SP)
@@ -234,23 +263,29 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ## Implementation Order Recommendation
 
 ### Sprint 1: Foundation (Week 1-2)
+
 **Focus**: Critical issues that block core functionality
+
 - P1.M1: selectDefaultFieldProps (18 SP)
 - P1.M2: debounce: false (16 SP)
-**Total**: 34 SP
+  **Total**: 34 SP
 
 ### Sprint 2: Core Features (Week 3-4)
+
 **Focus**: Major issues affecting PRD compliance
+
 - P2.M1: Disabled property (18 SP)
 - P2.M2: Multi-field isDisabled (22 SP)
-**Total**: 40 SP
+  **Total**: 40 SP
 
 ### Sprint 3: Robustness (Week 5)
+
 **Focus**: Medium priority improvements
+
 - P3.M1: Memory leaks (10 SP)
 - P3.M2: Type safety (8 SP)
 - P3.M3: Race conditions (12 SP)
-**Total**: 30 SP
+  **Total**: 30 SP
 
 ---
 
@@ -295,18 +330,21 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ## Success Criteria
 
 ### Phase 1 Success
+
 - ✅ selectDefaultFieldProps expressions evaluate correctly
 - ✅ Fields with `debounce: false` submit immediately
 - ✅ All 8 layers of props pipeline work in priority order
 - ✅ No regression to existing functionality
 
 ### Phase 2 Success
+
 - ✅ Disabled property populated in all field states
 - ✅ isDisabled conditions work with multi-field when
 - ✅ Circular dependency resolved without infinite loops
 - ✅ Mixed value and field state matchers work
 
 ### Phase 3 Success
+
 - ✅ No memory leaks in subscription cleanup
 - ✅ Expression evaluation handles non-numeric values gracefully
 - ✅ Race conditions prevented in all edge cases
@@ -319,10 +357,12 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### Test Coverage Goals
 
 **Before Fixes**:
+
 - 329 existing tests (all passing)
 - Gaps: selectDefaultFieldProps, debounce: false, disabled property
 
 **After Fixes**:
+
 - 329 existing tests (still passing)
 - 30+ new tests for bug fixes
 - Coverage: All reported bugs tested
@@ -341,6 +381,7 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 ### For PRP (Product Requirement Prompt) Agents
 
 **Available Documentation**:
+
 1. `plan/bugfix/architecture/codebase_analysis.md` - Current implementation state
 2. `plan/bugfix/architecture/external_deps.md` - External dependencies
 3. `plan/bugfix/architecture/test_coverage.md` - Test patterns and gaps
@@ -375,6 +416,7 @@ Three comprehensive research reports were generated in `plan/bugfix/architecture
 The Formality bug fix project has been thoroughly analyzed and decomposed into actionable tasks. The research phase validated all reported bugs and documented the current architecture. The decomposition phase created a clear, prioritized roadmap with 63 subtasks totaling 104 story points.
 
 **Key Achievements**:
+
 - ✅ All 8 bugs validated against actual codebase
 - ✅ Architecture patterns documented for consistency
 - ✅ External dependencies researched and documented
@@ -383,6 +425,7 @@ The Formality bug fix project has been thoroughly analyzed and decomposed into a
 - ✅ JSON backlog ready for development teams
 
 **Next Steps**:
+
 1. Development teams review `./bug_fix_tasks.json`
 2. PRP agents use architecture docs for implementation plans
 3. Sprint 1 begins with Phase 1 critical issues

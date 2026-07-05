@@ -33,6 +33,7 @@
 **Location:** Used in `useConditions.ts` and `Form.tsx`
 
 **Signature:**
+
 ```typescript
 methods.getFieldState(fieldName: FieldPath, formState?: UseFormStateReturn): FieldState
 ```
@@ -40,17 +41,19 @@ methods.getFieldState(fieldName: FieldPath, formState?: UseFormStateReturn): Fie
 **Purpose:** Provides NON-REACTIVE access to field state without creating subscriptions
 
 **Return Properties:**
+
 ```typescript
 interface FieldState {
-  isTouched: boolean;        // Field has been focused and blurred
-  isDirty: boolean;          // Field value has changed from default
-  invalid: boolean;          // Field has validation error
-  error?: FieldError;        // Validation error details
+  isTouched: boolean; // Field has been focused and blurred
+  isDirty: boolean; // Field value has changed from default
+  invalid: boolean; // Field has validation error
+  error?: FieldError; // Validation error details
   // Note: disabled is NOT part of RHF's getFieldState return
 }
 ```
 
 **Critical Usage Pattern:**
+
 ```typescript
 // CORRECT: Use getFieldState for non-reactive metadata access
 const fieldState = methods.getFieldState(fieldName as any);
@@ -61,6 +64,7 @@ const formState = methods.formState; // This creates subscription to entire form
 ```
 
 **Key Implementation in `/packages/react/src/hooks/useConditions.ts` (lines 98-119):**
+
 ```typescript
 const fieldStates = useMemo(() => {
   const states: Record<string, FieldStateInput> = {};
@@ -92,6 +96,7 @@ const fieldStates = useMemo(() => {
 **Purpose:** Create ISOLATED field subscriptions (only re-renders when watched fields change)
 
 **Signature:**
+
 ```typescript
 useWatch<TFieldValues extends FieldValues>(
   props: {
@@ -102,16 +107,18 @@ useWatch<TFieldValues extends FieldValues>(
 ```
 
 **Critical Behavior:**
+
 ```typescript
 // Single field: returns single value
-const value = useWatch({ name: 'email' });
+const value = useWatch({ name: "email" });
 
 // Multiple fields (array): ALWAYS returns array of values
-const values = useWatch({ name: ['email', 'name'] });
+const values = useWatch({ name: ["email", "name"] });
 // values is [emailValue, nameValue]
 ```
 
 **Implementation in `/packages/react/src/hooks/useConditions.ts` (lines 66-92):**
+
 ```typescript
 // Watch inferred fields (only subscribe if there are fields to watch)
 // CRITICAL: useWatch provides ISOLATED subscriptions
@@ -149,6 +156,7 @@ const fieldValues = useMemo(() => {
 **Purpose:** Integrates custom input components with RHF
 
 **Key Props:**
+
 ```typescript
 <Controller
   control={methods.control}
@@ -163,6 +171,7 @@ const fieldValues = useMemo(() => {
 ```
 
 **Critical Gotcha - forwardRef Required:**
+
 ```typescript
 // Input components MUST use forwardRef to receive ref from Controller
 const TestInput = forwardRef<HTMLInputElement, Props>(
@@ -178,9 +187,11 @@ TestInput.displayName = 'TestInput';
 **IMPORTANT:** React Hook Form does NOT include `disabled` in `getFieldState` return value.
 
 **Formality's Approach:**
+
 1. Disabled state is managed through **condition evaluation** (`useConditions` hook)
 2. Disabled state is stored in `FieldStateInput.disabled` (added by Formality, not from RHF)
 3. Disabled state is resolved from conditions in `/packages/react/src/components/Field.tsx` (lines 257-270):
+
 ```typescript
 const isDisabled = useMemo(() => {
   // Resolution order: prop > config > condition > group > false
@@ -240,20 +251,23 @@ const isDisabled = useMemo(() => {
 **File:** `/packages/core/src/expression/evaluate.ts`
 
 **Process Flow:**
+
 ```
 String Expression → jsep.parse() → AST → evaluateNode() → Result
 ```
 
 **Example:**
+
 ```typescript
-evaluate("client.id", { client: { id: 5 } }) // → 5
-evaluate("client && signed", { client: { id: 5 }, signed: true }) // → true
-evaluate("signed ? 'Yes' : 'No'", { signed: true }) // → 'Yes'
+evaluate("client.id", { client: { id: 5 } }); // → 5
+evaluate("client && signed", { client: { id: 5 }, signed: true }); // → true
+evaluate("signed ? 'Yes' : 'No'", { signed: true }); // → 'Yes'
 ```
 
 #### 2.2 Supported Expression Features
 
 **Operators:**
+
 - **Logical:** `&&`, `||`, `??` (with short-circuit evaluation)
 - **Comparison:** `===`, `!==`, `==`, `!=`, `<`, `>`, `<=`, `>=`
 - **Arithmetic:** `+`, `-`, `*`, `/`, `%`
@@ -262,6 +276,7 @@ evaluate("signed ? 'Yes' : 'No'", { signed: true }) // → 'Yes'
 - **Member access:** `obj.prop` (dot), `obj[prop]` (bracket)
 
 **NO Function Calls:** Function calls are explicitly blocked for security:
+
 ```typescript
 case "CallExpression": {
   throw new Error("Function calls are not allowed in expressions");
@@ -275,18 +290,20 @@ case "CallExpression": {
 **Purpose:** Enables both value access and metadata access in expressions
 
 **How It Works:**
+
 ```typescript
 // Field state with proxy
 const fieldState = { value: { id: 5 }, isTouched: true, isDirty: false };
 const proxy = createFieldStateProxy(fieldState);
 
 // In expressions:
-"client.id"        // → 5 (delegates to value.id)
-"client.isTouched" // → true (accesses fieldState.isTouched)
-"client"           // → { id: 5 } (coerces to value)
+("client.id"); // → 5 (delegates to value.id)
+("client.isTouched"); // → true (accesses fieldState.isTouched)
+("client"); // → { id: 5 } (coerces to value)
 ```
 
 **Proxy Implementation** (lines 70-107):
+
 ```typescript
 export function createFieldStateProxy(
   fieldState: FieldState | { value: unknown },
@@ -313,6 +330,7 @@ export function createFieldStateProxy(
 ```
 
 **FIELD_STATE_PROPERTIES Set:**
+
 ```typescript
 const FIELD_STATE_PROPERTIES = new Set([
   "value",
@@ -321,7 +339,7 @@ const FIELD_STATE_PROPERTIES = new Set([
   "isValidating",
   "error",
   "invalid",
-  "disabled",  // Formality-added property
+  "disabled", // Formality-added property
 ]);
 ```
 
@@ -335,20 +353,21 @@ const FIELD_STATE_PROPERTIES = new Set([
 // Context provides BOTH qualified and unqualified access
 const context = buildFormContext({
   fields: { client: { value: { id: 5 }, isTouched: true } },
-  record: { original: 'data' }
+  record: { original: "data" },
 });
 
 // Unqualified access (shortcut)
-evaluate("client.id", context)  // → 5
+evaluate("client.id", context); // → 5
 
 // Qualified access (explicit)
-evaluate("fields.client.id", context)  // → 5
+evaluate("fields.client.id", context); // → 5
 
 // Record access
-evaluate("record.original", context)  // → 'data'
+evaluate("record.original", context); // → 'data'
 ```
 
 **Context Structure:**
+
 ```typescript
 {
   fields: { ... },      // All field states (qualified)
@@ -401,6 +420,7 @@ evaluate("record.original", context)  // → 'data'
 **Debounce Configuration:**
 
 1. **Form-level debounce** (default: 1000ms)
+
    ```typescript
    <Form debounce={2000} autoSave={true}>
    ```
@@ -421,9 +441,9 @@ evaluate("record.original", context)  // → 'data'
 
 ```typescript
 export interface DebouncedFunction {
-  (): void;           // Call the debounced function
+  (): void; // Call the debounced function
   cancel: () => void; // Cancel pending execution
-  flush: () => void;  // Execute immediately
+  flush: () => void; // Execute immediately
   pending: () => boolean; // Check if pending
 }
 ```
@@ -462,6 +482,7 @@ const submitImmediate = useCallback(() => {
 **Challenge:** Avoid submitting while field validation is in progress
 
 **Solution:**
+
 1. Accumulate changed fields during debounce period
 2. Wait for validation to complete
 3. Check if new changes came in (abort if so)
@@ -493,7 +514,10 @@ const executeAutoSave = useCallback(async () => {
   );
 
   // If version changed while waiting, abort (new changes came in)
-  if (!validationsComplete || executionVersionRef.current !== executionVersion) {
+  if (
+    !validationsComplete ||
+    executionVersionRef.current !== executionVersion
+  ) {
     return;
   }
 
@@ -531,7 +555,7 @@ const executeAutoSave = useCallback(async () => {
 
 ```typescript
 const debouncedFn = debounce(() => {
-  console.log('Saved!');
+  console.log("Saved!");
 }, 1000);
 
 // User types "h" (starts timer)
@@ -544,6 +568,7 @@ const debouncedFn = debounce(() => {
 ```
 
 **Formality leverages this for auto-save:**
+
 - Every field change calls `debouncedSubmit()`
 - Lodash resets the timer
 - Save only happens after user stops typing for debounce period
@@ -551,6 +576,7 @@ const debouncedFn = debounce(() => {
 ### Best Practices for Bug Fixes
 
 1. **Always cleanup debounced functions on unmount**
+
    ```typescript
    useEffect(() => {
      const debouncedFn = debounce(callback, delay);
@@ -561,6 +587,7 @@ const debouncedFn = debounce(() => {
    ```
 
 2. **Use `flush()` for immediate submission**
+
    ```typescript
    submitImmediate() {
      debouncedSubmitRef.current?.flush();
@@ -591,6 +618,7 @@ const debouncedFn = debounce(() => {
 ### Usage in Formality
 
 **Debounce Function:**
+
 ```typescript
 import { debounce } from "lodash-es";
 
@@ -600,6 +628,7 @@ const debouncedFn = debounce(() => {
 ```
 
 **Methods Available:**
+
 - `debouncedFn.cancel()` - Cancel pending execution
 - `debouncedFn.flush()` - Execute immediately
 - `debouncedFn.pending()` - Check if pending
@@ -624,6 +653,7 @@ const debouncedFn = debounce(() => {
 **Critical for React Hook Form Controller integration**
 
 **Pattern:**
+
 ```typescript
 import React, { forwardRef } from "react";
 
@@ -649,17 +679,19 @@ Component.displayName = "Component"; // For DevTools
 ```
 
 **Why Required:**
+
 - React Hook Form's Controller passes `ref` to render prop
 - Without forwardRef, React warns: "Function components cannot be given refs"
 - Ref must reach actual DOM element for focus/select operations
 
 **Generic Type Order:**
+
 ```typescript
 // CORRECT: Element type FIRST, then Props
-forwardRef<HTMLInputElement, Props>
+forwardRef<HTMLInputElement, Props>;
 
 // WRONG: Props first, then Element
-forwardRef<Props, HTMLInputElement>
+forwardRef<Props, HTMLInputElement>;
 ```
 
 ### Best Practices
@@ -717,6 +749,7 @@ TestInput.displayName = "TestInput";
 ### Pattern 1: Non-Reactive Field State Access
 
 **Use `getFieldState` when you need field metadata without re-renders:**
+
 ```typescript
 const fieldState = methods.getFieldState(fieldName);
 // Returns: { isTouched, isDirty, invalid, error }
@@ -726,14 +759,16 @@ const fieldState = methods.getFieldState(fieldName);
 ### Pattern 2: Isolated Field Subscriptions
 
 **Use `useWatch` for specific field value subscriptions:**
+
 ```typescript
-const values = useWatch({ name: ['field1', 'field2'] });
+const values = useWatch({ name: ["field1", "field2"] });
 // Only re-renders when field1 or field2 changes
 ```
 
 ### Pattern 3: Disabled State from Conditions
 
 **Disabled state is NOT from RHF, but from condition evaluation:**
+
 ```typescript
 // In condition evaluation
 const fieldStates = {
@@ -742,25 +777,27 @@ const fieldStates = {
     isTouched: true,
     isDirty: false,
     disabled: true, // Added by Formality from conditions
-  }
+  },
 };
 ```
 
 ### Pattern 4: Expression Context Building
 
 **Always use dual context mapping for expressions:**
+
 ```typescript
 const context = buildEvaluationContext(
   fieldValues,
   record,
   props,
-  fieldStates // Includes disabled, isTouched, etc.
+  fieldStates, // Includes disabled, isTouched, etc.
 );
 ```
 
 ### Pattern 5: Debounce with Async Coordination
 
 **Use execution version to detect stale operations:**
+
 ```typescript
 executionVersionRef.current++;
 const version = executionVersionRef.current;
@@ -775,6 +812,7 @@ if (executionVersionRef.current !== version) {
 ### Pattern 6: forwardRef for Input Components
 
 **Always use forwardRef for components receiving ref from Controller:**
+
 ```typescript
 const Component = forwardRef<HTMLElementType, PropsType>(
   (props, ref) => <element ref={ref} {...props} />
@@ -786,34 +824,38 @@ Component.displayName = "ComponentName";
 
 ## Version Compatibility Matrix
 
-| Library | Version | Purpose |
-|---------|---------|---------|
-| react | ^18.0.0 | UI framework |
-| react-dom | ^18.0.0 | DOM rendering |
-| react-hook-form | ^7.0.0 | Form management |
-| lodash-es | ^4.17.21 | Utilities (debounce) |
-| jsep | ^1.4.0 | Expression parsing |
-| jse-eval | ^1.5.2 | Expression evaluation (unused) |
-| vitest | ^2.0.0 | Test framework |
-| @testing-library/react | ^14.0.0 | React testing |
+| Library                | Version  | Purpose                        |
+| ---------------------- | -------- | ------------------------------ |
+| react                  | ^18.0.0  | UI framework                   |
+| react-dom              | ^18.0.0  | DOM rendering                  |
+| react-hook-form        | ^7.0.0   | Form management                |
+| lodash-es              | ^4.17.21 | Utilities (debounce)           |
+| jsep                   | ^1.4.0   | Expression parsing             |
+| jse-eval               | ^1.5.2   | Expression evaluation (unused) |
+| vitest                 | ^2.0.0   | Test framework                 |
+| @testing-library/react | ^14.0.0  | React testing                  |
 
 ---
 
 ## External Documentation References
 
 ### React Hook Form
+
 - ** getFieldState API**: https://react-hook-form.com/docs/useform/getfieldstate
 - ** useWatch API**: https://react-hook-form.com/docs/usewatch
 - ** Controller API**: https://react-hook-form.com/docs/controller
 
 ### React
+
 - ** forwardRef**: https://react.dev/reference/react/forwardRef
 - ** Ref Forwarding**: https://legacy.reactjs.org/docs/forwarding-refs.html
 
 ### Lodash
+
 - ** debounce**: https://lodash.com/docs/4.17.15#debounce
 
 ### JSEP
+
 - ** GitHub**: https://github.com/EricSmekens/jsep
 
 ---

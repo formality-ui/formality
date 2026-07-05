@@ -5,19 +5,21 @@ description: |
 
 ## Goal
 
-**Feature Goal**: Create the @formality-ui/react package structure as a framework-specific React adapter that depends on @formality-ui/core via workspace:* protocol and declares peer dependencies for React, React DOM, and React Hook Form.
+**Feature Goal**: Create the @formality-ui/react package structure as a framework-specific React adapter that depends on @formality-ui/core via workspace:\* protocol and declares peer dependencies for React, React DOM, and React Hook Form.
 
 **Deliverable**: A `packages/react/` directory with:
+
 - `package.json` with workspace dependency on @formality-ui/core, regular dependencies for jsep/jse-eval/lodash-es, and peer dependencies for react/react-dom/react-hook-form
 - `src/index.ts` as a placeholder entry point for future React components, hooks, and context providers
 
-**Success Definition**: The packages/react/package.json exists with name "@formality-ui/react", type "module", proper exports for ESM/CJS/DTS, has "@formality-ui/core": "workspace:*" in dependencies, has peer dependencies for React ecosystem, devDependencies for testing, and src/index.ts exists as a placeholder with barrel export documentation.
+**Success Definition**: The packages/react/package.json exists with name "@formality-ui/react", type "module", proper exports for ESM/CJS/DTS, has "@formality-ui/core": "workspace:\*" in dependencies, has peer dependencies for React ecosystem, devDependencies for testing, and src/index.ts exists as a placeholder with barrel export documentation.
 
 ## User Persona
 
 **Target User**: React Application Developers - This package is consumed by React applications that need the Formality form system with React-specific components and hooks.
 
 **Use Case**: Provide React adapters that:
+
 1. Wrap @formality-ui/core types and functions in React-friendly APIs
 2. Provide React components (Form, Field, FieldGroup, etc.)
 3. Provide React hooks (useFormState, useConditions, usePropsEvaluation, etc.)
@@ -25,6 +27,7 @@ description: |
 5. Integrate with react-hook-form for form state management
 
 **User Journey**:
+
 1. Developer installs @formality-ui/react in their React application
 2. Developer imports Form, Field, FieldGroup components from @formality-ui/react
 3. Developer uses useForm hook or Form component with react-hook-form
@@ -32,6 +35,7 @@ description: |
 5. Form conditions are evaluated automatically using core package utilities
 
 **Pain Points Addressed**:
+
 - Provides ready-to-use React components instead of manual integration
 - Type-safe form configuration with TypeScript
 - Automatic condition evaluation using core package expression engine
@@ -40,7 +44,7 @@ description: |
 
 ## Why
 
-- **Consumes Core Package (P1.M1.T2.S1 Output)**: React package depends on @formality-ui/core via workspace:* protocol, importing types and pure functions
+- **Consumes Core Package (P1.M1.T2.S1 Output)**: React package depends on @formality-ui/core via workspace:\* protocol, importing types and pure functions
 - **Framework-Specific Adapter**: Provides React-specific APIs (components, hooks, contexts) built on top of framework-agnostic core
 - **React Hook Form Integration**: Leverages react-hook-form for form state management, validation, and submission handling
 - **Expression Parsing Support**: Includes jsep and jse-eval dependencies (also in core) for safe expression evaluation in React context
@@ -76,9 +80,7 @@ packages/react/
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -112,7 +114,8 @@ packages/react/
 ```
 
 **Dependency Notes**:
-- `@formality-ui/core`: "workspace:*" - Links to local core package during development, converted to version during publishing
+
+- `@formality-ui/core`: "workspace:\*" - Links to local core package during development, converted to version during publishing
 - `jsep`, `jse-eval`, `lodash-es`: Regular dependencies (not peer dependencies) because they are used internally
 - `react`, `react-dom`, `react-hook-form`: Peer dependencies (not installed with this package, provided by consumer)
 - devDependencies include React, RHF, and testing libraries for development/testing
@@ -162,7 +165,7 @@ packages/react/
 // - Auto-save system
 
 // Re-export core types for convenience (will be expanded in Phase P3)
-export type {} from '@formality-ui/core';
+export type {} from "@formality-ui/core";
 ```
 
 ### Success Criteria
@@ -487,61 +490,61 @@ _The "No Prior Knowledge" test_: If someone knew nothing about pnpm workspace de
 ```json
 // React package.json structure
 {
-  "name": "@formality-ui/react",        // Scoped package name
-  "version": "0.0.0",                   // Initial development version
-  "private": false,                     // Package will be published
-  "type": "module",                     // ES modules
+  "name": "@formality-ui/react", // Scoped package name
+  "version": "0.0.0", // Initial development version
+  "private": false, // Package will be published
+  "type": "module", // ES modules
 
   // Legacy entry points (for older tooling)
-  "main": "./dist/index.cjs",          // CommonJS entry point
-  "module": "./dist/index.js",         // ESM entry point
-  "types": "./dist/index.d.ts",        // TypeScript declarations
+  "main": "./dist/index.cjs", // CommonJS entry point
+  "module": "./dist/index.js", // ESM entry point
+  "types": "./dist/index.d.ts", // TypeScript declarations
 
   // Modern conditional exports
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",    // TypeScript types
-      "import": "./dist/index.js",     // ESM import
-      "require": "./dist/index.cjs"    // CommonJS require
+      "types": "./dist/index.d.ts", // TypeScript types
+      "import": "./dist/index.js", // ESM import
+      "require": "./dist/index.cjs" // CommonJS require
     }
   },
 
-  "files": ["dist"],                    // Only publish dist/
-  "sideEffects": false,                 // Enable tree-shaking
+  "files": ["dist"], // Only publish dist/
+  "sideEffects": false, // Enable tree-shaking
 
   "scripts": {
-    "build": "tsup",                   // Build with tsup (configured in packages/react/tsup.config.ts)
-    "dev": "tsup --watch",             // Watch mode for development
-    "test": "vitest run"               // Run tests (configured in packages/react/vitest.config.ts)
+    "build": "tsup", // Build with tsup (configured in packages/react/tsup.config.ts)
+    "dev": "tsup --watch", // Watch mode for development
+    "test": "vitest run" // Run tests (configured in packages/react/vitest.config.ts)
   },
 
   // Internal dependencies (workspace)
   "dependencies": {
     "@formality-ui/core": "workspace:*", // Links to local core package
-    "jsep": "^1.4.0",                   // JavaScript expression parser
-    "jse-eval": "^1.5.2",               // Expression evaluator
-    "lodash-es": "^4.17.21"             // Utility functions (ESM version)
+    "jsep": "^1.4.0", // JavaScript expression parser
+    "jse-eval": "^1.5.2", // Expression evaluator
+    "lodash-es": "^4.17.21" // Utility functions (ESM version)
   },
 
   // External framework peer dependencies (provided by consumer)
   "peerDependencies": {
-    "react": "^18.0.0",                 // React 18+ (consumer must provide)
-    "react-dom": "^18.0.0",             // React DOM 18+ (consumer must provide)
-    "react-hook-form": "^7.0.0"         // RHF 7.x (consumer must provide)
+    "react": "^18.0.0", // React 18+ (consumer must provide)
+    "react-dom": "^18.0.0", // React DOM 18+ (consumer must provide)
+    "react-hook-form": "^7.0.0" // RHF 7.x (consumer must provide)
   },
 
   // Development dependencies for testing
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.0.0",   // Jest DOM matchers
-    "@testing-library/react": "^14.0.0",     // React Testing Library
+    "@testing-library/jest-dom": "^6.0.0", // Jest DOM matchers
+    "@testing-library/react": "^14.0.0", // React Testing Library
     "@testing-library/user-event": "^14.5.2", // User event simulation
-    "@types/lodash-es": "^4.17.12",          // Lodash types
-    "@types/react": "^18.2.0",               // React types
-    "@types/react-dom": "^18.2.0",           // React DOM types
-    "jsdom": "^24.0.0",                      // JSDOM environment
-    "react": "^18.2.0",                      // React for testing
-    "react-dom": "^18.2.0",                  // React DOM for testing
-    "react-hook-form": "^7.50.0"             // RHF for testing
+    "@types/lodash-es": "^4.17.12", // Lodash types
+    "@types/react": "^18.2.0", // React types
+    "@types/react-dom": "^18.2.0", // React DOM types
+    "jsdom": "^24.0.0", // JSDOM environment
+    "react": "^18.2.0", // React for testing
+    "react-dom": "^18.2.0", // React DOM for testing
+    "react-hook-form": "^7.50.0" // RHF for testing
   }
 }
 ```
@@ -574,7 +577,7 @@ _The "No Prior Knowledge" test_: If someone knew nothing about pnpm workspace de
 
 // Placeholder for future exports
 // Re-export core types for convenience
-export type {} from '@formality-ui/core';
+export type {} from "@formality-ui/core";
 
 // Phase P3 will add:
 // - Context providers
@@ -1030,7 +1033,7 @@ pnpm tsc --noEmit
 - [ ] package.json has type "module"
 - [ ] package.json has proper exports field with types, import, require conditions
 - [ ] package.json has main, module, types fields for backward compatibility
-- [ ] package.json has "@formality-ui/core": "workspace:*" in dependencies
+- [ ] package.json has "@formality-ui/core": "workspace:\*" in dependencies
 - [ ] package.json has utility dependencies (jsep, jse-eval, lodash-es) in dependencies
 - [ ] package.json has peerDependencies for react, react-dom, react-hook-form
 - [ ] package.json has devDependencies for testing (React, RHF, Testing Library)
@@ -1049,7 +1052,7 @@ pnpm tsc --noEmit
 
 - [ ] Success criteria from "What" section met: All checkboxes completed
 - [ ] Package uses scoped naming (@formality-ui/react)
-- [ ] Package uses workspace:* protocol for @formality-ui/core dependency
+- [ ] Package uses workspace:\* protocol for @formality-ui/core dependency
 - [ ] Package has correct peer dependencies for React ecosystem
 - [ ] Package has correct utility dependencies (jsep, jse-eval, lodash-es)
 - [ ] Exports are configured for dual ESM/CJS with types
@@ -1084,8 +1087,8 @@ pnpm tsc --noEmit
 ## Anti-Patterns to Avoid
 
 - ❌ Don't put React in regular dependencies - MUST be peerDependency to prevent duplicate copies
-- ❌ Don't put @formality-ui/core in peerDependencies - MUST be in dependencies with workspace:*
-- ❌ Don't use file: or link: protocol for workspace dependencies - use workspace:*
+- ❌ Don't put @formality-ui/core in peerDependencies - MUST be in dependencies with workspace:\*
+- ❌ Don't use file: or link: protocol for workspace dependencies - use workspace:\*
 - ❌ Don't forget React in devDependencies - tests need React to run
 - ❌ Don't use lodash (CJS) - use lodash-es (ESM) for tree-shaking
 - ❌ Don't omit peerDependencies - React, react-dom, react-hook-form must be specified
@@ -1128,48 +1131,56 @@ P3: @formality-ui/react Foundation (expands react with contexts, hooks, provider
 ### Relationship with Previous PRPs
 
 **INPUT from P1.M1.T1.S1:**
+
 - File: `/pnpm-workspace.yaml`
 - Content: `packages: ["packages/*"]`
 - Purpose: Enables pnpm workspace discovery
 
 **INPUT from P1.M1.T1.S2:**
+
 - File: `/package.json`
 - Content: Root devDependencies (typescript, tsup, vitest)
 - Purpose: Provides shared tooling for all workspace packages
 
 **INPUT from P1.M1.T2.S1 (CRITICAL):**
+
 - File: `/home/dustin/projects/formality/packages/core/package.json`
 - Content: Core package with name "@formality-ui/core", utility dependencies (jsep, jse-eval)
 - Purpose: Provides framework-agnostic types and functions
-- **CONTRACT**: React package will use "@formality-ui/core": "workspace:*" in dependencies
+- **CONTRACT**: React package will use "@formality-ui/core": "workspace:\*" in dependencies
 - **CONTRACT**: Core package has ZERO framework dependencies (react, vue, svelte)
 
 ### Outputs for Next Tasks
 
 **PROVIDED to P1.M1.T2.S3 (Create Vue and Svelte stubs):**
+
 - React package structure pattern to follow
 - Contract: Vue and Svelte packages will also use workspace dependencies
 - Pattern: Framework-specific peerDependencies (vue, svelte)
 
 **PROVIDED to P1.M2.T1.S2 (Create package-level tsconfig files):**
+
 - React package directory for tsconfig.json placement
 - Contract: packages/react/tsconfig.json extends root tsconfig.json
 
 **PROVIDED to P1.M2.T2.S2 (Create tsup configuration for react):**
+
 - React package with scripts referencing tsup
 - Contract: tsup will generate dist files
 
 **PROVIDED to P1.M3.T1.S2 (Create package-level vitest configurations):**
+
 - React package with scripts referencing vitest
 - Contract: vitest will run tests
 
 **PROVIDED to P3 (React Foundation):**
+
 - React package structure ready for React-specific code
 - Contract: Phase P3 will expand with contexts, hooks, and providers
 
 ### Workspace Dependency Pattern
 
-The react package depends on the core package through workspace:* protocol:
+The react package depends on the core package through workspace:\* protocol:
 
 ```json
 {
@@ -1181,6 +1192,7 @@ The react package depends on the core package through workspace:* protocol:
 ```
 
 The `workspace:*` protocol:
+
 - Resolves to the local packages/core during development
 - Creates a symlink in node_modules/@formality-ui/core
 - Is converted to the actual version by changesets during publishing
@@ -1193,6 +1205,7 @@ The `workspace:*` protocol:
 This is a common pattern for React libraries:
 
 **peerDependencies**: What the consumer needs
+
 ```json
 {
   "peerDependencies": {
@@ -1200,11 +1213,13 @@ This is a common pattern for React libraries:
   }
 }
 ```
+
 - Tells consumers: "You need React 18+ to use this package"
 - React is NOT installed with your package
 - Ensures single React instance in the app
 
 **devDependencies**: What you need for development
+
 ```json
 {
   "devDependencies": {
@@ -1213,6 +1228,7 @@ This is a common pattern for React libraries:
   }
 }
 ```
+
 - Tests need React to run
 - TypeScript needs type definitions
 - CI/CD needs dependencies installed

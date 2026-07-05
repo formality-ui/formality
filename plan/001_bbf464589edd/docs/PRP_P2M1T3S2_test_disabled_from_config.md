@@ -13,6 +13,7 @@
 **Feature Goal**: Create comprehensive integration tests that verify field config `disabled` property has the second-highest priority, overriding conditions and group state, but being overridden by JSX prop.
 
 **Deliverable**:
+
 1. Integration tests in `Field.test.tsx` for config disabled priority
 2. Test cases verifying config.disabled overrides conditions
 3. Test cases verifying config.disabled overrides group state
@@ -21,6 +22,7 @@
 6. DOM verification tests using `@testing-library/jest-dom` matchers
 
 **Success Definition**:
+
 - Config `disabled: true` overrides conditions `disabled: false` and group state
 - Config `disabled: false` overrides conditions `disabled: true` and group state
 - JSX `disabled={true}` prop overrides config `disabled: false`
@@ -38,6 +40,7 @@
 **Use Case**: Developers need to configure disabled state at the field config level, with predictable priority: JSX prop can override config, but config overrides conditions and group state.
 
 **User Journey**:
+
 1. Developer has field with conditions that would enable/disable
 2. Developer sets `disabled: true` in field config
 3. Field is rendered as disabled, conditions are overridden
@@ -45,6 +48,7 @@
 5. Developer can dynamically change config via changeField
 
 **Pain Points Addressed**:
+
 - Config-level disabled provides declarative control
 - Priority must be predictable and documented
 - No existing tests verify config vs conditions priority
@@ -86,6 +90,7 @@ Create comprehensive integration tests for config disabled priority in the Field
 ### Test Scenarios to Add
 
 **Scenario 1: Config disabled={true} overrides conditions with disabled={false}**
+
 ```typescript
 // Given: Field with config disabled: true, conditions disabled: false
 const config = {
@@ -106,6 +111,7 @@ expect(screen.getByTestId("field")).toBeDisabled();
 ```
 
 **Scenario 2: Config disabled={false} overrides conditions with disabled={true}**
+
 ```typescript
 // Given: Field with config disabled: false, conditions disabled: true
 const config = {
@@ -126,6 +132,7 @@ expect(screen.getByTestId("field")).not.toBeDisabled();
 ```
 
 **Scenario 3: JSX disabled={true} overrides config disabled={false}**
+
 ```typescript
 // Given: Field with config disabled: false
 const config = {
@@ -143,6 +150,7 @@ expect(screen.getByTestId("field")).toBeDisabled();
 ```
 
 **Scenario 4: JSX disabled={false} overrides config disabled={true}**
+
 ```typescript
 // Given: Field with config disabled: true
 const config = {
@@ -160,6 +168,7 @@ expect(screen.getByTestId("field")).not.toBeDisabled();
 ```
 
 **Scenario 5: All sources active - JSX > config > conditions > group**
+
 ```typescript
 // Given: Field with all sources: JSX, config, conditions, group
 const config = {
@@ -180,6 +189,7 @@ const config = {
 ```
 
 **Scenario 6: Dynamic config change via changeField**
+
 ```typescript
 // Given: Field initially disabled: false
 // When: Call changeField to set disabled: true
@@ -207,6 +217,7 @@ const config = {
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file location for tests (`Field.test.tsx`)
 - Complete test patterns from existing tests
 - Priority order: prop > config > conditions > group > false
@@ -383,6 +394,7 @@ packages/react/src/__tests__/
 **No new data models needed** - this PRP is purely testing existing functionality.
 
 **Test Data Structure**:
+
 ```typescript
 // Form config with config disabled
 const config: FormFieldsConfig = {
@@ -847,11 +859,13 @@ pnpm test --filter @formality-ui/react --coverage
 ### From P2.M1.T1.S1-S3 (Hook Implementation)
 
 The P2.M1.T1 PRPs specify that:
+
 1. `useFieldDisabledState` hook implements priority logic: prop > config > conditions > group > false
 2. Hook uses two-pass evaluation to prevent circular dependencies
 3. Hook returns boolean for disabled state
 
 **This PRP's Contract**:
+
 1. Tests verify config.disabled has second-highest priority at Field component level
 2. Tests verify config overrides conditions and group state
 3. Tests verify JSX prop overrides config.disabled
@@ -862,11 +876,13 @@ The P2.M1.T1 PRPs specify that:
 ### From P2.M1.T2.S1 (Type Verification)
 
 The P2.M1.T2.S1 PRP specifies that:
+
 1. `FieldState.disabled?: boolean` property exists
 2. `FieldStateInput.disabled?: boolean` property exists
 3. Type consistency across all field state types
 
 **This PRP's Contract**:
+
 1. Tests verify config.disabled state flows correctly through Field component
 2. Tests verify DOM reflects config.disabled state accurately
 3. No type errors when using config.disabled in tests
@@ -876,11 +892,13 @@ The P2.M1.T2.S1 PRP specifies that:
 ### From P2.M1.T3.S1 (JSX Prop Tests)
 
 The P2.M1.T3.S1 PRP specifies that:
+
 1. JSX prop has highest priority
 2. JSX prop tests added to Field.test.tsx in describe block "JSX disabled prop highest priority"
 3. Tests verify JSX prop overrides ALL sources simultaneously
 
 **This PRP's Contract**:
+
 1. Config tests added in NEW describe block after JSX prop tests
 2. Config tests verify config has second-highest priority
 3. Config tests verify config overrides conditions and group
@@ -895,6 +913,7 @@ The P2.M1.T3.S1 PRP specifies that:
 **10/10** - Maximum confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Well-scoped testing task (no code changes, only tests)
 - Clear file location and exact placement for new tests
 - Comprehensive test patterns from existing tests to follow

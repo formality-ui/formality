@@ -130,7 +130,7 @@ const finalProps = mergeFieldProps({
   coreProps: {
     name,
     label,
-    disabled: isDisabled,  // ← Disabled prop passed here
+    disabled: isDisabled, // ← Disabled prop passed here
     error: fieldState.error?.message,
     [inputConfig.inputFieldProp ?? "value"]: formattedValue,
     onChange: handleChange(field.onChange),
@@ -164,6 +164,7 @@ const finalProps = mergeFieldProps({
 ### Pattern 1: Separation of Concerns
 
 The Field already separates:
+
 - **Condition evaluation**: `useConditions` hook
 - **Disabled state resolution**: Local `isDisabled` useMemo
 - **Props merging**: `mergeFieldProps` function
@@ -191,6 +192,7 @@ const watchedValues = useWatch({
 ### Pattern 3: Priority System
 
 Clear priority system works well:
+
 1. JSX prop (highest)
 2. Field config
 3. Conditions
@@ -206,7 +208,12 @@ All state resolutions use `useMemo` with explicit dependencies:
 ```typescript
 const isDisabled = useMemo(() => {
   // priority resolution logic
-}, [disabledProp, fieldConfig.disabled, conditionResult, groupContext.state.isDisabled]);
+}, [
+  disabledProp,
+  fieldConfig.disabled,
+  conditionResult,
+  groupContext.state.isDisabled,
+]);
 ```
 
 **Benefit**: Prevents unnecessary recalculations.
@@ -214,6 +221,7 @@ const isDisabled = useMemo(() => {
 ### Pattern 5: Context Integration
 
 Field properly integrates with multiple contexts:
+
 - `useFormContext` for form methods
 - `useConfigContext` for provider config
 - `useGroupContext` for group state
@@ -239,6 +247,7 @@ Field properly integrates with multiple contexts:
 ### Target State (After P2.M1.T1.S2)
 
 1. **useConditions returns field states with disabled**:
+
    ```typescript
    interface FieldStateInput {
      value: unknown;
@@ -252,6 +261,7 @@ Field properly integrates with multiple contexts:
    ```
 
 2. **Conditions can reference disabled state**:
+
    ```typescript
    { when: { field1: { isDisabled: true } }, disabled: true }
    ```

@@ -16,6 +16,7 @@ Research document examining how major React libraries structure their package.js
 ## Material UI (MUI)
 
 ### GitHub Repository
+
 - **URL**: https://github.com/mui/material-ui
 - **Organization**: MUI Team
 - **Structure**: Monorepo using TypeScript and various build tools
@@ -86,14 +87,16 @@ MUI uses a comprehensive package.json with extensive exports configuration. The 
 ### Key Features
 
 1. **Component-based exports**: Each component can be imported individually
+
    ```javascript
-   import Button from '@mui/material/Button';
-   import TextField from '@mui/material/TextField';
+   import Button from "@mui/material/Button";
+   import TextField from "@mui/material/TextField";
    ```
 
 2. **Locale support**: Structured exports for i18n
+
    ```javascript
-   import { zhCN } from '@mui/material/locales';
+   import { zhCN } from "@mui/material/locales";
    ```
 
 3. **Tree-shaking**: Uses `sideEffects: false` for optimal bundling
@@ -105,6 +108,7 @@ MUI uses a comprehensive package.json with extensive exports configuration. The 
 ## Chakra UI
 
 ### GitHub Repository
+
 - **URL**: https://github.com/chakra-ui/chakra-ui
 - **Organization**: Chakra UI Team
 - **Structure**: Monorepo with individual packages for each component system
@@ -146,9 +150,7 @@ Chakra UI uses a modular approach with comprehensive exports:
     }
   },
   "sideEffects": false,
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -183,14 +185,16 @@ Chakra UI uses a modular approach with comprehensive exports:
 ### Key Features
 
 1. **Hook-based exports**: Individual hooks can be imported separately
+
    ```javascript
-   import { useDisclosure } from '@chakra-ui/react/use-disclosure';
-   import { useAnimationState } from '@chakra-ui/react/use-animation-state';
+   import { useDisclosure } from "@chakra-ui/react/use-disclosure";
+   import { useAnimationState } from "@chakra-ui/react/use-animation-state";
    ```
 
 2. **System exports**: Separate entry point for system utilities
+
    ```javascript
-   import { SystemProvider } from '@chakra-ui/react/system';
+   import { SystemProvider } from "@chakra-ui/react/system";
    ```
 
 3. **Modern build setup**: Uses `tsup` for fast TypeScript compilation
@@ -204,6 +208,7 @@ Chakra UI uses a modular approach with comprehensive exports:
 ## Radix UI Primitives
 
 ### GitHub Repository
+
 - **URL**: https://github.com/radix-ui/primitives
 - **Organization**: WorkOS
 - **Structure**: Monorepo with packages for each primitive component
@@ -234,10 +239,7 @@ Radix UI uses a focused, per-component approach:
     }
   },
   "sideEffects": false,
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsup src/index.tsx --format esm,cjs --dts --external react",
     "dev": "tsup src/index.tsx --format esm,cjs --dts --external react --watch",
@@ -284,11 +286,13 @@ Radix UI uses a focused, per-component approach:
 1. **Single-purpose packages**: Each primitive is its own npm package
 
 2. **Minimal exports**: Each package exports only its component
+
    ```javascript
-   import { Root, Trigger, Portal } from '@radix-ui/react-dialog';
+   import { Root, Trigger, Portal } from "@radix-ui/react-dialog";
    ```
 
 3. **Type-safe conditional exports**: Separate types for ESM and CJS
+
    ```json
    "import": {
      "types": "./dist/index.d.mts",
@@ -440,6 +444,7 @@ For component libraries with many individual components:
 ### Build Scripts
 
 #### TypeScript with tsup (Modern, Fast)
+
 ```json
 {
   "scripts": {
@@ -451,6 +456,7 @@ For component libraries with many individual components:
 ```
 
 #### TypeScript with tsc
+
 ```json
 {
   "scripts": {
@@ -462,6 +468,7 @@ For component libraries with many individual components:
 ```
 
 #### Rollup Configuration
+
 ```json
 {
   "scripts": {
@@ -534,6 +541,7 @@ For component libraries with many individual components:
 ### 1. Package.json Structure
 
 **Essential Fields:**
+
 - `name`: Scoped package name (e.g., `@my-library/core`)
 - `version`: Semantic versioning
 - `description`: Clear, concise description
@@ -548,6 +556,7 @@ For component libraries with many individual components:
 ### 2. Exports Field Configuration
 
 **Always Include:**
+
 1. Root export (`.`) with conditional exports
 2. Explicit `package.json` export
 3. TypeScript types for each export
@@ -555,6 +564,7 @@ For component libraries with many individual components:
 5. Fallback (`default`) export
 
 **Pattern:**
+
 ```json
 {
   "exports": {
@@ -572,12 +582,14 @@ For component libraries with many individual components:
 ### 3. Subpath Exports
 
 **When to Use:**
+
 - Large component libraries (10+ components)
 - Libraries with multiple logical modules
 - When tree-shaking is critical
 - When you want to prevent deep imports
 
 **Pattern:**
+
 ```json
 {
   "exports": {
@@ -592,6 +604,7 @@ For component libraries with many individual components:
 ### 4. Build Configuration
 
 **Modern Stack (2025):**
+
 - Build tool: `tsup` (fastest) or `unbuild`
 - Module formats: ESM + CJS
 - TypeScript: 5.3+
@@ -599,6 +612,7 @@ For component libraries with many individual components:
 - Node.js: 18.0+
 
 **Build Outputs:**
+
 ```
 dist/
 ├── index.mjs          # ESM main
@@ -615,6 +629,7 @@ dist/
 ### 5. Scripts Configuration
 
 **Essential Scripts:**
+
 - `build`: Production build
 - `dev`: Development with watch mode
 - `test`: Run tests
@@ -623,6 +638,7 @@ dist/
 - `clean`: Remove build artifacts
 
 **Recommended Scripts:**
+
 ```json
 {
   "scripts": {
@@ -642,6 +658,7 @@ dist/
 ### 6. Peer Dependencies
 
 **React Libraries Should Specify:**
+
 ```json
 {
   "peerDependencies": {
@@ -659,6 +676,7 @@ dist/
 ### 7. TypeScript Configuration
 
 **Recommended tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -693,11 +711,7 @@ dist/
     "access": "public",
     "provenance": true
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ]
+  "files": ["dist", "README.md", "LICENSE"]
 }
 ```
 
@@ -706,20 +720,24 @@ dist/
 ## Additional Resources
 
 ### Official Documentation
+
 - Node.js Exports Field: https://nodejs.org/api/packages.html#exports
 - React Package.json: https://react.dev/learn/understanding-your-ui-as-a-tree
 - TypeScript Module Resolution: https://www.typescriptlang.org/docs/handbook/module-resolution.html
 
 ### Build Tools
+
 - tsup: https://tsup.egoist.dev/
 - unbuild: https://github.com/unjs/unbuild
 - Rollup: https://rollupjs.org/
 
 ### Package.json Tools
+
 - package.json validator: https://www.npmjs.com/package/validate-package-json
 - exports-field: https://github.com/awmleer/exports-field
 
 ### Example Repositories
+
 - MUI Material: https://github.com/mui/material-ui
 - Chakra UI: https://github.com/chakra-ui/chakra-ui
 - Radix UI: https://github.com/radix-ui/primitives

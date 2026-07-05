@@ -51,14 +51,17 @@ describe("AutoSave Validation Coordination", () => {
 **Purpose**: Verifies that only the changed field validates, not all fields in the form.
 
 **Debounce Configuration**:
+
 - Form: `debounce={500}`
 - Fields: `fieldA`, `fieldB`, `fieldC` (all with async validators)
 
 **Key Assertions**:
+
 - After changing `fieldA` only: `fieldBValidations.length === 0`
 - After changing `fieldA` only: `fieldCValidations.length === 0`
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(100); // Initial render
 await vi.advanceTimersByTimeAsync(600); // Past debounce period
@@ -75,12 +78,15 @@ await vi.advanceTimersByTimeAsync(600); // Past debounce period
 **Purpose**: Verifies conditional field validation based on field dependencies.
 
 **Debounce Configuration**:
+
 - Form: `debounce={500}`
 
 **Key Assertions**:
+
 - `fieldCValidations.length === 0` (independent field doesn't validate)
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(600);
 ```
@@ -96,13 +102,16 @@ await vi.advanceTimersByTimeAsync(600);
 **Purpose**: Verifies submit happens AFTER async validation completes.
 
 **Debounce Configuration**:
+
 - Form: `debounce={500}`
 - Validator delay: `100ms`
 
 **Key Assertions**:
+
 - `submitIndex > validationEndIndex` (submit after validation)
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(600); // Past debounce
 await vi.advanceTimersByTimeAsync(200); // Past async validation
@@ -119,13 +128,16 @@ await vi.advanceTimersByTimeAsync(200); // Past async validation
 **Purpose**: Verifies debounce coalesces rapid changes into single submission.
 
 **Debounce Configuration**:
+
 - Form: `debounce={500}`
 
 **Key Assertions**:
+
 - `submitHandler.mock.calls.length === 1` (only one submit)
 - Submit contains final value: `"hello"`
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(600);
 ```
@@ -141,9 +153,11 @@ await vi.advanceTimersByTimeAsync(600);
 **Purpose**: Verifies debounce timer resets on each change.
 
 **Debounce Configuration**:
+
 - Form: `debounce={500}`
 
 **Key Assertions**:
+
 ```typescript
 // After 300ms (less than debounce)
 expect(submitHandler).not.toHaveBeenCalled();
@@ -156,6 +170,7 @@ expect(submitHandler).toHaveBeenCalledTimes(1); // Finally submits
 ```
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(300); // Partial debounce
 await vi.advanceTimersByTimeAsync(300); // Still partial
@@ -173,14 +188,17 @@ await vi.advanceTimersByTimeAsync(300); // Complete debounce from second change
 **Purpose**: Verifies validation failure prevents submission.
 
 **Debounce Configuration**:
+
 - Form: `debounce={100}`
 
 **Key Assertions**:
+
 ```typescript
 expect(submitHandler).not.toHaveBeenCalled();
 ```
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(300);
 ```
@@ -196,16 +214,19 @@ await vi.advanceTimersByTimeAsync(300);
 **Purpose**: Verifies `debounce: false` causes immediate submission.
 
 **Debounce Configuration**:
+
 - Form: `debounce={500}` (normal debounce)
 - Field: `inputConfig={{ debounce: false }}` (override)
 
 **Key Assertions**:
+
 ```typescript
 // After only 100ms (well before 500ms debounce)
 expect(submitHandler).toHaveBeenCalledTimes(1); // IMMEDIATE!
 ```
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(100); // Only for async validation
 ```
@@ -221,11 +242,13 @@ await vi.advanceTimersByTimeAsync(100); // Only for async validation
 **Purpose**: Shows difference between immediate and normal debounce.
 
 **Debounce Configuration**:
+
 - Form: `debounce={500}`
 - Field 1: `inputConfig={{ debounce: false }}` (immediate)
 - Field 2: No inputConfig (normal debounce)
 
 **Key Assertions**:
+
 ```typescript
 // Immediate field: submits after 100ms
 expect(submitHandler).toHaveBeenCalledTimes(1);
@@ -238,6 +261,7 @@ expect(submitHandler).toHaveBeenCalledTimes(2); // Now 2
 ```
 
 **Timer Usage**:
+
 ```typescript
 await vi.advanceTimersByTimeAsync(100); // Immediate submits
 await vi.advanceTimersByTimeAsync(500); // Debounced submits
@@ -251,11 +275,11 @@ await vi.advanceTimersByTimeAsync(500); // Debounced submits
 
 ### 1. Debounce Values Used in Tests
 
-| Test | Debounce Value | Buffer Used | Total Advance |
-|------|---------------|-------------|---------------|
-| Test 1-5 | 500ms | 100ms | 600ms |
-| Test 6 | 100ms | 200ms | 300ms |
-| Test 7-8 | 500ms | 100ms | 600ms |
+| Test     | Debounce Value | Buffer Used | Total Advance |
+| -------- | -------------- | ----------- | ------------- |
+| Test 1-5 | 500ms          | 100ms       | 600ms         |
+| Test 6   | 100ms          | 200ms       | 300ms         |
+| Test 7-8 | 500ms          | 100ms       | 600ms         |
 
 **Pattern**: Tests use `debounce + 100ms` buffer for advancing timers.
 
@@ -290,6 +314,7 @@ These tests verify the core debounce behavior that must be preserved.
 ### 5. Common Test Patterns
 
 **Setup Pattern**:
+
 ```typescript
 beforeEach(() => {
   validationCalls = [];
@@ -303,6 +328,7 @@ afterEach(() => {
 ```
 
 **User Input Pattern**:
+
 ```typescript
 await act(async () => {
   await userEvent.type(field, "value", { delay: null });
@@ -310,6 +336,7 @@ await act(async () => {
 ```
 
 **Timer Advancement Pattern**:
+
 ```typescript
 await act(async () => {
   await vi.advanceTimersByTimeAsync(600);
@@ -317,6 +344,7 @@ await act(async () => {
 ```
 
 **Assertion Pattern**:
+
 ```typescript
 await waitFor(() => {
   expect(submitHandler).toHaveBeenCalledTimes(1);
@@ -408,10 +436,12 @@ grep -c "it(" packages/react/src/__tests__/autosave-validation.test.tsx
 **Critical for Regression**: Tests 3, 4, 5 (async validation, coalescing, timer reset)
 
 **Test Coverage Gaps**:
+
 - No explicit test for 1000ms default debounce value
 - No explicit test distinguishing undefined vs empty inputConfig
 
 **Recommended Additions for P1.M2.T2.S2**:
+
 1. Test for default 1000ms debounce
 2. Test for form-level debounce override
 3. Test for undefined inputConfig (normal debounce)

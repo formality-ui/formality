@@ -1,4 +1,5 @@
 # External Dependencies Research Report
+
 ## Formality Project - Comprehensive Library Analysis
 
 **Document Version:** 1.0
@@ -12,6 +13,7 @@
 This report provides comprehensive research on external dependencies used in the Formality project, covering React Hook Form integration, expression engine architecture, debouncing strategies, React patterns, and testing infrastructure. The analysis is based on existing documentation in the codebase and source code examination due to external API limitations.
 
 **Key Findings:**
+
 - React Hook Form's `getFieldState()` does **NOT** include a `disabled` property
 - Formality uses a custom expression engine built on `jsep` with sandboxed evaluation
 - Debounce coordination requires careful async validation handling
@@ -50,6 +52,7 @@ This report provides comprehensive research on external dependencies used in the
 The `getFieldState()` method returns field state **without** the `disabled` property. This is a key limitation that affects Formality's architecture.
 
 **Signature:**
+
 ```typescript
 methods.getFieldState(
   fieldName: FieldPath<TFieldValues>,
@@ -58,12 +61,13 @@ methods.getFieldState(
 ```
 
 **Return Type:**
+
 ```typescript
 interface FieldState {
-  isTouched: boolean;        // Field has been focused and blurred
-  isDirty: boolean;          // Field value has changed from default
-  invalid: boolean;          // Field has validation error
-  error?: FieldError;        // Validation error details
+  isTouched: boolean; // Field has been focused and blurred
+  isDirty: boolean; // Field value has changed from default
+  invalid: boolean; // Field has validation error
+  error?: FieldError; // Validation error details
   // NOTE: disabled is NOT included
 }
 ```
@@ -113,14 +117,16 @@ useWatch<TFieldValues extends FieldValues>(
 #### Critical Behavior
 
 **Single Field:**
+
 ```typescript
-const value = useWatch({ name: 'email' });
+const value = useWatch({ name: "email" });
 // Returns: string | undefined (single value)
 ```
 
 **Multiple Fields:**
+
 ```typescript
-const values = useWatch({ name: ['email', 'name'] });
+const values = useWatch({ name: ["email", "name"] });
 // Returns: [string, string] (ALWAYS an array)
 ```
 
@@ -202,6 +208,7 @@ Integrates custom input components with React Hook Form, handling registration, 
 **CRITICAL:** Input components MUST use `forwardRef` to receive the ref from Controller.
 
 **Correct Pattern:**
+
 ```typescript
 const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
   ({ value, onChange, name, ...props }, ref) => (
@@ -218,6 +225,7 @@ TestInput.displayName = "TestInput";
 ```
 
 **Why Required:**
+
 - Controller passes `ref` in the `field` object
 - Without `forwardRef`, React warns: "Function components cannot be given refs"
 - Ref must reach actual DOM element for focus/select operations
@@ -336,6 +344,7 @@ Formality implements a **custom expression engine** built on top of `jsep` for s
 #### Evaluation Pipeline
 
 **Flow:**
+
 ```
 String Expression → jsep.parse() → AST → evaluateNode() → Result
 ```
@@ -379,6 +388,7 @@ export function evaluate(expr: string, context: EvaluationContext): unknown {
 #### Sandboxing Approach
 
 **1. No Function Calls**
+
 ```typescript
 case "CallExpression": {
   // We don't allow function calls for security
@@ -387,11 +397,13 @@ case "CallExpression": {
 ```
 
 **2. Safe Evaluation Context**
+
 - Only whitelisted properties are accessible
 - No `eval()` or `Function` constructor
 - No access to global objects (window, document, etc.)
 
 **3. Error Handling**
+
 - Errors caught and logged in development
 - Returns `undefined` on errors in production
 - Graceful degradation
@@ -399,27 +411,33 @@ case "CallExpression": {
 #### Supported Operators
 
 **Logical (with short-circuit evaluation):**
+
 - `&&` - AND (short-circuits on falsy)
 - `||` - OR (short-circuits on truthy)
 - `??` - Nullish coalescing (short-circuits on non-null)
 
 **Comparison:**
+
 - `===`, `!==` - Strict equality
 - `==`, `!=` - Loose equality
 - `<`, `>`, `<=`, `>=` - Ordering
 
 **Arithmetic:**
+
 - `+`, `-`, `*`, `/`, `%`
 
 **Unary:**
+
 - `!` - NOT
 - `-`, `+` - Negation/plus
 - `typeof` - Type check
 
 **Ternary:**
+
 - `condition ? consequent : alternate`
 
 **Member Access:**
+
 - `obj.prop` - Dot notation
 - `obj[prop]` - Bracket notation
 
@@ -439,7 +457,7 @@ const FIELD_STATE_PROPERTIES = new Set([
   "isValidating",
   "error",
   "invalid",
-  "disabled",  // Formality-added property
+  "disabled", // Formality-added property
 ]);
 
 export function createFieldStateProxy(
@@ -471,17 +489,17 @@ export function createFieldStateProxy(
 ```typescript
 // Field state with proxy
 const fieldState = {
-  value: { id: 5, name: 'Acme' },
+  value: { id: 5, name: "Acme" },
   isTouched: true,
-  isDirty: false
+  isDirty: false,
 };
 const proxy = createFieldStateProxy(fieldState);
 
 // In expressions:
-evaluate("client.id", { client: proxy })        // → 5 (delegates to value.id)
-evaluate("client.isTouched", { client: proxy }) // → true (accesses fieldState.isTouched)
-evaluate("client", { client: proxy })           // → { id: 5, name: 'Acme' } (coerces to value)
-evaluate("client && signed", { client: proxy, signed: proxy })
+evaluate("client.id", { client: proxy }); // → 5 (delegates to value.id)
+evaluate("client.isTouched", { client: proxy }); // → true (accesses fieldState.isTouched)
+evaluate("client", { client: proxy }); // → { id: 5, name: 'Acme' } (coerces to value)
+evaluate("client && signed", { client: proxy, signed: proxy });
 // → true (short-circuits with unwrapped values)
 ```
 
@@ -567,11 +585,11 @@ export function inferFieldsFromExpression(expr: string): string[] {
 #### Examples
 
 ```typescript
-inferFieldsFromExpression("client.id")           // → ["client"]
-inferFieldsFromExpression("client && signed")     // → ["client", "signed"]
-inferFieldsFromExpression("record.name")         // → [] (qualified path)
-inferFieldsFromExpression("true && false")       // → [] (keywords)
-inferFieldsFromExpression("fields === null")     // → ["fields"] (not followed by dot)
+inferFieldsFromExpression("client.id"); // → ["client"]
+inferFieldsFromExpression("client && signed"); // → ["client", "signed"]
+inferFieldsFromExpression("record.name"); // → [] (qualified path)
+inferFieldsFromExpression("true && false"); // → [] (keywords)
+inferFieldsFromExpression("fields === null"); // → ["fields"] (not followed by dot)
 ```
 
 ---
@@ -618,9 +636,10 @@ debounce<T extends (...args: any[]) => any>(
 **Finding:** Lodash debounce **supports** `wait: 0` for immediate execution.
 
 **Behavior with `wait: 0`:**
+
 ```typescript
 const debouncedFn = debounce(() => {
-  console.log('Executed');
+  console.log("Executed");
 }, 0);
 
 debouncedFn(); // Executes immediately (next tick)
@@ -633,11 +652,13 @@ debouncedFn(); // Executes immediately (next tick)
 #### Configuration Levels
 
 **1. Form-level (default: 1000ms)**
+
 ```typescript
 <Form autoSave debounce={2000}>
 ```
 
 **2. Field-level override**
+
 ```typescript
 textField: {
   debounce: 2000,  // Wait 2 seconds
@@ -703,7 +724,10 @@ const executeAutoSave = useCallback(async () => {
   );
 
   // If version changed while waiting, abort (new changes came in)
-  if (!validationsComplete || executionVersionRef.current !== executionVersion) {
+  if (
+    !validationsComplete ||
+    executionVersionRef.current !== executionVersion
+  ) {
     return;
   }
 
@@ -740,6 +764,7 @@ const debouncedSave = debounce(() => save(), 1000);
 ```
 
 **Trade-offs:**
+
 - ✅ Reduces save operations
 - ✅ Better UX for typing
 - ❌ Delayed feedback
@@ -758,6 +783,7 @@ if (inputConfig.debounce === false) {
 ```
 
 **Trade-offs:**
+
 - ✅ Instant feedback
 - ✅ No delay
 - ❌ More save operations
@@ -779,6 +805,7 @@ if (executionVersionRef.current !== version) {
 ```
 
 **Trade-offs:**
+
 - ✅ Prevents stale saves
 - ✅ Waits for validation
 - ❌ More complex logic
@@ -830,20 +857,23 @@ Component.displayName = "Component";  // Required for DevTools
 #### TypeScript Type Order
 
 **CORRECT:**
+
 ```typescript
-forwardRef<HTMLInputElement, Props>
+forwardRef<HTMLInputElement, Props>;
 // Element type FIRST, then Props
 ```
 
 **WRONG:**
+
 ```typescript
-forwardRef<Props, HTMLInputElement>
+forwardRef<Props, HTMLInputElement>;
 // Props first, then Element (incorrect)
 ```
 
 #### displayName Best Practices
 
 **Pattern 1: Named Function Expression**
+
 ```typescript
 const MyComponent = forwardRef(function MyComponent(props, ref) {
   return <div ref={ref}>{props.children}</div>;
@@ -851,6 +881,7 @@ const MyComponent = forwardRef(function MyComponent(props, ref) {
 ```
 
 **Pattern 2: Anonymous Function + displayName Property**
+
 ```typescript
 const MyComponent = forwardRef((props, ref) => {
   return <div ref={ref}>{props.children}</div>;
@@ -860,6 +891,7 @@ MyComponent.displayName = "MyComponent";
 ```
 
 **Pattern 3: With HOCs**
+
 ```typescript
 function logProps(Component) {
   const LoggedComponent = forwardRef((props, ref) => (
@@ -882,6 +914,7 @@ function logProps(Component) {
 **CRITICAL:** All custom hooks must call React hooks in the same order on every render.
 
 **Correct Pattern:**
+
 ```typescript
 export function useConditions(options: UseConditionsOptions) {
   // Always called first
@@ -891,16 +924,25 @@ export function useConditions(options: UseConditionsOptions) {
   const watchFields = useInferredInputs({ conditions, subscribesTo });
 
   // Always called third
-  const watchedValues = useWatch({ control: methods.control, name: watchFields });
+  const watchedValues = useWatch({
+    control: methods.control,
+    name: watchFields,
+  });
 
   // Always called fourth
-  const fieldValues = useMemo(() => { /* ... */ }, [watchFields, watchedValues]);
+  const fieldValues = useMemo(() => {
+    /* ... */
+  }, [watchFields, watchedValues]);
 
   // Always called fifth
-  const fieldStates = useMemo(() => { /* ... */ }, [watchFields, fieldValues, methods]);
+  const fieldStates = useMemo(() => {
+    /* ... */
+  }, [watchFields, fieldValues, methods]);
 
   // Always called last
-  return useMemo(() => { /* ... */ }, [conditions, fieldValues, fieldStates]);
+  return useMemo(() => {
+    /* ... */
+  }, [conditions, fieldValues, fieldStates]);
 }
 ```
 
@@ -909,11 +951,13 @@ export function useConditions(options: UseConditionsOptions) {
 **Problem:** Hook A depends on Hook B, Hook B depends on Hook A
 
 **Solution:**
+
 1. Extract shared state to context
 2. Use refs for non-reactive values
 3. Pass dependencies as parameters
 
 **Example from Formality:**
+
 ```typescript
 // useConditions uses useFormContext
 export function useConditions(options: UseConditionsOptions) {
@@ -963,6 +1007,7 @@ export function makeProxyState<T extends object>(source: T): T {
 #### Performance Impact
 
 **Without Proxy:**
+
 ```typescript
 // Accessing fieldState.value creates dependency on entire fieldState
 const value = fieldState.value;
@@ -970,6 +1015,7 @@ const value = fieldState.value;
 ```
 
 **With Proxy:**
+
 ```typescript
 // Accessing proxyState.value only creates dependency on value
 const value = proxyState.value;
@@ -1021,6 +1067,7 @@ TestInput.displayName = "TestInput";
 #### Testing React Hook Form Integration
 
 **Pattern 1: Test Field State**
+
 ```typescript
 it("should update field value on change", async () => {
   render(
@@ -1037,6 +1084,7 @@ it("should update field value on change", async () => {
 ```
 
 **Pattern 2: Test Validation**
+
 ```typescript
 it("should show validation error", async () => {
   const validator = async () => "Required";
@@ -1058,6 +1106,7 @@ it("should show validation error", async () => {
 ```
 
 **Pattern 3: Test Conditions**
+
 ```typescript
 it("should disable field when condition is met", async () => {
   render(
@@ -1091,6 +1140,7 @@ it("should disable field when condition is met", async () => {
 #### Testing Debounce
 
 **Using Fake Timers:**
+
 ```typescript
 describe("AutoSave Debounce", () => {
   beforeEach(() => {
@@ -1169,6 +1219,7 @@ const fieldState = methods.getFieldState(fieldName);
 ```
 
 **Benefits:**
+
 - Access field validity in conditions
 - Check if field is dirty before submitting
 - Get error messages without subscriptions
@@ -1178,11 +1229,12 @@ const fieldState = methods.getFieldState(fieldName);
 **Use `useWatch` for specific field value subscriptions:**
 
 ```typescript
-const values = useWatch({ name: ['field1', 'field2'] });
+const values = useWatch({ name: ["field1", "field2"] });
 // Only re-renders when field1 or field2 changes
 ```
 
 **Benefits:**
+
 - Prevents re-renders of unrelated fields
 - Explicit dependency declaration
 - Better performance for large forms
@@ -1199,7 +1251,7 @@ const fieldStates = {
     isTouched: true,
     isDirty: false,
     disabled: true, // Added by Formality from conditions
-  }
+  },
 };
 
 // In Field component
@@ -1210,10 +1262,16 @@ const isDisabled = useMemo(() => {
     return conditionResult.disabled ?? false;
   if (groupContext.state.isDisabled) return true;
   return false;
-}, [disabledProp, fieldConfig.disabled, conditionResult, groupContext.state.isDisabled]);
+}, [
+  disabledProp,
+  fieldConfig.disabled,
+  conditionResult,
+  groupContext.state.isDisabled,
+]);
 ```
 
 **Benefits:**
+
 - Flexible disabled state resolution
 - Multiple sources of disabled state
 - Clear priority order
@@ -1229,11 +1287,12 @@ const context = buildEvaluationContext(
   fieldValues,
   record,
   props,
-  fieldStates // Includes disabled, isTouched, etc.
+  fieldStates, // Includes disabled, isTouched, etc.
 );
 ```
 
 **Benefits:**
+
 - Both qualified and unqualified access
 - Explicit data sources
 - Type-safe context
@@ -1251,6 +1310,7 @@ const values = useWatch({ name: fields });
 ```
 
 **Benefits:**
+
 - Automatic subscriptions
 - No manual dependency tracking
 - Expressions drive re-renders
@@ -1273,6 +1333,7 @@ if (executionVersionRef.current !== version) {
 ```
 
 **Benefits:**
+
 - Prevents stale saves
 - Handles rapid changes
 - Coordinates with validation
@@ -1286,12 +1347,14 @@ if (executionVersionRef.current !== version) {
 #### Limitation 1: No `disabled` in `getFieldState`
 
 **Problem:**
+
 ```typescript
 const fieldState = methods.getFieldState(fieldName);
 // fieldState.disabled is undefined
 ```
 
 **Workaround:**
+
 ```typescript
 // Formality adds disabled from condition evaluation
 const fieldStates = {
@@ -1302,19 +1365,21 @@ const fieldStates = {
     error: fieldState.error,
     invalid: fieldState.invalid,
     disabled: conditionResult.disabled ?? false, // Added by Formality
-  }
+  },
 };
 ```
 
 #### Limitation 2: `useWatch` Array Return
 
 **Problem:**
+
 ```typescript
-const values = useWatch({ name: ['field1', 'field2'] });
+const values = useWatch({ name: ["field1", "field2"] });
 // values is ALWAYS an array, even with one field
 ```
 
 **Workaround:**
+
 ```typescript
 const fieldValues = useMemo(() => {
   const values: Record<string, unknown> = {};
@@ -1336,17 +1401,19 @@ const fieldValues = useMemo(() => {
 #### Limitation 1: No Function Calls
 
 **Problem:**
+
 ```typescript
 evaluate("Math.max(1, 2)", {}); // Throws error
 ```
 
 **Workaround:**
+
 ```typescript
 // Use functions in selectProps instead
 config: {
   field: {
     selectProps: {
-      max: (ctx) => Math.max(ctx.a, ctx.b)
+      max: (ctx) => Math.max(ctx.a, ctx.b);
     }
   }
 }
@@ -1355,6 +1422,7 @@ config: {
 #### Limitation 2: Cannot Analyze Function Bodies
 
 **Problem:**
+
 ```typescript
 inferFieldsFromDescriptor(() => {
   // Cannot extract field names from function body
@@ -1364,6 +1432,7 @@ inferFieldsFromDescriptor(() => {
 ```
 
 **Workaround:**
+
 ```typescript
 // Explicitly declare dependencies
 config: {
@@ -1381,6 +1450,7 @@ config: {
 #### Limitation 1: Coordinating with Async Validation
 
 **Problem:**
+
 ```typescript
 // Validation is async, but debounce timer doesn't wait
 const debouncedSave = debounce(() => {
@@ -1389,6 +1459,7 @@ const debouncedSave = debounce(() => {
 ```
 
 **Workaround:**
+
 ```typescript
 // Use execution versioning
 const executeAutoSave = async () => {
@@ -1408,11 +1479,13 @@ const executeAutoSave = async () => {
 #### Limitation 2: `debounce: false` Implementation
 
 **Problem:**
+
 ```typescript
 // How to implement debounce: false with debounce function?
 ```
 
 **Workaround:**
+
 ```typescript
 // Check debounce config before calling debounced function
 const handleSubmit = () => {
@@ -1474,6 +1547,7 @@ const handleSubmit = () => {
 ### 8.3 Debounce
 
 1. **Always cleanup debounced functions on unmount**
+
    ```typescript
    useEffect(() => {
      const debouncedFn = debounce(callback, delay);
@@ -1484,6 +1558,7 @@ const handleSubmit = () => {
    ```
 
 2. **Use `flush()` for immediate submission**
+
    ```typescript
    submitImmediate() {
      debouncedSubmitRef.current?.flush();
@@ -1600,6 +1675,7 @@ This comprehensive research report has documented the external dependencies used
 ### Next Steps
 
 For implementation guidance, refer to:
+
 - `/packages/react/src/components/Field.tsx` - Field component patterns
 - `/packages/react/src/hooks/useConditions.ts` - Condition evaluation
 - `/packages/react/src/hooks/useFormState.ts` - Isolated subscriptions

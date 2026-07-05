@@ -24,23 +24,25 @@ The version token pattern is a **robust mechanism for preventing race conditions
 ### Best Practices
 
 **✅ DO:**
+
 - Use incrementing number counters (not boolean flags)
 - Store version-specific data in Maps/Refs
 - Clean up tracking data to prevent memory leaks
 - Check version before state updates in async operations
 
 **❌ DON'T:**
+
 - Use boolean flags for rapid changes (can't track multiple concurrent operations)
 - Skip version checks after async operations
 - Forget to clean up tracking maps
 
 ### Comparison with Other Patterns
 
-| Pattern | Handles Rapid Changes | Works with Any Async | Complexity | Best For |
-|---------|---------------------|---------------------|------------|----------|
-| **Version Token** | ✅ Yes | ✅ Yes | Medium | Form auto-save, debounced operations |
-| **AbortController** | ✅ Yes | ❌ Only fetch | Low | Network requests |
-| **Boolean Flag** | ❌ No | ✅ Yes | Low | Simple mount/unmount scenarios |
+| Pattern             | Handles Rapid Changes | Works with Any Async | Complexity | Best For                             |
+| ------------------- | --------------------- | -------------------- | ---------- | ------------------------------------ |
+| **Version Token**   | ✅ Yes                | ✅ Yes               | Medium     | Form auto-save, debounced operations |
+| **AbortController** | ✅ Yes                | ❌ Only fetch        | Low        | Network requests                     |
+| **Boolean Flag**    | ❌ No                 | ✅ Yes               | Low        | Simple mount/unmount scenarios       |
 
 ---
 
@@ -49,6 +51,7 @@ The version token pattern is a **robust mechanism for preventing race conditions
 ### Official React Documentation
 
 **Key Resources:**
+
 - [React.dev - Synchronizing with Effects](https://react.dev/learn/synchronizing-with-effects#each-effect-represents-a-separate-synchronization-mechanism)
 - [React.dev - Removing Effect Dependencies](https://react.dev/learn/removing-effect-dependencies)
 - [React.dev - You Might Not Need an Effect](https://react.dev/learn/you-might-not-need-an-effect)
@@ -61,10 +64,10 @@ useEffect(() => {
   const signal = controller.signal;
 
   fetch(url, { signal })
-    .then(response => response.json())
-    .then(data => setData(data))
-    .catch(err => {
-      if (err.name !== 'AbortError') {
+    .then((response) => response.json())
+    .then((data) => setData(data))
+    .catch((err) => {
+      if (err.name !== "AbortError") {
         setError(err);
       }
     });
@@ -76,11 +79,13 @@ useEffect(() => {
 ```
 
 **Pros:**
+
 - Native browser API
 - Cancels actual network request
 - Works with fetch and compatible libraries
 
 **Cons:**
+
 - Only works with network operations
 - Requires library support
 
@@ -90,7 +95,7 @@ useEffect(() => {
 useEffect(() => {
   let isMounted = true;
 
-  fetchData().then(data => {
+  fetchData().then((data) => {
     if (isMounted) {
       setData(data);
     }
@@ -103,10 +108,12 @@ useEffect(() => {
 ```
 
 **Pros:**
+
 - Simple to understand
 - Works with any async operation
 
 **Cons:**
+
 - Can't handle rapid changes
 - Over-cleanup in Strict Mode
 
@@ -129,12 +136,14 @@ const executeAsync = useCallback(async () => {
 ```
 
 **Pros:**
+
 - Handles rapid changes
 - Works with any async operation
 - Explicit cancellation check
 - React 18 Strict Mode compatible
 
 **Cons:**
+
 - Slightly more complex
 - Requires version checks at multiple points
 
@@ -148,11 +157,11 @@ const executeAsync = useCallback(async () => {
 
 **Time to Overflow at Different Rates:**
 
-| Increments/Second | Time to Overflow |
-|-------------------|------------------|
-| 1000/sec | ~285,374 years |
-| 100/sec | ~2,853,740 years |
-| 10/sec | ~28,537,404 years |
+| Increments/Second  | Time to Overflow  |
+| ------------------ | ----------------- |
+| 1000/sec           | ~285,374 years    |
+| 100/sec            | ~2,853,740 years  |
+| 10/sec             | ~28,537,404 years |
 | Typical form usage | ~5,000,000+ years |
 
 ### Practical Implications
@@ -179,7 +188,7 @@ const executeAsync = useCallback(async () => {
 // React Query uses query keys as version identifiers
 // Each query has a cancellation controller
 const query = useQuery({
-  queryKey: ['todos', todoId],
+  queryKey: ["todos", todoId],
   queryFn: async ({ signal }) => {
     const response = await fetch(`/api/todos/${todoId}`, { signal });
     return response.json();
@@ -208,19 +217,21 @@ const { data } = useSWR(`/api/todos/${todoId}`, fetcher);
 ```typescript
 // React Hook Form does NOT use version tokens
 // It relies on validation state tracking
-const { formState: { isValidating, isSubmitted } } = useForm();
+const {
+  formState: { isValidating, isSubmitted },
+} = useForm();
 ```
 
 ### Comparison Summary
 
-| Library | Pattern | Auto Cancel | Version Tracking |
-|---------|---------|-------------|------------------|
-| **Formality** | Incrementing number ref | ✅ Yes | ✅ Explicit |
-| **React Query** | AbortController | ✅ Yes | ✅ Internal (query key) |
-| **SWR** | Key-based deduplication | ✅ Yes | ✅ Internal |
-| **React Hook Form** | Manual state | ❌ No | ❌ No |
-| **RTK Query** | Cache tags | ✅ Yes | ✅ Internal |
-| **Apollo Client** | Observable + Abort | ✅ Yes | ✅ Internal |
+| Library             | Pattern                 | Auto Cancel | Version Tracking        |
+| ------------------- | ----------------------- | ----------- | ----------------------- |
+| **Formality**       | Incrementing number ref | ✅ Yes      | ✅ Explicit             |
+| **React Query**     | AbortController         | ✅ Yes      | ✅ Internal (query key) |
+| **SWR**             | Key-based deduplication | ✅ Yes      | ✅ Internal             |
+| **React Hook Form** | Manual state            | ❌ No       | ❌ No                   |
+| **RTK Query**       | Cache tags              | ✅ Yes      | ✅ Internal             |
+| **Apollo Client**   | Observable + Abort      | ✅ Yes      | ✅ Internal             |
 
 **Formality's Position:** Lightweight, explicit version tracking suitable for form libraries.
 
@@ -234,7 +245,7 @@ const { formState: { isValidating, isSubmitted } } = useForm();
 useEffect(() => {
   const controller = new AbortController();
 
-  fetchData(controller.signal).then(data => {
+  fetchData(controller.signal).then((data) => {
     setData(data);
   });
 
@@ -254,7 +265,7 @@ Dan Abramov (React core team) discusses the version token pattern as a way to pr
 useEffect(() => {
   const id = ++idRef.current;
 
-  fetchData().then(data => {
+  fetchData().then((data) => {
     if (idRef.current === id) {
       setState(data);
     }
@@ -441,10 +452,12 @@ useEffect(() => {
 ### Memory Usage
 
 **Per Version:**
+
 - Number: 8 bytes
 - Map entry: ~32 bytes overhead + data size
 
 **Typical Form Usage:**
+
 - Active versions: 1-2 (current + pending)
 - Memory impact: < 1 KB
 

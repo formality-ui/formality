@@ -14,9 +14,10 @@
 **Deliverable**: Complete test suite in `/packages/core/src/__tests__/expression.complex.test.ts` with dedicated sections for array arithmetic, boolean arithmetic, comprehensive mixed-type development warnings, and array concatenation validation.
 
 **Success Definition**:
-- All arithmetic operations (-, *, /, %) return `undefined` when either operand is an array
-- All arithmetic operations (+, -, *, /, %) return `undefined` when either operand is a boolean
-- All arithmetic operations (-, *, /, %) return `undefined` when either operand is a string
+
+- All arithmetic operations (-, \*, /, %) return `undefined` when either operand is an array
+- All arithmetic operations (+, -, \*, /, %) return `undefined` when either operand is a boolean
+- All arithmetic operations (-, \*, /, %) return `undefined` when either operand is a string
 - Array/string concatenation (+) works correctly and produces no warnings
 - Development mode shows specific warning messages for mixed-type operations
 - Production mode shows no warnings (clean console)
@@ -28,6 +29,7 @@
 **Target User**: Formality library developers who need to verify that mixed-type handling works correctly across all arithmetic operations.
 
 **Use Case**: After implementing the enhanced `isSafeNumber` type guard (P3.M2.T1.S2) and null/undefined tests (P3.M2.T2.S1), developers need to verify that:
+
 1. Arrays, booleans, objects, and strings are properly rejected in arithmetic contexts
 2. String and array concatenation still works for the + operator
 3. Development warnings are shown with proper context for all mixed-type scenarios
@@ -35,6 +37,7 @@
 5. All edge cases are covered
 
 **User Journey**:
+
 1. Developer runs the test suite after implementing the test cases
 2. All mixed-type arithmetic tests pass, confirming correct behavior
 3. Development warning tests pass, verifying proper logging for all non-numeric types
@@ -43,6 +46,7 @@
 6. Developer has confidence that the implementation handles all mixed-type scenarios correctly
 
 **Pain Points Addressed**:
+
 - **Incomplete Test Coverage**: Existing tests only cover basic string/object mixed types, missing arrays and booleans
 - **Silent Failures**: Without testing, bugs in mixed-type handling might go unnoticed
 - **Feature Regression Risk**: String/array concatenation could be inadvertently broken
@@ -63,40 +67,40 @@
 
 ```javascript
 // ARRAY ARITHMETIC (except + concatenation)
-evaluate('[] - 5', {})      // → undefined (array subtraction undefined)
-evaluate('[1] * 2', {})     // → undefined (array multiplication undefined)
-evaluate('[] / 2', {})      // → undefined (array division undefined)
-evaluate('[] % 2', {})      // → undefined (array modulo undefined)
+evaluate("[] - 5", {}); // → undefined (array subtraction undefined)
+evaluate("[1] * 2", {}); // → undefined (array multiplication undefined)
+evaluate("[] / 2", {}); // → undefined (array division undefined)
+evaluate("[] % 2", {}); // → undefined (array modulo undefined)
 
 // ARRAY CONCATENATION (supported)
-evaluate('[] + 5', {})      // → "5" (empty array → "" + "5" = "5")
-evaluate('[1,2] + 3', {})   // → "1,23" (array joins + concatenation)
-evaluate('[] + []', {})     // → "" (both arrays become empty strings)
+evaluate("[] + 5", {}); // → "5" (empty array → "" + "5" = "5")
+evaluate("[1,2] + 3", {}); // → "1,23" (array joins + concatenation)
+evaluate("[] + []", {}); // → "" (both arrays become empty strings)
 
 // BOOLEAN ARITHMETIC (all operators)
-evaluate('true + false', {})   // → undefined (booleans rejected in all arithmetic)
-evaluate('true - 5', {})       // → undefined
-evaluate('false * 2', {})      // → undefined
-evaluate('true / 2', {})       // → undefined
-evaluate('false % 2', {})      // → undefined
+evaluate("true + false", {}); // → undefined (booleans rejected in all arithmetic)
+evaluate("true - 5", {}); // → undefined
+evaluate("false * 2", {}); // → undefined
+evaluate("true / 2", {}); // → undefined
+evaluate("false % 2", {}); // → undefined
 
 // STRING ARITHMETIC (except + concatenation)
-evaluate('"hello" - 5', {})   // → undefined (string subtraction undefined)
-evaluate('"text" * 2', {})    // → undefined (string multiplication undefined)
-evaluate('"x" / 2', {})       // → undefined (string division undefined)
-evaluate('"y" % 2', {})       // → undefined (string modulo undefined)
+evaluate('"hello" - 5', {}); // → undefined (string subtraction undefined)
+evaluate('"text" * 2', {}); // → undefined (string multiplication undefined)
+evaluate('"x" / 2', {}); // → undefined (string division undefined)
+evaluate('"y" % 2', {}); // → undefined (string modulo undefined)
 
 // STRING CONCATENATION (supported)
-evaluate('"hello" + 5', {})   // → "hello5" (string concatenation supported)
-evaluate('5 + "world"', {})   // → "5world"
-evaluate('"a" + "b"', {})     // → "ab"
+evaluate('"hello" + 5', {}); // → "hello5" (string concatenation supported)
+evaluate('5 + "world"', {}); // → "5world"
+evaluate('"a" + "b"', {}); // → "ab"
 
 // OBJECT ARITHMETIC (all operators)
-evaluate('{} + 5', {})        // → undefined (object arithmetic undefined)
-evaluate('{} - 5', {})        // → undefined
-evaluate('{} * 2', {})        // → undefined
-evaluate('{} / 2', {})        // → undefined
-evaluate('{} % 2', {})        // → undefined
+evaluate("{} + 5", {}); // → undefined (object arithmetic undefined)
+evaluate("{} - 5", {}); // → undefined
+evaluate("{} * 2", {}); // → undefined
+evaluate("{} / 2", {}); // → undefined
+evaluate("{} % 2", {}); // → undefined
 
 // Development mode shows warnings for all invalid mixed types
 // In NODE_ENV !== "production": console.warn called with "[Formality Expression] Type error: ..."
@@ -105,17 +109,17 @@ evaluate('{} % 2', {})        // → undefined
 // In NODE_ENV === "production": console.warn NOT called
 
 // No errors thrown
-evaluate('"hello" - 5', {})   // No exception, returns undefined
+evaluate('"hello" - 5', {}); // No exception, returns undefined
 ```
 
 ### Success Criteria
 
-- [ ] All arithmetic operators (-, *, /, %) tested with array left operand
-- [ ] All arithmetic operators (-, *, /, %) tested with array right operand
+- [ ] All arithmetic operators (-, \*, /, %) tested with array left operand
+- [ ] All arithmetic operators (-, \*, /, %) tested with array right operand
 - [ ] Array concatenation (+) tested and verified to work correctly
-- [ ] All arithmetic operators (+, -, *, /, %) tested with boolean left operand
-- [ ] All arithmetic operators (+, -, *, /, %) tested with boolean right operand
-- [ ] All arithmetic operators (-, *, /, %) tested with string left operand
+- [ ] All arithmetic operators (+, -, \*, /, %) tested with boolean left operand
+- [ ] All arithmetic operators (+, -, \*, /, %) tested with boolean right operand
+- [ ] All arithmetic operators (-, \*, /, %) tested with string left operand
 - [ ] String concatenation (+) tested and verified to work correctly
 - [ ] Object arithmetic tests verified for all operators
 - [ ] Development warning tests verify console.warn is called for arrays
@@ -135,6 +139,7 @@ evaluate('"hello" - 5', {})   // No exception, returns undefined
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file path and location for test additions
 - Complete existing test patterns to follow
 - Exact code snippets for test structure
@@ -301,30 +306,30 @@ packages/core/src/
 // CRITICAL: String and array concatenation IS supported for + operator
 // This is an intentional feature, NOT a bug
 // See evaluate.ts lines 136-149
-evaluate('"hello" + 5', {})   // → "hello5" (string concatenation)
-evaluate('5 + "world"', {})   // → "5world"
-evaluate('[] + 5', {})        // → "5" (array → empty string → "5")
-evaluate('[1,2] + 3', {})     // → "1,23" (array joins with comma)
+evaluate('"hello" + 5', {}); // → "hello5" (string concatenation)
+evaluate('5 + "world"', {}); // → "5world"
+evaluate("[] + 5", {}); // → "5" (array → empty string → "5")
+evaluate("[1,2] + 3", {}); // → "1,23" (array joins with comma)
 
 // CRITICAL: All other operators (-, *, /, %) reject non-numeric types
-evaluate('"hello" - 5', {})   // → undefined (no string subtraction)
-evaluate('[] * 2', {})        // → undefined (no array multiplication)
-evaluate('true + false', {})  // → undefined (no boolean arithmetic)
-evaluate('{} + 5', {})        // → undefined (no object arithmetic)
+evaluate('"hello" - 5', {}); // → undefined (no string subtraction)
+evaluate("[] * 2", {}); // → undefined (no array multiplication)
+evaluate("true + false", {}); // → undefined (no boolean arithmetic)
+evaluate("{} + 5", {}); // → undefined (no object arithmetic)
 
 // CRITICAL: Arrays convert to comma-joined strings for + concatenation
 // Empty array → empty string → ""
 // [1, 2] → "1,2" → then concatenated
-evaluate('[] + []', {})       // → "" (both arrays become empty strings)
-evaluate('[1] + [2]', {})     // → "1,2" (arrays join then concatenate)
+evaluate("[] + []", {}); // → "" (both arrays become empty strings)
+evaluate("[1] + [2]", {}); // → "1,2" (arrays join then concatenate)
 
 // CRITICAL: typeof array returns 'object' (JavaScript quirk)
-typeof []      // → 'object'
-Array.isArray([])  // → true
+typeof []; // → 'object'
+Array.isArray([]); // → true
 
 // CRITICAL: typeof null returns 'object', not 'null' (JavaScript quirk)
-typeof null      // → 'object'
-typeof undefined // → 'undefined'
+typeof null; // → 'object'
+typeof undefined; // → 'undefined'
 
 // CRITICAL: The isSafeNumber function (from P3.M2.T1.S2) rejects:
 // - null, undefined (explicit checks)
@@ -336,8 +341,8 @@ typeof undefined // → 'undefined'
 if (process.env.NODE_ENV !== "production") {
   console.warn(
     `[Formality Expression] Type error: ` +
-    `Invalid operands for + (null/undefined not allowed): ` +
-    `left=${typeof leftValue}, right=${typeof rightValue}`
+      `Invalid operands for + (null/undefined not allowed): ` +
+      `left=${typeof leftValue}, right=${typeof rightValue}`,
   );
 }
 
@@ -346,7 +351,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // CRITICAL: When testing console.warn, use this pattern:
 beforeEach(() => {
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -359,13 +364,13 @@ beforeEach(() => {
   process.env.NODE_ENV = originalEnv;
 });
 
-it('should warn in development', () => {
-  process.env.NODE_ENV = 'development';
+it("should warn in development", () => {
+  process.env.NODE_ENV = "development";
   // ... test code
 });
 
-it('should not warn in production', () => {
-  process.env.NODE_ENV = 'production';
+it("should not warn in production", () => {
+  process.env.NODE_ENV = "production";
   // ... test code
 });
 
@@ -476,37 +481,37 @@ describe("Array Arithmetic", () => {
 
   describe("Subtraction (-)", () => {
     it("should return undefined for empty array - number", () => {
-      expect(evaluate('[] - 5', {})).toBeUndefined();
+      expect(evaluate("[] - 5", {})).toBeUndefined();
     });
 
     it("should return undefined for number - empty array", () => {
-      expect(evaluate('5 - []', {})).toBeUndefined();
+      expect(evaluate("5 - []", {})).toBeUndefined();
     });
 
     it("should return undefined for non-empty array - number", () => {
-      expect(evaluate('[1, 2] - 5', {})).toBeUndefined();
+      expect(evaluate("[1, 2] - 5", {})).toBeUndefined();
     });
 
     it("should return undefined for array - array", () => {
-      expect(evaluate('[] - []', {})).toBeUndefined();
+      expect(evaluate("[] - []", {})).toBeUndefined();
     });
 
     it("should work with valid numbers (regression test)", () => {
-      expect(evaluate('5 - 3', {})).toBe(2);
+      expect(evaluate("5 - 3", {})).toBe(2);
     });
   });
 
   describe("Multiplication (*)", () => {
     it("should return undefined for array * number", () => {
-      expect(evaluate('[] * 2', {})).toBeUndefined();
+      expect(evaluate("[] * 2", {})).toBeUndefined();
     });
 
     it("should return undefined for number * array", () => {
-      expect(evaluate('2 * []', {})).toBeUndefined();
+      expect(evaluate("2 * []", {})).toBeUndefined();
     });
 
     it("should return undefined for non-empty array * number", () => {
-      expect(evaluate('[1] * 3', {})).toBeUndefined();
+      expect(evaluate("[1] * 3", {})).toBeUndefined();
     });
   });
 
@@ -524,33 +529,33 @@ describe("Boolean Arithmetic", () => {
 
   describe("Addition (+)", () => {
     it("should return undefined for boolean + boolean", () => {
-      expect(evaluate('true + false', {})).toBeUndefined();
+      expect(evaluate("true + false", {})).toBeUndefined();
     });
 
     it("should return undefined for boolean + number", () => {
-      expect(evaluate('true + 5', {})).toBeUndefined();
+      expect(evaluate("true + 5", {})).toBeUndefined();
     });
 
     it("should return undefined for number + boolean", () => {
-      expect(evaluate('5 + false', {})).toBeUndefined();
+      expect(evaluate("5 + false", {})).toBeUndefined();
     });
   });
 
   describe("Subtraction (-)", () => {
     it("should return undefined for boolean - boolean", () => {
-      expect(evaluate('true - false', {})).toBeUndefined();
+      expect(evaluate("true - false", {})).toBeUndefined();
     });
 
     it("should return undefined for boolean - number", () => {
-      expect(evaluate('true - 5', {})).toBeUndefined();
+      expect(evaluate("true - 5", {})).toBeUndefined();
     });
 
     it("should return undefined for number - boolean", () => {
-      expect(evaluate('5 - false', {})).toBeUndefined();
+      expect(evaluate("5 - false", {})).toBeUndefined();
     });
 
     it("should work with valid numbers (regression test)", () => {
-      expect(evaluate('5 - 3', {})).toBe(2);
+      expect(evaluate("5 - 3", {})).toBe(2);
     });
   });
 
@@ -568,25 +573,25 @@ describe("Array Concatenation Validation", () => {
   describe("Addition (+)", () => {
     it("should concatenate empty array + number", () => {
       // Empty array becomes empty string, then concatenated
-      expect(evaluate('[] + 5', {})).toBe("5");
+      expect(evaluate("[] + 5", {})).toBe("5");
     });
 
     it("should concatenate number + empty array", () => {
-      expect(evaluate('5 + []', {})).toBe("5");
+      expect(evaluate("5 + []", {})).toBe("5");
     });
 
     it("should concatenate non-empty array + number", () => {
       // [1, 2] becomes "1,2" then concatenated with "3"
-      expect(evaluate('[1, 2] + 3', {})).toBe("1,23");
+      expect(evaluate("[1, 2] + 3", {})).toBe("1,23");
     });
 
     it("should concatenate array + array", () => {
       // Both arrays become empty strings
-      expect(evaluate('[] + []', {})).toBe("");
+      expect(evaluate("[] + []", {})).toBe("");
     });
 
     it("should concatenate non-empty arrays", () => {
-      expect(evaluate('[1] + [2]', {})).toBe("1,2");
+      expect(evaluate("[1] + [2]", {})).toBe("1,2");
     });
 
     it("should concatenate array + string", () => {
@@ -604,7 +609,7 @@ describe("Development Warnings - Mixed Types", () => {
 
   beforeEach(() => {
     clearExpressionCache();
-    consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -613,69 +618,69 @@ describe("Development Warnings - Mixed Types", () => {
 
   describe("Array Arithmetic Warnings", () => {
     it("should warn for array subtraction", () => {
-      evaluate('[] - 5', {});
+      evaluate("[] - 5", {});
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Type error')
+        expect.stringContaining("Type error"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid operands')
+        expect.stringContaining("Invalid operands"),
       );
     });
 
     it("should show correct type information for array", () => {
-      evaluate('[] - 5', {});
+      evaluate("[] - 5", {});
 
       // typeof [] is 'object'
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('left=object')
+        expect.stringContaining("left=object"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('right=number')
+        expect.stringContaining("right=number"),
       );
     });
 
     it("should warn for array multiplication", () => {
-      evaluate('[1] * 2', {});
+      evaluate("[1] * 2", {});
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
     });
   });
 
   describe("Boolean Arithmetic Warnings", () => {
     it("should warn for boolean addition", () => {
-      evaluate('true + false', {});
+      evaluate("true + false", {});
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Type error')
+        expect.stringContaining("Type error"),
       );
     });
 
     it("should show correct type information for boolean", () => {
-      evaluate('true + 5', {});
+      evaluate("true + 5", {});
 
       // typeof true is 'boolean'
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('left=boolean')
+        expect.stringContaining("left=boolean"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('right=number')
+        expect.stringContaining("right=number"),
       );
     });
 
     it("should warn for boolean subtraction", () => {
-      evaluate('false - 5', {});
+      evaluate("false - 5", {});
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid operands')
+        expect.stringContaining("Invalid operands"),
       );
     });
   });
@@ -685,10 +690,10 @@ describe("Development Warnings - Mixed Types", () => {
       evaluate('"hello" - 5', {});
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Type error')
+        expect.stringContaining("Type error"),
       );
     });
 
@@ -697,7 +702,7 @@ describe("Development Warnings - Mixed Types", () => {
 
       // typeof "text" is 'string'
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('left=string')
+        expect.stringContaining("left=string"),
       );
     });
   });
@@ -710,7 +715,7 @@ describe("Development Warnings - Mixed Types", () => {
     });
 
     it("should not warn for array + number concatenation", () => {
-      evaluate('[] + 5', {});
+      evaluate("[] + 5", {});
 
       expect(consoleSpy).not.toHaveBeenCalled();
     });
@@ -722,7 +727,7 @@ describe("Development Warnings - Mixed Types", () => {
     });
 
     it("should not warn for array + array concatenation", () => {
-      evaluate('[] + []', {});
+      evaluate("[] + []", {});
 
       expect(consoleSpy).not.toHaveBeenCalled();
     });
@@ -744,11 +749,11 @@ describe("Production Mode - No Mixed-Type Warnings", () => {
   });
 
   it("should not warn for array arithmetic in production", () => {
-    process.env.NODE_ENV = 'production';
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    process.env.NODE_ENV = "production";
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    evaluate('[] - 5', {});
-    evaluate('[1] * 2', {});
+    evaluate("[] - 5", {});
+    evaluate("[1] * 2", {});
 
     expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -756,11 +761,11 @@ describe("Production Mode - No Mixed-Type Warnings", () => {
   });
 
   it("should not warn for boolean arithmetic in production", () => {
-    process.env.NODE_ENV = 'production';
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    process.env.NODE_ENV = "production";
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    evaluate('true + false', {});
-    evaluate('true - 5', {});
+    evaluate("true + false", {});
+    evaluate("true - 5", {});
 
     expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -768,8 +773,8 @@ describe("Production Mode - No Mixed-Type Warnings", () => {
   });
 
   it("should not warn for string arithmetic in production", () => {
-    process.env.NODE_ENV = 'production';
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    process.env.NODE_ENV = "production";
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     evaluate('"hello" - 5', {});
     evaluate('"text" * 2', {});
@@ -780,18 +785,18 @@ describe("Production Mode - No Mixed-Type Warnings", () => {
   });
 
   it("should still return undefined in production for mixed types", () => {
-    process.env.NODE_ENV = 'production';
+    process.env.NODE_ENV = "production";
 
-    expect(evaluate('[] - 5', {})).toBeUndefined();
-    expect(evaluate('true + false', {})).toBeUndefined();
+    expect(evaluate("[] - 5", {})).toBeUndefined();
+    expect(evaluate("true + false", {})).toBeUndefined();
     expect(evaluate('"hello" - 5', {})).toBeUndefined();
   });
 
   it("should still concatenate in production", () => {
-    process.env.NODE_ENV = 'production';
+    process.env.NODE_ENV = "production";
 
     expect(evaluate('"hello" + 5', {})).toBe("hello5");
-    expect(evaluate('[] + 5', {})).toBe("5");
+    expect(evaluate("[] + 5", {})).toBe("5");
   });
 });
 ```
@@ -913,9 +918,9 @@ pnpm test --coverage 2>/dev/null | grep -A 5 "isSafeNumber" || echo "Use vitest 
 
 ### Technical Validation
 
-- [ ] All arithmetic operators (-, *, /, %) have array operand tests
-- [ ] All arithmetic operators (+, -, *, /, %) have boolean operand tests
-- [ ] All arithmetic operators (-, *, /, %) have string operand tests (where not already tested)
+- [ ] All arithmetic operators (-, \*, /, %) have array operand tests
+- [ ] All arithmetic operators (+, -, \*, /, %) have boolean operand tests
+- [ ] All arithmetic operators (-, \*, /, %) have string operand tests (where not already tested)
 - [ ] Array concatenation (+) tests verify correct behavior
 - [ ] String concatenation (+) tests verify correct behavior
 - [ ] Development warning tests verify console.warn is called for arrays
@@ -1000,16 +1005,19 @@ pnpm test --coverage 2>/dev/null | grep -A 5 "isSafeNumber" || echo "Use vitest 
 This task builds on previous work items in the Type Safety in Expressions milestone:
 
 **P3.M2.T1.S2 - Handle null/undefined in Arithmetic Operations**:
+
 - Enhanced `isSafeNumber` with explicit null/undefined checks
 - Added JSDoc documentation
 - Enhanced warning messages
 
 **P3.M2.T2.S1 - Test Null Arithmetic** (Currently Being Implemented):
+
 - Tests for null/undefined arithmetic operations
 - Development warning verification for null/undefined
 - Production mode validation
 
 This task **(P3.M2.T2.S2)** completes the type safety test coverage by:
+
 1. Testing array arithmetic (beyond concatenation)
 2. Testing boolean arithmetic
 3. Testing comprehensive mixed-type warnings
@@ -1023,8 +1031,12 @@ The work item description says `'5 + "hello"'` should be `undefined`, but **this
 // evaluate.ts lines 136-149
 if (leftIsString || rightIsString || leftIsArray || rightIsArray) {
   // Convert arrays to strings for concatenation
-  const leftStr = leftIsArray ? (leftValue as unknown[]).join(',') : String(leftValue ?? '');
-  const rightStr = rightIsArray ? (rightValue as unknown[]).join(',') : String(rightValue ?? '');
+  const leftStr = leftIsArray
+    ? (leftValue as unknown[]).join(",")
+    : String(leftValue ?? "");
+  const rightStr = rightIsArray
+    ? (rightValue as unknown[]).join(",")
+    : String(rightValue ?? "");
   return leftStr + rightStr;
 }
 ```
@@ -1045,26 +1057,27 @@ While the `isSafeNumber` type guard works correctly (via explicit type checking)
 
 ```javascript
 // typeof returns 'object' for arrays and null
-typeof []      // → 'object' (not 'array')
-typeof null    // → 'object' (not 'null')
-typeof {}      // → 'object'
-typeof true    // → 'boolean'
-typeof "text"  // → 'string'
+typeof []; // → 'object' (not 'array')
+typeof null; // → 'object' (not 'null')
+typeof {}; // → 'object'
+typeof true; // → 'boolean'
+typeof "text"; // → 'string'
 
 // This affects warning message content:
 // evaluate('[] - 5', {}) will show "left=object, right=number"
 // evaluate('null + 5', {}) will show "left=object, right=number"
 
 // Use Array.isArray() to distinguish arrays from objects
-Array.isArray([])   // → true
-Array.isArray({})   // → false
-Array.isArray(null) // → false
+Array.isArray([]); // → true
+Array.isArray({}); // → false
+Array.isArray(null); // → false
 ```
 
 ### Expected Test Count
 
 For comprehensive coverage, expect to write approximately:
-- **16 tests** for array arithmetic (-, *, /, % with various combinations)
+
+- **16 tests** for array arithmetic (-, \*, /, % with various combinations)
 - **20 tests** for boolean arithmetic (5 operators × 4 scenarios each)
 - **8 tests** for array concatenation validation
 - **12 tests** for development warnings (arrays, booleans, strings)
@@ -1080,6 +1093,7 @@ Total: ~66 test cases
 **9/10** for one-pass implementation success
 
 **Reasoning**:
+
 - ✅ Clear, specific testing target (mixed-type test coverage)
 - ✅ Comprehensive existing context (exact file paths, line numbers, patterns)
 - ✅ Well-defined success criteria with testable outcomes

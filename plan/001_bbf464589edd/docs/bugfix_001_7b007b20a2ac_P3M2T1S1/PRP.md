@@ -14,18 +14,20 @@
 **Feature Goal**: Add runtime type guards to BinaryExpression arithmetic operations to prevent NaN and Infinity results from invalid operands.
 
 **Deliverable**:
+
 1. Type guard function (`isSafeNumber`) for validating numeric operands
-2. Type validation before arithmetic operations (+, -, *, /, %) in BinaryExpression handler
+2. Type validation before arithmetic operations (+, -, \*, /, %) in BinaryExpression handler
 3. Development warning console logs for non-numeric operands
 4. Return `undefined` instead of NaN/Infinity for invalid operations
 5. Test suite covering all type error scenarios with development warnings
 
 **Success Definition**:
+
 - Arithmetic operations with non-numeric operands return `undefined` instead of NaN
 - Division by zero returns `undefined` instead of Infinity
 - Development warnings are logged for invalid operations
 - All existing tests continue to pass (with updated expectations where behavior changes)
-- Type guard tests cover all arithmetic operators (+, -, *, /, %)
+- Type guard tests cover all arithmetic operators (+, -, \*, /, %)
 
 ---
 
@@ -36,12 +38,14 @@
 **Use Case**: Writing expressions that perform arithmetic operations on field values where the values may be undefined, null, or non-numeric strings due to user input or conditional rendering.
 
 **User Journey**:
+
 1. Developer creates form with numeric fields (e.g., `quantity`, `price`, `discount`)
 2. Developer writes expression: `quantity * price - discount`
 3. User leaves some fields empty or enters non-numeric values
 4. Expression evaluator handles invalid values gracefully with clear error messages
 
 **Pain Points Addressed**:
+
 - **Silent NaN propagation**: Arithmetic with invalid values produces NaN which spreads through calculations
 - **Unclear errors**: When expressions produce NaN, it's hard to identify which field caused the issue
 - **Unexpected Infinity**: Division by zero produces Infinity instead of a clear error state
@@ -63,8 +67,9 @@
 ### Current State Analysis
 
 **From Contract Definition**:
+
 1. **INPUT**: Current BinaryExpression handler with left and right operands
-2. **LOGIC**: Before arithmetic operations (+, -, *, /, %), check `typeof left === 'number' && typeof right === 'number'`. If not numbers, return undefined. Add development warning for non-numeric operands. Handle NaN result.
+2. **LOGIC**: Before arithmetic operations (+, -, \*, /, %), check `typeof left === 'number' && typeof right === 'number'`. If not numbers, return undefined. Add development warning for non-numeric operands. Handle NaN result.
 3. **OUTPUT**: Type-guarded arithmetic operations returning undefined for invalid types.
 
 **Current Implementation** (packages/core/src/expression/evaluate.ts:99-137):
@@ -99,6 +104,7 @@ case "BinaryExpression": {
 ```
 
 **Problems**:
+
 1. Type assertions (`as number`) bypass TypeScript without runtime validation
 2. Non-numeric operands produce NaN (e.g., `"text" * 2` → `NaN`)
 3. Division by zero produces Infinity (e.g., `1 / 0` → `Infinity`)
@@ -108,7 +114,7 @@ case "BinaryExpression": {
 ### Success Criteria
 
 - [ ] `isSafeNumber()` type guard function added to evaluate.ts
-- [ ] All arithmetic operators (+, -, *, /, %) validate operands before operation
+- [ ] All arithmetic operators (+, -, \*, /, %) validate operands before operation
 - [ ] Non-numeric operands return `undefined` with development warning
 - [ ] Division by zero returns `undefined` with development warning
 - [ ] Operations producing Infinity return `undefined` with development warning
@@ -125,6 +131,7 @@ case "BinaryExpression": {
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file paths and line numbers for code modification
 - Complete implementation patterns with code examples
 - All validation commands specific to project
@@ -291,9 +298,9 @@ No new data models. Adding type guard function and modifying existing function.
 ```typescript
 // NEW: Type guard function
 function isSafeNumber(value: unknown): value is number {
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value);
+  return (
+    typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)
+  );
 }
 
 // MODIFIED: Safe arithmetic with validation
@@ -301,14 +308,14 @@ function safeArithmetic(
   operator: string,
   left: unknown,
   right: unknown,
-  expr: string  // For error messages
+  expr: string, // For error messages
 ): number | undefined {
   if (!isSafeNumber(left) || !isSafeNumber(right)) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(
         `[Formality Expression] Type error in "${expr}": ` +
-        `Invalid operands for ${operator}: ` +
-        `left=${typeof left}, right=${typeof right}`
+          `Invalid operands for ${operator}: ` +
+          `left=${typeof left}, right=${typeof right}`,
       );
     }
     return undefined;
@@ -319,26 +326,28 @@ function safeArithmetic(
   let result: number;
 
   switch (operator) {
-    case '+': result = l + r; break;
-    case '-': result = l - r; break;
-    case '*': result = l * r; break;
-    case '/':
+    case "+":
+      result = l + r;
+      break;
+    case "-":
+      result = l - r;
+      break;
+    case "*":
+      result = l * r;
+      break;
+    case "/":
       if (r === 0) {
         if (process.env.NODE_ENV !== "production") {
-          console.warn(
-            `[Formality Expression] Division by zero in "${expr}"`
-          );
+          console.warn(`[Formality Expression] Division by zero in "${expr}"`);
         }
         return undefined;
       }
       result = l / r;
       break;
-    case '%':
+    case "%":
       if (r === 0) {
         if (process.env.NODE_ENV !== "production") {
-          console.warn(
-            `[Formality Expression] Modulo by zero in "${expr}"`
-          );
+          console.warn(`[Formality Expression] Modulo by zero in "${expr}"`);
         }
         return undefined;
       }
@@ -353,7 +362,7 @@ function safeArithmetic(
     if (process.env.NODE_ENV !== "production") {
       console.warn(
         `[Formality Expression] Arithmetic overflow in "${expr}": ` +
-        `Operation ${l} ${operator} ${r} produced ${result}`
+          `Operation ${l} ${operator} ${r} produced ${result}`,
       );
     }
     return undefined;
@@ -800,7 +809,7 @@ pnpm test --filter @formality-ui/react
 
 - [ ] All 4 validation levels completed successfully
 - [ ] `isSafeNumber()` function added with correct implementation
-- [ ] All arithmetic operators (+, -, *, /, %) have type guards
+- [ ] All arithmetic operators (+, -, \*, /, %) have type guards
 - [ ] Division/modulo by zero returns `undefined` with warning
 - [ ] Arithmetic overflow returns `undefined` with warning
 - [ ] All tests pass: `pnpm test --filter @formality-ui/core`
@@ -840,7 +849,7 @@ pnpm test --filter @formality-ui/react
 
 ## Anti-Patterns to Avoid
 
-- **Don't modify comparison operators** - Only arithmetic operators (+, -, *, /, %) are in scope
+- **Don't modify comparison operators** - Only arithmetic operators (+, -, \*, /, %) are in scope
 - **Don't use `isNaN()`** - Use `Number.isNaN()` which doesn't coerce values
 - **Don't forget `Number.isFinite()`** - Must exclude NaN AND Infinity
 - **Don't skip division by zero check** - Explicitly check for `/ 0` and `% 0`
@@ -870,6 +879,7 @@ pnpm test --filter @formality-ui/react
 The P3.M2.T1.S2 PRP will handle additional null/undefined edge cases.
 
 **This PRP's Contract**:
+
 1. This PRP implements basic type guards for arithmetic operators
 2. This PRP handles non-numeric types (strings, objects, arrays)
 3. This PRP handles division by zero
@@ -883,6 +893,7 @@ The P3.M2.T1.S2 PRP will handle additional null/undefined edge cases.
 The P3.M2.T2 PRP will add comprehensive tests for type safety.
 
 **This PRP's Contract**:
+
 1. This PRP provides `isSafeNumber()` function for P3.M2.T2 to test
 2. This PRP establishes the behavior that P3.M2.T2 will verify
 3. This PRP adds basic tests for type guards
@@ -897,6 +908,7 @@ The P3.M2.T2 PRP will add comprehensive tests for type safety.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Clear scope: Add type guards to 5 arithmetic operators only
 - Comprehensive research documented with code examples
 - Clear implementation patterns from codebase analysis
@@ -908,6 +920,7 @@ The P3.M2.T2 PRP will add comprehensive tests for type safety.
 - All validation commands specific to project
 
 **Remaining 1 point uncertainty**:
+
 - Existing tests expect NaN/Infinity - updating them is straightforward but requires care to ensure all affected tests are identified
 
 ---
@@ -947,14 +960,14 @@ The P3.M2.T2 PRP will add comprehensive tests for type safety.
 ```typescript
 // 1. ADD type guard function (after imports, line ~25)
 function isSafeNumber(value: unknown): value is number {
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value);
+  return (
+    typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)
+  );
 }
 
 // 2. MODIFY BinaryExpression case (lines 67-137)
 // Add type guard check before arithmetic operations
-const arithmeticOps = ['+', '-', '*', '/', '%'] as const;
+const arithmeticOps = ["+", "-", "*", "/", "%"] as const;
 if (arithmeticOps.includes(binaryNode.operator)) {
   if (!isSafeNumber(leftValue) || !isSafeNumber(rightValue)) {
     if (process.env.NODE_ENV !== "production") {
@@ -971,31 +984,31 @@ if (arithmeticOps.includes(binaryNode.operator)) {
 ```typescript
 // OLD tests (will fail)
 expect(isNaN(evaluate('"text" * 2', {}) as number)).toBe(true);
-expect(evaluate('1 / 0', {})).toBe(Infinity);
+expect(evaluate("1 / 0", {})).toBe(Infinity);
 
 // NEW tests (after implementation)
 expect(evaluate('"text" * 2', {})).toBeUndefined();
-expect(evaluate('1 / 0', {})).toBeUndefined();
+expect(evaluate("1 / 0", {})).toBeUndefined();
 ```
 
 ### Operators Affected
 
-| Operator | Type Guard | Division Check | Result Check |
-|----------|------------|----------------|--------------|
-| `+` | Yes | No | Yes |
-| `-` | Yes | No | Yes |
-| `*` | Yes | No | Yes |
-| `/` | Yes | Yes (zero divisor) | Yes |
-| `%` | Yes | Yes (zero divisor) | Yes |
+| Operator | Type Guard | Division Check     | Result Check |
+| -------- | ---------- | ------------------ | ------------ |
+| `+`      | Yes        | No                 | Yes          |
+| `-`      | Yes        | No                 | Yes          |
+| `*`      | Yes        | No                 | Yes          |
+| `/`      | Yes        | Yes (zero divisor) | Yes          |
+| `%`      | Yes        | Yes (zero divisor) | Yes          |
 
 ### Operators NOT Affected
 
-| Operator | Reason |
-|----------|--------|
-| `&&`, `||`, `??` | Logical operators with short-circuit evaluation |
-| `===`, `!==` | Strict equality checks (type-safe already) |
-| `<`, `>`, `<=`, `>=` | Comparison operators (out of scope) |
-| `==`, `!=` | Loose equality (out of scope) |
+| Operator             | Reason                                     |
+| -------------------- | ------------------------------------------ | ------- | ----------------------------------------------- |
+| `&&`, `              |                                            | `, `??` | Logical operators with short-circuit evaluation |
+| `===`, `!==`         | Strict equality checks (type-safe already) |
+| `<`, `>`, `<=`, `>=` | Comparison operators (out of scope)        |
+| `==`, `!=`           | Loose equality (out of scope)              |
 
 ### Warning Message Format
 

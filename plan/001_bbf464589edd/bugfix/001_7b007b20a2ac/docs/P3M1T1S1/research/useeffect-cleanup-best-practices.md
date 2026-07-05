@@ -73,12 +73,14 @@ export function useSubscriptions(
 ```
 
 **Why this works:**
+
 - Each effect run gets a unique ID
 - Subscriptions are stored in a Map keyed by run ID
 - Cleanup only accesses subscriptions from its own run ID
 - Map cleanup prevents memory leaks
 
 **Caveats:**
+
 - Multiple effect runs can exist simultaneously during Strict Mode
 - Map must be cleaned up to prevent memory growth
 - Run ID counter grows indefinitely (but practically never overflows)
@@ -100,7 +102,7 @@ export function useSubscriptions(
 
   useEffect(() => {
     // Create a unique symbol for this effect run
-    const runKey = Symbol('useSubscriptions-run');
+    const runKey = Symbol("useSubscriptions-run");
 
     // Store subscriptions for this run
     runSubscriptionsRef.current.set(runKey, [...subscriptions]);
@@ -124,11 +126,13 @@ export function useSubscriptions(
 ```
 
 **Why this works:**
+
 - Symbols are guaranteed unique
 - No counter management needed
 - Automatic garbage collection when symbols are discarded
 
 **Caveats:**
+
 - Slightly less explicit than numeric IDs
 - Can't be serialized (but not needed here)
 
@@ -158,7 +162,8 @@ export function useSubscriptions(
     });
 
     return () => {
-      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+      const thisRunSubscriptions =
+        runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
         // LIFO cleanup - reverse order
@@ -174,6 +179,7 @@ export function useSubscriptions(
 ```
 
 **Why LIFO (Last In, First Out):**
+
 - If subscription B depends on subscription A, cleanup B before A
 - More natural for dependency hierarchies
 - Prevents "cleanup during cleanup" issues
@@ -205,14 +211,18 @@ export function useSubscriptions(
       addSubscription(target, fieldName);
     });
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[useSubscriptions] Run ${currentRunId}: Added`, subscriptions);
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `[useSubscriptions] Run ${currentRunId}: Added`,
+        subscriptions,
+      );
     }
 
     return () => {
       // Only cleanup if this run is still active
       if (activeRunsRef.current.has(currentRunId)) {
-        const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+        const thisRunSubscriptions =
+          runSubscriptionsRef.current.get(currentRunId);
 
         if (thisRunSubscriptions) {
           thisRunSubscriptions.forEach((target) => {
@@ -224,12 +234,17 @@ export function useSubscriptions(
 
         activeRunsRef.current.delete(currentRunId);
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[useSubscriptions] Run ${currentRunId}: Cleaned up`, thisRunSubscriptions);
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[useSubscriptions] Run ${currentRunId}: Cleaned up`,
+            thisRunSubscriptions,
+          );
         }
       } else {
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[useSubscriptions] Run ${currentRunId}: Skipped cleanup (already cleaned)`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[useSubscriptions] Run ${currentRunId}: Skipped cleanup (already cleaned)`,
+          );
         }
       }
     };
@@ -238,6 +253,7 @@ export function useSubscriptions(
 ```
 
 **Why this works:**
+
 - Active runs Set prevents double-cleanup in Strict Mode
 - Development logging helps debug subscription lifecycle
 - Cleanup is idempotent (can run multiple times safely)
@@ -247,6 +263,7 @@ export function useSubscriptions(
 ### 1. Always Track Per-Effect Subscriptions
 
 **❌ Anti-pattern:**
+
 ```typescript
 useEffect(() => {
   subscriptions.forEach(add);
@@ -255,6 +272,7 @@ useEffect(() => {
 ```
 
 **✅ Correct:**
+
 ```typescript
 useEffect(() => {
   const runId = ++runIdRef.current;
@@ -273,6 +291,7 @@ useEffect(() => {
 ### 2. Use Unique Identifiers for Each Effect Run
 
 Options:
+
 - **Incrementing counter** - Simple, explicit, most common
 - **Symbol** - Guaranteed unique, no counter management
 - **WeakMap with object keys** - Automatic GC, but less explicit
@@ -301,13 +320,19 @@ Options:
 For debugging subscription lifecycle:
 
 ```typescript
-if (process.env.NODE_ENV === 'development') {
-  console.log(`[useSubscriptions:${fieldName}] Run ${runId} START`, subscriptions);
+if (process.env.NODE_ENV === "development") {
+  console.log(
+    `[useSubscriptions:${fieldName}] Run ${runId} START`,
+    subscriptions,
+  );
 }
 
 // ... in cleanup
-if (process.env.NODE_ENV === 'development') {
-  console.log(`[useSubscriptions:${fieldName}] Run ${runId} CLEANUP`, subscriptions);
+if (process.env.NODE_ENV === "development") {
+  console.log(
+    `[useSubscriptions:${fieldName}] Run ${runId} CLEANUP`,
+    subscriptions,
+  );
 }
 ```
 
@@ -347,7 +372,8 @@ export function useSubscriptions(
 
     // Cleanup only removes subscriptions added in THIS run
     return () => {
-      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+      const thisRunSubscriptions =
+        runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
         // LIFO cleanup - reverse order for dependencies
@@ -364,6 +390,7 @@ export function useSubscriptions(
 ```
 
 This implementation:
+
 - ✅ Tracks subscriptions per effect run
 - ✅ Prevents cleanup from removing subscriptions from other runs
 - ✅ Uses LIFO ordering for safe cleanup

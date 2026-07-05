@@ -18,7 +18,10 @@ function ManualForm() {
   // Cascading: load states when country changes
   useEffect(() => {
     if (country) fetchStates(country.id).then(setStateOptions);
-    else { resetField("state"); resetField("city"); }
+    else {
+      resetField("state");
+      resetField("city");
+    }
   }, [country]);
 
   // Derived value: compute total
@@ -54,7 +57,10 @@ const config = {
     props: { useOptions: useStates },
     selectProps: { queryParams: "country.id", disabled: "!country" },
   },
-  paymentMethod: { type: "select", props: { options: ["Credit Card", "Bank Transfer", "PayPal"] } },
+  paymentMethod: {
+    type: "select",
+    props: { options: ["Credit Card", "Bank Transfer", "PayPal"] },
+  },
   cardNumber: {
     type: "textField",
     conditions: [{ when: "paymentMethod", is: "Credit Card", visible: true }],
@@ -63,13 +69,20 @@ const config = {
   unitPrice: { type: "number" },
   totalPrice: {
     type: "number",
-    conditions: [{ selectWhen: "quantity && unitPrice", selectSet: "quantity * unitPrice" }],
+    conditions: [
+      {
+        selectWhen: "quantity && unitPrice",
+        selectSet: "quantity * unitPrice",
+      },
+    ],
     disabled: true,
   },
   useDefaultAddress: { type: "switch" },
   shippingAddress: {
     type: "textField",
-    conditions: [{ when: "useDefaultAddress", truthy: true, set: "123 Main St" }],
+    conditions: [
+      { when: "useDefaultAddress", truthy: true, set: "123 Main St" },
+    ],
   },
 };
 ```
@@ -92,7 +105,9 @@ Formality does not replace your form library. It uses React Hook Form internally
     <form onSubmit={methods.handleSubmit(onSubmit)}>
       {/* methods is the full UseFormReturn from RHF */}
       <Field name="email" />
-      <button type="submit" disabled={!methods.formState.isValid}>Submit</button>
+      <button type="submit" disabled={!methods.formState.isValid}>
+        Submit
+      </button>
     </form>
   )}
 </Form>
@@ -131,14 +146,14 @@ Formality separates form logic from rendering. All behavior — visibility, disa
 
 Conditions are the engine behind this. They are not just for showing and hiding fields. They are a **general-purpose behavior system** that controls:
 
-| Behavior | How | Example |
-| --- | --- | --- |
-| Visibility | `visible` | Show card number only when payment is "Credit Card" |
-| Disabled state | `disabled` | Disable city selector until state is chosen |
-| Static value assignment | `set` | Auto-fill address when "use default" is toggled |
-| Dynamic computed values | `selectSet` | Calculate total from quantity x price |
-| Multi-field matching | `when` object | Show section only when email is valid AND name is filled |
-| Complex expressions | `selectWhen` | Flag a discount when age >= 25 AND hasLicense AND years >= 3 |
+| Behavior                | How           | Example                                                      |
+| ----------------------- | ------------- | ------------------------------------------------------------ |
+| Visibility              | `visible`     | Show card number only when payment is "Credit Card"          |
+| Disabled state          | `disabled`    | Disable city selector until state is chosen                  |
+| Static value assignment | `set`         | Auto-fill address when "use default" is toggled              |
+| Dynamic computed values | `selectSet`   | Calculate total from quantity x price                        |
+| Multi-field matching    | `when` object | Show section only when email is valid AND name is filled     |
+| Complex expressions     | `selectWhen`  | Flag a discount when age >= 25 AND hasLicense AND years >= 3 |
 
 These all work through the same `conditions` array on any field or group.
 
@@ -165,7 +180,7 @@ This means:
 
 - **API-driven forms**: Fetch field configurations from your backend and render them dynamically. Admin-configurable forms, multi-tenant layouts, or user-customizable dashboards become straightforward.
 - **Serialization**: Config objects can be serialized, stored, and reconstructed. No functions required for standard behavior.
-- **Declarative business rules**: Conditions describe *what should happen*, not *how to make it happen*. The engine resolves the how.
+- **Declarative business rules**: Conditions describe _what should happen_, not _how to make it happen_. The engine resolves the how.
 
 String expressions are what enable this model. A condition like `selectSet: "price * quantity"` is a portable, serializable rule — not a JavaScript function bound to a module. Functions remain fully supported for cases that need them (complex calculations, string manipulation, TypeScript type safety), but they are not required for the majority of form logic.
 
@@ -175,12 +190,12 @@ In practice: use string expressions for standard relationships, reach for functi
 
 ## Packages
 
-| Package | Description | Status |
-| --- | --- | --- |
-| [@formality-ui/core](./packages/core) | Framework-agnostic utilities | Stable |
-| [@formality-ui/react](./packages/react) | React implementation | Stable |
-| [@formality-ui/vue](./packages/vue) | Vue implementation | Planned |
-| [@formality-ui/svelte](./packages/svelte) | Svelte implementation | Planned |
+| Package                                   | Description                  | Status  |
+| ----------------------------------------- | ---------------------------- | ------- |
+| [@formality-ui/core](./packages/core)     | Framework-agnostic utilities | Stable  |
+| [@formality-ui/react](./packages/react)   | React implementation         | Stable  |
+| [@formality-ui/vue](./packages/vue)       | Vue implementation           | Planned |
+| [@formality-ui/svelte](./packages/svelte) | Svelte implementation        | Planned |
 
 ---
 
@@ -207,7 +222,11 @@ const inputs = {
   switch: {
     component: ({ checked, onChange, label }) => (
       <label>
-        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+        />
         {label}
       </label>
     ),
@@ -254,9 +273,7 @@ const config = {
   details: {
     type: "textField",
     label: "Additional Details",
-    conditions: [
-      { when: "showDetails", truthy: false, visible: false },
-    ],
+    conditions: [{ when: "showDetails", truthy: false, visible: false }],
   },
   status: {
     type: "select",
@@ -282,25 +299,26 @@ conditions: [
     },
     visible: true,
   },
-]
+];
 ```
 
 ### Condition Reference
 
-| Property | Description |
-| --- | --- |
-| `when` | Field name to watch (string), or object for multi-field matching |
-| `selectWhen` | Expression to evaluate (for complex conditions) |
-| `is` | Exact value to match |
-| `truthy` | Check if value is truthy (`true`) or falsy (`false`) |
-| `isValid` | Check if field is valid (`true`) or invalid (`false`) |
-| `isDisabled` | Check if field is disabled (`true`) or enabled (`false`) |
-| `disabled` | Set disabled state when condition matches |
-| `visible` | Set visibility when condition matches |
-| `set` | Set static value when condition matches |
-| `selectSet` | Set dynamic value from expression or function |
+| Property     | Description                                                      |
+| ------------ | ---------------------------------------------------------------- |
+| `when`       | Field name to watch (string), or object for multi-field matching |
+| `selectWhen` | Expression to evaluate (for complex conditions)                  |
+| `is`         | Exact value to match                                             |
+| `truthy`     | Check if value is truthy (`true`) or falsy (`false`)             |
+| `isValid`    | Check if field is valid (`true`) or invalid (`false`)            |
+| `isDisabled` | Check if field is disabled (`true`) or enabled (`false`)         |
+| `disabled`   | Set disabled state when condition matches                        |
+| `visible`    | Set visibility when condition matches                            |
+| `set`        | Set static value when condition matches                          |
+| `selectSet`  | Set dynamic value from expression or function                    |
 
 **Resolution rules:**
+
 - `disabled`: OR logic — disabled if **any** condition sets it
 - `visible`: AND logic — hidden if **any** condition sets `false`
 - `set`/`selectSet`: last matching condition wins
@@ -374,8 +392,8 @@ const config = {
     type: "select",
     props: { useOptions: useStates },
     selectProps: {
-      queryParams: "country.id",   // pass country.id to the states hook
-      disabled: "!country",         // disable until country is selected
+      queryParams: "country.id", // pass country.id to the states hook
+      disabled: "!country", // disable until country is selected
     },
   },
   city: {
@@ -417,16 +435,16 @@ selectProps: {
 }
 ```
 
-| Use case | Recommended approach |
-| --- | --- |
-| Simple field access | String: `'fieldName'` |
-| Property access | String: `'client.id'` |
-| Basic arithmetic | String: `'price * quantity'` |
-| Comparisons | String: `'age >= 21 && hasLicense'` |
-| Complex calculations | Function (rounding, formatting) |
-| String manipulation | Function (toUpperCase, trim, etc.) |
-| Business logic | Function |
-| TypeScript type safety | Function |
+| Use case               | Recommended approach                |
+| ---------------------- | ----------------------------------- |
+| Simple field access    | String: `'fieldName'`               |
+| Property access        | String: `'client.id'`               |
+| Basic arithmetic       | String: `'price * quantity'`        |
+| Comparisons            | String: `'age >= 21 && hasLicense'` |
+| Complex calculations   | Function (rounding, formatting)     |
+| String manipulation    | Function (toUpperCase, trim, etc.)  |
+| Business logic         | Function                            |
+| TypeScript type safety | Function                            |
 
 ---
 
@@ -437,8 +455,10 @@ Compose multiple validators with async support:
 ```tsx
 const validators = {
   required: (value) => (!value ? { type: "required" } : true),
-  email: (value) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? true : "Invalid email"),
-  minLength: (min) => (value) => (value?.length < min ? `Must be at least ${min} characters` : true),
+  email: (value) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? true : "Invalid email",
+  minLength: (min) => (value) =>
+    value?.length < min ? `Must be at least ${min} characters` : true,
 };
 
 const config = {
@@ -466,7 +486,7 @@ Debounced automatic form submission:
 ```tsx
 <Form config={config} onSubmit={handleSubmit} autoSave debounce={2000}>
   {/* fields */}
-</Form>
+</Form>;
 
 // Input-level debounce control
 const inputs = {
@@ -485,7 +505,7 @@ Apply conditions to multiple fields at once:
 const formConfig = {
   groups: {
     businessFields: {
-      conditions: [{ when: 'accountType', is: 'personal', visible: false }],
+      conditions: [{ when: "accountType", is: "personal", visible: false }],
     },
   },
 };
@@ -497,7 +517,7 @@ const formConfig = {
     <Field name="taxId" />
     <Field name="companySize" />
   </FieldGroup>
-</Form>
+</Form>;
 ```
 
 Groups can be nested — inner groups inherit conditions from outer groups.
@@ -514,7 +534,8 @@ const inputs = {
     component: CurrencyInput,
     defaultValue: null,
     parser: (value) => parseFloat(String(value).replace(/[,$]/g, "")) || null,
-    formatter: (value) => (value == null ? "" : new Intl.NumberFormat("en-US").format(value)),
+    formatter: (value) =>
+      value == null ? "" : new Intl.NumberFormat("en-US").format(value),
   },
   autocomplete: {
     component: Autocomplete,
@@ -574,6 +595,7 @@ Evaluate dynamic expressions against form state:
 ## When to Use Formality
 
 **Use Formality when:**
+
 - Your form has field relationships (cascading selects, conditional sections, derived values)
 - You're writing `useEffect` to synchronize form fields
 - You need to express complex conditional logic (visibility, disabled state, value overrides)
@@ -583,6 +605,7 @@ Evaluate dynamic expressions against form state:
 - Business rules are buried in component code and should be declarative
 
 **You may not need it when:**
+
 - Your form is simple (a few fields, no relationships)
 - You only need basic validation and submission
 - React Hook Form alone handles everything you need
@@ -592,10 +615,10 @@ Evaluate dynamic expressions against form state:
 
 ## Documentation
 
-| Resource | Description |
-| --- | --- |
-| [Examples](./examples) | Comprehensive runnable examples |
-| [Developer Docs (PRD.md)](./PRD.md) | Complete technical specification |
+| Resource                              | Description                        |
+| ------------------------------------- | ---------------------------------- |
+| [Examples](./examples)                | Comprehensive runnable examples    |
+| [Developer Docs (PRD.md)](./PRD.md)   | Complete technical specification   |
 | [Development Guide](./DEVELOPMENT.md) | Contributing and development setup |
 
 ---
@@ -632,12 +655,12 @@ formality/
 
 ### Scripts
 
-| Script | Description |
-| --- | --- |
-| `pnpm build` | Build all packages |
-| `pnpm test` | Run all tests |
+| Script           | Description             |
+| ---------------- | ----------------------- |
+| `pnpm build`     | Build all packages      |
+| `pnpm test`      | Run all tests           |
 | `pnpm typecheck` | Type check all packages |
-| `pnpm lint` | Lint all packages |
+| `pnpm lint`      | Lint all packages       |
 
 ---
 
@@ -645,17 +668,17 @@ formality/
 
 See the [examples directory](./examples) for comprehensive, runnable examples:
 
-| Example | Description |
-| --- | --- |
-| [01-basic-form](./examples/01-basic-form.tsx) | Getting started with Form, Field, Provider |
-| [02-input-types](./examples/02-input-types.tsx) | Input configuration options |
-| [03-conditions](./examples/03-conditions.tsx) | Conditional logic |
-| [04-validation](./examples/04-validation.tsx) | Validation system |
-| [05-field-dependencies](./examples/05-field-dependencies.tsx) | Dynamic props and cascading |
-| [06-auto-save](./examples/06-auto-save.tsx) | Auto-save configuration |
-| [07-advanced-features](./examples/07-advanced-features.tsx) | UnusedFields, ordering, templates |
-| [08-real-world-example](./examples/08-real-world-example.tsx) | Complete Quote form |
-| [09-string-vs-function](./examples/09-string-vs-function.tsx) | Expression vs callback comparison |
+| Example                                                       | Description                                |
+| ------------------------------------------------------------- | ------------------------------------------ |
+| [01-basic-form](./examples/01-basic-form.tsx)                 | Getting started with Form, Field, Provider |
+| [02-input-types](./examples/02-input-types.tsx)               | Input configuration options                |
+| [03-conditions](./examples/03-conditions.tsx)                 | Conditional logic                          |
+| [04-validation](./examples/04-validation.tsx)                 | Validation system                          |
+| [05-field-dependencies](./examples/05-field-dependencies.tsx) | Dynamic props and cascading                |
+| [06-auto-save](./examples/06-auto-save.tsx)                   | Auto-save configuration                    |
+| [07-advanced-features](./examples/07-advanced-features.tsx)   | UnusedFields, ordering, templates          |
+| [08-real-world-example](./examples/08-real-world-example.tsx) | Complete Quote form                        |
+| [09-string-vs-function](./examples/09-string-vs-function.tsx) | Expression vs callback comparison          |
 
 ---
 

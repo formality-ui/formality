@@ -13,6 +13,7 @@
 **Deliverable**: Modified `handleChange` function in `Field.tsx` that calls `changeField(name, value, inputConfig)` instead of `changeField(name, value)`.
 
 **Success Definition**:
+
 - `handleChange` passes `inputConfig` as third argument to `changeField`
 - `inputConfig` is added to `useCallback` dependency array
 - TypeScript compilation succeeds
@@ -34,11 +35,13 @@
 Update the `handleChange` wrapper in Field component to pass `inputConfig` to `changeField`.
 
 **Current Implementation** (line 369):
+
 ```typescript
 changeField(name, parsedValue);
 ```
 
 **Target Implementation**:
+
 ```typescript
 changeField(name, parsedValue, inputConfig);
 ```
@@ -46,13 +49,15 @@ changeField(name, parsedValue, inputConfig);
 Additionally, add `inputConfig` to the `useCallback` dependency array.
 
 **Current Dependency Array** (line 371):
+
 ```typescript
-[inputConfig.parser, providerConfig.parsers, changeField, name]
+[inputConfig.parser, providerConfig.parsers, changeField, name];
 ```
 
 **Target Dependency Array**:
+
 ```typescript
-[inputConfig.parser, providerConfig.parsers, changeField, name, inputConfig]
+[inputConfig.parser, providerConfig.parsers, changeField, name, inputConfig];
 ```
 
 ### Success Criteria
@@ -72,6 +77,7 @@ Additionally, add `inputConfig` to the `useCallback` dependency array.
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file path and line numbers
 - Current and target code snippets
 - Complete context on `inputConfig` source and structure
@@ -219,12 +225,13 @@ packages/react/src/components/Field.tsx        # Update handleChange to pass inp
 No new data models - this task uses existing `InputConfig` type and `changeField` callback.
 
 **InputConfig Type** (already exists):
+
 ```typescript
 // packages/core/src/types/config.ts:45-78
 export interface InputConfig<TValue = unknown> {
   component: unknown;
   defaultValue: TValue;
-  debounce?: number | false;  // Key property: false = immediate, number = delay
+  debounce?: number | false; // Key property: false = immediate, number = delay
   parser?: string | ((value: unknown) => TValue);
   formatter?: string | ((value: TValue) => unknown);
   // ... other properties
@@ -232,6 +239,7 @@ export interface InputConfig<TValue = unknown> {
 ```
 
 **changeField Signature** (from P1.M2.T1.S1):
+
 ```typescript
 changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
 ```
@@ -291,7 +299,7 @@ const handleChange = useCallback(
 
     // ===== P1.M2.T1.S3 MODIFICATION START =====
     // Notify form of change (now passes inputConfig for debounce control)
-    changeField(name, parsedValue, inputConfig);  // ADDED: inputConfig
+    changeField(name, parsedValue, inputConfig); // ADDED: inputConfig
     // ===== P1.M2.T1.S3 MODIFICATION END =====
   },
   [inputConfig.parser, providerConfig.parsers, changeField, name, inputConfig], // ADDED: inputConfig
@@ -330,7 +338,7 @@ const inputConfig = useMemo((): InputConfig => {
 // Adding it to dependency array is correct - we want new closure when config changes
 
 // PATTERN: How handleChange is used (Field.tsx line ~410)
-onChange: handleChange(field.onChange)
+onChange: handleChange(field.onChange);
 
 // This creates a closure that captures:
 // - name (field name)
@@ -529,6 +537,7 @@ EOF
 **10/10** - Maximum confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Single-line change with clear before/after
 - Exact file path and line number specified
 - No new code to write, only pass existing value

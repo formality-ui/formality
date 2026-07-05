@@ -24,17 +24,17 @@ interface FieldState {
 }
 
 // Consumer code
-const state: FieldState = { value: 'test', isTouched: false };
+const state: FieldState = { value: "test", isTouched: false };
 
 // ✅ SAFE: Adding optional property
 interface FieldState {
   value: unknown;
   isTouched: boolean;
-  disabled?: boolean;  // NEW - backward compatible
+  disabled?: boolean; // NEW - backward compatible
 }
 
 // Existing code still compiles - objects without 'disabled' are valid
-const state: FieldState = { value: 'test', isTouched: false }; // ✅ Still valid
+const state: FieldState = { value: "test", isTouched: false }; // ✅ Still valid
 ```
 
 **Type Compatibility Rule**: Type `A` is assignable to Type `B` if `B` has all required properties of `A` AND any additional properties in `B` are optional. This is known as "property widening" and is safe.
@@ -68,6 +68,7 @@ These changes require consumer code updates:
 Based on analysis of `/home/dustin/projects/formality/packages/core/src/types/`:
 
 #### FieldState Interface (state.ts:20-41)
+
 ```typescript
 export interface FieldState {
   value: unknown;
@@ -83,9 +84,10 @@ export interface FieldState {
 **Recommendation**: Adding `disabled?: boolean` to `FieldState` is **SAFE** and backward compatible.
 
 #### ConditionResult Interface (conditions.ts:137-167)
+
 ```typescript
 export interface ConditionResult {
-  disabled: boolean | undefined;  // Already has disabled concept
+  disabled: boolean | undefined; // Already has disabled concept
   visible: boolean | undefined;
   setValue: unknown | undefined;
   hasDisabledCondition: boolean;
@@ -107,15 +109,17 @@ export interface ConditionResult {
 #### Example Pattern from Formality
 
 **FieldConfig (config.ts:86-134)** - Input/Configuration:
+
 ```typescript
 export interface FieldConfig {
-  disabled?: boolean;  // ✅ Optional - user provides if needed
+  disabled?: boolean; // ✅ Optional - user provides if needed
   hidden?: boolean;
   // ... other config properties
 }
 ```
 
 **FieldState (state.ts:20-41)** - Runtime State:
+
 ```typescript
 export interface FieldState {
   value: unknown;
@@ -131,16 +135,17 @@ export interface FieldState {
 3. **Type Alignment**: Maintain consistent property names across Config → State flow
 
 **Example Consistent Pattern**:
+
 ```typescript
 // Config - what user declares
 interface FieldConfig {
-  disabled?: boolean;  // Static initial value
-  conditions?: ConditionDescriptor[];  // Dynamic evaluation rules
+  disabled?: boolean; // Static initial value
+  conditions?: ConditionDescriptor[]; // Dynamic evaluation rules
 }
 
 // State - what system computes
 interface FieldState {
-  disabled?: boolean;  // Resolved disabled state
+  disabled?: boolean; // Resolved disabled state
   // Derived from static disabled + condition evaluation
 }
 ```
@@ -151,15 +156,16 @@ interface FieldState {
 
 ### 4.1 Version Bump Rules (SemVer)
 
-| Change Type | Version Bump | Example |
-|------------|--------------|---------|
-| **Bug fix** (no API change) | Patch (Z) | 0.1.0 → 0.1.1 |
-| **Backward-compatible addition** | Minor (Y) | 0.1.0 → 0.2.0 |
-| **Breaking change** | Major (X) | 0.1.0 → 1.0.0 |
+| Change Type                      | Version Bump | Example       |
+| -------------------------------- | ------------ | ------------- |
+| **Bug fix** (no API change)      | Patch (Z)    | 0.1.0 → 0.1.1 |
+| **Backward-compatible addition** | Minor (Y)    | 0.1.0 → 0.2.0 |
+| **Breaking change**              | Major (X)    | 0.1.0 → 1.0.0 |
 
 ### 4.2 Current Formality Version
 
 From `/home/dustin/projects/formality/packages/core/CHANGELOG.md`:
+
 ```
 ## 0.1.0
 
@@ -177,11 +183,13 @@ From `/home/dustin/projects/formality/packages/core/CHANGELOG.md`:
 **Recommended**: **Minor version bump** (0.1.0 → 0.2.0)
 
 **Justification**:
+
 - ✅ Backward compatible (optional property)
 - ✅ Adds new functionality
 - ✅ Existing code continues to work unchanged
 
 **Changeset Entry Format**:
+
 ```markdown
 ---
 "@formality-js/core": minor
@@ -207,12 +215,15 @@ Added `disabled` property to `FieldState` interface for consistency with field c
 ### 5.2 Key TypeScript Principles
 
 **Structural Typing**:
+
 > TypeScript's type system is structural, not nominal. Types are compatible if their structure is compatible, regardless of their names.
 
 **Excess Property Checks**:
+
 > Object literals get special treatment and undergo excess property checking when assigned to variables with specific types.
 
 **Optional Properties**:
+
 > Optional properties are denoted with a `?` and can be omitted when creating objects of that type.
 
 ---
@@ -224,6 +235,7 @@ Added `disabled` property to `FieldState` interface for consistency with field c
 **File**: `/home/dustin/projects/formality/packages/core/src/types/state.ts`
 
 **Current Interface** (lines 20-41):
+
 ```typescript
 export interface FieldState {
   value: unknown;
@@ -237,6 +249,7 @@ export interface FieldState {
 ```
 
 **Proposed Change**:
+
 ```typescript
 export interface FieldState {
   value: unknown;
@@ -267,31 +280,35 @@ export interface FieldState {
 ### 6.3 Verification Steps
 
 **1. Type Safety Verification**:
+
 ```typescript
 // Test: Existing code without disabled property should still work
 const oldState: FieldState = {
-  value: 'test',
-  isTouched: false,
-  isDirty: false,
-  isValidating: false,
-  invalid: false
-}; // ✅ Should compile
-
-// Test: New code can include disabled
-const newState: FieldState = {
-  value: 'test',
+  value: "test",
   isTouched: false,
   isDirty: false,
   isValidating: false,
   invalid: false,
-  disabled: true
+}; // ✅ Should compile
+
+// Test: New code can include disabled
+const newState: FieldState = {
+  value: "test",
+  isTouched: false,
+  isDirty: false,
+  isValidating: false,
+  invalid: false,
+  disabled: true,
 }; // ✅ Should compile
 ```
 
 **2. Runtime Behavior**:
+
 ```typescript
 // Test: Optional property undefined by default
-const state: FieldState = { /* ... */ };
+const state: FieldState = {
+  /* ... */
+};
 console.log(state.disabled); // undefined (not false)
 ```
 
@@ -320,12 +337,12 @@ console.log(state.disabled); // undefined (not false)
 
 When adding properties to exported interfaces, ask:
 
-| Question | Answer → Action |
-|----------|-----------------|
-| Is the property optional? | Yes → Minor version, No → Major version |
-| Does existing code break? | Yes → Major version, No → Minor version |
+| Question                    | Answer → Action                         |
+| --------------------------- | --------------------------------------- |
+| Is the property optional?   | Yes → Minor version, No → Major version |
+| Does existing code break?   | Yes → Major version, No → Minor version |
 | Is type narrowing involved? | Yes → Major version, No → Minor version |
-| Is property being removed? | Yes → Major version |
+| Is property being removed?  | Yes → Major version                     |
 
 ---
 
@@ -366,12 +383,12 @@ FieldState:     [ADD] disabled?: boolean    (runtime state) ← CURRENT GAP
 
 ```typescript
 // test/types/field-state.test.ts
-import type { FieldState } from '@formality-js/core';
+import type { FieldState } from "@formality-js/core";
 
-describe('FieldState type compatibility', () => {
-  test('accepts objects without disabled property', () => {
+describe("FieldState type compatibility", () => {
+  test("accepts objects without disabled property", () => {
     const state: FieldState = {
-      value: 'test',
+      value: "test",
       isTouched: false,
       isDirty: false,
       isValidating: false,
@@ -380,9 +397,9 @@ describe('FieldState type compatibility', () => {
     expect(state.disabled).toBeUndefined();
   });
 
-  test('accepts objects with disabled property', () => {
+  test("accepts objects with disabled property", () => {
     const state: FieldState = {
-      value: 'test',
+      value: "test",
       isTouched: false,
       isDirty: false,
       isValidating: false,
@@ -398,12 +415,12 @@ describe('FieldState type compatibility', () => {
 
 ```typescript
 // test/integration/disabled-state.test.ts
-describe('FieldState disabled integration', () => {
-  test('disabled state propagates from config to state', () => {
+describe("FieldState disabled integration", () => {
+  test("disabled state propagates from config to state", () => {
     // Test implementation
   });
 
-  test('disabled state evaluates from conditions', () => {
+  test("disabled state evaluates from conditions", () => {
     // Test implementation
   });
 });

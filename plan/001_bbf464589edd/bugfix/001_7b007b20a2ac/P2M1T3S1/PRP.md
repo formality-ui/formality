@@ -13,6 +13,7 @@
 **Feature Goal**: Create comprehensive integration tests that verify JSX `disabled` prop has the highest priority for disabled state, overriding ALL other sources (field config and conditions) simultaneously.
 
 **Deliverable**:
+
 1. Integration tests in `Field.test.tsx` for JSX disabled prop priority
 2. Test cases covering all combinations of conflicting disabled sources
 3. Test cases for dynamic prop changes while all sources are active
@@ -20,6 +21,7 @@
 5. User interaction tests verifying disabled fields cannot be interacted with
 
 **Success Definition**:
+
 - JSX `disabled={true}` prop forces field disabled regardless of config (`disabled: false`) and conditions (`disabled: false`)
 - JSX `disabled={false}` prop forces field enabled regardless of config (`disabled: true`) and conditions (`disabled: true`)
 - Dynamic prop changes immediately update field state while all other sources remain active
@@ -36,6 +38,7 @@
 **Use Case**: Developers need to override disabled state at render time using JSX props, regardless of form configuration or conditional logic.
 
 **User Journey**:
+
 1. Developer has field with `disabled: false` in config
 2. Developer has conditions that would set `disabled: false`
 3. Developer renders `<Field name="field" disabled={true} />` to force disable
@@ -44,6 +47,7 @@
 6. Field becomes enabled immediately
 
 **Pain Points Addressed**:
+
 - Developers need runtime control over disabled state
 - JSX props should provide absolute override capability
 - Priority must be predictable and documented
@@ -85,6 +89,7 @@ Create comprehensive integration tests for JSX disabled prop priority in the Fie
 ### Test Scenarios to Add
 
 **Scenario 1: JSX disabled={true} overrides ALL sources with disabled={false}**
+
 ```typescript
 // Given: Field with JSX disabled={true}, config disabled: false, conditions disabled: false
 const config = {
@@ -105,6 +110,7 @@ expect(screen.getByTestId("field")).toBeDisabled();
 ```
 
 **Scenario 2: JSX disabled={false} overrides ALL sources with disabled={true}**
+
 ```typescript
 // Given: Field with JSX disabled={false}, config disabled: true, conditions disabled: true
 const config = {
@@ -125,6 +131,7 @@ expect(screen.getByTestId("field")).not.toBeDisabled();
 ```
 
 **Scenario 3: Dynamic prop change while all sources active**
+
 ```typescript
 // Given: Field with JSX disabled={true}, all other sources disabled={false}
 const { rerender } = render(
@@ -148,6 +155,7 @@ expect(screen.getByTestId("field")).not.toBeDisabled();
 ```
 
 **Scenario 4: User cannot interact with disabled field**
+
 ```typescript
 // Given: Field is disabled via JSX prop
 const user = userEvent.setup();
@@ -184,6 +192,7 @@ expect(screen.getByTestId("field")).toHaveValue("");
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file location for tests (`Field.test.tsx`)
 - Complete test patterns from existing tests
 - All dependencies on previous work items (P2.M1.T1, P2.M1.T2)
@@ -375,6 +384,7 @@ packages/react/src/__tests__/
 **No new data models needed** - this PRP is purely testing existing functionality.
 
 **Test Data Structure**:
+
 ```typescript
 // Form config with all disabled sources
 const config: FormFieldsConfig = {
@@ -880,11 +890,13 @@ pnpm test --filter @formality-ui/react --coverage
 ### From P2.M1.T1.S1-S3 (Hook Implementation)
 
 The P2.M1.T1 PRPs specify that:
+
 1. `useFieldDisabledState` hook implements priority logic: prop > config > conditions > group > false
 2. Hook uses two-pass evaluation to prevent circular dependencies
 3. Hook returns boolean for disabled state
 
 **This PRP's Contract**:
+
 1. Tests verify JSX prop has highest priority at Field component level
 2. Tests verify ALL sources active simultaneously (not just 1-2 sources)
 3. Tests verify DOM state and user interaction
@@ -895,11 +907,13 @@ The P2.M1.T1 PRPs specify that:
 ### From P2.M1.T2.S1 (Type Verification)
 
 The P2.M1.T2.S1 PRP specifies that:
+
 1. `FieldState.disabled?: boolean` property exists
 2. `FieldStateInput.disabled?: boolean` property exists
 3. Type consistency across all field state types
 
 **This PRP's Contract**:
+
 1. Tests verify disabled state flows correctly through Field component
 2. Tests verify DOM reflects disabled state accurately
 3. No type errors when using disabled prop in tests
@@ -913,6 +927,7 @@ The P2.M1.T2.S1 PRP specifies that:
 **10/10** - Maximum confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Well-scoped testing task (no code changes, only tests)
 - Clear file location and exact placement for new tests
 - Comprehensive test patterns from existing tests to follow

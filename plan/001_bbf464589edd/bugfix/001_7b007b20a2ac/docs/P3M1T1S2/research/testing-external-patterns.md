@@ -16,6 +16,7 @@ This document compiles external best practices and patterns for testing React co
 4. React Strict Mode considerations
 
 **Note**: Web search services are currently unavailable, so this research is based on:
+
 - Analysis of existing Formality codebase patterns
 - Industry-standard React testing practices
 - Official documentation patterns
@@ -57,6 +58,7 @@ describe('component cleanup on unmount', () => {
 ```
 
 **Key Points**:
+
 - `unmount()` is returned from both `render()` and `renderHook()`
 - Cleanup functions should be called exactly once per effect run
 - Test both before and after unmount states
@@ -135,19 +137,25 @@ describe('subscription cleanup', () => {
 **From Formality codebase** (`/home/dustin/projects/formality/packages/react/src/__tests__/useSubscriptions.test.tsx`):
 
 ```typescript
-describe('useSubscriptions unmount behavior', () => {
-  it('should cleanup all subscriptions on unmount', () => {
+describe("useSubscriptions unmount behavior", () => {
+  it("should cleanup all subscriptions on unmount", () => {
     const mockContext = createMockContext();
     const wrapper = createWrapper(mockContext);
 
     const { unmount } = renderHook(
-      () => useSubscriptions('field1', ['field2', 'field3']),
-      { wrapper }
+      () => useSubscriptions("field1", ["field2", "field3"]),
+      { wrapper },
     );
 
     // Verify subscriptions added
-    expect(mockContext.addSubscription).toHaveBeenCalledWith('field2', 'field1');
-    expect(mockContext.addSubscription).toHaveBeenCalledWith('field3', 'field1');
+    expect(mockContext.addSubscription).toHaveBeenCalledWith(
+      "field2",
+      "field1",
+    );
+    expect(mockContext.addSubscription).toHaveBeenCalledWith(
+      "field3",
+      "field1",
+    );
 
     // Clear calls to check cleanup separately
     mockContext.addSubscription.mockClear();
@@ -157,8 +165,14 @@ describe('useSubscriptions unmount behavior', () => {
     unmount();
 
     // Verify all subscriptions removed
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field2', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field3', 'field1');
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field2",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field3",
+      "field1",
+    );
   });
 });
 ```
@@ -251,37 +265,49 @@ describe('subscription tracking', () => {
 **From Formality codebase** (`/home/dustin/projects/formality/packages/react/src/__tests__/useSubscriptions.test.tsx`):
 
 ```typescript
-describe('per-effect cleanup', () => {
-  it('should only cleanup subscriptions from current effect run', () => {
+describe("per-effect cleanup", () => {
+  it("should only cleanup subscriptions from current effect run", () => {
     const mockContext = createMockContext();
     const wrapper = createWrapper(mockContext);
 
     const { rerender } = renderHook(
-      ({ subscriptions }) => useSubscriptions('field1', subscriptions),
+      ({ subscriptions }) => useSubscriptions("field1", subscriptions),
       {
         wrapper,
-        initialProps: { subscriptions: ['field2'] as string[] },
-      }
+        initialProps: { subscriptions: ["field2"] as string[] },
+      },
     );
 
     // Initial mount: field1 subscribes to field2
-    expect(mockContext.addSubscription).toHaveBeenCalledWith('field2', 'field1');
+    expect(mockContext.addSubscription).toHaveBeenCalledWith(
+      "field2",
+      "field1",
+    );
 
     // Clear calls to check cleanup separately
     mockContext.addSubscription.mockClear();
     mockContext.removeSubscription.mockClear();
 
     // Rerender with different subscriptions
-    rerender({ subscriptions: ['field3'] });
+    rerender({ subscriptions: ["field3"] });
 
     // field1 subscribes to field3
-    expect(mockContext.addSubscription).toHaveBeenCalledWith('field3', 'field1');
+    expect(mockContext.addSubscription).toHaveBeenCalledWith(
+      "field3",
+      "field1",
+    );
 
     // Cleanup from first effect run should only remove field2 subscription
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field2', 'field1');
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field2",
+      "field1",
+    );
 
     // field3 should still be subscribed (not cleaned up by previous cleanup)
-    expect(mockContext.removeSubscription).not.toHaveBeenCalledWith('field3', 'field1');
+    expect(mockContext.removeSubscription).not.toHaveBeenCalledWith(
+      "field3",
+      "field1",
+    );
   });
 });
 ```
@@ -291,17 +317,17 @@ describe('per-effect cleanup', () => {
 **Pattern**: Testing rapid subscription changes
 
 ```typescript
-describe('rapid subscription changes', () => {
-  it('should handle rapid subscription changes without memory leaks', async () => {
+describe("rapid subscription changes", () => {
+  it("should handle rapid subscription changes without memory leaks", async () => {
     const mockContext = createMockContext();
     const wrapper = createWrapper(mockContext);
 
     const { rerender, unmount } = renderHook(
-      ({ subscriptions }) => useSubscriptions('field1', subscriptions),
+      ({ subscriptions }) => useSubscriptions("field1", subscriptions),
       {
         wrapper,
-        initialProps: { subscriptions: ['field2'] as string[] },
-      }
+        initialProps: { subscriptions: ["field2"] as string[] },
+      },
     );
 
     // Clear calls to track changes
@@ -309,18 +335,30 @@ describe('rapid subscription changes', () => {
     mockContext.removeSubscription.mockClear();
 
     // Simulate rapid subscription changes
-    rerender({ subscriptions: ['field3'] });
-    rerender({ subscriptions: ['field4'] });
-    rerender({ subscriptions: ['field5'] });
+    rerender({ subscriptions: ["field3"] });
+    rerender({ subscriptions: ["field4"] });
+    rerender({ subscriptions: ["field5"] });
 
     // Unmount to trigger final cleanup
     unmount();
 
     // Each cleanup should only remove its own run's subscriptions
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field2', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field3', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field4', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field5', 'field1');
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field2",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field3",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field4",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field5",
+      "field1",
+    );
 
     // Verify counts match
     expect(mockContext.removeSubscription).toHaveBeenCalledTimes(4);
@@ -378,20 +416,20 @@ describe('Map cleanup verification', () => {
 **Pattern**: Spying on `console.error` and `console.warn`
 
 ```typescript
-import { vi, afterEach, expect, it } from 'vitest';
+import { vi, afterEach, expect, it } from "vitest";
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('console warning testing', () => {
-  it('should log warning messages', () => {
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+describe("console warning testing", () => {
+  it("should log warning messages", () => {
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     // Your code that calls console.warn
-    console.warn('Test warning');
+    console.warn("Test warning");
 
-    expect(consoleSpy).toHaveBeenCalledWith('Test warning');
+    expect(consoleSpy).toHaveBeenCalledWith("Test warning");
 
     consoleSpy.mockRestore();
   });
@@ -442,27 +480,29 @@ describe('memory leak warnings', () => {
 **From PRP** (`/home/dustin/projects/formality/plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M1T1S2/PRP.md`):
 
 ```typescript
-describe('development logging', () => {
-  it('should log subscription lifecycle in development', () => {
+describe("development logging", () => {
+  it("should log subscription lifecycle in development", () => {
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    process.env.NODE_ENV = "development";
 
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => {});
 
     const mockContext = createMockContext();
     const wrapper = createWrapper(mockContext);
 
     const { unmount } = renderHook(
-      () => useSubscriptions('field1', ['field2']),
-      { wrapper }
+      () => useSubscriptions("field1", ["field2"]),
+      { wrapper },
     );
 
     // Verify add logged
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[useSubscriptions]')
+      expect.stringContaining("[useSubscriptions]"),
     );
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('field1 -> field2')
+      expect.stringContaining("field1 -> field2"),
     );
 
     consoleWarnSpy.mockClear();
@@ -471,10 +511,10 @@ describe('development logging', () => {
 
     // Verify remove logged
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[useSubscriptions]')
+      expect.stringContaining("[useSubscriptions]"),
     );
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Cleanup')
+      expect.stringContaining("Cleanup"),
     );
 
     process.env.NODE_ENV = originalEnv;
@@ -490,6 +530,7 @@ describe('development logging', () => {
 ### 4.1 Understanding Strict Mode Double-Invocation
 
 **What happens**:
+
 - In React 18+, Strict Mode intentionally mounts, unmounts, and remounts components
 - Effects run twice in development mode
 - Cleanup functions are called twice
@@ -669,28 +710,52 @@ describe('LIFO cleanup ordering', () => {
 **From Formality codebase**:
 
 ```typescript
-describe('LIFO cleanup', () => {
-  it('should use LIFO cleanup ordering', () => {
+describe("LIFO cleanup", () => {
+  it("should use LIFO cleanup ordering", () => {
     const wrapper = createWrapper(mockContext);
 
     const { unmount } = renderHook(
-      () => useSubscriptions('field1', ['field2', 'field3', 'field4']),
-      { wrapper }
+      () => useSubscriptions("field1", ["field2", "field3", "field4"]),
+      { wrapper },
     );
 
     // Subscriptions added in order: field2, field3, field4
-    expect(mockContext.addSubscription).toHaveBeenNthCalledWith(1, 'field2', 'field1');
-    expect(mockContext.addSubscription).toHaveBeenNthCalledWith(2, 'field3', 'field1');
-    expect(mockContext.addSubscription).toHaveBeenNthCalledWith(3, 'field4', 'field1');
+    expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+      1,
+      "field2",
+      "field1",
+    );
+    expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+      2,
+      "field3",
+      "field1",
+    );
+    expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+      3,
+      "field4",
+      "field1",
+    );
 
     mockContext.removeSubscription.mockClear();
 
     unmount();
 
     // LIFO cleanup: field4, field3, field2 (reverse order)
-    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(1, 'field4', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(2, 'field3', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(3, 'field2', 'field1');
+    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+      1,
+      "field4",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+      2,
+      "field3",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+      3,
+      "field2",
+      "field1",
+    );
   });
 });
 ```
@@ -702,6 +767,7 @@ describe('LIFO cleanup', () => {
 ### 5.1 Unmount Testing Best Practices
 
 1. **Always test cleanup functions**:
+
    ```typescript
    const { unmount } = render(<Component />);
    // ... test component behavior
@@ -710,6 +776,7 @@ describe('LIFO cleanup', () => {
    ```
 
 2. **Use `renderHook()` for hook testing**:
+
    ```typescript
    const { unmount } = renderHook(() => useCustomHook());
    // ... test hook behavior
@@ -729,6 +796,7 @@ describe('LIFO cleanup', () => {
 ### 5.2 Memory Leak Testing Best Practices
 
 1. **Track subscription counts**:
+
    ```typescript
    let count = 0;
    const add = () => count++;
@@ -737,6 +805,7 @@ describe('LIFO cleanup', () => {
    ```
 
 2. **Use per-effect tracking**:
+
    ```typescript
    const runIdRef = useRef(0);
    const runMapRef = useRef(new Map());
@@ -744,6 +813,7 @@ describe('LIFO cleanup', () => {
    ```
 
 3. **Test rapid changes**:
+
    ```typescript
    for (let i = 0; i < 10; i++) {
      rerender({ subscriptions: [`field${i}`] });
@@ -753,7 +823,7 @@ describe('LIFO cleanup', () => {
 
 4. **Verify Map cleanup**:
    ```typescript
-   const mapDeleteSpy = vi.spyOn(Map.prototype, 'delete');
+   const mapDeleteSpy = vi.spyOn(Map.prototype, "delete");
    // ... unmount
    expect(mapDeleteSpy).toHaveBeenCalled();
    ```
@@ -761,17 +831,19 @@ describe('LIFO cleanup', () => {
 ### 5.3 Console Testing Best Practices
 
 1. **Spy on console methods**:
+
    ```typescript
-   const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+   const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
    // ... trigger warning
-   expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('warning'));
+   expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("warning"));
    consoleSpy.mockRestore();
    ```
 
 2. **Test in development mode only**:
+
    ```typescript
    const originalEnv = process.env.NODE_ENV;
-   process.env.NODE_ENV = 'development';
+   process.env.NODE_ENV = "development";
    // ... test logging
    process.env.NODE_ENV = originalEnv;
    ```
@@ -779,13 +851,14 @@ describe('LIFO cleanup', () => {
 3. **Use string matching for flexible assertions**:
    ```typescript
    expect(consoleSpy).toHaveBeenCalledWith(
-     expect.stringContaining('[useSubscriptions]')
+     expect.stringContaining("[useSubscriptions]"),
    );
    ```
 
 ### 5.4 Strict Mode Testing Best Practices
 
 1. **Always test in Strict Mode**:
+
    ```typescript
    <StrictMode>
      <Component />
@@ -793,6 +866,7 @@ describe('LIFO cleanup', () => {
    ```
 
 2. **Make cleanup idempotent**:
+
    ```typescript
    return () => {
      if (!cleanedUpRef.current) {
@@ -803,6 +877,7 @@ describe('LIFO cleanup', () => {
    ```
 
 3. **Verify LIFO ordering**:
+
    ```typescript
    // Setup: [1, 2, 3]
    // Cleanup: [-3, -2, -1] (reverse)
@@ -842,7 +917,8 @@ export function useSubscriptions(
     });
 
     return () => {
-      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+      const thisRunSubscriptions =
+        runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
         // LIFO cleanup
@@ -884,34 +960,46 @@ const createWrapper = (contextValue: ReturnType<typeof createMockContext>) => {
 ### 6.3 Cleanup Verification Pattern
 
 ```typescript
-describe('per-effect cleanup', () => {
-  it('should only cleanup subscriptions from current effect run', () => {
+describe("per-effect cleanup", () => {
+  it("should only cleanup subscriptions from current effect run", () => {
     const wrapper = createWrapper(mockContext);
 
     const { rerender } = renderHook(
-      ({ subscriptions }) => useSubscriptions('field1', subscriptions),
+      ({ subscriptions }) => useSubscriptions("field1", subscriptions),
       {
         wrapper,
-        initialProps: { subscriptions: ['field2'] as string[] },
-      }
+        initialProps: { subscriptions: ["field2"] as string[] },
+      },
     );
 
     // Initial mount
-    expect(mockContext.addSubscription).toHaveBeenCalledWith('field2', 'field1');
+    expect(mockContext.addSubscription).toHaveBeenCalledWith(
+      "field2",
+      "field1",
+    );
 
     // Clear calls
     mockContext.addSubscription.mockClear();
     mockContext.removeSubscription.mockClear();
 
     // Rerender
-    rerender({ subscriptions: ['field3'] });
+    rerender({ subscriptions: ["field3"] });
 
     // Verify new subscription added
-    expect(mockContext.addSubscription).toHaveBeenCalledWith('field3', 'field1');
+    expect(mockContext.addSubscription).toHaveBeenCalledWith(
+      "field3",
+      "field1",
+    );
 
     // Verify old cleanup only removes old subscription
-    expect(mockContext.removeSubscription).toHaveBeenCalledWith('field2', 'field1');
-    expect(mockContext.removeSubscription).not.toHaveBeenCalledWith('field3', 'field1');
+    expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+      "field2",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).not.toHaveBeenCalledWith(
+      "field3",
+      "field1",
+    );
   });
 });
 ```
@@ -975,46 +1063,44 @@ Based on this research, the following patterns should be incorporated into the P
 ### 8.1 Add Console Logging Tests
 
 ```typescript
-describe('development logging', () => {
+describe("development logging", () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'development';
+    process.env.NODE_ENV = "development";
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = 'test';
+    process.env.NODE_ENV = "test";
     vi.restoreAllMocks();
   });
 
-  it('should log subscription additions', () => {
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it("should log subscription additions", () => {
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { unmount } = renderHook(
-      () => useSubscriptions('field1', ['field2']),
-      { wrapper }
+      () => useSubscriptions("field1", ["field2"]),
+      { wrapper },
     );
 
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[useSubscriptions]')
+      expect.stringContaining("[useSubscriptions]"),
     );
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('field1 -> field2')
+      expect.stringContaining("field1 -> field2"),
     );
 
     unmount();
   });
 
-  it('should log subscription removals', () => {
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it("should log subscription removals", () => {
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { unmount } = renderHook(
-      () => useSubscriptions('field1', ['field2']),
-      { wrapper }
+      () => useSubscriptions("field1", ["field2"]),
+      { wrapper },
     );
 
     consoleSpy.mockClear();
     unmount();
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Cleanup')
-    );
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Cleanup"));
   });
 });
 ```
@@ -1022,26 +1108,28 @@ describe('development logging', () => {
 ### 8.2 Add Double-Cleanup Detection Tests
 
 ```typescript
-describe('double-cleanup detection', () => {
-  it('should warn when attempting to remove non-existent subscription', () => {
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+describe("double-cleanup detection", () => {
+  it("should warn when attempting to remove non-existent subscription", () => {
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     // Mock removeSubscription to detect double-cleanup
     mockContext.removeSubscription.mockImplementation((target, subscriber) => {
       if (!hasSubscription(target, subscriber)) {
-        console.warn(`[Formality] Double-cleanup detected: ${subscriber} -> ${target}`);
+        console.warn(
+          `[Formality] Double-cleanup detected: ${subscriber} -> ${target}`,
+        );
       }
     });
 
     const { unmount } = renderHook(
-      () => useSubscriptions('field1', ['field2']),
-      { wrapper }
+      () => useSubscriptions("field1", ["field2"]),
+      { wrapper },
     );
 
     unmount();
 
     expect(consoleSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining('Double-cleanup')
+      expect.stringContaining("Double-cleanup"),
     );
   });
 });
@@ -1050,11 +1138,11 @@ describe('double-cleanup detection', () => {
 ### 8.3 Add LIFO Ordering Verification Tests
 
 ```typescript
-describe('LIFO cleanup ordering', () => {
-  it('should cleanup subscriptions in reverse order', () => {
+describe("LIFO cleanup ordering", () => {
+  it("should cleanup subscriptions in reverse order", () => {
     const { unmount } = renderHook(
-      () => useSubscriptions('field1', ['field2', 'field3', 'field4']),
-      { wrapper }
+      () => useSubscriptions("field1", ["field2", "field3", "field4"]),
+      { wrapper },
     );
 
     mockContext.removeSubscription.mockClear();
@@ -1062,9 +1150,21 @@ describe('LIFO cleanup ordering', () => {
     unmount();
 
     // Verify LIFO ordering
-    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(1, 'field4', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(2, 'field3', 'field1');
-    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(3, 'field2', 'field1');
+    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+      1,
+      "field4",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+      2,
+      "field3",
+      "field1",
+    );
+    expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+      3,
+      "field2",
+      "field1",
+    );
   });
 });
 ```

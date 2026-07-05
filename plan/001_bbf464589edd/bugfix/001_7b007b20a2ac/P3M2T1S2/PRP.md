@@ -14,8 +14,9 @@
 **Deliverable**: Enhanced type guard function with explicit null/undefined checks, comprehensive JSDoc documentation, and complete test coverage for edge cases.
 
 **Success Definition**:
+
 - The `isSafeNumber` type guard explicitly rejects `null` and `undefined` values
-- All arithmetic operations (+, -, *, /, %) return `undefined` when operands are null/undefined
+- All arithmetic operations (+, -, \*, /, %) return `undefined` when operands are null/undefined
 - JSDoc documentation clearly specifies null/undefined behavior
 - All edge cases (e.g., `5 + null`, `undefined - 5`, `null * null`) are tested
 - Development warnings include specific messages for null/undefined operands
@@ -28,6 +29,7 @@
 **Use Case**: A form field value is initially `null` or `undefined` (e.g., optional field, unsubmitted form) and is used in arithmetic expressions like `discount + 10` or `price * quantity`.
 
 **User Journey**:
+
 1. User creates a form with optional numeric fields
 2. Field values start as `null` or `undefined`
 3. User writes expression: `total = price * quantity + tax`
@@ -35,6 +37,7 @@
 5. Result is `undefined` (not NaN, not silent 0), which can be handled downstream
 
 **Pain Points Addressed**:
+
 - **Silent Zero Problem**: JavaScript's default behavior treats `null` as `0`, hiding bugs (e.g., `100 - null = 100`)
 - **NaN Cascade**: `undefined` produces `NaN` which spreads through calculations
 - **Unclear Behavior**: Without explicit documentation, users don't know what happens with null/undefined
@@ -54,23 +57,24 @@
 **After**: The type guard will have explicit checks for null/undefined, comprehensive JSDoc documentation, and development warnings that specifically mention null/undefined.
 
 **Expression Behavior Examples**:
+
 ```javascript
 // All return undefined (not NaN, not 0)
-evaluate("5 + null", {})      // → undefined
-evaluate("null + 5", {})      // → undefined
-evaluate("undefined - 5", {}) // → undefined
-evaluate("10 * null", {})     // → undefined
-evaluate("null / 2", {})      // → undefined
-evaluate("null % 3", {})      // → undefined
-evaluate("null + null", {})   // → undefined
-evaluate("undefined * undefined", {}) // → undefined
+evaluate("5 + null", {}); // → undefined
+evaluate("null + 5", {}); // → undefined
+evaluate("undefined - 5", {}); // → undefined
+evaluate("10 * null", {}); // → undefined
+evaluate("null / 2", {}); // → undefined
+evaluate("null % 3", {}); // → undefined
+evaluate("null + null", {}); // → undefined
+evaluate("undefined * undefined", {}); // → undefined
 
 // Valid numbers still work
-evaluate("5 + 3", {})         // → 8
-evaluate("10 - 4", {})        // → 6
+evaluate("5 + 3", {}); // → 8
+evaluate("10 - 4", {}); // → 6
 
 // String concatenation still works (not affected)
-evaluate('"text" + 5', {})   // → "text5"
+evaluate('"text" + 5', {}); // → "text5"
 ```
 
 ### Success Criteria
@@ -91,6 +95,7 @@ evaluate('"text" + 5', {})   // → "text5"
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file paths and line numbers for all modifications
 - Complete existing code snippets showing current implementation
 - Exact patterns to follow for JSDoc, testing, and error messages
@@ -211,14 +216,14 @@ packages/core/src/
 if (process.env.NODE_ENV !== "production") {
   console.warn(
     `[Formality Expression] Type error: ` +
-    `Invalid operands for +: ` +
-    `left=${typeof leftValue}, right=${typeof rightValue}`
+      `Invalid operands for +: ` +
+      `left=${typeof leftValue}, right=${typeof rightValue}`,
   );
 }
 
 // CRITICAL: typeof null returns 'object', not 'null' (JavaScript quirk)
-typeof null      // → 'object'
-typeof undefined // → 'undefined'
+typeof null; // → 'object'
+typeof undefined; // → 'undefined'
 
 // CRITICAL: jsep library parses null as an Identifier, not a Literal
 // So 'null + 5' is parsed as two identifiers, not null literal + 5
@@ -291,9 +296,9 @@ Task 5: VERIFY all existing tests pass
 // PATTERN 1: Enhanced isSafeNumber type guard
 // CURRENT IMPLEMENTATION (lines 31-38):
 function isSafeNumber(value: unknown): value is number {
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value);
+  return (
+    typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)
+  );
 }
 
 // ENHANCED IMPLEMENTATION (add explicit null/undefined checks):
@@ -322,24 +327,24 @@ function isSafeNumber(value: unknown): value is number {
     return false;
   }
   // Then check for valid finite number
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value);
+  return (
+    typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)
+  );
 }
 
 // PATTERN 2: Enhanced warning message (existing pattern at lines 132-137)
 // CURRENT:
 console.warn(
   `[Formality Expression] Type error: ` +
-  `Invalid operands for +: ` +
-  `left=${typeof leftValue}, right=${typeof rightValue}`
+    `Invalid operands for +: ` +
+    `left=${typeof leftValue}, right=${typeof rightValue}`,
 );
 
 // ENHANCED (explicitly mention null/undefined):
 console.warn(
   `[Formality Expression] Type error: ` +
-  `Invalid operands for + (null/undefined not allowed): ` +
-  `left=${typeof leftValue}, right=${typeof rightValue}`
+    `Invalid operands for + (null/undefined not allowed): ` +
+    `left=${typeof leftValue}, right=${typeof rightValue}`,
 );
 
 // PATTERN 3: Test structure (following existing pattern at lines 1023-1165)
@@ -347,23 +352,23 @@ describe("Null/Undefined Handling", () => {
   describe("Addition (+)", () => {
     it("should return undefined for null + number", () => {
       // Note: jsep parses 'null' as identifier, so provide it in context
-      expect(evaluate('null + 1', { null: null })).toBeUndefined();
+      expect(evaluate("null + 1", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for undefined + number", () => {
-      expect(evaluate('undefined + 1', { undefined })).toBeUndefined();
+      expect(evaluate("undefined + 1", { undefined })).toBeUndefined();
     });
 
     it("should return undefined for null + null", () => {
-      expect(evaluate('null + null', { null: null })).toBeUndefined();
+      expect(evaluate("null + null", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for undefined + undefined", () => {
-      expect(evaluate('undefined + undefined', { undefined })).toBeUndefined();
+      expect(evaluate("undefined + undefined", { undefined })).toBeUndefined();
     });
 
     it("should work with valid numbers (regression test)", () => {
-      expect(evaluate('5 + 3', {})).toBe(8);
+      expect(evaluate("5 + 3", {})).toBe(8);
     });
   });
 
@@ -565,10 +570,10 @@ When testing expressions with `null` or `undefined`, remember that jsep parses t
 
 ```typescript
 // CORRECT: Provide null/undefined in context
-evaluate('null + 5', { null: null })
+evaluate("null + 5", { null: null });
 
 // INCORRECT: This won't work as expected
-evaluate('null + 5', {})  // 'null' is undefined in context, but we want to test the literal null
+evaluate("null + 5", {}); // 'null' is undefined in context, but we want to test the literal null
 ```
 
 ---
@@ -578,6 +583,7 @@ evaluate('null + 5', {})  // 'null' is undefined in context, but we want to test
 **8/10** for one-pass implementation success
 
 **Reasoning**:
+
 - ✅ Clear, specific implementation target (single function enhancement)
 - ✅ Comprehensive existing context (exact file paths, line numbers, patterns)
 - ✅ Well-defined success criteria with testable outcomes

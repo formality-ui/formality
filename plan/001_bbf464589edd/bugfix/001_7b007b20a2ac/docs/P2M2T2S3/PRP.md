@@ -14,12 +14,14 @@
 **Feature Goal**: Add React integration tests that verify end-to-end behavior of multi-field `isDisabled` conditions in real Form and Field components, ensuring the disabled state updates correctly when field states change.
 
 **Deliverable**:
+
 1. Integration tests in `packages/react/src/__tests__/Field.test.tsx` for multi-field isDisabled conditions
 2. Tests that verify mixed matcher scenarios work in actual React components
 3. Tests that use userEvent and waitFor for async state updates
 4. Tests that verify DOM elements have correct disabled state
 
 **Success Definition**:
+
 - Integration tests verify that multi-field isDisabled conditions work correctly in React components
 - Tests confirm that disabled state updates correctly when source field disabled states change
 - Tests use proper async testing patterns (userEvent, waitFor)
@@ -34,12 +36,14 @@
 **Use Case**: Enable conditional field disabled state based on multiple other fields' disabled states using the `isDisabled` matcher with object `when` conditions.
 
 **User Journey**:
+
 1. Developer defines a form with multiple source fields
 2. A target field has a condition checking if both source fields are disabled using object `when` with top-level `isDisabled: true`
 3. When source fields become disabled (via config, JSX prop, or conditions), the target field automatically becomes disabled
 4. The disabled state updates reactively as source field states change
 
 **Pain Points Addressed**:
+
 - Integration tests verify that multi-field isDisabled conditions work end-to-end
 - Developers have confidence that the feature works in real React components
 - Edge cases like async state updates are covered by tests
@@ -63,17 +67,20 @@ React integration tests for multi-field isDisabled conditions with mixed matcher
 ### Current State
 
 **Existing Tests** (Field.test.tsx):
+
 - Lines 869-911: "should use AND logic for multi-field when conditions" - Tests pure value matchers with multi-field conditions
 - Lines 913-955: Skipped tests for `isDisabled` matcher (known limitation documented)
 - Lines 1014-1175: "two-field isDisabled conditions" - Skipped tests documenting known limitation with config-level disabled propagation
 
 **Known Limitation** (documented in skipped tests at lines 913-1175):
+
 - Config-level disabled states are not included in fieldStates used for condition evaluation
 - JSX prop disabled states are not propagated to fieldStates
 - The skipped tests document expected behavior when this limitation is resolved
 
 **New Tests to Add**:
 This PRP adds tests for the **mixed matcher** scenarios that ARE currently working:
+
 1. Mixed matchers with value and state matchers combined
 2. Only state matcher fields checked for disabled condition
 3. Async state updates when field disabled states change
@@ -95,6 +102,7 @@ This PRP adds tests for the **mixed matcher** scenarios that ARE currently worki
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact test file location and line numbers for insertion
 - Complete test fixture implementations (TestInput, TestSwitch, testInputs)
 - Test patterns to follow from existing tests
@@ -293,6 +301,7 @@ packages/react/src/__tests__/
 **No new data models needed** - React components and types already exist.
 
 **Existing Types Used**:
+
 ```typescript
 // From @formality-ui/core
 import type { InputConfig, FormFieldsConfig } from "@formality-ui/core";
@@ -300,8 +309,8 @@ import type { InputConfig, FormFieldsConfig } from "@formality-ui/core";
 // FormFieldsConfig - Form field configuration
 interface FormFieldsConfig {
   [fieldName: string]: {
-    type: string;                    // Input type (textField, switch, etc.)
-    disabled?: boolean;              // Config-level disabled
+    type: string; // Input type (textField, switch, etc.)
+    disabled?: boolean; // Config-level disabled
     conditions?: ConditionDescriptor[]; // Field conditions
   };
 }
@@ -309,18 +318,18 @@ interface FormFieldsConfig {
 // ConditionDescriptor - Field condition
 interface ConditionDescriptor {
   when: string | Record<string, FieldMatcher | unknown>; // When condition
-  isDisabled?: boolean;              // Top-level isDisabled check
-  disabled?: boolean;                // Result when condition matches
+  isDisabled?: boolean; // Top-level isDisabled check
+  disabled?: boolean; // Result when condition matches
   // ... other properties
 }
 
 // FieldMatcher - Per-field matcher in object when
 interface FieldMatcher {
-  is?: unknown;           // Value matcher
-  truthy?: boolean;       // Value matcher
-  isTruthy?: boolean;     // Value matcher (alias)
-  isValid?: boolean;      // Field state matcher
-  isDisabled?: boolean;   // Field state matcher ← USED IN THIS PRP
+  is?: unknown; // Value matcher
+  truthy?: boolean; // Value matcher
+  isTruthy?: boolean; // Value matcher (alias)
+  isValid?: boolean; // Field state matcher
+  isDisabled?: boolean; // Field state matcher ← USED IN THIS PRP
 }
 ```
 
@@ -741,11 +750,13 @@ pnpm test
 ### From P2.M2.T1.S3 - Handle Mixed Matchers (Complete)
 
 The P2.M2.T1.S3 PRP specifies that:
+
 1. `isStateFieldMatcher()` type guard is added to distinguish value vs state matchers
 2. Top-level isDisabled check filters to only check fields with field state matchers
 3. Mixed matcher scenarios are handled correctly
 
 **This PRP's Contract**:
+
 1. React integration tests for mixed matcher scenarios
 2. Tests verify the filtering behavior works in actual React components
 3. Tests verify async state updates work correctly
@@ -758,6 +769,7 @@ The P2.M2.T1.S3 PRP specifies that:
 The P2.M2.T2.S2 PRP tests mixed matcher scenarios at the core package level.
 
 **This PRP's Contract**:
+
 1. React integration tests for the same scenarios tested in P2.M2.T2.S2
 2. Tests verify React component behavior, not just evaluation logic
 3. Tests verify async state updates and user interactions
@@ -772,6 +784,7 @@ The P2.M2.T2.S2 PRP tests mixed matcher scenarios at the core package level.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Core package tests pass (P2.M2.T2.S2 complete)
 - Test patterns clearly defined from existing tests
 - All fixtures and utilities already exist

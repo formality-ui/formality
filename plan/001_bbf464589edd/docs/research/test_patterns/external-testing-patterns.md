@@ -5,9 +5,9 @@
 ### Pattern 1: Rapid State Updates with `act()`
 
 ```javascript
-import { render, act } from '@testing-library/react';
+import { render, act } from "@testing-library/react";
 
-test('handles rapid prop changes without memory leaks', async () => {
+test("handles rapid prop changes without memory leaks", async () => {
   const { rerender } = render(<Component data="initial" />);
 
   // Rapid prop changes
@@ -25,7 +25,7 @@ test('handles rapid prop changes without memory leaks', async () => {
 ### Pattern 2: Testing Effect Cleanup on Rapid Changes
 
 ```javascript
-test('cleanup function called on each rapid prop change', () => {
+test("cleanup function called on each rapid prop change", () => {
   const cleanup = jest.fn();
   const { rerender } = render(<Component id={1} onCleanup={cleanup} />);
 
@@ -44,11 +44,13 @@ test('cleanup function called on each rapid prop change', () => {
 ### Pattern 3: Tracking Active Subscriptions
 
 ```javascript
-test('does not leak subscriptions with rapid remounts', () => {
+test("does not leak subscriptions with rapid remounts", () => {
   let activeSubscriptions = 0;
   const createSubscription = () => {
     activeSubscriptions++;
-    return () => { activeSubscriptions--; };
+    return () => {
+      activeSubscriptions--;
+    };
   };
 
   // Mount and unmount rapidly
@@ -65,9 +67,9 @@ test('does not leak subscriptions with rapid remounts', () => {
 ### Pattern 4: Memory Snapshot Comparison
 
 ```javascript
-test('memory usage does not grow with rapid updates', () => {
+test("memory usage does not grow with rapid updates", () => {
   if (!performance.memory) {
-    console.warn('performance.memory not available');
+    console.warn("performance.memory not available");
     return;
   }
 
@@ -91,7 +93,7 @@ test('memory usage does not grow with rapid updates', () => {
 ### Pattern 5: Subscription Counter
 
 ```javascript
-test('subscription count remains balanced', () => {
+test("subscription count remains balanced", () => {
   let subscribeCount = 0;
   let unsubscribeCount = 0;
 
@@ -99,7 +101,7 @@ test('subscription count remains balanced', () => {
     subscribe: () => {
       subscribeCount++;
       return { unsubscribe: () => unsubscribeCount++ };
-    }
+    },
   };
 
   const { rerender, unmount } = render(<Component source={mockSubscription} />);
@@ -117,7 +119,7 @@ test('subscription count remains balanced', () => {
     subscribe: () => {
       subscribeCount++;
       return { unsubscribe: () => unsubscribeCount++ };
-    }
+    },
   };
   rerender(<Component source={newSource} />);
   expect(subscribeCount).toBe(2);

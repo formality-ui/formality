@@ -67,6 +67,7 @@ The cleanup function removes all subscriptions from the current `subscriptions` 
 3. The cleanup from a previous effect run removes subscriptions added by a newer run
 
 **Specific Issue:**
+
 - When the cleanup function runs, it uses the current `subscriptions` closure value
 - If the effect has re-run, the `subscriptions` value may have changed
 - The cleanup removes subscriptions that might have been added by a NEWER effect run
@@ -145,13 +146,16 @@ useEffect(() => {
 ```typescript
 useEffect(() => {
   if (debounceMs === false) {
-    const immediateFn = Object.assign(() => {
-      executeAutoSave();
-    }, {
-      cancel: () => {},
-      flush: () => executeAutoSave(),
-      pending: () => false,
-    }) as DebouncedFunction;
+    const immediateFn = Object.assign(
+      () => {
+        executeAutoSave();
+      },
+      {
+        cancel: () => {},
+        flush: () => executeAutoSave(),
+        pending: () => false,
+      },
+    ) as DebouncedFunction;
 
     debouncedSubmitRef.current = immediateFn;
 
@@ -186,11 +190,13 @@ useEffect(() => {
 **Lines:** 179-186, 212-270
 
 The Form component maintains:
+
 1. `invertedSubscriptions` - inverted index mapping target → subscribers
 2. `watcherSetters` - functions to notify fields about their subscribers
 3. `pendingWatcherUpdates` - updates for fields not yet mounted
 
 **Subscription Operations:**
+
 - `addSubscription(target, subscriber)` - Registers a subscription
 - `removeSubscription(target, subscriber)` - Removes a subscription
 - `registerWatcherSetter(name, setter)` - Registers a field's watcher state setter
@@ -198,13 +204,13 @@ The Form component maintains:
 
 ## Related Files
 
-| File | Purpose | Lines of Interest |
-|------|---------|-------------------|
-| `packages/react/src/hooks/useSubscriptions.ts` | Subscription management hook | 28-70 |
-| `packages/react/src/components/Field.tsx` | Field component using subscriptions | 180-194, 247-262 |
-| `packages/react/src/components/Form.tsx` | Form-level subscription registry | 179-297 |
-| `packages/react/src/context/FormContext.tsx` | Form context with subscription methods | - |
-| `packages/react/src/hooks/useInferredInputs.ts` | Hook inferring subscriptions from conditions | - |
+| File                                            | Purpose                                      | Lines of Interest |
+| ----------------------------------------------- | -------------------------------------------- | ----------------- |
+| `packages/react/src/hooks/useSubscriptions.ts`  | Subscription management hook                 | 28-70             |
+| `packages/react/src/components/Field.tsx`       | Field component using subscriptions          | 180-194, 247-262  |
+| `packages/react/src/components/Form.tsx`        | Form-level subscription registry             | 179-297           |
+| `packages/react/src/context/FormContext.tsx`    | Form context with subscription methods       | -                 |
+| `packages/react/src/hooks/useInferredInputs.ts` | Hook inferring subscriptions from conditions | -                 |
 
 ## Key Findings
 

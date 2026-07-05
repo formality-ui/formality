@@ -14,6 +14,7 @@ This report documents bugs found during creative end-to-end testing of the Forma
 **Overall Quality Assessment**: The implementation is architecturally sound with excellent performance optimizations (proxy state pattern, render isolation). However, several features specified in the PRD are not fully implemented.
 
 **Test Summary**:
+
 - Total existing tests: 329 (all passing)
 - Issues confirmed: 8 bugs (2 Critical, 4 Major, 2 Medium)
 
@@ -28,6 +29,7 @@ This report documents bugs found during creative end-to-end testing of the Forma
 
 **Expected Behavior**:
 According to PRD Section 6.3.2, the props merge pipeline should include 8 layers in priority order:
+
 1. Provider `defaultFieldProps`
 2. Provider `selectDefaultFieldProps` (evaluated per field)
 3. Form `defaultFieldProps`
@@ -55,6 +57,7 @@ const finalProps = mergeFieldProps({
 The comments indicate these "should be evaluated" but they are never evaluated.
 
 **Steps to Reproduce**:
+
 ```typescript
 <FormalityProvider
   inputs={inputs}
@@ -70,6 +73,7 @@ Expected: The `className` prop should be evaluated based on the `client` field v
 Actual: The `className` is never applied because `selectDefaultFieldProps` is an empty object.
 
 **Suggested Fix**:
+
 1. Create a hook similar to `usePropsEvaluation` for evaluating `selectDefaultFieldProps`
 2. Pass both provider and form `selectDefaultFieldProps` to Field component
 3. Evaluate them using the expression engine with field context
@@ -84,9 +88,11 @@ Actual: The `className` is never applied because `selectDefaultFieldProps` is an
 
 **Expected Behavior**:
 PRD Section 11.1 states:
+
 > "If field has `debounce: false`, submit immediately"
 
 PRD Section 6.3.3 shows:
+
 > `inputConfig.debounce?: number | false` - Debounce milliseconds for validation/auto-save. false = immediate, number = delay
 
 When a field has `debounce: false` in its InputConfig, auto-save should submit **immediately** when that field changes, bypassing the debounce timer.
@@ -114,6 +120,7 @@ const changeField = useCallback(
 There's no check for whether the changed field has `inputConfig.debounce === false`.
 
 **Steps to Reproduce**:
+
 ```typescript
 const inputs = {
   immediateField: {
@@ -138,6 +145,7 @@ Expected: `immediateField` changes trigger immediate submit; `normalField` chang
 Actual: Both fields use the same debounce timer.
 
 **Suggested Fix**:
+
 1. Modify `changeField` signature to accept `inputConfig`
 2. Check if the field has `debounce: false`
 3. If so, call `submitImmediate()` instead of `debouncedSubmit()`
@@ -153,6 +161,7 @@ Actual: Both fields use the same debounce timer.
 
 **Expected Behavior**:
 PRD Section 7.1 documents the `isDisabled` matcher for conditions:
+
 ```typescript
 { when: 'userRole', is: 'admin', isDisabled: true }
 ```
@@ -186,6 +195,7 @@ const fieldStates = useMemo(() => {
 The `FieldStateInput` interface includes `disabled?: boolean`, but it's never populated.
 
 **Steps to Reproduce**:
+
 ```typescript
 <Form config={{
   adminToggle: { type: "switch" },
@@ -218,6 +228,7 @@ Get the resolved `disabled` state for each watched field and include it in the `
 The `isDisabled` matcher should work for both simple field references and multi-field conditions.
 
 PRD Section 8.3 shows:
+
 ```typescript
 {
   when: {
@@ -249,14 +260,17 @@ if (typeof condition.when === "string" && fieldStates) {
 This means `isDisabled` cannot be used with multi-field object conditions.
 
 **Steps to Reproduce**:
+
 ```typescript
-conditions: [{
-  when: {
-    field1: { isDisabled: true },
-    field2: { isDisabled: false },
+conditions: [
+  {
+    when: {
+      field1: { isDisabled: true },
+      field2: { isDisabled: false },
+    },
+    isDisabled: true,
   },
-  isDisabled: true,
-}]
+];
 ```
 
 Expected: Should match when field1 is disabled AND field2 is not disabled.
@@ -279,17 +293,18 @@ Field subscriptions should be properly cleaned up when components unmount or whe
 In `packages/react/src/hooks/useSubscriptions.ts`, the cleanup function may not properly handle rapid subscription changes during the component lifecycle.
 
 **Steps to Reproduce**:
+
 ```typescript
 // Rapidly change subscriptions multiple times
 function Component() {
-  const [subs, setSubs] = useState(['a']);
+  const [subs, setSubs] = useState(["a"]);
   useEffect(() => {
     const interval = setInterval(() => {
-      setSubs(prev => prev[0] === 'a' ? ['b'] : ['a']);
+      setSubs((prev) => (prev[0] === "a" ? ["b"] : ["a"]));
     }, 10);
     return () => clearInterval(interval);
   }, []);
-  useSubscriptions('field', subs);
+  useSubscriptions("field", subs);
 }
 ```
 
@@ -315,6 +330,7 @@ Expression evaluation should handle type mismatches gracefully.
 In `packages/core/src/expression/evaluate.ts` (lines 104-130), arithmetic operations assume `number` type without runtime checks.
 
 **Steps to Reproduce**:
+
 ```typescript
 // Expression "null + 5" would throw error
 evaluate("null + 5", context); // Will crash
@@ -337,11 +353,12 @@ Rapid successive field changes should be handled safely without validation on st
 In `packages/react/src/components/Form.tsx` (lines 404-430), the `waitForFieldValidation` function may complete validation on stale data if new changes come in during the wait.
 
 **Steps to Reproduce**:
+
 ```typescript
 // Rapidly change multiple fields with validation
-form.changeField('a', 'value1');
-form.changeField('b', 'value2');
-form.changeField('a', 'value3'); // Might cause stale validation
+form.changeField("a", "value1");
+form.changeField("b", "value2");
+form.changeField("a", "value3"); // Might cause stale validation
 ```
 
 **Suggested Fix**:
@@ -356,6 +373,7 @@ The current implementation does have version checking (`executionVersionRef`), b
 - **Failing**: 0
 
 **Areas with good coverage**:
+
 - Expression evaluation and inference
 - Condition evaluation (basic cases)
 - Validation pipeline
@@ -366,6 +384,7 @@ The current implementation does have version checking (`executionVersionRef`), b
 - Proxy state pattern
 
 **Areas needing more attention**:
+
 - `selectDefaultFieldProps` evaluation (not tested, not implemented)
 - Per-field `debounce: false` (not tested, not implemented)
 - `isDisabled`/`isValid` condition matchers with field states (partial coverage)
@@ -381,15 +400,18 @@ The current implementation does have version checking (`executionVersionRef`), b
 ## Recommended Priority Order
 
 ### Critical (Must Fix)
+
 1. **Issue 1**: `selectDefaultFieldProps` - Core feature missing from PRD
 2. **Issue 2**: Per-field `debounce: false` - Breaking expected behavior from PRD
 
 ### Major (Should Fix)
+
 3. **Issue 3**: `disabled` property in field states - Blocks condition functionality from PRD
 4. **Issue 4**: Multi-field `isDisabled` matcher - Limits condition expressiveness from PRD
 5. **Issue 5**: Memory leak potential - Could cause memory issues in production
 
 ### Medium (Consider Fixing)
+
 6. **Issue 6**: Type safety in expressions - Could cause runtime crashes
 7. **Issue 7**: Race condition in validation - Could lead to inconsistent state
 

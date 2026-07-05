@@ -31,24 +31,24 @@ packages/
 
 ### 1.2 What is already DONE (do NOT re-implement)
 
-| PRD item | Status | Evidence |
-| --- | --- | --- |
-| §3.2 / §3.2.1 core-types-framework-agnostic | ✅ Done | `core/src/types/config.ts` uses `unknown` for `component`/`template`/`rules`/`*Template`; `FormFieldsConfig<TName extends string = string>` is already generic. |
-| Appendix C T1.1 `ReactInputConfig.component` | ✅ Done | `packages/react/src/overlays.ts:42-49` — `component: ComponentType<any>`, `template?: ComponentType<InputTemplateProps>`. |
-| Appendix C T1.2 `ReactFieldConfig.rules` | ✅ Done | `overlays.ts:61-65` — `rules?: RegisterOptions<V>`. |
-| Appendix C T1.3 template alignment | ✅ Done | `ReactInputConfig.template` narrowed; core left loose with doc comments. |
-| Appendix C T3.2 document `TValue` | ✅ Done | Core `InputConfig<TValue>` carries JSDoc. |
-| §1.3.7 coverage `exclude` | ✅ Done | Root `vitest.config.ts` excludes `examples/**`, `packages/svelte/**`, `packages/vue/**`, `**/dist/**` (spread over `coverageConfigDefaults.exclude`). |
+| PRD item                                     | Status  | Evidence                                                                                                                                                        |
+| -------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §3.2 / §3.2.1 core-types-framework-agnostic  | ✅ Done | `core/src/types/config.ts` uses `unknown` for `component`/`template`/`rules`/`*Template`; `FormFieldsConfig<TName extends string = string>` is already generic. |
+| Appendix C T1.1 `ReactInputConfig.component` | ✅ Done | `packages/react/src/overlays.ts:42-49` — `component: ComponentType<any>`, `template?: ComponentType<InputTemplateProps>`.                                       |
+| Appendix C T1.2 `ReactFieldConfig.rules`     | ✅ Done | `overlays.ts:61-65` — `rules?: RegisterOptions<V>`.                                                                                                             |
+| Appendix C T1.3 template alignment           | ✅ Done | `ReactInputConfig.template` narrowed; core left loose with doc comments.                                                                                        |
+| Appendix C T3.2 document `TValue`            | ✅ Done | Core `InputConfig<TValue>` carries JSDoc.                                                                                                                       |
+| §1.3.7 coverage `exclude`                    | ✅ Done | Root `vitest.config.ts` excludes `examples/**`, `packages/svelte/**`, `packages/vue/**`, `**/dist/**` (spread over `coverageConfigDefaults.exclude`).           |
 
 ### 1.3 What REMAINS (this plan's scope)
 
-| Req | PRD ref | Status before this plan |
-| --- | --- | --- |
-| **R1** — add 90% coverage `thresholds`; backfill tests so `pnpm test:coverage` is green | §1.3.7 / Appendix B | `thresholds` block **MISSING**; current metrics **fail** (stmt 87.0%, branch 88.3%, func 92.5%). |
-| **R2** — finish Appendix C T2.1 strict key-checking | §C.4 T2.1 | ⚠️ PARTIAL — core generic done; `FormProps.config` key-set still `string`; `FieldProps` non-generic. |
-| **R3** — Appendix C T2.2 `defineInputs` opt-in helper | §C.4 T2.2 | ❌ NOT STARTED — `defineInputs` does not exist anywhere in `packages/`. |
-| **R4** — Appendix C T3.1 export `FormalityFieldComponentProps` | §C.4 T3.1 | ❌ NOT STARTED — symbol does not exist anywhere in `packages/`. |
-| **R5** — sync changeset-level docs | §5 (Mode B) | Pending — depends on R2–R4. |
+| Req                                                                                     | PRD ref             | Status before this plan                                                                              |
+| --------------------------------------------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------- |
+| **R1** — add 90% coverage `thresholds`; backfill tests so `pnpm test:coverage` is green | §1.3.7 / Appendix B | `thresholds` block **MISSING**; current metrics **fail** (stmt 87.0%, branch 88.3%, func 92.5%).     |
+| **R2** — finish Appendix C T2.1 strict key-checking                                     | §C.4 T2.1           | ⚠️ PARTIAL — core generic done; `FormProps.config` key-set still `string`; `FieldProps` non-generic. |
+| **R3** — Appendix C T2.2 `defineInputs` opt-in helper                                   | §C.4 T2.2           | ❌ NOT STARTED — `defineInputs` does not exist anywhere in `packages/`.                              |
+| **R4** — Appendix C T3.1 export `FormalityFieldComponentProps`                          | §C.4 T3.1           | ❌ NOT STARTED — symbol does not exist anywhere in `packages/`.                                      |
+| **R5** — sync changeset-level docs                                                      | §5 (Mode B)         | Pending — depends on R2–R4.                                                                          |
 
 ---
 

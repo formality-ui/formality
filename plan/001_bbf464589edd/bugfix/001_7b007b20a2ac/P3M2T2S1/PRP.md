@@ -14,7 +14,8 @@
 **Deliverable**: Complete test suite in `/packages/core/src/__tests__/expression.complex.test.ts` with dedicated sections for null/undefined arithmetic operations, development warning verification, and environment-specific behavior.
 
 **Success Definition**:
-- All arithmetic operations (+, -, *, /, %) return `undefined` when either operand is null/undefined
+
+- All arithmetic operations (+, -, \*, /, %) return `undefined` when either operand is null/undefined
 - Development mode shows specific warning messages mentioning null/undefined
 - Production mode shows no warnings (clean console)
 - No errors are thrown during null/undefined arithmetic
@@ -26,12 +27,14 @@
 **Target User**: Formality library developers who need to verify that null/undefined handling works correctly across all arithmetic operations.
 
 **Use Case**: After implementing the enhanced `isSafeNumber` type guard (P3.M2.T1.S2), developers need to verify that:
+
 1. The implementation correctly rejects null/undefined values
 2. Development warnings are shown with proper context
 3. Production builds remain clean and performant
 4. All edge cases are covered
 
 **User Journey**:
+
 1. Developer runs the test suite after implementing null/undefined handling
 2. All null/undefined arithmetic tests pass, confirming correct behavior
 3. Development warning tests pass, verifying proper logging
@@ -39,6 +42,7 @@
 5. Developer has confidence that the implementation is correct
 
 **Pain Points Addressed**:
+
 - **Unclear Test Coverage**: Without dedicated tests, it's unclear if null/undefined handling is complete
 - **Silent Failures**: Without testing, bugs in null/undefined handling might go unnoticed
 - **Environment Concerns**: Without explicit tests, warnings might leak to production
@@ -58,16 +62,16 @@
 
 ```javascript
 // All return undefined (not NaN, not 0)
-evaluate("5 + null", { null: null })      // → undefined
-evaluate("null + 5", { null: null })      // → undefined
-evaluate("undefined - 5", { undefined })  // → undefined
-evaluate("10 - undefined", { undefined }) // → undefined
-evaluate("null * 5", { null: null })      // → undefined
-evaluate("undefined * 5", { undefined })  // → undefined
-evaluate("null / 2", { null: null })      // → undefined
-evaluate("null % 3", { null: null })      // → undefined
-evaluate("null + null", { null: null })   // → undefined
-evaluate("undefined * undefined", { undefined }) // → undefined
+evaluate("5 + null", { null: null }); // → undefined
+evaluate("null + 5", { null: null }); // → undefined
+evaluate("undefined - 5", { undefined }); // → undefined
+evaluate("10 - undefined", { undefined }); // → undefined
+evaluate("null * 5", { null: null }); // → undefined
+evaluate("undefined * 5", { undefined }); // → undefined
+evaluate("null / 2", { null: null }); // → undefined
+evaluate("null % 3", { null: null }); // → undefined
+evaluate("null + null", { null: null }); // → undefined
+evaluate("undefined * undefined", { undefined }); // → undefined
 
 // Development mode shows warnings
 // In NODE_ENV !== "production": console.warn called with "[Formality Expression] Type error: ..."
@@ -76,17 +80,17 @@ evaluate("undefined * undefined", { undefined }) // → undefined
 // In NODE_ENV === "production": console.warn NOT called
 
 // No errors thrown
-evaluate("null + 5", { null: null })      // No exception, returns undefined
+evaluate("null + 5", { null: null }); // No exception, returns undefined
 ```
 
 ### Success Criteria
 
-- [ ] All 5 arithmetic operators (+, -, *, /, %) tested with null left operand
-- [ ] All 5 arithmetic operators (+, -, *, /, %) tested with null right operand
-- [ ] All 5 arithmetic operators (+, -, *, /, %) tested with null + null
-- [ ] All 5 arithmetic operators (+, -, *, /, %) tested with undefined left operand
-- [ ] All 5 arithmetic operators (+, -, *, /, %) tested with undefined right operand
-- [ ] All 5 arithmetic operators (+, -, *, /, %) tested with undefined + undefined
+- [ ] All 5 arithmetic operators (+, -, \*, /, %) tested with null left operand
+- [ ] All 5 arithmetic operators (+, -, \*, /, %) tested with null right operand
+- [ ] All 5 arithmetic operators (+, -, \*, /, %) tested with null + null
+- [ ] All 5 arithmetic operators (+, -, \*, /, %) tested with undefined left operand
+- [ ] All 5 arithmetic operators (+, -, \*, /, %) tested with undefined right operand
+- [ ] All 5 arithmetic operators (+, -, \*, /, %) tested with undefined + undefined
 - [ ] Development warning tests verify console.warn is called with expected messages
 - [ ] Production mode tests verify console.warn is NOT called
 - [ ] All tests verify no exceptions are thrown (errors are handled gracefully)
@@ -101,6 +105,7 @@ evaluate("null + 5", { null: null })      // No exception, returns undefined
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file path and location for test additions
 - Complete existing test patterns to follow
 - Exact code snippets for test structure
@@ -229,12 +234,12 @@ packages/core/src/
 ```typescript
 // CRITICAL: jsep parses 'null' and 'undefined' as Identifiers, not Literals
 // Therefore, you MUST provide them in the context object for testing:
-evaluate('null + 5', { null: null })      // CORRECT
-evaluate('null + 5', {})                  // INCORRECT - 'null' is undefined in context
+evaluate("null + 5", { null: null }); // CORRECT
+evaluate("null + 5", {}); // INCORRECT - 'null' is undefined in context
 
 // CRITICAL: typeof null returns 'object', not 'null' (JavaScript quirk)
-typeof null      // → 'object'
-typeof undefined // → 'undefined'
+typeof null; // → 'object'
+typeof undefined; // → 'undefined'
 
 // CRITICAL: The enhanced isSafeNumber function (from P3.M2.T1.S2) now has:
 // - Explicit check: value === null || value === undefined
@@ -245,8 +250,8 @@ typeof undefined // → 'undefined'
 if (process.env.NODE_ENV !== "production") {
   console.warn(
     `[Formality Expression] Type error: ` +
-    `Invalid operands for + (null/undefined not allowed): ` +
-    `left=${typeof leftValue}, right=${typeof rightValue}`
+      `Invalid operands for + (null/undefined not allowed): ` +
+      `left=${typeof leftValue}, right=${typeof rightValue}`,
   );
 }
 
@@ -255,7 +260,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // CRITICAL: When testing console.warn, use this pattern:
 beforeEach(() => {
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -268,13 +273,13 @@ beforeEach(() => {
   process.env.NODE_ENV = originalEnv;
 });
 
-it('should warn in development', () => {
-  process.env.NODE_ENV = 'development';
+it("should warn in development", () => {
+  process.env.NODE_ENV = "development";
   // ... test code
 });
 
-it('should not warn in production', () => {
-  process.env.NODE_ENV = 'production';
+it("should not warn in production", () => {
+  process.env.NODE_ENV = "production";
   // ... test code
 });
 
@@ -348,62 +353,62 @@ describe("Null/Undefined Arithmetic", () => {
   describe("Addition (+)", () => {
     it("should return undefined for null + number", () => {
       // jsep parses 'null' as identifier, so provide it in context
-      expect(evaluate('null + 5', { null: null })).toBeUndefined();
+      expect(evaluate("null + 5", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for number + null", () => {
-      expect(evaluate('5 + null', { null: null })).toBeUndefined();
+      expect(evaluate("5 + null", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for null + null", () => {
-      expect(evaluate('null + null', { null: null })).toBeUndefined();
+      expect(evaluate("null + null", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for undefined + number", () => {
-      expect(evaluate('undefined + 5', { undefined })).toBeUndefined();
+      expect(evaluate("undefined + 5", { undefined })).toBeUndefined();
     });
 
     it("should return undefined for number + undefined", () => {
-      expect(evaluate('5 + undefined', { undefined })).toBeUndefined();
+      expect(evaluate("5 + undefined", { undefined })).toBeUndefined();
     });
 
     it("should return undefined for undefined + undefined", () => {
-      expect(evaluate('undefined + undefined', { undefined })).toBeUndefined();
+      expect(evaluate("undefined + undefined", { undefined })).toBeUndefined();
     });
 
     it("should work with valid numbers (regression test)", () => {
-      expect(evaluate('5 + 3', {})).toBe(8);
+      expect(evaluate("5 + 3", {})).toBe(8);
     });
   });
 
   // Repeat similar patterns for -, *, /, %
   describe("Subtraction (-)", () => {
     it("should return undefined for null - number", () => {
-      expect(evaluate('null - 5', { null: null })).toBeUndefined();
+      expect(evaluate("null - 5", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for number - null", () => {
-      expect(evaluate('5 - null', { null: null })).toBeUndefined();
+      expect(evaluate("5 - null", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for null - null", () => {
-      expect(evaluate('null - null', { null: null })).toBeUndefined();
+      expect(evaluate("null - null", { null: null })).toBeUndefined();
     });
 
     it("should return undefined for undefined - number", () => {
-      expect(evaluate('undefined - 5', { undefined })).toBeUndefined();
+      expect(evaluate("undefined - 5", { undefined })).toBeUndefined();
     });
 
     it("should return undefined for number - undefined", () => {
-      expect(evaluate('5 - undefined', { undefined })).toBeUndefined();
+      expect(evaluate("5 - undefined", { undefined })).toBeUndefined();
     });
 
     it("should return undefined for undefined - undefined", () => {
-      expect(evaluate('undefined - undefined', { undefined })).toBeUndefined();
+      expect(evaluate("undefined - undefined", { undefined })).toBeUndefined();
     });
 
     it("should work with valid numbers (regression test)", () => {
-      expect(evaluate('10 - 4', {})).toBe(6);
+      expect(evaluate("10 - 4", {})).toBe(6);
     });
   });
 
@@ -418,7 +423,7 @@ describe("Development Warnings - Null/Undefined", () => {
 
   beforeEach(() => {
     clearExpressionCache();
-    consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -427,28 +432,28 @@ describe("Development Warnings - Null/Undefined", () => {
 
   describe("Addition (+)", () => {
     it("should warn for null + number", () => {
-      evaluate('null + 5', { null: null });
+      evaluate("null + 5", { null: null });
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Type error')
+        expect.stringContaining("Type error"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('null/undefined')
+        expect.stringContaining("null/undefined"),
       );
     });
 
     it("should show operand types in warning", () => {
-      evaluate('null + 5', { null: null });
+      evaluate("null + 5", { null: null });
 
       // typeof null is 'object'
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('left=object')
+        expect.stringContaining("left=object"),
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('right=number')
+        expect.stringContaining("right=number"),
       );
     });
   });
@@ -471,11 +476,11 @@ describe("Production Mode - No Warnings", () => {
   });
 
   it("should not warn for null arithmetic in production", () => {
-    process.env.NODE_ENV = 'production';
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    process.env.NODE_ENV = "production";
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    evaluate('null + 5', { null: null });
-    evaluate('undefined * 3', { undefined });
+    evaluate("null + 5", { null: null });
+    evaluate("undefined * 3", { undefined });
 
     expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -483,10 +488,10 @@ describe("Production Mode - No Warnings", () => {
   });
 
   it("should still return undefined in production", () => {
-    process.env.NODE_ENV = 'production';
+    process.env.NODE_ENV = "production";
 
-    expect(evaluate('null + 5', { null: null })).toBeUndefined();
-    expect(evaluate('undefined - 3', { undefined })).toBeUndefined();
+    expect(evaluate("null + 5", { null: null })).toBeUndefined();
+    expect(evaluate("undefined - 3", { undefined })).toBeUndefined();
   });
 });
 ```
@@ -596,8 +601,8 @@ pnpm test --coverage 2>/dev/null | grep -A 5 "isSafeNumber" || echo "Use vitest 
 
 ### Technical Validation
 
-- [ ] All arithmetic operators (+, -, *, /, %) have null operand tests
-- [ ] All arithmetic operators (+, -, *, /, %) have undefined operand tests
+- [ ] All arithmetic operators (+, -, \*, /, %) have null operand tests
+- [ ] All arithmetic operators (+, -, \*, /, %) have undefined operand tests
 - [ ] All tests use proper context: `{ null: null }` and `{ undefined }`
 - [ ] Development warning tests verify console.warn is called
 - [ ] Production mode tests verify console.warn is NOT called
@@ -664,6 +669,7 @@ This task validates the implementation from P3.M2.T1.S2 "Handle null/undefined i
 3. **Enhanced warning messages** to mention "null/undefined"
 
 This task (P3.M2.T2.S1) **verifies** that implementation by:
+
 1. Testing all arithmetic operations with null/undefined operands
 2. Verifying development warnings are shown correctly
 3. Verifying production mode has no warnings
@@ -684,11 +690,11 @@ When testing expressions with `null` or `undefined`:
 
 ```typescript
 // CORRECT: Provide null/undefined in context
-evaluate('null + 5', { null: null })      // Works as expected
-evaluate('undefined + 5', { undefined })  // Works as expected
+evaluate("null + 5", { null: null }); // Works as expected
+evaluate("undefined + 5", { undefined }); // Works as expected
 
 // INCORRECT: Without context, jsep can't resolve the identifier
-evaluate('null + 5', {})  // 'null' is undefined in context, but we want to test null literal
+evaluate("null + 5", {}); // 'null' is undefined in context, but we want to test null literal
 
 // GOTCHA: jsep parses 'null' and 'undefined' as Identifiers
 // So we MUST provide them in the context object for testing
@@ -697,6 +703,7 @@ evaluate('null + 5', {})  // 'null' is undefined in context, but we want to test
 ### Expected Test Count
 
 For comprehensive coverage, expect to write approximately:
+
 - **30 tests** for null/undefined arithmetic (5 operators × 6 scenarios each)
 - **5 tests** for development warnings (one per operator)
 - **2 tests** for production mode (one for warnings, one for return values)
@@ -711,6 +718,7 @@ Total: ~42 test cases
 **9/10** for one-pass implementation success
 
 **Reasoning**:
+
 - ✅ Clear, specific testing target (test coverage for null/undefined arithmetic)
 - ✅ Comprehensive existing context (exact file paths, line numbers, patterns)
 - ✅ Well-defined success criteria with testable outcomes

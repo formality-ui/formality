@@ -14,6 +14,7 @@
 **Feature Goal**: Add development logging for subscription lifecycle tracking and verify that LIFO cleanup ordering is correct to prevent orphaned subscriptions and double-cleanup issues.
 
 **Deliverable**:
+
 1. Development logging in `packages/react/src/hooks/useSubscriptions.ts` for subscription lifecycle events
 2. Development logging in `packages/react/src/components/Form.tsx` for subscription registry operations
 3. Double-cleanup detection with warnings when attempting to remove non-existent subscriptions
@@ -21,6 +22,7 @@
 5. Tests verifying logging behavior and double-cleanup detection
 
 **Success Definition**:
+
 - Subscription lifecycle (add/remove/cleanup) is logged in development mode
 - Double-cleanup attempts are detected and warned about
 - LIFO ordering is verified and documented as correct
@@ -35,17 +37,20 @@
 **Target User**: Form developers using the Formality library
 
 **Use Case**: Debugging complex forms with many field subscriptions, particularly when:
+
 - Fields dynamically change their subscriptions
 - Forms have deep dependency chains
 - Unusual subscription patterns cause issues
 
 **User Journey**:
+
 1. Developer creates form with complex field dependencies
 2. In development mode, subscription lifecycle is logged
 3. Developer sees warnings if double-cleanup is attempted
 4. Developer can trace subscription graph and ordering issues
 
 **Pain Points Addressed**:
+
 - **Debugging difficulty**: Currently no visibility into subscription lifecycle
 - **Silent failures**: Double-cleanup attempts are silently ignored
 - **Uncertainty**: No verification that cleanup ordering is correct
@@ -69,12 +74,14 @@
 **From P3.M1.T1.S1 Contract**:
 
 The previous work item (P3.M1.T1.S1) implements per-effect tracking with:
+
 - `runIdRef`: Incrementing counter for each effect run
 - `runSubscriptionsRef`: `Map<number, string[]>` storing subscriptions per run
 - LIFO cleanup: `[...thisRunSubscriptions].reverse().forEach(...)`
 - Map entry deletion: `runSubscriptionsRef.current.delete(currentRunId)`
 
 **Current Implementation** (packages/react/src/hooks/useSubscriptions.ts):
+
 ```typescript
 // Lines 42-71: Per-effect tracking with LIFO cleanup
 useEffect(() => {
@@ -98,26 +105,25 @@ useEffect(() => {
 ```
 
 **Current Form.tsx Implementation** (packages/react/src/components/Form.tsx):
+
 ```typescript
 // Lines 232-246: removeSubscription - silently ignores non-existent subscriptions
-const removeSubscription = useCallback(
-  (target: string, subscriber: string) => {
-    invertedSubscriptions.current.get(target)?.delete(subscriber);
+const removeSubscription = useCallback((target: string, subscriber: string) => {
+  invertedSubscriptions.current.get(target)?.delete(subscriber);
 
-    const setter = watcherSetters.current.get(target);
-    if (setter) {
-      setter((prev) => {
-        const next = { ...prev };
-        delete next[subscriber];
-        return next;
-      });
-    }
-  },
-  [],
-);
+  const setter = watcherSetters.current.get(target);
+  if (setter) {
+    setter((prev) => {
+      const next = { ...prev };
+      delete next[subscriber];
+      return next;
+    });
+  }
+}, []);
 ```
 
 **Problem**:
+
 1. No logging of subscription lifecycle events
 2. Double-cleanup attempts are silently ignored
 3. No verification that LIFO is the correct ordering
@@ -142,6 +148,7 @@ const removeSubscription = useCallback(
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file paths and line numbers for modification
 - Previous PRP contract (P3.M1.T1.S1) as foundation
 - Complete logging pattern from existing codebase
@@ -308,6 +315,7 @@ packages/react/src/
 ### Data models and structure
 
 No new data models needed. Adding logging to existing structures:
+
 ```typescript
 // Existing types from P3.M1.T1.S1
 type RunId = number;
@@ -732,6 +740,7 @@ pnpm build
 The P3.M1.T1.S1 PRP implements per-effect subscription tracking.
 
 **This PRP's Contract**:
+
 1. This PRP ADDS development logging to the per-effect tracking from P3.M1.T1.S1
 2. This PRP ADDS double-cleanup detection
 3. This PRP DOES NOT modify the per-effect tracking logic
@@ -746,6 +755,7 @@ The P3.M1.T1.S1 PRP implements per-effect subscription tracking.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Clear scope: Add logging and detection, no algorithm changes
 - Previous PRP (P3.M1.T1.S1) provides solid foundation
 - Comprehensive research documented
@@ -822,21 +832,22 @@ export function useSubscriptions(
       if (process.env.NODE_ENV !== "production") {
         console.warn(
           `[Formality Subscription] Run ${currentRunId}: ` +
-          `"${fieldName}" subscribing to "${target}"`
+            `"${fieldName}" subscribing to "${target}"`,
         );
       }
     });
 
     // Cleanup with logging (NEW)
     return () => {
-      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+      const thisRunSubscriptions =
+        runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
         // NEW: Development logging
         if (process.env.NODE_ENV !== "production") {
           console.warn(
             `[Formality Subscription] Run ${currentRunId}: ` +
-            `"${fieldName}" cleaning up [${thisRunSubscriptions.join(', ')}]`
+              `"${fieldName}" cleaning up [${thisRunSubscriptions.join(", ")}]`,
           );
         }
 
@@ -857,41 +868,38 @@ export function useSubscriptions(
 
 // Lines 232-246: removeSubscription (MODIFIED)
 
-const removeSubscription = useCallback(
-  (target: string, subscriber: string) => {
-    // NEW: Check if subscription exists before removal
-    const subscribers = invertedSubscriptions.current.get(target);
-    const subscriptionExists = subscribers?.has(subscriber) ?? false;
+const removeSubscription = useCallback((target: string, subscriber: string) => {
+  // NEW: Check if subscription exists before removal
+  const subscribers = invertedSubscriptions.current.get(target);
+  const subscriptionExists = subscribers?.has(subscriber) ?? false;
 
-    // Perform removal (keep original optional chaining)
-    invertedSubscriptions.current.get(target)?.delete(subscriber);
+  // Perform removal (keep original optional chaining)
+  invertedSubscriptions.current.get(target)?.delete(subscriber);
 
-    // NEW: Log removal or warn about double-cleanup
-    if (process.env.NODE_ENV !== "production") {
-      if (subscriptionExists) {
-        console.warn(
-          `[Formality Subscription] "${subscriber}" removed from watching "${target}"`
-        );
-      } else {
-        console.warn(
-          `[Formality Subscription] WARNING: Double-cleanup attempt - ` +
-          `"${subscriber}" was not watching "${target}"`
-        );
-      }
+  // NEW: Log removal or warn about double-cleanup
+  if (process.env.NODE_ENV !== "production") {
+    if (subscriptionExists) {
+      console.warn(
+        `[Formality Subscription] "${subscriber}" removed from watching "${target}"`,
+      );
+    } else {
+      console.warn(
+        `[Formality Subscription] WARNING: Double-cleanup attempt - ` +
+          `"${subscriber}" was not watching "${target}"`,
+      );
     }
+  }
 
-    // Update watcher setter
-    const setter = watcherSetters.current.get(target);
-    if (setter) {
-      setter((prev) => {
-        const next = { ...prev };
-        delete next[subscriber];
-        return next;
-      });
-    }
-  },
-  [],
-);
+  // Update watcher setter
+  const setter = watcherSetters.current.get(target);
+  if (setter) {
+    setter((prev) => {
+      const next = { ...prev };
+      delete next[subscriber];
+      return next;
+    });
+  }
+}, []);
 ```
 
 ### Test Pattern for Logging
@@ -901,7 +909,7 @@ const removeSubscription = useCallback(
 
 describe("development logging", () => {
   beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -909,26 +917,28 @@ describe("development logging", () => {
   });
 
   it("should log subscription additions in development", () => {
-    renderTestHook(() => useSubscriptions('fieldA', ['fieldB']));
+    renderTestHook(() => useSubscriptions("fieldA", ["fieldB"]));
 
     expect(console.warn).toHaveBeenCalledWith(
-      '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"'
+      '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"',
     );
   });
 
   it("should log cleanup operations in development", () => {
-    const { unmount } = renderTestHook(() => useSubscriptions('fieldA', ['fieldB']));
+    const { unmount } = renderTestHook(() =>
+      useSubscriptions("fieldA", ["fieldB"]),
+    );
     unmount();
 
     expect(console.warn).toHaveBeenCalledWith(
-      '[Formality Subscription] Run 1: "fieldA" cleaning up [fieldB]'
+      '[Formality Subscription] Run 1: "fieldA" cleaning up [fieldB]',
     );
   });
 });
 
 describe("double-cleanup detection", () => {
   beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -939,13 +949,13 @@ describe("double-cleanup detection", () => {
     const { removeSubscription } = setupMockFormContext();
 
     // Add subscription
-    removeSubscription('fieldB', 'fieldA'); // First removal (subscription exists)
+    removeSubscription("fieldB", "fieldA"); // First removal (subscription exists)
 
     // Try to remove again
-    removeSubscription('fieldB', 'fieldA'); // Second removal (subscription doesn't exist)
+    removeSubscription("fieldB", "fieldA"); // Second removal (subscription doesn't exist)
 
     expect(console.warn).toHaveBeenCalledWith(
-      '[Formality Subscription] WARNING: Double-cleanup attempt - "fieldA" was not watching "fieldB"'
+      '[Formality Subscription] WARNING: Double-cleanup attempt - "fieldA" was not watching "fieldB"',
     );
   });
 });
@@ -979,10 +989,12 @@ describe("double-cleanup detection", () => {
 ### When FIFO Might Be Considered (But Not Needed Here)
 
 FIFO ordering would be needed if:
+
 - Subscriptions had acquisition dependencies (must acquire A before B)
 - Cleanup needed to happen in dependency order (must cleanup A before B)
 
 **This is NOT the case for Formality** because:
+
 - Subscriptions are independent registration operations
 - The invertedSubscriptions map tracks relationships, not the cleanup order
 - Field-level dependencies are handled by getAffectedFields, not cleanup order
@@ -990,6 +1002,7 @@ FIFO ordering would be needed if:
 ### Conclusion
 
 **LIFO is correct for Formality's subscription cleanup.**
+
 - Matches React's design
 - Safe for independent subscriptions
 - Per-effect tracking provides additional safety

@@ -13,6 +13,7 @@
 **Deliverable**: Modified `FormProps` interface in `packages/react/src/components/Form.tsx` with `debounce?: number | false` type and updated JSDoc documentation.
 
 **Success Definition**:
+
 - `FormProps.debounce` type changed from `number` to `number | false`
 - JSDoc comment updated to explain `false` means immediate submission
 - TypeScript compilation succeeds without errors
@@ -34,21 +35,25 @@
 Update the `FormProps` interface `debounce` prop type to accept `number | false`.
 
 **Current Type** (line 62):
+
 ```typescript
 debounce?: number;
 ```
 
 **Target Type**:
+
 ```typescript
 debounce?: number | false;
 ```
 
 **Current JSDoc** (line 61):
+
 ```typescript
 /** Debounce milliseconds for auto-save (default: 1000) */
 ```
 
 **Target JSDoc**:
+
 ```typescript
 /** Debounce milliseconds for auto-save. false = immediate submission, number = delay in milliseconds (default: 1000) */
 ```
@@ -70,6 +75,7 @@ debounce?: number | false;
 _Before writing this PRP, validate: "If someone knew nothing about this codebase, would they have everything needed to implement this successfully?"_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file path and line numbers
 - Current and target type definitions
 - Complete context on existing `InputConfig.debounce` pattern
@@ -205,6 +211,7 @@ packages/react/src/components/Form.tsx          # Update FormProps.debounce type
 No new data models - this task updates an existing interface type definition.
 
 **Current FormProps.debounce**:
+
 ```typescript
 // packages/react/src/components/Form.tsx:61-62
 /** Debounce milliseconds for auto-save (default: 1000) */
@@ -212,6 +219,7 @@ debounce?: number;
 ```
 
 **Target FormProps.debounce**:
+
 ```typescript
 // packages/react/src/components/Form.tsx:61-62
 /** Debounce milliseconds for auto-save. false = immediate submission, number = delay in milliseconds (default: 1000) */
@@ -219,6 +227,7 @@ debounce?: number | false;
 ```
 
 **Existing InputConfig.debounce Pattern** (to match):
+
 ```typescript
 // packages/core/src/types/config.ts:52-53
 /** Debounce milliseconds for validation/auto-save. false = immediate, number = delay */
@@ -535,6 +544,7 @@ pnpm -F @formality-ui/react exec tsc --noEmit /tmp/test-form-debounce-false.tsx
 **10/10** - Maximum confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Single-line type change with clear before/after
 - Exact file path and line numbers specified
 - Existing pattern to follow (InputConfig.debounce)

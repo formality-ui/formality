@@ -9,8 +9,12 @@ All evidence quoted from `packages/` source + installed `react-hook-form@7.68.0`
 ## TL;DR — recommended `FormalityFieldComponentProps<P>`
 
 ```ts
-import type { RefCallBack, UseFormStateReturn, FieldValues } from "react-hook-form";
-import type { CustomFieldState } from "./types";   // already exported from index.ts
+import type {
+  RefCallBack,
+  UseFormStateReturn,
+  FieldValues,
+} from "react-hook-form";
+import type { CustomFieldState } from "./types"; // already exported from index.ts
 
 /**
  * Props Formality injects onto every field component. Component authors should
@@ -40,6 +44,7 @@ export type FormalityFieldComponentProps<P = unknown> = P & {
 ## 1. `formState` → `UseFormStateReturn<FieldValues>`
 
 **Evidence:**
+
 - Field.tsx:13-19 imports `UseFormStateReturn, FieldValues` from `react-hook-form`.
 - Field.tsx:393 `Controller render={({ field, fieldState, formState }) => {...}}` — `formState` straight from RHF Controller arg, no transform.
 - RHF `controller.d.ts:24-31`: `formState: UseFormStateReturn<TFieldValues>`. Field renders `<Controller>` unparameterized → `TFieldValues = FieldValues`.
@@ -51,11 +56,13 @@ export type FormalityFieldComponentProps<P = unknown> = P & {
 ## 2. `state` → NOT injected today; intended = `CustomFieldState | Record<string, CustomFieldState>`
 
 **Evidence — NOT injected:**
+
 - Grep `provideState|passSubscriptions|passSubscriptionsAs` in `Field.tsx` → **zero matches**.
 - `coreProps` (Field.tsx:413-423) has **no `state` key**; `mergeFieldProps` (merge.ts:180) is plain Object.assign — synthesizes nothing.
 - `watchers` (Field.tsx:189) is `Record<string, boolean>` (presence-set), exposed only on `FieldRenderAPI.watchers`, never on the component.
 
 **Evidence — intended contract:**
+
 - Core `FieldConfig` knobs exist (config.ts:146-154): `provideState?`, `passSubscriptions?`, `passSubscriptionsAs?` (default `'state'`, ConfigContext.ts:51).
 - `CustomFieldState` (types.ts:30-58): `{ value, isTouched, isDirty, isValidating, error?, invalid }`.
 - `examples/07-advanced-features.tsx:67-82` (`provideState:true`) → component reads `state?.isTouched`, `state?.isDirty`, `state?.invalid` → single `CustomFieldState`.
@@ -73,12 +80,14 @@ export type FormalityFieldComponentProps<P = unknown> = P & {
 ## 3. `forwardRef` → RHF `RefCallBack`
 
 **Evidence:**
+
 - Field.tsx:421 `coreProps.ref = field.ref`; Field.tsx:451 `<Component {...finalProps} />` spreads it as the React-special `ref` key.
 - RHF `controller.d.ts:14-18`: `ref: RefCallBack`; RHF `form.d.ts:125`: `type RefCallBack = (instance: any) => void`.
 - Precise runtime type = `RefCallBack` (`(instance: any) => void`) — NOT `Ref<any>`, NOT RHF's `RefCallback` (note spelling: RHF uses `RefCallBack` capital B).
 
 **Prior research** (`plan/001/.../react_forwardref_best_practices.md`,
 `react_forwardref_research_P1M1T1S7.md`):
+
 - React 19 deprecates `forwardRef` (refs become a normal `ref` prop). Field already spreads `ref` → forward-compatible.
 - Established test-component pattern: `forwardRef<HTMLInputElement, P>(({...}, ref) => <input ref={ref} ... />)` with `displayName`.
 - `FieldProps` already has `[key: string]: unknown` so spread props survive.
@@ -112,8 +121,8 @@ the `ref` key. To make plain function components receive it as `forwardRef` (no
 
 ## 5. Sources of truth
 
-| Prop | Source | file:line |
-| --- | --- | --- |
-| `formState` type | RHF `controller.d.ts` | :24-31; Field.tsx:13-19,82; types.ts:25 |
-| `state` intended shape | core config knobs + examples | config.ts:146-154; ConfigContext.ts:51; types.ts:30-58; examples/07:67,84 |
-| `forwardRef` type | RHF `controller.d.ts`, `form.d.ts` | :14-18, :125; Field.tsx:421,451 |
+| Prop                   | Source                             | file:line                                                                 |
+| ---------------------- | ---------------------------------- | ------------------------------------------------------------------------- |
+| `formState` type       | RHF `controller.d.ts`              | :24-31; Field.tsx:13-19,82; types.ts:25                                   |
+| `state` intended shape | core config knobs + examples       | config.ts:146-154; ConfigContext.ts:51; types.ts:30-58; examples/07:67,84 |
+| `forwardRef` type      | RHF `controller.d.ts`, `form.d.ts` | :14-18, :125; Field.tsx:421,451                                           |

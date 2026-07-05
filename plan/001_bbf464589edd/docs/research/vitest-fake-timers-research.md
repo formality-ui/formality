@@ -7,6 +7,7 @@ This research document covers Vitest fake timer functionality for testing scenar
 ## 1. Core Vitest Timer Functions
 
 ### vi.useFakeTimers()
+
 Enables fake timers for testing, replacing `setTimeout`, `setInterval`, `clearTimeout`, and `clearInterval` with controlled versions.
 
 ```typescript
@@ -23,12 +24,13 @@ afterEach(() => {
 beforeEach(() => {
   vi.useFakeTimers({
     shouldAdvanceTime: true, // Automatically advance time when timers are run
-    advanceTimeDelta: 20    // Default time increment when auto-advancing
+    advanceTimeDelta: 20, // Default time increment when auto-advancing
   });
 });
 ```
 
 ### vi.advanceTimersByTimeAsync(ms)
+
 Advances timers by a specific number of milliseconds asynchronously. This is the primary method for testing debounced behavior.
 
 ```typescript
@@ -39,13 +41,14 @@ await act(async () => {
 
 // Advance multiple times
 await act(async () => {
-  await vi.advanceTimersByTimeAsync(300);  // Partial debounce
+  await vi.advanceTimersByTimeAsync(300); // Partial debounce
   // Perform another action
-  await vi.advanceTimersByTimeAsync(300);  // Complete debounce
+  await vi.advanceTimersByTimeAsync(300); // Complete debounce
 });
 ```
 
 ### vi.runAllTimersAsync()
+
 Runs all pending timers immediately (regardless of their scheduled time).
 
 ```typescript
@@ -62,21 +65,21 @@ await act(async () => {
 To test that a function was called immediately without waiting for any timers, check the mock call count before advancing any timers:
 
 ```typescript
-describe('Immediate Execution', () => {
+describe("Immediate Execution", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     mockFunction = vi.fn();
   });
 
-  it('should call function immediately without debounce', async () => {
+  it("should call function immediately without debounce", async () => {
     const debouncedFunction = debounce(mockFunction, 500);
 
     // Call the function
-    debouncedFunction('test');
+    debouncedFunction("test");
 
     // Assert it was called immediately
     expect(mockFunction).toHaveBeenCalledTimes(1);
-    expect(mockFunction).toHaveBeenCalledWith('test');
+    expect(mockFunction).toHaveBeenCalledWith("test");
 
     // No timers should have been set
     expect(vi.getTimerCount()).toBe(0);
@@ -92,16 +95,16 @@ describe('Immediate Execution', () => {
 To verify that NO debounce timer was started, check that no timers are pending:
 
 ```typescript
-describe('No Debounce Timer', () => {
+describe("No Debounce Timer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
 
-  it('should not create any timers when debounce is disabled', () => {
+  it("should not create any timers when debounce is disabled", () => {
     const debouncedFunction = debounce(mockFunction, 500);
 
     // Call with debounce disabled
-    debouncedFunction('test', { immediate: true });
+    debouncedFunction("test", { immediate: true });
 
     // Verify no timers were created
     expect(vi.getTimerCount()).toBe(0);
@@ -119,16 +122,16 @@ describe('No Debounce Timer', () => {
 ### Pattern 1: Standard Debounce Testing
 
 ```typescript
-describe('Debounced Execution', () => {
+describe("Debounced Execution", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     mockFunction = vi.fn();
   });
 
-  it('should not call function immediately with debounce', () => {
+  it("should not call function immediately with debounce", () => {
     const debouncedFunction = debounce(mockFunction, 500);
 
-    debouncedFunction('test');
+    debouncedFunction("test");
 
     // Function should NOT have been called yet
     expect(mockFunction).not.toHaveBeenCalled();
@@ -139,10 +142,10 @@ describe('Debounced Execution', () => {
     vi.useRealTimers();
   });
 
-  it('should call function after debounce period', async () => {
+  it("should call function after debounce period", async () => {
     const debouncedFunction = debounce(mockFunction, 500);
 
-    debouncedFunction('test');
+    debouncedFunction("test");
 
     // Function should not be called yet
     expect(mockFunction).not.toHaveBeenCalled();
@@ -154,7 +157,7 @@ describe('Debounced Execution', () => {
 
     // Function should now be called
     expect(mockFunction).toHaveBeenCalledTimes(1);
-    expect(mockFunction).toHaveBeenCalledWith('test');
+    expect(mockFunction).toHaveBeenCalledWith("test");
 
     vi.useRealTimers();
   });
@@ -164,16 +167,16 @@ describe('Debounced Execution', () => {
 ### Pattern 2: Debounce Reset Testing
 
 ```typescript
-describe('Debounce Reset', () => {
+describe("Debounce Reset", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
 
-  it('should reset debounce timer on subsequent calls', async () => {
+  it("should reset debounce timer on subsequent calls", async () => {
     const debouncedFunction = debounce(mockFunction, 500);
 
     // First call
-    debouncedFunction('first');
+    debouncedFunction("first");
 
     // Advance partially (should not trigger)
     await act(async () => {
@@ -183,7 +186,7 @@ describe('Debounce Reset', () => {
     expect(mockFunction).not.toHaveBeenCalled();
 
     // Second call - should reset timer
-    debouncedFunction('second');
+    debouncedFunction("second");
 
     // Advance past original debounce (should still not trigger)
     await act(async () => {
@@ -199,7 +202,7 @@ describe('Debounce Reset', () => {
 
     // Should be called with latest value
     expect(mockFunction).toHaveBeenCalledTimes(1);
-    expect(mockFunction).toHaveBeenCalledWith('second');
+    expect(mockFunction).toHaveBeenCalledWith("second");
 
     vi.useRealTimers();
   });
@@ -211,12 +214,12 @@ describe('Debounce Reset', () => {
 ### Pattern 1: Multiple Concurrent Timers
 
 ```typescript
-describe('Multiple Concurrent Timers', () => {
+describe("Multiple Concurrent Timers", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
 
-  it('should handle multiple timers independently', async () => {
+  it("should handle multiple timers independently", async () => {
     const mock1 = vi.fn();
     const mock2 = vi.fn();
 
@@ -224,8 +227,8 @@ describe('Multiple Concurrent Timers', () => {
     const debounce2 = debounce(mock2, 500);
 
     // Start both timers
-    debounce1('first');
-    debounce2('second');
+    debounce1("first");
+    debounce2("second");
 
     // Check timers exist
     expect(vi.getTimerCount()).toBe(2);
@@ -256,12 +259,12 @@ describe('Multiple Concurrent Timers', () => {
 ### Pattern 2: Conditional Execution Testing
 
 ```typescript
-describe('Conditional Execution', () => {
+describe("Conditional Execution", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
 
-  it('should skip timers when condition is met', () => {
+  it("should skip timers when condition is met", () => {
     const mockFunction = vi.fn();
     const shouldSkip = vi.fn().mockReturnValue(true);
 
@@ -269,10 +272,10 @@ describe('Conditional Execution', () => {
       shouldSkip,
     });
 
-    conditionalDebounce('test');
+    conditionalDebounce("test");
 
     // Verify skip was checked
-    expect(shouldSkip).toHaveBeenCalledWith('test');
+    expect(shouldSkip).toHaveBeenCalledWith("test");
 
     // No timer should be set when condition is true
     expect(vi.getTimerCount()).toBe(0);
@@ -339,8 +342,8 @@ describe('React Component with Debounce', () => {
 
 ```typescript
 const logTimerState = () => {
-  console.log('Active timers:', vi.getTimerCount());
-  console.log('Timer details:', vi.getTimerMock().getTimerCounts());
+  console.log("Active timers:", vi.getTimerCount());
+  console.log("Timer details:", vi.getTimerMock().getTimerCounts());
 };
 ```
 

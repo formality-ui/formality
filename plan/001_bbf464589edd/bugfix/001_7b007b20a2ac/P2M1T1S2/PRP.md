@@ -12,11 +12,13 @@
 **Feature Goal**: Modify `useConditions` to populate the `disabled` property in field states by integrating `useFieldDisabledState` hook, using two-pass evaluation to resolve the circular dependency between condition evaluation and disabled state.
 
 **Deliverable**: Updated `/packages/react/src/hooks/useConditions.ts` that:
+
 1. Builds field states in two passes (base states without disabled, then add disabled)
 2. Integrates `useFieldDisabledState` for each field to compute disabled state
 3. Returns field states with populated `disabled` property
 
 **Success Definition**:
+
 - Field states returned by `useConditions` include `disabled` property for each field
 - Two-pass evaluation prevents circular dependency (conditions need disabled, disabled needs conditions)
 - Pass 1: Build base field states without disabled (using existing pattern)
@@ -33,11 +35,13 @@
 **Use Case**: Developers need to write conditions that reference the `disabled` state of other fields
 
 **User Journey**:
+
 1. Developer defines a field with conditions like `{ when: { field1: { isDisabled: true } }, disabled: true }`
 2. The condition system evaluates whether field1 is disabled
 3. Based on field1's disabled state, the current field becomes disabled
 
 **Pain Points Addressed**:
+
 - Currently, field states don't include `disabled` property, so `isDisabled` matcher doesn't work
 - Developers cannot write conditions based on whether other fields are disabled
 - Multi-field disabled conditions are impossible
@@ -49,9 +53,11 @@
 - **Enables isDisabled Matcher**: The `isDisabled` matcher in conditions (lines 78-84 of evaluate.ts) currently returns `false` because `fieldState?.disabled` is always `undefined`
 
 - **Supports Multi-Field Disabled Conditions**: Users need to write conditions like:
+
   ```typescript
   { when: { field1: { isDisabled: true }, field2: { isDisabled: true } }, disabled: true }
   ```
+
   This requires knowing the disabled state of other fields during condition evaluation.
 
 - **Circular Dependency Challenge**: This creates a circular dependency:
@@ -91,6 +97,7 @@ Modify `useConditions` hook at `/packages/react/src/hooks/useConditions.ts` to:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file location and line numbers for modifications
 - Complete code structure showing current implementation
 - Two-pass evaluation pattern with specific implementation guidance
@@ -482,7 +489,13 @@ const disabledStates = useMemo(() => {
   });
 
   return disabled;
-}, [watchFields, /* conditions config */, fieldValues, baseFieldStates, record]);
+}, [
+  watchFields /* conditions config */,
+  ,
+  fieldValues,
+  baseFieldStates,
+  record,
+]);
 
 // Pass 3: Merge base states with disabled into final field states
 // This is the final fieldStates object that includes all properties
@@ -495,7 +508,7 @@ const fieldStates = useMemo(() => {
       };
       return acc;
     },
-    {} as Record<string, FieldStateInput>
+    {} as Record<string, FieldStateInput>,
   );
 }, [baseFieldStates, disabledStates]);
 
@@ -696,6 +709,7 @@ pnpm test examples/03-conditions.test.tsx -v
 **8/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Two-pass evaluation pattern is well-researched and documented
 - Existing codebase shows similar patterns in useFieldDisabledState
 - Clear target location and implementation approach
@@ -703,6 +717,7 @@ pnpm test examples/03-conditions.test.tsx -v
 - Validation commands are project-specific and tested
 
 **Deduction (10→8)**:
+
 - **(-1)** API design question: Where do we get each field's conditions? (allFieldsConfig parameter vs current approach)
 - **(-1)** Cannot call useFieldDisabledState in loop (Rules of Hooks) - must use evaluateConditions directly or restructure
 - The implementation approach is sound, but may require refinement in P2.M1.T1.S3 based on testing results

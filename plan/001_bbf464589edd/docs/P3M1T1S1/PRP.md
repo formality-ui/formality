@@ -14,6 +14,7 @@
 **Feature Goal**: Implement per-effect subscription tracking in the `useSubscriptions` hook to prevent memory leaks caused by over-cleanup when the useEffect re-runs or React 18 Strict Mode double-invocation occurs.
 
 **Deliverable**:
+
 1. Modified `packages/react/src/hooks/useSubscriptions.ts` with per-effect run tracking
 2. Subscriptions stored in a Map keyed by effect run ID
 3. Cleanup function only removes subscriptions added in the current effect invocation
@@ -21,6 +22,7 @@
 5. Tracking data cleanup to prevent memory leaks in the Map itself
 
 **Success Definition**:
+
 - Subscriptions added in each effect run are tracked independently
 - Cleanup function only removes subscriptions from its own effect run
 - React 18 Strict Mode double-invocation does not cause over-cleanup
@@ -37,6 +39,7 @@
 **Use Case**: Forms with dynamic field subscriptions where field A may change its subscriptions to other fields multiple times during its lifecycle (e.g., based on user selections, conditions, or dynamic form structures).
 
 **User Journey**:
+
 1. Developer defines a form with fields that have dynamic subscriptions
 2. Field subscriptions change based on conditions or user interactions
 3. useEffect re-runs when subscriptions change
@@ -44,6 +47,7 @@
 5. No memory leaks occur from orphaned subscriptions or over-cleanup
 
 **Pain Points Addressed**:
+
 - **Memory Leaks**: Current implementation may remove subscriptions from newer effect runs during cleanup
 - **React 18 Strict Mode Issues**: Double-invocation causes subscription churn
 - **Rapid Subscription Changes**: Fields with frequently changing subscriptions may leak subscriptions
@@ -70,6 +74,7 @@ Per-effect subscription tracking using a Map keyed by incrementing run IDs. Each
 **Lines:** 28-70
 
 Current implementation uses a single ref to track previous subscriptions:
+
 ```typescript
 const prevSubscriptionsRef = useRef<string[]>([]);
 
@@ -77,8 +82,12 @@ useEffect(() => {
   const prevSubscriptions = prevSubscriptionsRef.current;
 
   // Find subscriptions to add/remove based on diff
-  const toRemove = prevSubscriptions.filter((target) => !subscriptions.includes(target));
-  const toAdd = subscriptions.filter((target) => !prevSubscriptions.includes(target));
+  const toRemove = prevSubscriptions.filter(
+    (target) => !subscriptions.includes(target),
+  );
+  const toAdd = subscriptions.filter(
+    (target) => !prevSubscriptions.includes(target),
+  );
 
   // Remove old, add new
   toRemove.forEach((target) => removeSubscription(target, fieldName));
@@ -114,6 +123,7 @@ useEffect(() => {
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file path and line numbers for modification
 - Complete before/after code examples
 - Similar patterns from the codebase (executionVersionRef)
@@ -309,6 +319,7 @@ packages/react/src/__tests__/
 ### Data models and structure
 
 No new data models needed. Using existing types:
+
 ```typescript
 // Existing types from FormContext
 type addSubscription = (target: string, subscriber: string) => void;
@@ -470,7 +481,8 @@ export function useSubscriptions(
     // Cleanup only removes subscriptions added in THIS run
     return () => {
       // Get subscriptions for THIS specific run (not current subscriptions value)
-      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+      const thisRunSubscriptions =
+        runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
         // PATTERN: LIFO cleanup (Last In, First Out)
@@ -656,6 +668,7 @@ pnpm test
 The P2.M2.T2.S3 PRP is implementing React integration tests for multi-field isDisabled conditions.
 
 **This PRP's Contract**:
+
 1. This PRP modifies `useSubscriptions.ts` independently
 2. No overlap with P2.M2.T2.S3 implementation
 3. Both work items can proceed in parallel
@@ -670,6 +683,7 @@ The P2.M2.T2.S3 PRP is implementing React integration tests for multi-field isDi
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Clear problem statement and solution design
 - Similar pattern exists in codebase (executionVersionRef)
 - Comprehensive research documented
@@ -744,7 +758,8 @@ export function useSubscriptions(
     });
 
     return () => {
-      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+      const thisRunSubscriptions =
+        runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
         [...thisRunSubscriptions].reverse().forEach((target) => {

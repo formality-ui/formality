@@ -6,38 +6,39 @@
 
 ## 1. Current repo-wide totals (gate status BEFORE R1)
 
-| Metric | Covered | Total | % | 90% target | Gap |
-| --- | --- | --- | --- | --- | --- |
-| Statements | 2535 | 2913 | **87.02%** ❌ | 2622 | **+87** |
-| Branches | 759 | 860 | **88.26%** ❌ | 774 | **+15** |
-| Functions | 98 | 106 | 92.45% ✅ | 96 | passing |
-| Lines | 2535 | 2913 | 87.02% ❌ | 2622 | +87 (= stmts) |
+| Metric     | Covered | Total | %             | 90% target | Gap           |
+| ---------- | ------- | ----- | ------------- | ---------- | ------------- |
+| Statements | 2535    | 2913  | **87.02%** ❌ | 2622       | **+87**       |
+| Branches   | 759     | 860   | **88.26%** ❌ | 774        | **+15**       |
+| Functions  | 98      | 106   | 92.45% ✅     | 96         | passing       |
+| Lines      | 2535    | 2913  | 87.02% ❌     | 2622       | +87 (= stmts) |
 
 **Bottom line:** functions already clear 90%. **Statements** and **branches**
 fail. The thresholds block (R1) will currently FAIL until those two close.
 
 Root `vitest.config.ts` has `coverage.exclude` (correct) but **no
 `coverage.thresholds`** block. Add (PRD §1.3.7 verbatim):
+
 ```ts
 thresholds: { statements: 90, branches: 90, functions: 90, lines: 90 },
 ```
 
 ## 2. Ranked under-covered files (biggest statement drag first)
 
-| # | File | stmt% | branch% | func% | uncS | uncB | Test? |
-| ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| 1 | `react/src/components/Form.tsx` | 77.1 | 76.9 | **28.6** | **100** | 18 | ✅ shallow (`Form.test.tsx` + autosave) |
-| 2 | `react/src/hooks/useFormState.ts` | **0.0** | **0.0** | **0.0** | **60** | 1 | ❌ **NONE** |
-| 3 | `core/src/expression/evaluate.ts` | 85.9 | 93.1 | 100 | 39 | 8 | ✅ shallow |
-| 4 | `core/src/validation/validate.ts` | 79.4 | 83.9 | 100 | 36 | 9 | ✅ shallow |
-| 5 | `react/src/components/Field.tsx` | 87.6 | **75.8** | 100 | 33 | **15** | ✅ |
-| 6 | `core/src/config/merge.ts` | 81.0 | 96.7 | 85.7 | 24 | 1 | ◐ partial |
-| 7 | `core/src/transform/pipeline.ts` | 85.1 | 84.6 | 100 | 23 | 8 | ✅ |
-| 8 | `core/src/expression/infer.ts` | 76.6 | 75.9 | 100 | 18 | 7 | ◐ indirect |
-| 9 | `core/src/conditions/evaluate.ts` | 94.0 | 91.8 | 100 | 16 | 10 | ✅ borderline |
-| 10 | `core/src/validation/messages.ts` | 89.9 | 86.7 | 100 | 9 | 4 | ◐ indirect |
-| 11 | `react/src/context/FormContext.ts` | 73.3 | 50.0 | 100 | 4 | 1 | ◐ indirect |
-| 12 | `react/src/hooks/usePropsEvaluation.ts` | 96.1 | **72.0** | 100 | 4 | 7 | ◐ indirect |
+|   # | File                                    |   stmt% |  branch% |    func% |    uncS |   uncB | Test?                                   |
+| --: | --------------------------------------- | ------: | -------: | -------: | ------: | -----: | --------------------------------------- |
+|   1 | `react/src/components/Form.tsx`         |    77.1 |     76.9 | **28.6** | **100** |     18 | ✅ shallow (`Form.test.tsx` + autosave) |
+|   2 | `react/src/hooks/useFormState.ts`       | **0.0** |  **0.0** |  **0.0** |  **60** |      1 | ❌ **NONE**                             |
+|   3 | `core/src/expression/evaluate.ts`       |    85.9 |     93.1 |      100 |      39 |      8 | ✅ shallow                              |
+|   4 | `core/src/validation/validate.ts`       |    79.4 |     83.9 |      100 |      36 |      9 | ✅ shallow                              |
+|   5 | `react/src/components/Field.tsx`        |    87.6 | **75.8** |      100 |      33 | **15** | ✅                                      |
+|   6 | `core/src/config/merge.ts`              |    81.0 |     96.7 |     85.7 |      24 |      1 | ◐ partial                               |
+|   7 | `core/src/transform/pipeline.ts`        |    85.1 |     84.6 |      100 |      23 |      8 | ✅                                      |
+|   8 | `core/src/expression/infer.ts`          |    76.6 |     75.9 |      100 |      18 |      7 | ◐ indirect                              |
+|   9 | `core/src/conditions/evaluate.ts`       |    94.0 |     91.8 |      100 |      16 |     10 | ✅ borderline                           |
+|  10 | `core/src/validation/messages.ts`       |    89.9 |     86.7 |      100 |       9 |      4 | ◐ indirect                              |
+|  11 | `react/src/context/FormContext.ts`      |    73.3 |     50.0 |      100 |       4 |      1 | ◐ indirect                              |
+|  12 | `react/src/hooks/usePropsEvaluation.ts` |    96.1 | **72.0** |      100 |       4 |      7 | ◐ indirect                              |
 
 Files already ≥90% all metrics (no action): `labels/resolve.ts` (100%),
 `makeProxyState.ts` (100%), `FormalityProvider.tsx`, `UnusedFields.tsx`,
@@ -59,31 +60,31 @@ all type-only modules (`types/*.ts`, `overlays.ts` → 0 statements).
 
 ## 4. Files lacking tests
 
-| File | Status |
-| --- | --- |
-| `react/src/hooks/useFormState.ts` | ❌ **NONE** (0%) — top priority |
-| `react/src/hooks/usePropsEvaluation.ts` | ❌ indirect only (branch 72%) |
-| `core/src/expression/infer.ts` | ❌ indirect only (stmt 76%) |
-| `core/src/expression/context.ts` | ❌ indirect (99.3% — minor) |
-| `core/src/config/merge.ts` | ◐ partial tails |
-| `core/src/config/defaults.ts` | ◐ partial (98%) |
-| `overlays.ts` | n/a — **type-only** (0 statements; no runtime test needed) |
+| File                                    | Status                                                     |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `react/src/hooks/useFormState.ts`       | ❌ **NONE** (0%) — top priority                            |
+| `react/src/hooks/usePropsEvaluation.ts` | ❌ indirect only (branch 72%)                              |
+| `core/src/expression/infer.ts`          | ❌ indirect only (stmt 76%)                                |
+| `core/src/expression/context.ts`        | ❌ indirect (99.3% — minor)                                |
+| `core/src/config/merge.ts`              | ◐ partial tails                                            |
+| `core/src/config/defaults.ts`           | ◐ partial (98%)                                            |
+| `overlays.ts`                           | n/a — **type-only** (0 statements; no runtime test needed) |
 
 ## 5. Backfill targets (ordered by leverage) — clears both failing metrics
 
 Gap to close: **+87 stmt, +15 branch**. Steps 1+2+3 alone yield ≈ +137 stmt /
 +21 branch / +4 func → statements ~91.7%, branches ~90.7% (margin above 90%).
 
-| # | Action | New/extend | Expected gain |
-| ---: | --- | --- | --- |
-| 1 | **NEW `react/src/__tests__/useFormState.test.tsx`** — `renderHook`: single/multiple names, empty-array early return, outside-`<Form>` try/catch, lazy `record` getter. | new file | **+~57 stmt, +1 branch, +1 func** |
-| 2 | **EXTEND `react/src/__tests__/Form.test.tsx`** — autosave callbacks (368-418), submit/error callbacks, defaultValues/onChange (525-578), group resolution + warnings (623-634), final return (734-735). | extend | **+~40 stmt, +10-12 branch, +3-4 func** |
-| 3 | **EXTEND `core/src/__tests__/validation.test.ts`** — uncovered rule paths in `validate.ts` (112-188, 277-300) + `messages.ts` (57-65, 148-149). | extend | **+~40 stmt, +10 branch** |
-| 4 | EXTEND `Field.test.tsx` — template wrapper, ref callbacks, Controller branches. | extend | +~25 stmt, +10 branch (stability margin) |
-| 5 | EXTEND `expression.test.ts` — operator dispatch 219-333 + `infer.ts` 59-84. | extend | +~45 stmt, +12 branch (margin) |
-| 6 | EXTEND `transform.test.ts` — pipeline edges 78-82, 133-147, 314-315. | extend | +~15 stmt, +6 branch |
-| 7 | EXTEND `config.test.ts` — `merge.ts` tails 238-258 + branches; `defaults.ts`. | extend | +~18 stmt, +1 func |
-| 8 | (optional) NEW `usePropsEvaluation.test.tsx` — 7 partial branches. | new | +4 stmt, +7 branch (hedge) |
+|   # | Action                                                                                                                                                                                                  | New/extend | Expected gain                            |
+| --: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------- |
+|   1 | **NEW `react/src/__tests__/useFormState.test.tsx`** — `renderHook`: single/multiple names, empty-array early return, outside-`<Form>` try/catch, lazy `record` getter.                                  | new file   | **+~57 stmt, +1 branch, +1 func**        |
+|   2 | **EXTEND `react/src/__tests__/Form.test.tsx`** — autosave callbacks (368-418), submit/error callbacks, defaultValues/onChange (525-578), group resolution + warnings (623-634), final return (734-735). | extend     | **+~40 stmt, +10-12 branch, +3-4 func**  |
+|   3 | **EXTEND `core/src/__tests__/validation.test.ts`** — uncovered rule paths in `validate.ts` (112-188, 277-300) + `messages.ts` (57-65, 148-149).                                                         | extend     | **+~40 stmt, +10 branch**                |
+|   4 | EXTEND `Field.test.tsx` — template wrapper, ref callbacks, Controller branches.                                                                                                                         | extend     | +~25 stmt, +10 branch (stability margin) |
+|   5 | EXTEND `expression.test.ts` — operator dispatch 219-333 + `infer.ts` 59-84.                                                                                                                             | extend     | +~45 stmt, +12 branch (margin)           |
+|   6 | EXTEND `transform.test.ts` — pipeline edges 78-82, 133-147, 314-315.                                                                                                                                    | extend     | +~15 stmt, +6 branch                     |
+|   7 | EXTEND `config.test.ts` — `merge.ts` tails 238-258 + branches; `defaults.ts`.                                                                                                                           | extend     | +~18 stmt, +1 func                       |
+|   8 | (optional) NEW `usePropsEvaluation.test.tsx` — 7 partial branches.                                                                                                                                      | new        | +4 stmt, +7 branch (hedge)               |
 
 **Minimum to clear the gate:** steps **1 + 2 + 3**. Steps 4–7 give a stable
 ~92% headroom; 8 is a hedge.

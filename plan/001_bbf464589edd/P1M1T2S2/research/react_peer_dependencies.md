@@ -20,6 +20,7 @@ Research conducted on: 2026-01-12
 ### Key Differences: peerDependencies vs dependencies
 
 **peerDependencies:**
+
 - NOT automatically installed when someone installs your package
 - Expect the consumer (the application) to provide them
 - Ensures a single version is used across the entire dependency tree
@@ -27,6 +28,7 @@ Research conducted on: 2026-01-12
 - Best for: Major frameworks like React, React DOM, and other UI libraries
 
 **dependencies:**
+
 - Automatically installed when someone installs your package
 - Used for libraries your package requires internally
 - Each package gets its own copy
@@ -52,14 +54,14 @@ Research conducted on: 2026-01-12
 
 ### Semantic Versioning Ranges
 
-| Range | Matches | Does Not Match | Use Case |
-|-------|---------|----------------|----------|
-| `^18.0.0` | 18.0.0, 18.1.0, 18.3.0 | 19.0.0, 17.0.0 | Most common - allows patch/minor updates, prevents breaking changes |
-| `>=18.0.0` | 18.0.0, 18.1.0, 19.0.0, 20.0.0 | (anything lower) | Forward compatibility - supports all future versions |
-| `~18.0.0` | 18.0.0, 18.0.1 | 18.1.0, 19.0.0 | Conservative - only patch updates |
-| `18.x` | 18.0.0, 18.1.0, 18.99.0 | 19.0.0 | Same as `^18.0.0` |
-| `*` | Any version | (none) | Not recommended - too permissive |
-| `18.0.0 - 19.0.0` | 18.0.0 to 19.0.0 | 17.0.0, 19.0.1 | Specific range |
+| Range             | Matches                        | Does Not Match   | Use Case                                                            |
+| ----------------- | ------------------------------ | ---------------- | ------------------------------------------------------------------- |
+| `^18.0.0`         | 18.0.0, 18.1.0, 18.3.0         | 19.0.0, 17.0.0   | Most common - allows patch/minor updates, prevents breaking changes |
+| `>=18.0.0`        | 18.0.0, 18.1.0, 19.0.0, 20.0.0 | (anything lower) | Forward compatibility - supports all future versions                |
+| `~18.0.0`         | 18.0.0, 18.0.1                 | 18.1.0, 19.0.0   | Conservative - only patch updates                                   |
+| `18.x`            | 18.0.0, 18.1.0, 18.99.0        | 19.0.0           | Same as `^18.0.0`                                                   |
+| `*`               | Any version                    | (none)           | Not recommended - too permissive                                    |
+| `18.0.0 - 19.0.0` | 18.0.0 to 19.0.0               | 17.0.0, 19.0.1   | Specific range                                                      |
 
 ### Multiple Version Support (OR syntax)
 
@@ -101,6 +103,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Supports React 17, 18, and 19 with OR syntax
 - Makes Emotion libraries optional (for CSS-in-JS alternatives)
 - Makes TypeScript types optional
@@ -125,6 +128,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Uses `>=` for forward compatibility (supports React 19+)
 - Requires React 18 as minimum (features use React 18 APIs)
 - Requires Emotion 11+ as peer dependency
@@ -147,6 +151,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Very broad support - back to React 16.8 (when hooks were introduced)
 - Concise OR syntax for major versions
 - No `react-dom` requirement (works with React Native)
@@ -169,6 +174,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Modern: only supports React 18 and 19
 - Concise caret syntax without patch versions
 - No `react-dom` required (React Native compatible)
@@ -194,6 +200,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Supports React 16.8+ (hooks introduction)
 - Includes release candidates (`-rc`) in version range
 - Requires both `react` and `react-dom`
@@ -218,6 +225,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Uses `>=18` for React 18+ forward compatibility
 - Requires `react-dom` (web-only, not React Native)
 - Modern: requires React 18 features (uses new Suspense patterns)
@@ -239,6 +247,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Modern only: React 18+
 - Supports release candidates
 - No `react-dom` requirement (works with React Native)
@@ -261,6 +270,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Requires React 18+
 - Uses `>=` for forward compatibility
 - Includes `react-dom` requirement
@@ -286,6 +296,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - More strict: only React 18 or 19
 - Requires DOM testing library as peer
 - Includes TypeScript type requirements
@@ -311,6 +322,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Requires React 18+
 - Makes `immer` optional via peerDependenciesMeta (not shown)
 - Includes `use-sync-external-store` for React 18 compatibility
@@ -334,6 +346,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Broad support back to React 16.8
 - Explicit version ranges including patch version
 - Requires both React and React DOM
@@ -357,6 +370,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Uses `>=` for forward compatibility
 - Specific minimum versions (16.14.0)
 - Includes TypeScript types as peer dependencies
@@ -388,6 +402,7 @@ This allows any of the specified major versions.
 ```
 
 **Pattern Notes**:
+
 - Complex: multiple date library options as peer dependencies
 - Requires MUI core as peer dependency
 - Supports multiple MUI major versions
@@ -413,6 +428,7 @@ This allows any of the specified major versions.
 ```
 
 **Why**:
+
 - React 18 introduced concurrent features that many libraries now use
 - React 19 is stable and widely adopted
 - Caret syntax (`^`) allows patch/minor updates but prevents breaking changes
@@ -420,12 +436,12 @@ This allows any of the specified major versions.
 
 ### 2. When to Use Different Version Ranges
 
-| Scenario | Recommended Range |
-|----------|-------------------|
-| Modern library (React 18+ features) | `"^18.0.0 || ^19.0.0"` |
-| Maximum compatibility | `"^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"` |
-| Forward compatible (tested with future) | `">=18.0.0"` |
-| Conservative (only tested versions) | `"^18.0.0"` |
+| Scenario                                | Recommended Range |
+| --------------------------------------- | ----------------- | --- | --------- | --- | ------- | --- | --------- |
+| Modern library (React 18+ features)     | `"^18.0.0         |     | ^19.0.0"` |
+| Maximum compatibility                   | `"^16.8.0         |     | ^17.0.0   |     | ^18.0.0 |     | ^19.0.0"` |
+| Forward compatible (tested with future) | `">=18.0.0"`      |
+| Conservative (only tested versions)     | `"^18.0.0"`       |
 
 ### 3. Optional Peer Dependencies
 
@@ -447,6 +463,7 @@ Use `peerDependenciesMeta` for truly optional dependencies:
 ```
 
 **Best practices for optional peers**:
+
 - TypeScript type packages (`@types/*`)
 - Alternative styling libraries (e.g., Emotion vs styled-components)
 - Development/debugging tools
@@ -524,6 +541,7 @@ If your library works with React Native, don't require `react-dom`:
 ### Real-World Examples
 
 **MUI makes Emotion optional** (supports alternative CSS solutions):
+
 ```json
 {
   "peerDependencies": {
@@ -538,6 +556,7 @@ If your library works with React Native, don't require `react-dom`:
 ```
 
 **Zustand makes Immer optional** (for immutable updates):
+
 ```json
 {
   "peerDependencies": {
@@ -545,6 +564,7 @@ If your library works with React Native, don't require `react-dom`:
   }
 }
 ```
+
 (Note: Uses peerDependenciesMeta not shown, Immer is optional)
 
 ---
@@ -595,7 +615,7 @@ If your library works with React Native, don't require `react-dom`:
 ```json
 {
   "devDependencies": {
-    "react": "^19.0.0",  // Test with latest
+    "react": "^19.0.0", // Test with latest
     "react-dom": "^19.0.0"
   }
 }
@@ -604,6 +624,7 @@ If your library works with React Native, don't require `react-dom`:
 ### Real-World Examples
 
 **React Hook Form** (v7.71.0):
+
 ```json
 {
   "peerDependencies": {
@@ -613,12 +634,13 @@ If your library works with React Native, don't require `react-dom`:
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "react": "^19.2.7"  // Tests with React 19
+    "react": "^19.2.7" // Tests with React 19
   }
 }
 ```
 
 **Zustand** (v5):
+
 ```json
 {
   "peerDependencies": {
@@ -641,12 +663,13 @@ If your library works with React Native, don't require `react-dom`:
   "devDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@testing-library/react": "^16.0.0"  // v16+ for React 19
+    "@testing-library/react": "^16.0.0" // v16+ for React 19
   }
 }
 ```
 
 **Testing Library Compatibility**:
+
 - `@testing-library/react` v15+ → React 18
 - `@testing-library/react` v16+ → React 19
 
@@ -657,6 +680,7 @@ If your library works with React Native, don't require `react-dom`:
 ### 1. Using Regular dependencies for React
 
 **BAD**:
+
 ```json
 {
   "dependencies": {
@@ -666,12 +690,14 @@ If your library works with React Native, don't require `react-dom`:
 ```
 
 **Why It's Bad**:
+
 - Multiple React copies in bundle
 - Hooks break (Invalid hook call errors)
 - Context providers/consumers can't communicate
 - Wasted bundle size (~100KB+ per copy)
 
 **GOOD**:
+
 ```json
 {
   "peerDependencies": {
@@ -683,6 +709,7 @@ If your library works with React Native, don't require `react-dom`:
 ### 2. Too Strict Version Ranges
 
 **BAD**:
+
 ```json
 {
   "peerDependencies": {
@@ -692,11 +719,13 @@ If your library works with React Native, don't require `react-dom`:
 ```
 
 **Why It's Bad**:
+
 - Prevents users from updating to React 18.3.0, 19.0.0, etc.
 - Creates dependency conflicts
 - Users can't use your library with other libraries requiring different React versions
 
 **GOOD**:
+
 ```json
 {
   "peerDependencies": {
@@ -708,6 +737,7 @@ If your library works with React Native, don't require `react-dom`:
 ### 3. Too Permissive Version Ranges
 
 **BAD**:
+
 ```json
 {
   "peerDependencies": {
@@ -717,11 +747,13 @@ If your library works with React Native, don't require `react-dom`:
 ```
 
 **Why It's Bad**:
+
 - Your library may break with React 15 or earlier
 - No guarantee of compatibility
 - Users encounter runtime errors
 
 **GOOD**:
+
 ```json
 {
   "peerDependencies": {
@@ -733,6 +765,7 @@ If your library works with React Native, don't require `react-dom`:
 ### 4. Forgetting react-dom
 
 **BAD** (for web-only libraries):
+
 ```json
 {
   "peerDependencies": {
@@ -742,11 +775,13 @@ If your library works with React Native, don't require `react-dom`:
 ```
 
 **Why It's Bad**:
+
 - `react-dom` contains web-specific renderers
 - Your library likely uses DOM-specific APIs
 - TypeScript types reference `react-dom`
 
 **GOOD** (for web libraries):
+
 ```json
 {
   "peerDependencies": {
@@ -761,6 +796,7 @@ If your library works with React Native, don't require `react-dom`:
 ### 5. Not Including React in DevDependencies
 
 **BAD**:
+
 ```json
 {
   "peerDependencies": {
@@ -773,11 +809,13 @@ If your library works with React Native, don't require `react-dom`:
 ```
 
 **Why It's Bad**:
+
 - Tests fail because React isn't installed
 - TypeScript can't find React types
 - Development build fails
 
 **GOOD**:
+
 ```json
 {
   "peerDependencies": {
@@ -794,25 +832,28 @@ If your library works with React Native, don't require `react-dom`:
 ### 6. Mismatched Testing Library Versions
 
 **BAD**:
+
 ```json
 {
   "devDependencies": {
     "react": "^19.0.0",
-    "@testing-library/react": "^14.0.0"  // v14 doesn't support React 19
+    "@testing-library/react": "^14.0.0" // v14 doesn't support React 19
   }
 }
 ```
 
 **Why It's Bad**:
+
 - Tests fail with React 19
 - Incompatible APIs
 
 **GOOD**:
+
 ```json
 {
   "devDependencies": {
     "react": "^19.0.0",
-    "@testing-library/react": "^16.0.0"  // v16+ supports React 19
+    "@testing-library/react": "^16.0.0" // v16+ supports React 19
   }
 }
 ```
@@ -820,23 +861,26 @@ If your library works with React Native, don't require `react-dom`:
 ### 7. Not Testing All Supported React Versions
 
 **BAD**:
+
 ```json
 {
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "react": "^19.0.0"  // Only testing with React 19
+    "react": "^19.0.0" // Only testing with React 19
   }
 }
 ```
 
 **Why It's Bad**:
+
 - Your library might break with React 18
 - Users report bugs you didn't catch
 
 **GOOD**:
 Test with multiple React versions in CI:
+
 ```yaml
 # Example CI matrix
 test:
@@ -847,15 +891,17 @@ test:
 ### 8. Using Wrong Caret Range
 
 **BAD**:
+
 ```json
 {
   "peerDependencies": {
-    "react": "^18.0.0 || ^18.0.0 || ^19.0.0"  // Redundant
+    "react": "^18.0.0 || ^18.0.0 || ^19.0.0" // Redundant
   }
 }
 ```
 
 **GOOD**:
+
 ```json
 {
   "peerDependencies": {
@@ -869,7 +915,8 @@ test:
 **BAD**: No README mention of React requirements
 
 **GOOD**:
-```markdown
+
+````markdown
 # Your Library
 
 ## Requirements
@@ -882,7 +929,9 @@ test:
 ```bash
 npm install your-library react react-dom
 ```
-```
+````
+
+````
 
 ### 10. Ignoring peerDependencyWarnings
 
@@ -936,9 +985,10 @@ React 19.0.0 was released in 2025 and includes:
     "react-dom": "^18.0.0 || ^19.0.0"
   }
 }
-```
+````
 
 **For Modern-Only Libraries**:
+
 ```json
 {
   "peerDependencies": {
@@ -948,6 +998,7 @@ React 19.0.0 was released in 2025 and includes:
 ```
 
 **For Forward-Compatible Libraries**:
+
 ```json
 {
   "peerDependencies": {
@@ -960,6 +1011,7 @@ React 19.0.0 was released in 2025 and includes:
 ### Testing with React 19
 
 **CI/CD Matrix**:
+
 ```yaml
 test:
   matrix:
@@ -968,6 +1020,7 @@ test:
 ```
 
 **Package.json**:
+
 ```json
 {
   "devDependencies": {
@@ -999,9 +1052,7 @@ test:
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -1088,12 +1139,14 @@ test:
 ## Additional Resources
 
 ### Official Documentation
+
 - **npm peerDependencies**: https://docs.npmjs.com/cli/v9/configuring-npm/package-json#peerdependencies
 - **npm peerDependenciesMeta**: https://docs.npmjs.com/cli/v9/configuring-npm/package-json#peerdependenciesmeta
 - **React Installation**: https://react.dev/learn/installation
 - **Semantic Versioning**: https://semver.org/
 
 ### Library Documentation
+
 - **Material UI**: https://mui.com/material-ui/getting-started/installation/
 - **Chakra UI**: https://chakra-ui.com/docs/getting-started
 - **React Hook Form**: https://react-hook-form.com
@@ -1103,6 +1156,7 @@ test:
 - **React Testing Library**: https://testing-library.com/react
 
 ### Tools and Utilities
+
 - **npm view**: Check any package's peer dependencies: `npm view <package> peerDependencies`
 - **npm semver calculator**: https://semver.npmjs.com/
 - **Bundle size analysis**: https://bundlephobia.com/
@@ -1136,6 +1190,7 @@ All peer dependency information was retrieved from the npm registry using `npm i
 **File**: `/home/dustin/projects/formality/packages/react/package.json`
 
 The current formality React package uses:
+
 ```json
 {
   "peerDependencies": {
@@ -1158,5 +1213,5 @@ The current formality React package uses:
 
 ---
 
-*Research conducted: January 12, 2026*
-*React versions available: 18.3.0 (legacy), 19.2.3 (current latest)*
+_Research conducted: January 12, 2026_
+_React versions available: 18.3.0 (legacy), 19.2.3 (current latest)_

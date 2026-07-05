@@ -16,6 +16,7 @@ This document documents existing testing patterns in the Formality codebase rele
 ### Test Utilities
 
 **Common imports:**
+
 ```typescript
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -64,6 +65,7 @@ describe("autosave with validation", () => {
 ```
 
 **Key Takeaways:**
+
 - `vi.useFakeTimers({ shouldAdvanceTime: true })` - Enable fake timers
 - `userEvent.setup({ delay: null })` - Remove typing delays
 - `vi.advanceTimersByTimeAsync(ms)` - Advance time programmatically
@@ -108,6 +110,7 @@ it("should not re-render unrelated fields", () => {
 ```
 
 **Key Takeaways:**
+
 - Use `useRef` to track render counts (doesn't trigger re-render)
 - Use mock functions to capture render calls
 - Test both positive (should render) and negative (should not render) cases
@@ -158,6 +161,7 @@ it("should update disabled state when conditions change", () => {
 ```
 
 **Key Takeaways:**
+
 - Use `rerender()` to simulate prop changes
 - Test state transitions (enabled → disabled, etc.)
 - Use `toBeDisabled()` / `not.toBeDisabled()` for state verification
@@ -215,6 +219,7 @@ it("should use AND logic for multi-field when conditions", async () => {
 ```
 
 **Key Takeaways:**
+
 - React state updates are async
 - Use `waitFor()` to wait for DOM updates
 - Test intermediate states, not just final state
@@ -439,7 +444,9 @@ function useMemoryLeakDetector(componentName: string) {
     mountCountRef.current++;
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`[${componentName}] Mount #${mountCountRef.current}, Active: ${instanceCountRef.current}`);
+      console.log(
+        `[${componentName}] Mount #${mountCountRef.current}, Active: ${instanceCountRef.current}`,
+      );
     }
 
     return () => {
@@ -447,12 +454,16 @@ function useMemoryLeakDetector(componentName: string) {
       unmountCountRef.current++;
 
       if (process.env.NODE_ENV === "development") {
-        console.log(`[${componentName}] Unmount #${unmountCountRef.current}, Active: ${instanceCountRef.current}`);
+        console.log(
+          `[${componentName}] Unmount #${unmountCountRef.current}, Active: ${instanceCountRef.current}`,
+        );
       }
 
       // Detect potential leak
       if (instanceCountRef.current < 0) {
-        console.error(`[${componentName}] Memory leak detected! Negative instance count.`);
+        console.error(
+          `[${componentName}] Memory leak detected! Negative instance count.`,
+        );
       }
     };
   });

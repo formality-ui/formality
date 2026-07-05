@@ -13,12 +13,14 @@
 **Feature Goal**: Implement top-level `isDisabled` matcher support for object `when` conditions, enabling multi-field disabled state checks where a condition matches only when ALL fields in the object are disabled.
 
 **Deliverable**:
+
 1. Modified `evaluateConditionMatch` function in `/packages/core/src/conditions/evaluate.ts` to support `isDisabled` matcher with object `when` conditions
 2. New logic that checks if ALL fields in the object `when` have `disabled: true` in their field states
 3. Updated code comments to clarify the multi-field isDisabled behavior
 4. Comprehensive tests for the new functionality
 
 **Success Definition**:
+
 - Object `when` conditions with top-level `isDisabled: true` match when ALL fields are disabled
 - Object `when` conditions with top-level `isDisabled: false` match when ALL fields are enabled
 - Field-level `isDisabled` in object `when` continues to work independently
@@ -34,11 +36,13 @@
 **Use Case**: Enable complex multi-field disabled conditions where an action should only occur when multiple fields are all in the same disabled state.
 
 **User Journey**:
+
 1. Developer defines a condition with object `when` and top-level `isDisabled`
 2. Condition evaluation checks if ALL fields in the object are disabled
 3. If all fields match the disabled state requirement, the condition's action is applied
 
 **Pain Points Addressed**:
+
 - Previously, top-level `isDisabled` only worked with string `when` (single field)
 - No way to check "all fields must be disabled" without complex nested conditions
 - Inconsistent behavior between string and object `when` for state matchers
@@ -61,6 +65,7 @@ Add support for top-level `isDisabled` matcher in object `when` conditions.
 ### Current State
 
 **Current Implementation (Lines 143-151 of evaluate.ts)**:
+
 ```typescript
 // Handle multi-field 'when' (object form)
 if (condition.when !== undefined && typeof condition.when === "object") {
@@ -75,6 +80,7 @@ if (condition.when !== undefined && typeof condition.when === "object") {
 ```
 
 **Current Behavior**:
+
 - Object `when` with field-level `isDisabled`: ✅ Works
   ```typescript
   { when: { field1: { isDisabled: true }, field2: { is: "x" } } }
@@ -85,6 +91,7 @@ if (condition.when !== undefined && typeof condition.when === "object") {
   ```
 
 **String `when` with top-level `isDisabled`**: ✅ Works
+
 ```typescript
 { when: "field1", isDisabled: true, disabled: true }
 ```
@@ -107,7 +114,7 @@ if (condition.when !== undefined && typeof condition.when === "object") {
   // NEW: Check top-level isDisabled matcher for object when
   if (condition.isDisabled !== undefined && fieldStates) {
     const allFieldsDisabled = Object.keys(condition.when).every(
-      (fieldName) => fieldStates[fieldName]?.disabled === true
+      (fieldName) => fieldStates[fieldName]?.disabled === true,
     );
     if (condition.isDisabled !== allFieldsDisabled) {
       return false;
@@ -119,11 +126,13 @@ if (condition.when !== undefined && typeof condition.when === "object") {
 ```
 
 **New Behavior**:
+
 - Object `when` with field-level `isDisabled`: ✅ Still works
 - Object `when` with top-level `isDisabled`: ✅ Now supported
   ```typescript
   { when: { field1: { ... }, field2: { ... } }, isDisabled: true }
   ```
+
   - Matches only when ALL fields (field1, field2) have `disabled: true`
 
 ### Success Criteria
@@ -145,6 +154,7 @@ if (condition.when !== undefined && typeof condition.when === "object") {
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file location and line numbers for the code to modify
 - Complete context on the current implementation and its limitations
 - Clear explanation of the logic to add with code examples
@@ -233,7 +243,7 @@ packages/core/src/
 
 ### Desired Codebase tree with files to be modified
 
-```bash
+````bash
 packages/core/src/conditions/
 ├── evaluate.ts                     # ← MODIFY: Add top-level isDisabled check for object when
 │   ├── evaluateConditionMatch function:
@@ -265,7 +275,7 @@ packages/core/src/__tests__/
 │           ├── it("should not match when any field is disabled (isDisabled: false)")
 │           ├── it("should handle missing fieldStates gracefully")
 │           └── it("should combine with field-level matchers")
-```
+````
 
 ### Known Gotchas of our codebase & Library Quirks
 
@@ -329,6 +339,7 @@ packages/core/src/__tests__/
 **No new data models needed** - this PRP uses existing data structures.
 
 **Existing Data Structures**:
+
 ```typescript
 // FieldStateInput - Field state with metadata
 interface FieldStateInput {
@@ -338,21 +349,21 @@ interface FieldStateInput {
   isValidating?: boolean;
   error?: unknown;
   invalid?: boolean;
-  disabled?: boolean;  // The property we're checking
+  disabled?: boolean; // The property we're checking
 }
 
 // ConditionDescriptor - Condition definition
 interface ConditionDescriptor {
-  when?: string | WhenMultiField;  // Trigger: string or object
-  selectWhen?: SelectValue<boolean>;  // Expression trigger
-  is?: unknown;  // Value matcher
-  truthy?: boolean;  // Truthy matcher
-  isValid?: boolean;  // Field state matcher (requires string when)
-  isDisabled?: boolean;  // Field state matcher (NEW: now supports object when)
-  disabled?: boolean;  // Action to apply when matched
-  visible?: boolean;  // Action to apply when matched
-  set?: unknown;  // Action to set value
-  selectSet?: SelectValue;  // Action to set value from expression
+  when?: string | WhenMultiField; // Trigger: string or object
+  selectWhen?: SelectValue<boolean>; // Expression trigger
+  is?: unknown; // Value matcher
+  truthy?: boolean; // Truthy matcher
+  isValid?: boolean; // Field state matcher (requires string when)
+  isDisabled?: boolean; // Field state matcher (NEW: now supports object when)
+  disabled?: boolean; // Action to apply when matched
+  visible?: boolean; // Action to apply when matched
+  set?: unknown; // Action to set value
+  selectSet?: SelectValue; // Action to set value from expression
 }
 
 // WhenMultiField - Object when with field-level matchers
@@ -364,7 +375,7 @@ interface FieldMatcher {
   truthy?: boolean;
   isTruthy?: boolean;
   isValid?: boolean;
-  isDisabled?: boolean;  // Field-level isDisabled (already works)
+  isDisabled?: boolean; // Field-level isDisabled (already works)
 }
 ```
 
@@ -483,7 +494,7 @@ if (condition.when !== undefined && typeof condition.when === "object") {
   // When isDisabled: false, ALL fields must be enabled for condition to match
   if (condition.isDisabled !== undefined && fieldStates) {
     const allFieldsDisabled = Object.keys(condition.when).every(
-      (fieldName) => fieldStates[fieldName]?.disabled === true
+      (fieldName) => fieldStates[fieldName]?.disabled === true,
     );
     if (condition.isDisabled !== allFieldsDisabled) {
       return false;
@@ -710,12 +721,14 @@ pnpm test -v
 ### From P2.M2.T1.S1 - Move isDisabled Outside String Block (Complete)
 
 The P2.M2.T1.S1 PRP specifies that:
+
 1. Field state matcher checks are clearer after refactoring
 2. isDisabled is positioned for better code flow
 3. The refactoring clarifies the design intent
 4. String when with isDisabled works exactly as before
 
 **This PRP's Contract**:
+
 1. Build upon the clearer code structure from P2.M2.T1.S1
 2. Add top-level isDisabled support for object when
 3. Maintain the same isDisabled check pattern as string when
@@ -726,11 +739,13 @@ The P2.M2.T1.S1 PRP specifies that:
 ### From P2.M1 - Disabled Property in Field States (Complete)
 
 The P2.M1 work items specify that:
+
 1. FieldState.disabled property exists and is used by condition evaluation
 2. Two-pass evaluation prevents circular dependencies
 3. Tests verify isDisabled matcher works with string when conditions
 
 **This PRP's Contract**:
+
 1. Use the existing FieldState.disabled property
 2. Work within the two-pass evaluation framework
 3. Add tests for top-level isDisabled with object when
@@ -743,6 +758,7 @@ The P2.M1 work items specify that:
 The P2.M2.T1.S3 work item will handle mixed matchers in object when conditions.
 
 **This PRP's Contract**:
+
 1. Implement the basic top-level isDisabled check
 2. Focus on the all-fields-disabled/enabled logic
 3. Don't handle complex mixed scenarios (that's P2.M2.T1.S3)
@@ -757,6 +773,7 @@ The P2.M2.T1.S3 work item will handle mixed matchers in object when conditions.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Well-scoped feature addition with clear requirements
 - Exact file location and specific lines to modify
 - Comprehensive understanding of current implementation

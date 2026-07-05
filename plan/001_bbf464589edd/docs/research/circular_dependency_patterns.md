@@ -42,6 +42,7 @@ This research documents how major form libraries handle circular dependencies in
 ### Concept
 
 Evaluate the dependency graph in two passes:
+
 - **Pass 1**: Compute all base states (excluding the cyclic property)
 - **Pass 2**: Compute the cyclic property using Pass 1 results
 
@@ -109,7 +110,7 @@ const fieldStates = useMemo(() => {
       };
       return acc;
     },
-    {} as Record<string, FieldStateInput>
+    {} as Record<string, FieldStateInput>,
   );
 }, [baseFieldStates, disabledStates]);
 ```
@@ -141,6 +142,7 @@ const fieldStates = useMemo(() => {
 ### Key Insight
 
 **Pass 1 states don't have disabled**, so conditions evaluated in Pass 2 can't check `isDisabled` matcher for those states. But that's OK because:
+
 - Pass 2 is computing disabled for each field
 - It uses Pass 1 states (without disabled) as input
 - This breaks the cycle while still computing correct disabled values
@@ -183,17 +185,19 @@ while (changed && iterations < MAX_ITERATIONS) {
 }
 
 if (iterations >= MAX_ITERATIONS) {
-  console.warn('Disabled state evaluation did not converge');
+  console.warn("Disabled state evaluation did not converge");
 }
 ```
 
 ### Pros and Cons
 
 **Pros**:
+
 - Can handle complex multi-field dependencies
 - Detects when evaluation doesn't converge
 
 **Cons**:
+
 - More complex implementation
 - Potential performance impact with many fields
 - Harder to reason about
@@ -211,9 +215,7 @@ Order fields by dependency, then evaluate in order.
 const graph = new Map<string, Set<string>>();
 
 for (const field of watchFields) {
-  const dependencies = extractFieldDependencies(
-    fieldConditions[field]
-  );
+  const dependencies = extractFieldDependencies(fieldConditions[field]);
   graph.set(field, new Set(dependencies));
 }
 
@@ -252,10 +254,12 @@ for (const field of sortedFields) {
 ### Pros and Cons
 
 **Pros**:
+
 - Efficient (single pass in correct order)
 - Detects cycles explicitly
 
 **Cons**:
+
 - Requires dependency extraction from conditions
 - More complex implementation
 - May need to handle circular dependency errors
@@ -300,10 +304,12 @@ const fieldStates = useMemo(() => {
 ### Pros and Cons
 
 **Pros**:
+
 - Simple implementation
 - No circular dependency possible
 
 **Cons**:
+
 - Limits condition expressiveness
 - `isDisabled` matcher doesn't work for cross-field conditions
 
@@ -356,10 +362,12 @@ const allFieldStates = useMemo(() => {
 ### Pros and Cons
 
 **Pros**:
+
 - Single source of truth
 - Full field state available everywhere
 
 **Cons**:
+
 - Requires significant architecture change
 - All field states computed on any field change
 
@@ -367,13 +375,13 @@ const allFieldStates = useMemo(() => {
 
 ## Comparison Table
 
-| Pattern | Complexity | Performance | Expressiveness | Recommended |
-|---------|-----------|--------------|----------------|-------------|
-| Two-Pass Evaluation | Low | High | Medium | ✅ YES |
-| Fixed-Point Iteration | Medium | Medium | High | ⚠️ Maybe |
-| Topological Sort | High | High | High | ⚠️ Maybe |
-| Limit Condition Depth | Low | High | Low | ❌ No |
-| Global State Computation | High | Low | High | ❌ No |
+| Pattern                  | Complexity | Performance | Expressiveness | Recommended |
+| ------------------------ | ---------- | ----------- | -------------- | ----------- |
+| Two-Pass Evaluation      | Low        | High        | Medium         | ✅ YES      |
+| Fixed-Point Iteration    | Medium     | Medium      | High           | ⚠️ Maybe    |
+| Topological Sort         | High       | High        | High           | ⚠️ Maybe    |
+| Limit Condition Depth    | Low        | High        | Low            | ❌ No       |
+| Global State Computation | High       | Low         | High           | ❌ No       |
 
 ---
 
@@ -416,7 +424,7 @@ const config = {
   field2: {
     conditions: [
       {
-        when: { field1: { value: 'disable' } },
+        when: { field1: { value: "disable" } },
         disabled: true,
       },
     ],
@@ -478,6 +486,7 @@ field2: { when: { field1: { isDisabled: true } }, disabled: true }
 ```
 
 **Two-Pass Resolution**:
+
 - Pass 1: Neither has `disabled`
 - Pass 2: Both evaluate `isDisabled` as `false` (undefined in Pass 1)
 - Result: Both fields enabled (stable state, no infinite loop)
@@ -485,10 +494,13 @@ field2: { when: { field1: { isDisabled: true } }, disabled: true }
 ### 3. Empty Conditions
 
 ```typescript
-field1: { conditions: [] }
+field1: {
+  conditions: [];
+}
 ```
 
 **Two-Pass Resolution**:
+
 - Pass 2: `evaluateConditions` returns `{ disabled: undefined, hasDisabledCondition: false }`
 - Convert to `false`: `result.disabled ?? false`
 - Result: Field enabled (correct)

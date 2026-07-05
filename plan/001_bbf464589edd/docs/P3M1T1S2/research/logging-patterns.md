@@ -21,11 +21,12 @@ if (process.env.NODE_ENV !== "production") {
 #### React Package
 
 **packages/react/src/components/FieldGroup.tsx:74**
+
 ```typescript
 if (process.env.NODE_ENV !== "production" && !formConfig.groups?.[name]) {
   console.warn(
     `FieldGroup: No config found for group "${name}". ` +
-    `Make sure to define it in formConfig.groups.`,
+      `Make sure to define it in formConfig.groups.`,
   );
 }
 ```
@@ -33,12 +34,15 @@ if (process.env.NODE_ENV !== "production" && !formConfig.groups?.[name]) {
 #### Core Package
 
 **packages/core/src/validation/validate.ts:112,120**
+
 - Validator warnings for missing validators
 
 **packages/core/src/transform/pipeline.ts:71,79,91,134,144,156**
+
 - Parser/formatter warnings for missing parsers
 
 **packages/core/src/expression/evaluate.ts:262**
+
 - Expression evaluation errors
 
 ## Logging Characteristics
@@ -78,7 +82,7 @@ if (process.env.NODE_ENV !== "production") {
 // In addSubscription or useSubscriptions hook
 if (process.env.NODE_ENV !== "production") {
   console.warn(
-    `[Formality Subscription] "${subscriber}" subscribing to "${target}"`
+    `[Formality Subscription] "${subscriber}" subscribing to "${target}"`,
   );
 }
 ```
@@ -89,7 +93,7 @@ if (process.env.NODE_ENV !== "production") {
 // In removeSubscription or cleanup
 if (process.env.NODE_ENV !== "production") {
   console.warn(
-    `[Formality Subscription] "${subscriber}" unsubscribing from "${target}"`
+    `[Formality Subscription] "${subscriber}" unsubscribing from "${target}"`,
   );
 }
 ```
@@ -101,7 +105,7 @@ if (process.env.NODE_ENV !== "production") {
 if (process.env.NODE_ENV !== "production") {
   console.warn(
     `[Formality Subscription] Run ${currentRunId}: "${fieldName}" ` +
-    `subscribing to [${subscriptions.join(', ')}]`
+      `subscribing to [${subscriptions.join(", ")}]`,
   );
 }
 
@@ -109,7 +113,7 @@ if (process.env.NODE_ENV !== "production") {
 if (process.env.NODE_ENV !== "production") {
   console.warn(
     `[Formality Subscription] Run ${currentRunId}: "${fieldName}" ` +
-    `cleaning up [${thisRunSubscriptions.join(', ')}]`
+      `cleaning up [${thisRunSubscriptions.join(", ")}]`,
   );
 }
 ```
@@ -121,8 +125,8 @@ if (process.env.NODE_ENV !== "production") {
 if (process.env.NODE_ENV !== "production") {
   console.warn(
     `[Formality Subscription] WARNING: Double-cleanup attempt - ` +
-    `"${subscriber}" tried to unsubscribe from "${target}" ` +
-    `but subscription doesn't exist`
+      `"${subscriber}" tried to unsubscribe from "${target}" ` +
+      `but subscription doesn't exist`,
   );
 }
 ```
@@ -132,13 +136,12 @@ if (process.env.NODE_ENV !== "production") {
 ```typescript
 // For debugging complex forms
 if (process.env.NODE_ENV !== "production") {
-  const graph = Array.from(invertedSubscriptions.current.entries())
-    .map(([target, subscribers]) =>
-      `${target} <- [${Array.from(subscribers).join(', ')}]`
-    );
+  const graph = Array.from(invertedSubscriptions.current.entries()).map(
+    ([target, subscribers]) =>
+      `${target} <- [${Array.from(subscribers).join(", ")}]`,
+  );
   console.warn(
-    `[Formality Subscription] Dependency Graph:\n  ` +
-    graph.join('\n  ')
+    `[Formality Subscription] Dependency Graph:\n  ` + graph.join("\n  "),
   );
 }
 ```
@@ -148,6 +151,7 @@ if (process.env.NODE_ENV !== "production") {
 ### When to Log
 
 **DO Log**:
+
 - ✅ Subscription additions
 - ✅ Subscription removals
 - ✅ Effect run IDs
@@ -155,6 +159,7 @@ if (process.env.NODE_ENV !== "production") {
 - ✅ Suspicious patterns (rapid add/remove cycles)
 
 **DON'T Log** (too verbose):
+
 - ❌ Every form state change
 - ❌ Field value updates
 - ❌ Validation runs
@@ -178,6 +183,7 @@ if (process.env.NODE_ENV !== "production" && DEBUG_SUBSCRIPTIONS) {
 **File**: `packages/react/src/hooks/useSubscriptions.ts`
 
 **Locations**:
+
 - When subscriptions are added (after `runSubscriptionsRef.current.set()`)
 - When subscriptions are removed (in cleanup function)
 - When Map entries are deleted
@@ -187,6 +193,7 @@ if (process.env.NODE_ENV !== "production" && DEBUG_SUBSCRIPTIONS) {
 **File**: `packages/react/src/components/Form.tsx`
 
 **Locations**:
+
 - In `addSubscription()` function
 - In `removeSubscription()` function
 - When detecting empty subscriber sets
@@ -199,13 +206,13 @@ If logging becomes complex, consider a small utility:
 // packages/react/src/utils/debug.ts
 
 export function logSubscription(
-  event: 'add' | 'remove' | 'cleanup' | 'warning',
+  event: "add" | "remove" | "cleanup" | "warning",
   details: {
     subscriber?: string;
     target?: string;
     runId?: number;
     message?: string;
-  }
+  },
 ) {
   if (process.env.NODE_ENV !== "production") {
     const prefix = `[Formality Subscription] ${event.toUpperCase()}`;
@@ -213,18 +220,21 @@ export function logSubscription(
       details.subscriber && `subscriber="${details.subscriber}"`,
       details.target && `target="${details.target}"`,
       details.runId !== undefined && `run=${details.runId}`,
-    ].filter(Boolean).join(' ');
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-    const suffix = details.message ? ` - ${details.message}` : '';
+    const suffix = details.message ? ` - ${details.message}` : "";
     console.warn(`${prefix}: ${context}${suffix}`);
   }
 }
 ```
 
 Usage:
+
 ```typescript
-logSubscription('add', { subscriber: fieldName, target: 'user.name' });
-logSubscription('warning', { message: 'Double-cleanup detected' });
+logSubscription("add", { subscriber: fieldName, target: "user.name" });
+logSubscription("warning", { message: "Double-cleanup detected" });
 ```
 
 ## Testing Logged Output
@@ -232,17 +242,17 @@ logSubscription('warning', { message: 'Double-cleanup detected' });
 ### Vitest Pattern for Testing Logs
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-describe('subscription logging', () => {
+describe("subscription logging", () => {
   beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
-  it('should log subscription addition', () => {
+  it("should log subscription addition", () => {
     // ... test code
     expect(console.warn).toHaveBeenCalledWith(
-      '[Formality Subscription] ADD: subscriber="fieldA" target="fieldB"'
+      '[Formality Subscription] ADD: subscriber="fieldA" target="fieldB"',
     );
   });
 });
@@ -251,18 +261,21 @@ describe('subscription logging', () => {
 ## Summary
 
 **Follow existing patterns**:
+
 - Use `process.env.NODE_ENV !== "production"` checks
 - Use `console.warn()` with descriptive messages
 - Keep logging minimal but informative
 - Prefix messages with `[Formality Subscription]`
 
 **Log subscription lifecycle**:
+
 - Addition events with field names
 - Removal events with field names
 - Effect run IDs for correlation
 - Warning events for issues
 
 **Avoid**:
+
 - Creating a complex logging framework
 - Using external logging libraries
 - Logging in production builds

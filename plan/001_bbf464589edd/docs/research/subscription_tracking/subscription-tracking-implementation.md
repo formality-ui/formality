@@ -16,6 +16,7 @@ const runSubscriptionsRef = useRef<Map<number, string[]>>(new Map());
 ```
 
 **Key Components**:
+
 - `runIdRef`: Increments on each effect run (unique ID per subscription batch)
 - `runSubscriptionsRef`: Maps run ID to subscriptions array for that run
 

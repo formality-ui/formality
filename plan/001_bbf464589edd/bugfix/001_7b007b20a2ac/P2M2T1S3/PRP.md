@@ -13,12 +13,14 @@
 **Feature Goal**: Enable top-level `isDisabled` matcher for object `when` conditions with mixed matchers (value matchers and field state matchers), where only fields using field state matchers are checked for disabled state.
 
 **Deliverable**:
+
 1. New `isFieldMatcher()` type guard function to detect FieldMatcher objects
 2. Modified top-level `isDisabled` check in `evaluateConditionMatch()` that filters to only check fields with field state matchers
 3. Updated code comments explaining the mixed matcher behavior
 4. Comprehensive tests for mixed matcher scenarios
 
 **Success Definition**:
+
 - Object `when` with mixed matchers (value + field state) correctly evaluates top-level `isDisabled`
 - Only fields using field state matchers (object values) are checked for disabled state
 - Fields with value matchers (primitive values) are skipped in isDisabled check
@@ -34,6 +36,7 @@
 **Use Case**: Enable flexible multi-field conditions where some fields match based on value and others match based on state, with a top-level isDisabled check that only applies to state-based fields.
 
 **User Journey**:
+
 1. Developer defines a condition with object `when` containing mixed matchers
 2. Some fields use value matchers (e.g., `{ field1: 5 }`)
 3. Some fields use field state matchers (e.g., `{ field2: { isDisabled: true } }`)
@@ -41,6 +44,7 @@
 5. Condition evaluates correctly based on the filtered field set
 
 **Pain Points Addressed**:
+
 - Currently, top-level `isDisabled` checks ALL fields, including those with value matchers
 - No way to express "only check state-based fields for disabled state"
 - Inconsistent behavior: value matchers don't care about disabled state but are still checked
@@ -63,11 +67,12 @@ Add support for mixed matchers in object `when` conditions with top-level `isDis
 ### Current State
 
 **Current Implementation (Lines 152-162 of evaluate.ts)**:
+
 ```typescript
 // Check top-level isDisabled matcher for object when
 if (condition.isDisabled !== undefined && fieldStates) {
   const allFieldsDisabled = Object.keys(condition.when).every(
-    (fieldName) => fieldStates[fieldName]?.disabled === true
+    (fieldName) => fieldStates[fieldName]?.disabled === true,
   );
   if (condition.isDisabled !== allFieldsDisabled) {
     return false;
@@ -78,6 +83,7 @@ if (condition.isDisabled !== undefined && fieldStates) {
 **Problem**: This checks ALL fields in the object `when`, regardless of matcher type.
 
 **Example of Problematic Behavior**:
+
 ```typescript
 // Mixed matchers: field1 uses value matcher, field2 uses field state matcher
 {
@@ -95,6 +101,7 @@ Expected behavior: Only checks if field2 is disabled (field1 is ignored).
 ### Desired State
 
 **New Implementation**:
+
 ```typescript
 // Check top-level isDisabled matcher for object when
 // Only check fields that use field state matchers (object values)
@@ -104,11 +111,12 @@ if (condition.isDisabled !== undefined && fieldStates) {
     .filter(([, matcher]) => isFieldMatcher(matcher))
     .map(([fieldName]) => fieldName);
 
-  const allStateFieldsDisabled = fieldsWithStateMatchers.length > 0
-    ? fieldsWithStateMatchers.every(
-        (fieldName) => fieldStates[fieldName]?.disabled === true
-      )
-    : true; // No state matchers = vacuously true
+  const allStateFieldsDisabled =
+    fieldsWithStateMatchers.length > 0
+      ? fieldsWithStateMatchers.every(
+          (fieldName) => fieldStates[fieldName]?.disabled === true,
+        )
+      : true; // No state matchers = vacuously true
 
   if (condition.isDisabled !== allStateFieldsDisabled) {
     return false;
@@ -117,6 +125,7 @@ if (condition.isDisabled !== undefined && fieldStates) {
 ```
 
 **New Behavior**:
+
 - Object `when` with mixed matchers: Only fields with field state matchers are checked
 - Fields with value matchers are excluded from the isDisabled check
 - If no fields use field state matchers, the isDisabled check passes (vacuously true)
@@ -139,6 +148,7 @@ if (condition.isDisabled !== undefined && fieldStates) {
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file location and line numbers for code to modify
 - Complete context on the mixed matcher problem
 - Type guard function specification with examples
@@ -212,7 +222,7 @@ packages/core/src/
 
 ### Desired Codebase tree with files to be modified
 
-```bash
+````bash
 packages/core/src/conditions/
 ├── evaluate.ts                     # ← MODIFY: Add isFieldMatcher and update isDisabled check
 │   ├── ADD NEW FUNCTION (after evaluateFieldMatcher, around line 116):
@@ -261,7 +271,7 @@ packages/core/src/__tests__/
 │           ├── it("should handle mixed isDisabled: true")
 │           ├── it("should handle mixed isDisabled: false")
 │           └── it("should handle complex mixed scenarios")
-```
+````
 
 ### Known Gotchas of our codebase & Library Quirks
 
@@ -290,10 +300,15 @@ packages/core/src/__tests__/
 // Must handle null and non-object values
 
 function isFieldMatcher(value: unknown): value is FieldMatcher {
-  return typeof value === "object" &&
+  return (
+    typeof value === "object" &&
     value !== null &&
-    ("is" in value || "truthy" in value || "isTruthy" in value ||
-     "isValid" in value || "isDisabled" in value);
+    ("is" in value ||
+      "truthy" in value ||
+      "isTruthy" in value ||
+      "isValid" in value ||
+      "isDisabled" in value)
+  );
 }
 
 // GOTCHA: Empty state matcher list = vacuously true
@@ -333,14 +348,15 @@ function isFieldMatcher(value: unknown): value is FieldMatcher {
 **No new data models needed** - this PRP uses existing data structures.
 
 **Existing Data Structures**:
+
 ```typescript
 // FieldMatcher - Per-field matchers in object when
 interface FieldMatcher {
-  is?: unknown;           // Value matcher
-  truthy?: boolean;       // Value matcher
-  isTruthy?: boolean;     // Value matcher (alias)
-  isValid?: boolean;      // Field state matcher
-  isDisabled?: boolean;   // Field state matcher
+  is?: unknown; // Value matcher
+  truthy?: boolean; // Value matcher
+  isTruthy?: boolean; // Value matcher (alias)
+  isValid?: boolean; // Field state matcher
+  isDisabled?: boolean; // Field state matcher
 }
 
 // WhenMultiField - Object when with field-level matchers
@@ -350,8 +366,8 @@ type WhenMultiField = Record<string, FieldMatcher | unknown>;
 // ConditionDescriptor - Condition definition
 interface ConditionDescriptor {
   when?: string | WhenMultiField;
-  isDisabled?: boolean;  // Top-level field state matcher
-  disabled?: boolean;    // Action to apply
+  isDisabled?: boolean; // Top-level field state matcher
+  disabled?: boolean; // Action to apply
 }
 ```
 
@@ -473,11 +489,13 @@ function isFieldMatcher(value: unknown): value is FieldMatcher {
 
   // Check if ANY FieldMatcher property exists
   const matcher = value as Record<string, unknown>;
-  return "is" in matcher ||
-         "truthy" in matcher ||
-         "isTruthy" in matcher ||
-         "isValid" in matcher ||
-         "isDisabled" in matcher;
+  return (
+    "is" in matcher ||
+    "truthy" in matcher ||
+    "isTruthy" in matcher ||
+    "isValid" in matcher ||
+    "isDisabled" in matcher
+  );
 }
 
 // USAGE IN TOP-LEVEL isDisabled CHECK:
@@ -731,11 +749,13 @@ pnpm test -v
 ### From P2.M2.T1.S2 - Implement for object when (In Parallel)
 
 The P2.M2.T1.S2 PRP specifies that:
+
 1. Top-level isDisabled check is added at lines 152-162 of evaluate.ts
 2. The check uses `Object.keys(condition.when).every()` to check ALL fields
 3. This doesn't account for mixed matchers
 
 **This PRP's Contract**:
+
 1. Refine the isDisabled check from P2.M2.T1.S2 to handle mixed matchers
 2. Add isFieldMatcher type guard to distinguish value vs state matchers
 3. Filter the fields to only check those with field state matchers
@@ -746,11 +766,13 @@ The P2.M2.T1.S2 PRP specifies that:
 ### From P2.M1 - Disabled Property in Field States (Complete)
 
 The P2.M1 work items specify that:
+
 1. FieldState.disabled property exists and is used by condition evaluation
 2. Two-pass evaluation prevents circular dependencies
 3. Tests verify isDisabled matcher works with string when conditions
 
 **This PRP's Contract**:
+
 1. Use the existing FieldState.disabled property
 2. Work within the two-pass evaluation framework
 3. Add tests for mixed matchers with top-level isDisabled
@@ -763,6 +785,7 @@ The P2.M1 work items specify that:
 The P2.M2.T2 work item will add comprehensive tests for multi-field isDisabled.
 
 **This PRP's Contract**:
+
 1. Add tests specifically for mixed matcher scenarios
 2. Cover edge cases like all value matchers, all state matchers, and mixed
 3. Provide test patterns for P2.M2.T2 to follow
@@ -777,6 +800,7 @@ The P2.M2.T2 work item will add comprehensive tests for multi-field isDisabled.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Well-scoped feature addition with clear requirements
 - Exact file location and specific lines to modify
 - Comprehensive understanding of current implementation

@@ -11,11 +11,13 @@
 **Feature Goal**: Implement conditional execution logic in the `changeField` function to trigger immediate submission when `inputConfig?.debounce === false`, while maintaining the existing debounced submission behavior for all other cases.
 
 **Deliverable**: Updated `changeField` function in `Form.tsx` with conditional execution logic that:
+
 - Checks `inputConfig?.debounce === false`
 - Calls `submitImmediate()` when false, `debouncedSubmit()` otherwise
 - Only executes when `autoSave` is enabled
 
 **Success Definition**:
+
 - `inputConfig?.debounce === false` triggers immediate submission via `submitImmediate()`
 - All other cases (including undefined inputConfig) use `debouncedSubmit()`
 - `inputConfig` added to dependency array
@@ -37,6 +39,7 @@
 Replace the commented-out TODO in `changeField` with actual conditional logic:
 
 **Current Implementation** (lines 313-319):
+
 ```typescript
 // Trigger debounced auto-save
 // NOTE: In P1.M2.T1.S2, this will become conditional:
@@ -49,6 +52,7 @@ debouncedSubmit();
 ```
 
 **Target Implementation**:
+
 ```typescript
 // Trigger auto-save (immediate or debounced based on inputConfig)
 if (inputConfig?.debounce === false) {
@@ -191,23 +195,25 @@ packages/react/src/components/Form.tsx        # Update changeField with conditio
 No new data models - this task uses existing `InputConfig` type and modifies existing logic.
 
 **InputConfig Type** (already exists):
+
 ```typescript
 // packages/core/src/types/config.ts:45-78
 export interface InputConfig<TValue = unknown> {
   component: unknown;
   defaultValue: TValue;
-  debounce?: number | false;  // Key property: false = immediate, number = delay
+  debounce?: number | false; // Key property: false = immediate, number = delay
   // ... other properties
 }
 ```
 
 **DebouncedFunction Interface** (already exists):
+
 ```typescript
 // packages/react/src/types.ts:117-122
 export interface DebouncedFunction {
   (): void;
   cancel: () => void;
-  flush: () => void;  // Called by submitImmediate()
+  flush: () => void; // Called by submitImmediate()
   pending: () => boolean;
 }
 ```
@@ -282,9 +288,9 @@ const changeField = useCallback(
       // ===== P1.M2.T1.S2 MODIFICATION START =====
       // Trigger auto-save (immediate or debounced based on inputConfig)
       if (inputConfig?.debounce === false) {
-        submitImmediate();  // Calls debouncedSubmitRef.current?.flush()
+        submitImmediate(); // Calls debouncedSubmitRef.current?.flush()
       } else {
-        debouncedSubmit();  // Calls debouncedSubmitRef.current?.()
+        debouncedSubmit(); // Calls debouncedSubmitRef.current?.()
       }
       // ===== P1.M2.T1.S2 MODIFICATION END =====
     }
@@ -507,6 +513,7 @@ grep -A 2 "const submitImmediate = useCallback" packages/react/src/components/Fo
 **9/10** - Very high confidence for one-pass implementation success
 
 **Reasoning**:
+
 - ✅ Clear, bounded scope (single conditional logic implementation)
 - ✅ All file paths and line numbers specified and verified
 - ✅ Type definitions and interfaces already exist

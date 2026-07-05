@@ -14,6 +14,7 @@
 **Deliverable**: A new React hook file `/packages/react/src/hooks/useFieldDisabledState.ts` that accepts field configuration and returns a boolean indicating whether the field should be disabled.
 
 **Success Definition**:
+
 - Hook correctly implements the 4-layer priority order for disabled state
 - Hook uses useMemo for performance optimization with correct dependencies
 - Hook evaluates conditions to extract disabled result
@@ -82,6 +83,7 @@ Create a new hook `useFieldDisabledState` that:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file path for new hook with line-by-line structure
 - Complete code template following existing hook patterns
 - All type definitions with import paths
@@ -292,6 +294,7 @@ packages/react/src/hooks/index.ts            # EXPORT: Add useFieldDisabledState
 No new data models - this task creates a hook using existing types from core package.
 
 **Type Definitions**:
+
 ```typescript
 // Use existing types from @formality-ui/core
 import type { FieldStateInput, ConditionResult } from "@formality-ui/core";
@@ -372,17 +375,14 @@ Task 7: VERIFY TypeScript compilation
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // Complete implementation template following useConditions pattern
 
 // @formality-ui/react - useFieldDisabledState Hook
 // Computes disabled state for a field using priority order evaluation
 
 import { useMemo } from "react";
-import {
-  evaluateConditions,
-  type FieldStateInput,
-} from "@formality-ui/core";
+import { evaluateConditions, type FieldStateInput } from "@formality-ui/core";
 import type { ConditionDescriptor } from "@formality-ui/core";
 
 /**
@@ -513,7 +513,7 @@ export function useFieldDisabledState(
     props,
   ]);
 }
-```
+````
 
 ### Integration Points
 
@@ -699,6 +699,7 @@ pnpm typecheck -- packages/react/src/components/Field.tsx
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Complete hook template provided with all logic implemented
 - Reference implementation (useConditions) exists with identical patterns
 - All type definitions are known and from existing codebase

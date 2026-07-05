@@ -19,6 +19,7 @@ A framework-agnostic package has **NO dependencies** on any specific frontend fr
 - ❌ No framework-specific types (e.g., `React.ReactNode`, `Ref<*>`)
 
 **Example from @formality-ui/core package.json:**
+
 ```json
 {
   "name": "@formality-ui/core",
@@ -34,15 +35,19 @@ Notice: Only utility libraries, no framework dependencies.
 ### 1.2 Pure Functions and Immutable Data
 
 Framework-agnostic packages should:
+
 - Export **pure functions** that take inputs and return outputs
 - Avoid side effects and external state mutations
 - Use plain JavaScript/TypeScript objects and arrays
 - Provide clear input/output contracts via TypeScript types
 
 **Example pattern:**
+
 ```typescript
 // Pure function - no framework coupling
-export function evaluateConditions(input: EvaluateConditionsInput): ConditionResult {
+export function evaluateConditions(
+  input: EvaluateConditionsInput,
+): ConditionResult {
   const { conditions, fieldValues } = input;
   // Pure logic implementation
   return { disabled: boolean, hidden: boolean, required: boolean };
@@ -52,6 +57,7 @@ export function evaluateConditions(input: EvaluateConditionsInput): ConditionRes
 ### 1.3 Language-Level APIs Only
 
 Use standard JavaScript/TypeScript features:
+
 - Standard `Map`, `Set`, `Array`, `Object` methods
 - Native `Promise` for async operations
 - Template literals for string interpolation
@@ -61,18 +67,20 @@ Use standard JavaScript/TypeScript features:
 ### 1.4 Framework-Independent Testing
 
 Core packages should be testable without any framework:
+
 - Use Vitest, Jest, or Node.js test runners
 - No Testing Library, no Vue Test Utils
 - Test pure functions with simple inputs/outputs
 - Mock external dependencies, not framework internals
 
 **Example test pattern:**
+
 ```typescript
 describe("evaluateConditions", () => {
   it("should evaluate conditions purely based on input", () => {
     const result = evaluateConditions({
       conditions: [{ when: "field", truthy: true, disabled: true }],
-      fieldValues: { field: true }
+      fieldValues: { field: true },
     });
     expect(result.disabled).toBe(true);
   });
@@ -112,12 +120,14 @@ formality/
 ```
 
 **pnpm-workspace.yaml:**
+
 ```yaml
 packages:
   - "packages/*"
 ```
 
 **Framework package dependency pattern:**
+
 ```json
 {
   "name": "@formality-ui/react",
@@ -134,6 +144,7 @@ packages:
 ### 2.2 TypeScript Configuration
 
 **Core package tsconfig.json:**
+
 ```json
 {
   "compilerOptions": {
@@ -154,6 +165,7 @@ packages:
 ```
 
 Key points:
+
 - No JSX (`jsx: undefined` or omit)
 - Standard library only (`lib: ["ES2020"]`)
 - No DOM types unless needed for utility functions
@@ -163,6 +175,7 @@ Key points:
 **Using tsup for fast builds:**
 
 **Core package tsup.config.ts:**
+
 ```typescript
 import { defineConfig } from "tsup";
 
@@ -178,6 +191,7 @@ export default defineConfig({
 ```
 
 **Root package.json scripts:**
+
 ```json
 {
   "scripts": {
@@ -193,6 +207,7 @@ export default defineConfig({
 ### 2.4 Export Strategy
 
 **Core package exports:**
+
 ```typescript
 // @formality-ui/core - Framework-agnostic form utilities
 // This package has ZERO framework dependencies
@@ -206,6 +221,7 @@ export { deepMerge, resolveInputConfig } from "./config";
 ```
 
 **Framework package exports:**
+
 ```typescript
 // @formality-ui/react
 export { useField, useForm, useFormality } from "./hooks";
@@ -219,6 +235,7 @@ export type { FieldConfig, FormConfig } from "@formality-ui/core";
 ### 2.5 Documentation Standards
 
 **README.md structure:**
+
 ```markdown
 # @formality-ui/core
 
@@ -274,7 +291,7 @@ export interface FieldAdapter<TValue = any> {
 // React: React-specific adapter
 export function useFieldAdapter<TValue>(
   control: Control,
-  name: string
+  name: string,
 ): FieldAdapter<TValue> {
   const field = useWatch({ control, name });
 
@@ -292,7 +309,7 @@ export function useFieldAdapter<TValue>(
 ```typescript
 // Vue: Vue-specific adapter
 export function useFieldAdapter<TValue>(
-  fieldName: Ref<string>
+  fieldName: Ref<string>,
 ): FieldAdapter<TValue> {
   const form = useFormContext();
 
@@ -309,20 +326,22 @@ export function useFieldAdapter<TValue>(
 ### 3.2 Hook/Composable Pattern
 
 **Core: Logic functions**
+
 ```typescript
 export function validateField<TValue>(
   value: TValue,
-  validators: Validator<TValue>[]
+  validators: Validator<TValue>[],
 ): ValidationResult {
   // Pure validation logic
 }
 ```
 
 **React: Hook implementation**
+
 ```typescript
 export function useFieldValidation<TValue>(
   value: TValue,
-  validators: Validator<TValue>[]
+  validators: Validator<TValue>[],
 ) {
   const [error, setError] = useState<string | null>(null);
 
@@ -336,10 +355,11 @@ export function useFieldValidation<TValue>(
 ```
 
 **Vue: Composable implementation**
+
 ```typescript
 export function useFieldValidation<TValue>(
   value: Ref<TValue>,
-  validators: Validator<TValue>[]
+  validators: Validator<TValue>[],
 ) {
   const error = ref<string | null>(null);
 
@@ -355,6 +375,7 @@ export function useFieldValidation<TValue>(
 ### 3.3 Configuration Injection Pattern
 
 **Core: Configuration-driven behavior**
+
 ```typescript
 export interface FormConfig {
   fields: Record<string, FieldConfig>;
@@ -368,6 +389,7 @@ export function createFormState(config: FormConfig): FormState {
 ```
 
 **React: Provider + Hook pattern**
+
 ```typescript
 export const FormalityProvider = ({ config, children }) => {
   const state = useMemo(() => createFormState(config), [config]);
@@ -378,39 +400,42 @@ export const useFormality = () => useContext(Context);
 ```
 
 **Vue: provide/inject pattern**
+
 ```typescript
 export const FormalityProvider = {
   setup(props, { slots }) {
     const state = createFormState(props.config);
-    provide('formality', state);
+    provide("formality", state);
     return () => slots.default?.();
-  }
+  },
 };
 
 export function useFormality() {
-  return inject('formality');
+  return inject("formality");
 }
 ```
 
 ### 3.4 Event System Pattern
 
 **Core: Event emitter interface**
+
 ```typescript
 export interface EventEmitter<TEvents extends Record<string, any>> {
   on<E extends keyof TEvents>(
     event: E,
-    handler: (payload: TEvents[E]) => void
+    handler: (payload: TEvents[E]) => void,
   ): () => void;
   emit<E extends keyof TEvents>(event: E, payload: TEvents[E]): void;
 }
 ```
 
 **React: useEffect integration**
+
 ```typescript
 export function useEventEmitter<TEvents>(
   emitter: EventEmitter<TEvents>,
   event: keyof TEvents,
-  handler: (payload: any) => void
+  handler: (payload: any) => void,
 ) {
   useEffect(() => {
     const unsubscribe = emitter.on(event, handler);
@@ -420,10 +445,11 @@ export function useEventEmitter<TEvents>(
 ```
 
 **Vue: watch integration**
+
 ```typescript
 export function useEventEmitter<TEvents>(
   emitter: EventEmitter<TEvents>,
-  event: keyof TEvents
+  event: keyof TEvents,
 ) {
   const payload = ref(null);
 
@@ -441,9 +467,10 @@ export function useEventEmitter<TEvents>(
 ### 3.5 Renderer/Component Pattern
 
 **Core: Schema-based rendering**
+
 ```typescript
 export interface FieldSchema {
-  type: 'text' | 'number' | 'select' | 'checkbox';
+  type: "text" | "number" | "select" | "checkbox";
   label: string;
   props: Record<string, any>;
 }
@@ -453,12 +480,13 @@ export function renderField(schema: FieldSchema, value: any) {
   return {
     tagName: getTagName(schema.type),
     attributes: buildAttributes(schema),
-    value: value
+    value: value,
   };
 }
 ```
 
 **React: Component implementation**
+
 ```typescript
 export const Field = ({ schema, value, onChange }) => {
   const render = renderField(schema, value);
@@ -466,26 +494,26 @@ export const Field = ({ schema, value, onChange }) => {
   return createElement(render.tagName, {
     ...render.attributes,
     value: render.value,
-    onChange: (e) => onChange(e.target.value)
+    onChange: (e) => onChange(e.target.value),
   });
 };
 ```
 
 **Vue: Component implementation**
+
 ```typescript
 export const Field = defineComponent({
-  props: ['schema', 'modelValue'],
+  props: ["schema", "modelValue"],
   setup(props, { emit }) {
-    const render = computed(() =>
-      renderField(props.schema, props.modelValue)
-    );
+    const render = computed(() => renderField(props.schema, props.modelValue));
 
-    return () => h(render.value.tagName, {
-      ...render.value.attributes,
-      modelValue: render.value.value,
-      'onUpdate:modelValue': (v) => emit('update:modelValue', v)
-    });
-  }
+    return () =>
+      h(render.value.tagName, {
+        ...render.value.attributes,
+        modelValue: render.value.value,
+        "onUpdate:modelValue": (v) => emit("update:modelValue", v),
+      });
+  },
 });
 ```
 
@@ -498,6 +526,7 @@ export const Field = defineComponent({
 **GitHub:** https://github.com/TanStack/query
 
 **Architecture:**
+
 - Core package: `@tanstack/query-core` - Framework-agnostic state management
 - Framework packages:
   - `@tanstack/react-query` - React integration
@@ -506,6 +535,7 @@ export const Field = defineComponent({
   - `@tanstack/solid-query` - Solid integration
 
 **Key design decisions:**
+
 - Core uses vanilla TypeScript with Observable pattern
 - Framework adapters use framework-specific reactivity (hooks, composables)
 - Shared types across all packages
@@ -514,6 +544,7 @@ export const Field = defineComponent({
 **Documentation:** https://tanstack.com/query/latest
 
 **Why it works:**
+
 - Core focuses on data fetching logic, caching, and state management
 - Frameworks only need to provide reactivity integration
 - Clear separation: core = "what", frameworks = "how to react"
@@ -523,10 +554,12 @@ export const Field = defineComponent({
 **GitHub:** https://github.com/react-hook-form/react-hook-form
 
 **Architecture:**
+
 - Core: Form validation and state management (React-agnostic logic)
 - React integration: Hooks for React ecosystem
 
 **Key patterns:**
+
 - Validation logic is framework-independent
 - State management uses pub/sub pattern
 - Hooks are thin wrappers around core logic
@@ -541,12 +574,14 @@ export const Field = defineComponent({
 **GitHub:** https://github.com/formkit/formkit
 
 **Architecture:**
+
 - `@formkit/core` - Framework-agnostic form logic
 - `@formkit/vue` - Vue integration
 - `@formkit/react` - React integration (in development)
 - `@formkit/auto-animate` - Animation utilities
 
 **Key design decisions:**
+
 - Core uses a plugin architecture
 - Form validation and state management are framework-independent
 - Framework adapters handle UI rendering and reactivity
@@ -559,11 +594,13 @@ export const Field = defineComponent({
 **GitHub:** https://github.com/colinhacks/zod
 
 **Architecture:**
+
 - Single package, framework-agnostic validation
 - No framework-specific code
 - Pure TypeScript schema validation
 
 **Usage across frameworks:**
+
 - React: Used with react-hook-form, formik
 - Vue: Used with vee-validate, vuelidate
 - Svelte: Used with sveltekit-forms
@@ -572,6 +609,7 @@ export const Field = defineComponent({
 **Documentation:** https://zod.dev
 
 **Why it works:**
+
 - Pure validation logic, no UI concerns
 - TypeScript-first design
 - Runtime validation with type inference
@@ -582,12 +620,14 @@ export const Field = defineComponent({
 **GitHub:** https://github.com/fabian-hiller/valibot
 
 **Architecture:**
+
 - Framework-agnostic validation library
 - Modular design with tree-shaking
 - Smaller bundle size than Zod
 - No runtime dependencies
 
 **Framework integrations:**
+
 - Works with any form library
 - Used in React, Vue, Svelte projects
 - Server-side validation
@@ -599,6 +639,7 @@ export const Field = defineComponent({
 **GitHub:** https://github.com/vitejs/vite
 
 **Architecture:**
+
 - `create-vite` - Scaffolding tool
 - `@vitejs/plugin-react` - React plugin
 - `@vitejs/plugin-vue` - Vue plugin
@@ -606,6 +647,7 @@ export const Field = defineComponent({
 - Core is framework-agnostic build tool
 
 **Key pattern:**
+
 - Plugin architecture for framework-specific transforms
 - Core provides build pipeline, dev server, HMR
 - Framework plugins handle JSX, SFC compilation, etc.
@@ -617,11 +659,13 @@ export const Field = defineComponent({
 **GitHub:** https://github.com/vitest-dev/vitest
 
 **Architecture:**
+
 - Core testing framework (framework-agnostic)
 - UI framework-specific coverage tools
 - Compatible with Vite ecosystem
 
 **Key pattern:**
+
 - Test runner is framework-independent
 - Snapshot testing works with any framework
 - UI for test results (React-based, but optional)
@@ -635,6 +679,7 @@ export const Field = defineComponent({
 ### 5.1 Current State Analysis
 
 **Current @formality-ui/core structure:**
+
 ```
 src/
 ├── conditions/        # Conditional logic evaluation
@@ -648,6 +693,7 @@ src/
 ```
 
 **Framework independence verification:**
+
 - ✅ Zero framework dependencies in package.json
 - ✅ Pure function exports
 - ✅ Framework-independent testing
@@ -687,6 +733,7 @@ src/
 ### 5.3 Package Publishing Strategy
 
 **Version management with Changesets:**
+
 ```json
 // .changeset/config.json
 {
@@ -702,12 +749,14 @@ src/
 ```
 
 **Publishing workflow:**
+
 1. Add changeset for each change
 2. `pnpm changeset version` - Bump versions
 3. `pnpm build` - Build all packages
 4. `pnpm changeset publish` - Publish to npm
 
 **Semantic versioning:**
+
 - Core package changes trigger framework package bumps
 - Framework-specific changes only affect that package
 - Use `workspace:*` for development, `^x.y.z` for published
@@ -719,26 +768,31 @@ src/
 ### 6.1 Documentation
 
 **TanStack Query:**
+
 - Main Site: https://tanstack.com/query/latest
 - GitHub: https://github.com/TanStack/query
 - Blog posts on architecture: https://tanstack.com/blog
 
 **React Hook Form:**
+
 - Main Site: https://react-hook-form.com
 - GitHub: https://github.com/react-hook-form/react-hook-form
 - Performance guide: https://react-hook-form.com/performance
 
 **FormKit:**
+
 - Main Site: https://formkit.com
 - GitHub: https://github.com/formkit/formkit
 - Documentation: https://formkit.com/guide
 
 **Zod:**
+
 - Main Site: https://zod.dev
 - GitHub: https://github.com/colinhacks/zod
 - Examples: https://zod.dev/?id=practical-examples
 
 **Valibot:**
+
 - Main Site: https://valibot.dev
 - GitHub: https://github.com/fabian-hiller/valibot
 - Comparison with Zod: https://valibot.dev/guide/why-valibot
@@ -746,42 +800,51 @@ src/
 ### 6.2 Monorepo Tools
 
 **Turborepo:**
+
 - Site: https://turbo.build/repo
 - GitHub: https://github.com/vercel/turbo
 - Docs: https://turbo.build/repo/docs
 
 **Nx:**
+
 - Site: https://nx.dev
 - Monorepo guide: https://nx.dev/monorepo
 - Framework guides: https://nx.dev/features/framework-integration
 
 **pnpm Workspaces:**
+
 - Docs: https://pnpm.io/workspaces
 - Workspace protocol: https://pnpm.io/workspaces#workspace-protocol
 
 **Changesets:**
+
 - GitHub: https://github.com/changesets/changesets
 - Docs: https://github.com/changesets/changesets/tree/main/docs
 
 ### 6.3 TypeScript Resources
 
 **TypeScript Handbook:**
+
 - https://www.typescriptlang.org/docs/handbook/intro.html
 
 **TypeScript for Library Authors:**
+
 - https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html
 
 **Module formats:**
+
 - https://www.typescriptlang.org/docs/handbook/modules/theory.html#module-formats
 
 ### 6.4 Testing Resources
 
 **Vitest:**
+
 - Site: https://vitest.dev
 - GitHub: https://github.com/vitest-dev/vitest
 - Testing guide: https://vitest.dev/guide/
 
 **Testing Library:**
+
 - React: https://testing-library.com/react
 - Vue: https://testing-library.com/vue
 - Svelte: https://testing-library.com/svelte
@@ -851,22 +914,22 @@ For @formality-ui, the current core package is already well-designed for framewo
 ```typescript
 // @formality-ui/core/validation/required.ts
 export interface RequiredValidator {
-  type: 'required';
+  type: "required";
   message?: string;
 }
 
 export function required(message?: string): RequiredValidator {
-  return { type: 'required', message };
+  return { type: "required", message };
 }
 
 export function validateRequired(
   validator: RequiredValidator,
-  value: unknown
+  value: unknown,
 ): ValidationResult {
   if (isEmptyValue(value)) {
     return {
       valid: false,
-      error: validator.message || 'This field is required'
+      error: validator.message || "This field is required",
     };
   }
   return { valid: true };
@@ -877,13 +940,13 @@ export function validateRequired(
 
 ```typescript
 // @formality-ui/react/hooks/useValidation.ts
-import { useCallback } from 'react';
-import { validateRequired } from '@formality-ui/core';
+import { useCallback } from "react";
+import { validateRequired } from "@formality-ui/core";
 
 export function useValidation(validator: RequiredValidator) {
   const validate = useCallback(
     (value: unknown) => validateRequired(validator, value),
-    [validator]
+    [validator],
   );
 
   return { validate };
@@ -894,8 +957,8 @@ export function useValidation(validator: RequiredValidator) {
 
 ```typescript
 // @formality-ui/vue/composables/useValidation.ts
-import { ref, watch } from 'vue';
-import { validateRequired } from '@formality-ui/core';
+import { ref, watch } from "vue";
+import { validateRequired } from "@formality-ui/core";
 
 export function useValidation(validator: RequiredValidator, value: Ref) {
   const error = ref<string | null>(null);

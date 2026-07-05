@@ -14,6 +14,7 @@ This document summarizes the `executionVersionRef` race condition prevention mec
 **File:** `packages/react/src/components/Form.tsx`
 
 **Key Sections:**
+
 - Line 196: `executionVersionRef` declaration
 - Lines 441-469: `waitForFieldValidation` with version check
 - Lines 475-556: `executeAutoSave` function with three version checkpoints
@@ -40,6 +41,7 @@ const executionVersion = executionVersionRef.current;
 The implementation checks the version at THREE critical points during async operations:
 
 #### Checkpoint 1: After Initial Validation (lines 503-508)
+
 ```typescript
 const validationsComplete = await waitForFieldValidation(
   fieldsToWaitFor,
@@ -53,6 +55,7 @@ if (!validationsComplete || executionVersionRef.current !== executionVersion) {
 ```
 
 #### Checkpoint 2: After Trigger Validation (lines 524-526)
+
 ```typescript
 const isValid = await methods.trigger(fieldsToTrigger as any);
 
@@ -63,6 +66,7 @@ if (executionVersionRef.current !== executionVersion) {
 ```
 
 #### Checkpoint 3: After Final Validation (lines 539-544)
+
 ```typescript
 const postTriggerComplete = await waitForFieldValidation(
   fieldsToTrigger,
@@ -76,6 +80,7 @@ if (!postTriggerComplete || executionVersionRef.current !== executionVersion) {
 ```
 
 ### Final Submission (lines 547-550)
+
 ```typescript
 // Only submit if version still matches (no new changes)
 if (executionVersionRef.current === executionVersion) {
@@ -121,18 +126,22 @@ const waitForFieldValidation = useCallback(
 ## 4. Test Scenarios to Cover
 
 ### Scenario 1: Rapid Single-Field Changes
+
 **Description:** User types 10 characters rapidly within debounce period.
 
 **Expected Behavior:**
+
 1. Each character increments `executionVersionRef.current`
 2. Only the last version reaches submission
 3. Intermediate versions are aborted at checkpoints
 4. Final submission contains only the final value
 
 ### Scenario 2: Rapid Changes During Async Validation
+
 **Description:** New field changes occur while validation is in progress.
 
 **Expected Behavior:**
+
 1. First change starts validation, increments version
 2. Second change increments version while first validation running
 3. First validation completes but version check fails (abort)
@@ -140,18 +149,22 @@ const waitForFieldValidation = useCallback(
 5. Only the second value is submitted
 
 ### Scenario 3: Multiple Fields Rapid Changes
+
 **Description:** Rapid changes across multiple fields.
 
 **Expected Behavior:**
+
 1. Each field change increments version
 2. Debounce timer resets on each change
 3. Final submission includes all fields' last values
 4. Only ONE submission occurs
 
 ### Scenario 4: Component Unmount During Operation
+
 **Description:** Component unmounts while async operation is in progress.
 
 **Expected Behavior:**
+
 1. Async operation is in progress
 2. Component unmounts
 3. Version check prevents stale state updates
@@ -246,19 +259,23 @@ This demonstrates the same pattern: track a version/token and only operate if it
 ## 8. Edge Cases Handled
 
 ### React 18 Strict Mode
+
 - Double-invocation is handled correctly
 - First mount: version = 1, unmount: cleanup
 - Second mount: version = 2 (NEW version), no stale updates
 
 ### Rapid Changes (>10 within debounce)
+
 - Version counter handles rapid increments
 - No overflow concerns (would take 285,374+ years)
 
 ### Component Unmount
+
 - Version check prevents state updates after unmount
 - No memory leaks from tracking data
 
 ### Multiple Debounce Resets
+
 - Each new change increments version
 - Previous versions are properly aborted
 

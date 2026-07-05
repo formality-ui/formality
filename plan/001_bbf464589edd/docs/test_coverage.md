@@ -21,6 +21,7 @@ The core package has **8 test files** covering fundamental functionality:
 **Coverage**: ✅ Excellent - Fully covers condition evaluation
 
 **Test Categories**:
+
 - `evaluateConditions` - Basic condition evaluation
 - `conditionMatches` - Individual condition matching
 - `mergeConditionResults` - Merging multiple conditions
@@ -30,6 +31,7 @@ The core package has **8 test files** covering fundamental functionality:
 - Combined matchers (when + isValid, when + isDisabled)
 
 **Example Test**:
+
 ```typescript
 describe("evaluateConditions", () => {
   it("should match isDisabled field state", () => {
@@ -55,6 +57,7 @@ describe("evaluateConditions", () => {
 **Coverage**: ✅ Good - Covers configuration merging
 
 **Test Categories**:
+
 - Field configuration merging
 - Default field resolution
 - Input config resolution
@@ -68,6 +71,7 @@ describe("evaluateConditions", () => {
 **Coverage**: ✅ Good - Covers expression evaluation
 
 **Test Categories**:
+
 - jsep expression parsing
 - Expression evaluation with context
 - Field dependency inference
@@ -82,6 +86,7 @@ describe("evaluateConditions", () => {
 **Coverage**: ✅ Excellent - Very thorough validation coverage
 
 **Test Categories**:
+
 - `runValidator` - Sync validation
 - `runValidatorAsync` - Async validation
 - All built-in validators (required, minLength, maxLength, pattern)
@@ -97,6 +102,7 @@ describe("evaluateConditions", () => {
 **Coverage**: ✅ Good - Covers value transformation
 
 **Test Categories**:
+
 - Parser transformation
 - Formatter transformation
 - Bidirectional transformation
@@ -122,6 +128,7 @@ The React package has **11 test files** covering React-specific functionality:
 **Coverage**: ✅ Excellent - Specifically tests the validation coordination bug
 
 **Test Categories**:
+
 - Only changed fields validate on change
 - Dependent field validation
 - Async validation timing
@@ -129,6 +136,7 @@ The React package has **11 test files** covering React-specific functionality:
 - Debouncing behavior
 
 **Example Test**:
+
 ```typescript
 it("should only validate changed field and dependents", async () => {
   render(<TestForm />);
@@ -148,6 +156,7 @@ it("should only validate changed field and dependents", async () => {
 **Coverage**: ✅ Good - Comprehensive Field component coverage
 
 **Test Categories**:
+
 - Rendering with various configs
 - Condition evaluation (disabled, visible, setValue)
 - `selectProps` evaluation
@@ -167,6 +176,7 @@ it("should only validate changed field and dependents", async () => {
 **Coverage**: ✅ Good - Core form functionality
 
 **Test Categories**:
+
 - Form rendering
 - Form submission
 - Form validation
@@ -181,6 +191,7 @@ it("should only validate changed field and dependents", async () => {
 **Coverage**: ✅ Good - Provider functionality
 
 **Test Categories**:
+
 - Provider context
 - Input registration
 - Default props propagation
@@ -194,6 +205,7 @@ it("should only validate changed field and dependents", async () => {
 **Coverage**: ✅ Good - End-to-end workflows
 
 **Test Categories**:
+
 - Complete form submission
 - Multi-field interactions
 - Complex scenarios
@@ -207,6 +219,7 @@ it("should only validate changed field and dependents", async () => {
 **Coverage**: ✅ Good - Field registration tracking
 
 **Test Categories**:
+
 - Unused field detection
 - Dynamic field registration
 - Field cleanup
@@ -220,6 +233,7 @@ it("should only validate changed field and dependents", async () => {
 **Coverage**: ✅ Good - Render isolation patterns
 
 **Test Categories**:
+
 - Isolated field rendering
 - Subscription isolation
 - Performance optimization
@@ -243,12 +257,14 @@ it("should only validate changed field and dependents", async () => {
 **Status**: ❌ **CRITICAL GAP** - NO TESTS EXIST
 
 **What's Missing**:
+
 1. Tests for provider-level `selectDefaultFieldProps` evaluation
 2. Tests for form-level `selectDefaultFieldProps` evaluation
 3. Tests for proper merging of evaluated default props with field config
 4. Tests for priority order (default props < field props)
 
 **Why This Matters**:
+
 - Feature is completely untested
 - No test coverage to validate fix
 - Risk of regression after implementation
@@ -308,12 +324,14 @@ describe("selectDefaultFieldProps", () => {
 **Status**: ❌ **CRITICAL GAP** - NO TESTS EXIST
 
 **What's Missing**:
+
 1. Tests for `debounce: false` configuration
 2. Tests that submission occurs immediately when `debounce: false`
 3. Tests that debounce timer is bypassed
 4. Tests that other fields still use normal debounce
 
 **Why This Matters**:
+
 - Feature is completely untested
 - Need to verify timing behavior
 - Need to ensure no regression to normal debounce
@@ -371,16 +389,19 @@ describe("debounce: false", () => {
 **Status**: ❌ **CRITICAL GAP** - Tests exist but assume `disabled` exists
 
 **What's Missing**:
+
 1. Tests that actually verify `disabled` property is populated
 2. Tests for `isDisabled` condition matcher with real field states
 3. Tests for disabled state from multiple sources (prop, config, condition, group)
 
 **Why This Matters**:
+
 - Core tests pass because they mock field states with `disabled`
 - React tests never verify `disabled` is actually populated
 - Gap between mock and reality
 
 **Current Test State**:
+
 ```typescript
 // packages/core/src/__tests__/conditions.test.ts (line 180)
 it("should match isDisabled field state", () => {
@@ -390,7 +411,7 @@ it("should match isDisabled field state", () => {
   const result = evaluateConditions(
     [{ when: "adminToggle", isDisabled: true, disabled: true }],
     fieldStates,
-    {}
+    {},
   );
   expect(result.disabled).toBe(true); // ← Passes with mock
 });
@@ -450,10 +471,12 @@ describe("isDisabled conditions", () => {
 **Status**: ⚠️ **MODERATE GAP** - Limited test coverage
 
 **What's Missing**:
+
 1. Tests for multi-field `when` with `isDisabled` matcher
 2. Tests for complex conditions with multiple field state matchers
 
 **Current Test State**:
+
 - Tests only cover string `when` with `isDisabled`
 - No tests for object `when` conditions
 
@@ -467,13 +490,15 @@ describe("multi-field isDisabled", () => {
       field1: { disabled: true },
       field2: { disabled: false },
     };
-    const conditions = [{
-      when: {
-        field1: { isDisabled: true },
-        field2: { isDisabled: false },
+    const conditions = [
+      {
+        when: {
+          field1: { isDisabled: true },
+          field2: { isDisabled: false },
+        },
+        disabled: true,
       },
-      disabled: true,
-    }];
+    ];
     const result = evaluateConditions(conditions, fieldStates, {});
     expect(result.disabled).toBe(true);
   });
@@ -487,12 +512,14 @@ describe("multi-field isDisabled", () => {
 **Status**: ❌ **CRITICAL GAP** - NO TESTS EXIST
 
 **What's Missing**:
+
 1. Tests for subscription cleanup on unmount
 2. Tests for rapid subscription changes
 3. Tests for useEffect cleanup in condition evaluation
 4. Memory leak detection tests
 
 **Why This Matters**:
+
 - No way to verify memory leaks are fixed
 - Production risk without proper testing
 
@@ -539,6 +566,7 @@ describe("subscription cleanup", () => {
 **Status**: ❌ **MODERATE GAP** - No type edge case tests
 
 **What's Missing**:
+
 1. Tests for arithmetic with non-numeric values
 2. Tests for null/undefined handling
 3. Tests for type coercion
@@ -574,11 +602,13 @@ describe("type safety", () => {
 **Status**: ⚠️ **LOW GAP** - Good coverage, edge cases exist
 
 **What's Missing**:
+
 1. Tests for rapid successive changes
 2. Tests for validation completing after version check
 3. Stress tests for extreme scenarios
 
 **Current Test State**:
+
 - `autosave-validation.test.tsx` has good coverage
 - Version checking is tested
 - Main scenarios are covered
@@ -619,12 +649,15 @@ describe("race conditions", () => {
 **Naming**: `<filename>.test.ts` or `<filename>.test.tsx`
 
 **Basic Structure**:
+
 ```typescript
 describe("Feature", () => {
   describe("specific behavior", () => {
     it("should do something specific", () => {
       // Arrange
-      const input = { /* ... */ };
+      const input = {
+        /* ... */
+      };
 
       // Act
       const result = functionUnderTest(input);
@@ -641,6 +674,7 @@ describe("Feature", () => {
 ### React Component Testing
 
 **Rendering**:
+
 ```typescript
 import { render, screen } from '@testing-library/react';
 
@@ -656,8 +690,9 @@ const element = screen.getByTestId("test");
 ```
 
 **User Interactions**:
+
 ```typescript
-import { userEvent } from '@testing-library/user-event';
+import { userEvent } from "@testing-library/user-event";
 
 const user = userEvent.setup();
 await user.click(screen.getByTestId("button"));
@@ -666,8 +701,9 @@ await user.selectOptions(screen.getByTestId("select"), "option1");
 ```
 
 **Async Testing**:
+
 ```typescript
-import { waitFor, act } from '@testing-library/react';
+import { waitFor, act } from "@testing-library/react";
 
 await waitFor(() => {
   expect(screen.getByTestId("result")).toBeInTheDocument();
@@ -683,6 +719,7 @@ await act(async () => {
 ### Test Fixtures
 
 **Test Components**:
+
 ```typescript
 // Common test input component
 const TestInput = forwardRef<HTMLInputElement, { value?: string }>(
@@ -699,6 +736,7 @@ TestInput.displayName = "TestInput";
 ```
 
 **Test Configs**:
+
 ```typescript
 const testInputs = {
   textField: {
@@ -717,8 +755,9 @@ const testInputs = {
 ### Mock Patterns
 
 **Function Mocking**:
+
 ```typescript
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 const mockFn = vi.fn();
 const mockValidator = vi.fn(async (value) => {
@@ -727,6 +766,7 @@ const mockValidator = vi.fn(async (value) => {
 ```
 
 **Context Mocking**:
+
 ```typescript
 const mockFieldStates = {
   field1: { value: "test", isTouched: true },
@@ -803,17 +843,15 @@ const mockFieldStates = {
 ### Coverage Gaps Priority
 
 **Critical (Must Fix)**:
+
 1. ✅ **Bug 1**: `selectDefaultFieldProps` - Completely untested
 2. ✅ **Bug 2**: `debounce: false` - Completely untested
 3. ✅ **Bug 3**: `disabled` property - Tests exist but assume mocked data
 4. ✅ **Bug 5**: Memory leaks - No cleanup tests
 
-**Moderate (Should Fix)**:
-5. ⚠️ **Bug 4**: Multi-field `isDisabled` - Limited coverage
-6. ⚠️ **Bug 6**: Type safety - No edge case tests
+**Moderate (Should Fix)**: 5. ⚠️ **Bug 4**: Multi-field `isDisabled` - Limited coverage 6. ⚠️ **Bug 6**: Type safety - No edge case tests
 
-**Low (Nice to Have)**:
-7. ✅ **Bug 7**: Race conditions - Good coverage, minor edge cases
+**Low (Nice to Have)**: 7. ✅ **Bug 7**: Race conditions - Good coverage, minor edge cases
 
 ---
 

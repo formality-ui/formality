@@ -30,11 +30,13 @@ Research on React hooks memoization patterns for preventing unnecessary re-rende
 ### 1. When to Use useMemo
 
 **Use useMemo for**:
+
 - Expensive calculations (filtering large arrays, complex transformations)
 - Maintaining stable references for dependencies in other hooks
 - Passing objects to pure child components wrapped in `React.memo`
 
 **Example**:
+
 ```typescript
 // ✅ Good: Expensive calculation
 const sortedList = useMemo(() => {
@@ -42,13 +44,17 @@ const sortedList = useMemo(() => {
 }, [items]);
 
 // ✅ Good: Reference stability matters
-const config = useMemo(() => ({
-  endpoint: '/api/data',
-  headers: { Authorization: token }
-}), [token]);
+const config = useMemo(
+  () => ({
+    endpoint: "/api/data",
+    headers: { Authorization: token },
+  }),
+  [token],
+);
 ```
 
 **Don't use useMemo for**:
+
 - Simple derivations (string concatenation, basic arithmetic)
 - Values that change on every render anyway
 
@@ -63,16 +69,21 @@ const fullName = useMemo(() => {
 ### 2. Patterns for Memoizing Objects/Arrays
 
 **Stable References Pattern**:
+
 ```typescript
 // Memoize objects passed to optimized children
-const formContext = useMemo(() => ({
-  register,
-  unregister,
-  errors
-}), [register, unregister, errors]);
+const formContext = useMemo(
+  () => ({
+    register,
+    unregister,
+    errors,
+  }),
+  [register, unregister, errors],
+);
 ```
 
 **Custom Hook Pattern**:
+
 ```typescript
 function useFieldState(name) {
   const { getFieldState } = useForm();
@@ -90,6 +101,7 @@ function useFieldState(name) {
 ### 3. Structuring Dependencies to Avoid Infinite Loops
 
 **Essential Rules**:
+
 - Include ALL reactive values used in the callback
 - Use `useCallback` to stabilize functions that are dependencies
 - Use `useRef` for values that change but shouldn't trigger re-renders
@@ -129,7 +141,7 @@ const fullName = `${firstName} ${lastName}`;
 
 // ✅ Good: Expensive derivation with useMemo
 const filteredItems = useMemo(() => {
-  return items.filter(item => item.active);
+  return items.filter((item) => item.active);
 }, [items]);
 ```
 
@@ -169,12 +181,12 @@ const isEmailDirty = formState.dirtyFields.email;
 
 // ✅ Good: No subscription, no re-render
 const { getFieldState } = useForm();
-const emailState = getFieldState('email');
+const emailState = getFieldState("email");
 const isEmailDirty = emailState.isDirty;
 
 // ✅ Good: In event handlers (no re-render)
 const onSubmit = () => {
-  const emailState = getFieldState('email');
+  const emailState = getFieldState("email");
   if (emailState.isDirty && !emailState.invalid) {
     submitForm();
   }
@@ -248,13 +260,16 @@ const disabledStates = useMemo(() => {
 
 // Pass 3: MUST depend on Pass 1 AND Pass 2
 const fieldStates = useMemo(() => {
-  return Object.entries(baseFieldStates).reduce((acc, [name, state]) => {
-    acc[name] = {
-      ...state,
-      disabled: disabledStates[name], // ← Pass 2 dependency
-    };
-    return acc;
-  }, {} as Record<string, FieldStateInput>);
+  return Object.entries(baseFieldStates).reduce(
+    (acc, [name, state]) => {
+      acc[name] = {
+        ...state,
+        disabled: disabledStates[name], // ← Pass 2 dependency
+      };
+      return acc;
+    },
+    {} as Record<string, FieldStateInput>,
+  );
 }, [baseFieldStates, disabledStates]);
 ```
 
@@ -333,24 +348,27 @@ const disabledStates = useMemo(() => {
     disabled[fieldName] = result.disabled ?? false;
   });
   return disabled;
-}, [watchFields, /* fieldConditions */, fieldValues, baseFieldStates, record]);
+}, [watchFields /* fieldConditions */, , fieldValues, baseFieldStates, record]);
 
 // Pass 3: Merge
 const fieldStates = useMemo(() => {
-  return Object.entries(baseFieldStates).reduce((acc, [name, state]) => {
-    acc[name] = {
-      ...state,
-      disabled: disabledStates[name],
-    };
-    return acc;
-  }, {} as Record<string, FieldStateInput>);
+  return Object.entries(baseFieldStates).reduce(
+    (acc, [name, state]) => {
+      acc[name] = {
+        ...state,
+        disabled: disabledStates[name],
+      };
+      return acc;
+    },
+    {} as Record<string, FieldStateInput>,
+  );
 }, [baseFieldStates, disabledStates]);
 ```
 
 ### Dependencies Summary
 
-| Pass | Dependencies | Notes |
-|------|-------------|-------|
-| Pass 1 (baseFieldStates) | watchFields, fieldValues, methods | Independent, no circular dependency |
-| Pass 2 (disabledStates) | watchFields, conditions, fieldValues, baseFieldStates, record | Depends on Pass 1 |
-| Pass 3 (fieldStates) | baseFieldStates, disabledStates | Depends on Pass 1 and Pass 2 |
+| Pass                     | Dependencies                                                  | Notes                               |
+| ------------------------ | ------------------------------------------------------------- | ----------------------------------- |
+| Pass 1 (baseFieldStates) | watchFields, fieldValues, methods                             | Independent, no circular dependency |
+| Pass 2 (disabledStates)  | watchFields, conditions, fieldValues, baseFieldStates, record | Depends on Pass 1                   |
+| Pass 3 (fieldStates)     | baseFieldStates, disabledStates                               | Depends on Pass 1 and Pass 2        |

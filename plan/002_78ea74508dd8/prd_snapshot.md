@@ -419,11 +419,11 @@ hard quality gate, enforced by vitest coverage thresholds and run in CI
 **Scope.** The 90% floor applies to the **entire repository** with the
 following exclusions, which are not measured against the threshold:
 
-| Excluded path          | Reason                                                  |
-| ---------------------- | ------------------------------------------------------- |
-| `examples/**`          | Demo apps; not shipped, not part of the testable surface |
-| `packages/svelte/**`   | Stubbed adapter (no implementation yet)                 |
-| `packages/vue/**`      | Stubbed adapter (no implementation yet)                 |
+| Excluded path        | Reason                                                   |
+| -------------------- | -------------------------------------------------------- |
+| `examples/**`        | Demo apps; not shipped, not part of the testable surface |
+| `packages/svelte/**` | Stubbed adapter (no implementation yet)                  |
+| `packages/vue/**`    | Stubbed adapter (no implementation yet)                  |
 
 All other code — in particular `packages/core/**` and `packages/react/**`,
 plus any future adapter that gains a real implementation — is in scope and
@@ -823,7 +823,10 @@ interface FieldConfig {
 // Generic over the field-name union so a React `<Form<TFieldValues>>` can reject
 // unknown config keys. Defaults to `string`, which is identical to the previous
 // non-generic `Record<string, FieldConfig>` (backwards compatible).
-type FormFieldsConfig<TName extends string = string> = Record<TName, FieldConfig>;
+type FormFieldsConfig<TName extends string = string> = Record<
+  TName,
+  FieldConfig
+>;
 ```
 
 #### 3.2.1 React Overlay Types (in `@formality-ui/react`)
@@ -844,20 +847,25 @@ import type {
 
 // InputConfig as seen by React consumers: `component` is a real component.
 // `TValue` is preserved for parsers/formatters/defaultValue.
-export interface ReactInputConfig<TValue = unknown>
-  extends Omit<InputConfig<TValue>, "component" | "template"> {
+export interface ReactInputConfig<TValue = unknown> extends Omit<
+  InputConfig<TValue>,
+  "component" | "template"
+> {
   component: ComponentType<any>;
   template?: ComponentType<InputTemplateProps>;
 }
 
 // FieldConfig as seen by React consumers: `rules` is a real RegisterOptions.
-export interface ReactFieldConfig<V extends FieldValues = FieldValues>
-  extends Omit<FieldConfig, "rules"> {
+export interface ReactFieldConfig<
+  V extends FieldValues = FieldValues,
+> extends Omit<FieldConfig, "rules"> {
   rules?: RegisterOptions<V>;
 }
 
-export type ReactFormFieldsConfig<V extends FieldValues = FieldValues> =
-  Record<string, ReactFieldConfig<V>>;
+export type ReactFormFieldsConfig<V extends FieldValues = FieldValues> = Record<
+  string,
+  ReactFieldConfig<V>
+>;
 ```
 
 // Select descriptor (DEPRECATED name - use SelectValue)
@@ -865,22 +873,22 @@ type SelectDescriptor = SelectValue;
 
 // Condition descriptor - supports both strings AND functions
 interface ConditionDescriptor {
-  // Trigger - one of these is required
-  when?: string; // Field to watch: "client"
-  selectWhen?: SelectValue<boolean>; // Expression OR function: "client.id > 5" or ({ fields }) => ...
+// Trigger - one of these is required
+when?: string; // Field to watch: "client"
+selectWhen?: SelectValue<boolean>; // Expression OR function: "client.id > 5" or ({ fields }) => ...
 
-  // Matchers
-  is?: unknown; // Exact value match
-  truthy?: boolean; // Truthy/falsy check
+// Matchers
+is?: unknown; // Exact value match
+truthy?: boolean; // Truthy/falsy check
 
-  // Actions when condition matches
-  disabled?: boolean; // Set disabled state
-  visible?: boolean; // Set visibility
-  set?: unknown; // Set static value
-  selectSet?: SelectValue; // Set dynamic value - string OR function
+// Actions when condition matches
+disabled?: boolean; // Set disabled state
+visible?: boolean; // Set visibility
+set?: unknown; // Set static value
+selectSet?: SelectValue; // Set dynamic value - string OR function
 
-  // Dependencies (REQUIRED when using functions)
-  subscribesTo?: string[]; // Explicit subscriptions for function-based conditions
+// Dependencies (REQUIRED when using functions)
+subscribesTo?: string[]; // Explicit subscriptions for function-based conditions
 }
 
 // Note: Either 'when' or 'selectWhen' must be provided, but not both.
@@ -889,22 +897,23 @@ interface ConditionDescriptor {
 
 // Validator specification
 type ValidatorSpec =
-  | string // Named validator
-  | ValidatorFunction // Inline function
-  | Array<string | ValidatorFunction>; // Multiple validators
+| string // Named validator
+| ValidatorFunction // Inline function
+| Array<string | ValidatorFunction>; // Multiple validators
 
 type ValidatorFunction = (
-  value: unknown,
-  formValues: Record<string, unknown>,
+value: unknown,
+formValues: Record<string, unknown>,
 ) => ValidationResult | Promise<ValidationResult>;
 
 type ValidationResult =
-  | true // Valid
-  | false // Invalid (generic message)
-  | string // Invalid with message
-  | undefined // Valid
-  | { type: string; message?: string }; // Invalid with type
-```
+| true // Valid
+| false // Invalid (generic message)
+| string // Invalid with message
+| undefined // Valid
+| { type: string; message?: string }; // Invalid with type
+
+````
 
 ### 3.3 Provider Configuration
 
@@ -934,7 +943,7 @@ interface ValidatorsConfig {
 interface ErrorMessagesConfig {
   [type: string]: string;
 }
-```
+````
 
 ### 3.4 Form Configuration
 
@@ -1069,7 +1078,7 @@ The ConfigContext provides global configuration from FormalityProvider.
 
 ```typescript
 interface ConfigContextValue {
-  inputs: Record<string, ReactInputConfig>;   // React overlay of core InputConfig (§3.2.1)
+  inputs: Record<string, ReactInputConfig>; // React overlay of core InputConfig (§3.2.1)
   formatters: Record<string, (value: unknown) => unknown>;
   parsers: Record<string, (value: unknown) => unknown>;
   validators: ValidatorsConfig;
@@ -1459,7 +1468,7 @@ function inferFieldsFromDescriptor(descriptor: SelectDescriptor): string[] {
 ```typescript
 interface FormalityProviderProps {
   children: React.ReactNode;
-  inputs: Record<string, ReactInputConfig>;   // React overlay of core InputConfig (§3.2.1)
+  inputs: Record<string, ReactInputConfig>; // React overlay of core InputConfig (§3.2.1)
   formatters?: Record<string, (value: unknown) => unknown>;
   parsers?: Record<string, (value: unknown) => unknown>;
   validators?: ValidatorsConfig;
@@ -1500,7 +1509,7 @@ interface FormalityProviderProps {
 ```typescript
 interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   children: React.ReactNode | ((api: FormRenderAPI) => React.ReactNode);
-  config: ReactFormFieldsConfig<TFieldValues>;   // checked against TFieldValues keys (§3.2.1)
+  config: ReactFormFieldsConfig<TFieldValues>; // checked against TFieldValues keys (§3.2.1)
   formConfig?: FormConfig;
   onSubmit?: (values: Partial<TFieldValues>) => void | Promise<void>;
   record?: Partial<TFieldValues>;
@@ -1790,8 +1799,8 @@ function transformValuesForSubmit(values: Record<string, unknown>) {
 
 ```typescript
 interface FieldProps<TName extends string = string> {
-  name: TName;                       // checked against the form's field keys when TName is narrowed (§3.2 / T2.1)
-  type?: string;                     // keyof typeof inputs when wrapped in defineInputs (§3.2.1 / T2.2)
+  name: TName; // checked against the form's field keys when TName is narrowed (§3.2 / T2.1)
+  type?: string; // keyof typeof inputs when wrapped in defineInputs (§3.2.1 / T2.2)
   disabled?: boolean;
   hidden?: boolean;
   children?: React.ReactNode | ((api: FieldRenderAPI) => React.ReactNode);
@@ -4778,15 +4787,15 @@ interface FormalityProviderConfig {
   parsers?: Record<string, (value: unknown) => unknown>;
   validators?: ValidatorsConfig;
   errorMessages?: ErrorMessagesConfig;
-  defaultInputTemplate?: unknown;                       // ComponentType<InputTemplateProps> via overlay
-  inputTemplates?: Record<string, unknown>;             // Record<string, ComponentType<InputTemplateProps>> via overlay
+  defaultInputTemplate?: unknown; // ComponentType<InputTemplateProps> via overlay
+  inputTemplates?: Record<string, unknown>; // Record<string, ComponentType<InputTemplateProps>> via overlay
   defaultSubscriptionPropName?: string;
   defaultFieldProps?: Record<string, unknown>;
   selectDefaultFieldProps?: SelectDescriptor;
 }
 
 interface InputConfig<TValue = unknown> {
-  component: unknown;                                   // ComponentType<any> via overlay
+  component: unknown; // ComponentType<any> via overlay
   defaultValue: TValue;
   debounce?: number | false;
   inputFieldProp?: string;
@@ -4795,7 +4804,7 @@ interface InputConfig<TValue = unknown> {
   parser?: string | ((value: unknown) => TValue);
   formatter?: string | ((value: TValue) => unknown);
   validator?: ValidatorSpec;
-  template?: unknown;                                   // ComponentType<InputTemplateProps> via overlay
+  template?: unknown; // ComponentType<InputTemplateProps> via overlay
 }
 
 interface FormConfig {
@@ -4813,14 +4822,16 @@ interface GroupConfig {
 
 // Generic over the field-name union so <Form<TFieldValues>> can reject unknown
 // keys. Defaults to `string` (identical to the legacy non-generic shape).
-type FormFieldsConfig<TName extends string = string> =
-  Record<TName, FieldConfig>;
+type FormFieldsConfig<TName extends string = string> = Record<
+  TName,
+  FieldConfig
+>;
 
 interface FieldConfig {
   type?: string;
   disabled?: boolean;
   hidden?: boolean;
-  rules?: Record<string, unknown>;                      // RegisterOptions via overlay
+  rules?: Record<string, unknown>; // RegisterOptions via overlay
   validator?: ValidatorSpec;
   props?: Record<string, unknown>;
   selectProps?: SelectDescriptor;
@@ -4831,26 +4842,32 @@ interface FieldConfig {
 
 // === React Overlay Types (@formality-ui/react) ===
 
-interface ReactInputConfig<TValue = unknown>
-  extends Omit<InputConfig<TValue>, "component" | "template"> {
+interface ReactInputConfig<TValue = unknown> extends Omit<
+  InputConfig<TValue>,
+  "component" | "template"
+> {
   component: ComponentType<any>;
   template?: ComponentType<InputTemplateProps>;
 }
 
-interface ReactFieldConfig<V extends FieldValues = FieldValues>
-  extends Omit<FieldConfig, "rules"> {
+interface ReactFieldConfig<V extends FieldValues = FieldValues> extends Omit<
+  FieldConfig,
+  "rules"
+> {
   rules?: RegisterOptions<V>;
 }
 
-type ReactFormFieldsConfig<V extends FieldValues = FieldValues> =
-  Record<string, ReactFieldConfig<V>>;
+type ReactFormFieldsConfig<V extends FieldValues = FieldValues> = Record<
+  string,
+  ReactFieldConfig<V>
+>;
 
 // Props Formality injects onto every field component (state, formState,
 // forwardRef). Exported so consumers don't reinvent a WithFormality<P> helper.
 type FormalityFieldComponentProps<P = unknown> = P & {
-  state?: unknown;          // subscribed FieldState map (passSubscriptions)
-  formState?: unknown;      // form-level state passed through to the component
-  forwardRef?: Ref<any>;    // RHF Controller ref forwarded to the inner input
+  state?: unknown; // subscribed FieldState map (passSubscriptions)
+  formState?: unknown; // form-level state passed through to the component
+  forwardRef?: Ref<any>; // RHF Controller ref forwarded to the inner input
 };
 
 // Identity helper for opt-in keyof checking on input type keys.
@@ -4916,7 +4933,7 @@ interface FormContextValue {
 }
 
 interface ConfigContextValue {
-  inputs: Record<string, ReactInputConfig>;   // React overlay of core InputConfig
+  inputs: Record<string, ReactInputConfig>; // React overlay of core InputConfig
   formatters: Record<string, (value: unknown) => unknown>;
   parsers: Record<string, (value: unknown) => unknown>;
   validators: ValidatorsConfig;
@@ -4970,7 +4987,7 @@ interface FieldError {
 
 interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   children: React.ReactNode | ((api: FormRenderAPI) => React.ReactNode);
-  config: ReactFormFieldsConfig<TFieldValues>;   // checked against TFieldValues keys
+  config: ReactFormFieldsConfig<TFieldValues>; // checked against TFieldValues keys
   formConfig?: FormConfig;
   onSubmit?: (values: Partial<TFieldValues>) => void | Promise<void>;
   record?: Partial<TFieldValues>;
@@ -4988,8 +5005,8 @@ interface FormRenderAPI {
 }
 
 interface FieldProps<TName extends string = string> {
-  name: TName;                       // narrowed when used inside a typed <Form<TFieldValues>>
-  type?: string;                     // keyof typeof inputs when wrapped in defineInputs
+  name: TName; // narrowed when used inside a typed <Form<TFieldValues>>
+  type?: string; // keyof typeof inputs when wrapped in defineInputs
   disabled?: boolean;
   hidden?: boolean;
   children?: React.ReactNode | ((api: FieldRenderAPI) => React.ReactNode);
@@ -5268,7 +5285,7 @@ generic parameters with backwards-compatible defaults.
    - Build: `tsup`
    - Tests: `vitest run`
    - Root orchestrates both via workspace scripts (`pnpm -r build`, `pnpm -r
-     test`). Use whatever the repo already uses.
+test`). Use whatever the repo already uses.
 3. Establish a green baseline before changing anything:
    ```bash
    # build core first (react depends on it), then react
@@ -5298,7 +5315,7 @@ generic parameters with backwards-compatible defaults.
 
 ### C.4 Work Items
 
-#### T1.1 — Type `InputConfig.component` as a React component  *(REACT overlay)*
+#### T1.1 — Type `InputConfig.component` as a React component _(REACT overlay)_
 
 > **Status: ✅ DONE.** `ReactInputConfig` is exported from
 > `@formality-ui/react` and threaded into `FormalityProviderProps.inputs` and
@@ -5310,10 +5327,11 @@ the react package's re-export of `InputConfig`, so `component: 42` or
 input is actually a component.
 
 **Current (core, stays as-is — framework-agnostic):**
+
 ```typescript
 // core
 interface InputConfig<TValue = unknown> {
-  component: unknown;          // intentionally loose in core
+  component: unknown; // intentionally loose in core
   defaultValue: TValue;
   // ...
 }
@@ -5321,6 +5339,7 @@ interface InputConfig<TValue = unknown> {
 
 **Target.** In the **react** package, define an overlay and use it on
 `FormalityProviderProps.inputs`:
+
 ```typescript
 // react
 import type { ComponentType } from "react";
@@ -5330,20 +5349,25 @@ import type { InputConfig } from "@formality-ui/core";
  * InputConfig as seen by React consumers: `component` is a real component.
  * `TValue` is preserved for parsers/formatters/defaultValue (see T3.2).
  */
-export interface ReactInputConfig<TValue = unknown>
-  extends Omit<InputConfig<TValue>, "component" | "template"> {
+export interface ReactInputConfig<TValue = unknown> extends Omit<
+  InputConfig<TValue>,
+  "component" | "template"
+> {
   component: ComponentType<any>;
-  template?: ComponentType<InputTemplateProps>;   // also fix `template` here (T1.3)
+  template?: ComponentType<InputTemplateProps>; // also fix `template` here (T1.3)
 }
 ```
+
 Then:
+
 ```typescript
 // react: FormalityProviderProps
 interface FormalityProviderProps {
-  inputs: Record<string, ReactInputConfig>;   // was: Record<string, InputConfig>
+  inputs: Record<string, ReactInputConfig>; // was: Record<string, InputConfig>
   // ...
 }
 ```
+
 **Export `ReactInputConfig`** from `@formality-ui/react` (consumers use it
 directly, e.g. for `satisfies Partial<ReactInputConfig>`).
 
@@ -5352,6 +5376,7 @@ without taking a React dependency (§C.2). The react package already imports
 `ComponentType` from `react`.
 
 **Steps**
+
 1. Locate react's `FormalityProviderProps` and its `InputTemplateProps`.
 2. Add the `ReactInputConfig` overlay; thread it into `FormalityProviderProps.inputs`.
 3. Export it.
@@ -5364,7 +5389,7 @@ without taking a React dependency (§C.2). The react package already imports
 `component` will now get a (correct) error — that is the intended improvement,
 not a regression.
 
-#### T1.2 — Type `FieldConfig.rules` as `RegisterOptions`  *(REACT overlay)*
+#### T1.2 — Type `FieldConfig.rules` as `RegisterOptions` _(REACT overlay)_
 
 > **Status: ✅ DONE.** `ReactFieldConfig` and `ReactFormFieldsConfig` are
 > exported and `FormProps.config` uses `ReactFormFieldsConfig<TFieldValues>`.
@@ -5375,34 +5400,41 @@ checking on RHF register options (`required`, `min`, `max`, `pattern`,
 sail through.
 
 **Current (core, stays as-is):**
+
 ```typescript
 // core
 interface FieldConfig {
   // ...
-  rules?: Record<string, unknown>;   // loose; core has no rhf dep
+  rules?: Record<string, unknown>; // loose; core has no rhf dep
   // ...
 }
 ```
 
 **Target.** Overlay in react:
+
 ```typescript
 // react
 import type { RegisterOptions, FieldValues } from "react-hook-form";
 import type { FieldConfig } from "@formality-ui/core";
 
-export interface ReactFieldConfig<V extends FieldValues = FieldValues>
-  extends Omit<FieldConfig, "rules"> {
+export interface ReactFieldConfig<
+  V extends FieldValues = FieldValues,
+> extends Omit<FieldConfig, "rules"> {
   rules?: RegisterOptions<V>;
 }
 
-export type ReactFormFieldsConfig<V extends FieldValues = FieldValues> =
-  Record<string, ReactFieldConfig<V>>;
+export type ReactFormFieldsConfig<V extends FieldValues = FieldValues> = Record<
+  string,
+  ReactFieldConfig<V>
+>;
 ```
+
 Thread `ReactFormFieldsConfig` into `FormProps.config` (see **T2.1**, which
 lands the generic). If you do T1.2 before T2.1, temporarily use
 `ReactFormFieldsConfig` with the default generic.
 
 **Steps**
+
 1. Add the overlay types; export them.
 2. Use `ReactFieldConfig` wherever react constructs/accepts field configs (esp.
    `FormProps.config` and any internal `FieldConfig` handling).
@@ -5414,7 +5446,7 @@ lands the generic). If you do T1.2 before T2.1, temporarily use
 **Risk:** Low. `RegisterOptions` is a strict subset of shapes previously
 accepted; any previously-valid rules object is still valid.
 
-#### T1.3 — Fix `template` fields (align core + finish the react overlay)  *(CORE cleanup + REACT)*
+#### T1.3 — Fix `template` fields (align core + finish the react overlay) _(CORE cleanup + REACT)_
 
 > **Status: ✅ DONE.** Core type doc comments explain the overlay pattern;
 > react's `ReactInputConfig.template` is `ComponentType<InputTemplateProps>`.
@@ -5426,6 +5458,7 @@ surfaces to consumers via re-exported `InputConfig`. Separately, core's own
 unknown` are internally inconsistent with react's already-good overlays.
 
 **Target.**
+
 - In **react** (consumer-facing), `ReactInputConfig.template` is typed in T1.1
   above. Done there.
 - In **core**, leave `component`/`template` as-is (framework-agnostic) **but
@@ -5437,6 +5470,7 @@ unknown` are internally inconsistent with react's already-good overlays.
   and document it). This is low priority; do not let it block T1.1/T1.2.
 
 **Steps**
+
 1. In react, confirm `ReactInputConfig.template` from T1.1 is
    `ComponentType<InputTemplateProps>`.
 2. (Optional, core) add clarifying comments. Do not add react to core.
@@ -5444,14 +5478,14 @@ unknown` are internally inconsistent with react's already-good overlays.
 
 **Risk:** Minimal.
 
-#### T2.1 — Tie `Form<TFieldValues>` config + `Field` name to the field-values type  *(REACT, with a generic param in CORE)*
+#### T2.1 — Tie `Form<TFieldValues>` config + `Field` name to the field-values type _(REACT, with a generic param in CORE)_
 
 > **Status: ⚠️ PARTIAL.** The CORE half is done (`FormFieldsConfig<TName
-> extends string = string>` with a backwards-compatible `string` default),
+extends string = string>` with a backwards-compatible `string` default),
 > and `FormProps.config` is typed `ReactFormFieldsConfig<TFieldValues>` so RHF
 > rules are checked. The REMAINING work is the strict key-checking half:
 > `FormProps.config` should be `Record<Extract<keyof TFieldValues, string>,
-> ReactFieldConfig<TFieldValues>>` (reject unknown config keys), and `Field`
+ReactFieldConfig<TFieldValues>>` (reject unknown config keys), and `Field`
 > should become generic over its name when used inside a `Form` context.
 
 **Problem.** `Form<TFieldValues>` accepts a `config: FormFieldsConfig` that is
@@ -5460,17 +5494,18 @@ unknown` are internally inconsistent with react's already-good overlays.
 both compile and silently render nothing.
 
 **Current:**
+
 ```typescript
 // core
 type FormFieldsConfig = Record<string, FieldConfig>;
 
 // react
 interface FormProps<TFieldValues extends FieldValues = FieldValues> {
-  config: FormFieldsConfig;          // ignores TFieldValues
+  config: FormFieldsConfig; // ignores TFieldValues
   // ...
 }
 interface FieldProps {
-  name: string;                      // not checked
+  name: string; // not checked
   type?: string;
   // ...
   [key: string]: unknown;
@@ -5478,18 +5513,21 @@ interface FieldProps {
 ```
 
 **Target.**
+
 1. **CORE** — make `FormFieldsConfig` generic with a safe default:
    ```typescript
    // core
-   export type FormFieldsConfig<TName extends string = string> =
-     Record<TName, FieldConfig>;
+   export type FormFieldsConfig<TName extends string = string> = Record<
+     TName,
+     FieldConfig
+   >;
    ```
    When `TName = string` this is **identical** to today's
-   `Record<string, FieldConfig>` (non-breaking). *(If your tests show
+   `Record<string, FieldConfig>` (non-breaking). _(If your tests show
    assignability issues with required-key semantics for partial configs,
    switch the default shape to `Partial<Record<TName, FieldConfig>>` and verify
    the full test suite + a consumer typecheck still pass. Prefer whichever
-   preserves today's behavior exactly.)*
+   preserves today's behavior exactly.)_
 2. **REACT** — thread `TFieldValues` through:
    ```typescript
    // react
@@ -5516,6 +5554,7 @@ interface FieldProps {
    compiles as before. (Stronger per-form name checking is a follow-up.)
 
 **Steps**
+
 1. Edit core `FormFieldsConfig`; rebuild core.
 2. Edit react `FormProps` and `FieldProps`; rebuild react.
 3. **Carefully** audit react's internal usages of `FormFieldsConfig`,
@@ -5532,7 +5571,7 @@ react itself. Mitigate by keeping defaults identical and fixing internal call
 sites. If a clean non-breaking thread proves impossible, **scope this item to
 `FormProps.config` only** (drop the `FieldProps` generic) and note it in the PR.
 
-#### T2.2 — Make input `type` strings checkable (opt-in)  *(REACT, adds one helper)*
+#### T2.2 — Make input `type` strings checkable (opt-in) _(REACT, adds one helper)_
 
 > **Status: ❌ NOT STARTED.**
 
@@ -5542,6 +5581,7 @@ learn the set of registered input keys from the type system.
 
 **Target.** Provide an **opt-in** helper so consumers who want checking can get
 it, without forcing it on everyone:
+
 ```typescript
 // react
 /**
@@ -5562,12 +5602,14 @@ export function defineInputs<T extends Record<string, ReactInputConfig>>(
   return inputs;
 }
 ```
+
 Export `defineInputs` and (optionally) generic `Field`/config helpers
 parameterized over an `InputType` union for consumers who want end-to-end
 checking. **Keep the existing non-generic `Field`/`FieldConfig.type` working
 unchanged** — this is purely additive.
 
 **Steps**
+
 1. Add `defineInputs` (pure identity; no runtime effect).
 2. Export it. Add a unit test asserting it returns its input and that `keyof`
    of the result is the expected union.
@@ -5580,7 +5622,7 @@ unchanged** — this is purely additive.
 runtime (an identity fn); verify it tree-shakes to nothing in production
 bundles (it will — `tsup` + the function is trivially inlineable).
 
-#### T3.1 — Export the "injected props" type so consumers stop reinventing it  *(REACT)*
+#### T3.1 — Export the "injected props" type so consumers stop reinventing it _(REACT)_
 
 > **Status: ❌ NOT STARTED.**
 
@@ -5589,6 +5631,7 @@ bundles (it will — `tsup` + the function is trivially inlineable).
 for these, so every consumer reverse-engineers and re-declares a
 `WithFormality<P>` helper. The downstream consumer's version currently looks
 like this (and they had bugs from inconsistent stripping):
+
 ```typescript
 // what consumers are forced to write today
 type WithFormality<P> = P & {
@@ -5600,6 +5643,7 @@ type WithFormality<P> = P & {
 
 **Target.** Export an accurate type from `@formality-ui/react`, using the
 **real** runtime types (not `unknown`):
+
 ```typescript
 // react
 export type FormalityFieldComponentProps<P = unknown> = P & {
@@ -5613,8 +5657,9 @@ export type FormalityFieldComponentProps<P = unknown> = P & {
 ```
 
 **Steps**
+
 1. **Read `Field`'s rendering code** (the `Controller`/`register` integration
-   and the props-merge layer) to determine the *exact* types actually injected
+   and the props-merge layer) to determine the _exact_ types actually injected
    for `state`, `formState`, and `forwardRef`. Candidate types already in the
    codebase: core `FieldState`, react `FormContextValue`, RHF
    `UseFormStateReturn`, RHF's `field.ref` (`Ref<any>` / `RefCallback`). Pick
@@ -5637,7 +5682,7 @@ common "wire to inner input" case ergonomic.
 
 **Risk:** Low (new export; no existing API changed).
 
-#### T3.2 — Document or wire up `InputConfig<TValue>`  *(CORE docs; optional REACT)*
+#### T3.2 — Document or wire up `InputConfig<TValue>` _(CORE docs; optional REACT)_
 
 > **Status: ✅ DONE (option a — document).** Core `InputConfig` carries JSDoc
 > explaining `TValue`'s role and pointing to `ReactInputConfig<TValue>` as the
@@ -5650,6 +5695,7 @@ intended link between `defaultValue: TValue`, `parser: (v) => TValue`,
 engages.
 
 **Target (choose one):**
+
 - **(a) Document** that `TValue` is for manual/advanced use and that the react
   overlay (`ReactInputConfig<TValue>`, from T1.1) is the supported way to
   parameterize it. Add JSDoc to `InputConfig`. **No code change.**
@@ -5711,6 +5757,7 @@ changes they should be able to:
    `InputType` union so `type: "texField"` is a compile error.
 
 **How to link locally** (adjust to the consumer's package manager):
+
 ```bash
 # in the Formality repo
 <build core> && <build react>
@@ -5720,6 +5767,7 @@ changes they should be able to:
 <pkg-manager> link <path-to>/formality/packages/react
 npx tsc -p tsconfig.app.json --noEmit
 ```
+
 If local linking is impractical, a quick smoke test: copy the rebuilt `dist/`
 of core and react over the consumer's
 `node_modules/@formality-ui/{core,react}/dist/` and run the consumer's
@@ -5728,7 +5776,7 @@ file is `src/forms/config.tsx`; expect their `WithFormality` to become
 deletable and their `modelInput`/`rules` to gain checking.
 
 If the consumer's `config.tsx` (or any consumer file) surfaces a **new** error
-that is clearly your type being *too strict* in a way that rejects
+that is clearly your type being _too strict_ in a way that rejects
 previously-valid, correct code, loosen the type (preferably via a default)
 rather than asking the consumer to cast. The goal is more safety with **zero**
 new false positives for valid usage.
@@ -5753,6 +5801,7 @@ These are the exact shapes being changed (confirmed against the currently-
 installed build). Source may format differently; match by member name.
 
 **core — `InputConfig`:**
+
 ```typescript
 interface InputConfig<TValue = unknown> {
   component: unknown;
@@ -5770,6 +5819,7 @@ interface InputConfig<TValue = unknown> {
 ```
 
 **core — `FieldConfig` (rules only is in scope):**
+
 ```typescript
 interface FieldConfig {
   type?: string;
@@ -5780,12 +5830,14 @@ interface FieldConfig {
 ```
 
 **core — `FormFieldsConfig`:**
+
 ```typescript
 type FormFieldsConfig = Record<string, FieldConfig>;
 ```
 
 **core — `FormalityProviderConfig` (template fields are internal-debt; react
 already overlays):**
+
 ```typescript
 interface FormalityProviderConfig {
   inputs: Record<string, InputConfig>;
@@ -5797,6 +5849,7 @@ interface FormalityProviderConfig {
 ```
 
 **core — `InputTemplateProps`:**
+
 ```typescript
 interface InputTemplateProps {
   Field: unknown;
@@ -5808,14 +5861,15 @@ interface InputTemplateProps {
 
 **react — `FormalityProviderProps` (consumer-facing; templates already good,
 `inputs`/`component` not):**
+
 ```typescript
 interface FormalityProviderProps {
-  inputs: Record<string, InputConfig>;                       // ← component: unknown leaks here
+  inputs: Record<string, InputConfig>; // ← component: unknown leaks here
   formatters?: Record<string, (value: unknown) => unknown>;
   parsers?: Record<string, (value: unknown) => unknown>;
   validators?: ValidatorsConfig;
   errorMessages?: ErrorMessagesConfig;
-  defaultInputTemplate?: ComponentType<InputTemplateProps>;  // ✓ already good
+  defaultInputTemplate?: ComponentType<InputTemplateProps>; // ✓ already good
   inputTemplates: Record<string, ComponentType<InputTemplateProps>>; // ✓ already good
   defaultSubscriptionPropName?: string;
   defaultFieldProps?: Record<string, unknown>;
@@ -5824,20 +5878,23 @@ interface FormalityProviderProps {
 ```
 
 **react — `FormProps` / `FieldProps`:**
+
 ```typescript
 interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   children: ReactNode | ((api: FormRenderAPI<TFieldValues>) => ReactNode);
-  config: FormFieldsConfig;   // ← ignores TFieldValues
+  config: FormFieldsConfig; // ← ignores TFieldValues
   formConfig?: FormConfig;
   onSubmit?: (values: Partial<TFieldValues>) => void | Promise<void>;
   record?: Partial<TFieldValues>;
   autoSave?: boolean;
   debounce?: number;
-  validate?: (values: Partial<TFieldValues>) => Record<string, string> | Promise<Record<string, string>>;
+  validate?: (
+    values: Partial<TFieldValues>,
+  ) => Record<string, string> | Promise<Record<string, string>>;
 }
 
 interface FieldProps {
-  name: string;               // ← not checked against any field set
+  name: string; // ← not checked against any field set
   type?: string;
   disabled?: boolean;
   hidden?: boolean;
@@ -5848,9 +5905,15 @@ interface FieldProps {
 ```
 
 **react — existing imports already in scope (reuse these):**
+
 ```typescript
 import { ComponentType, ReactNode } from "react";
-import { ControllerFieldState, UseFormStateReturn, FieldValues, UseFormReturn } from "react-hook-form";
+import {
+  ControllerFieldState,
+  UseFormStateReturn,
+  FieldValues,
+  UseFormReturn,
+} from "react-hook-form";
 // RegisterOptions is NOT yet imported — add it for T1.2.
 ```
 

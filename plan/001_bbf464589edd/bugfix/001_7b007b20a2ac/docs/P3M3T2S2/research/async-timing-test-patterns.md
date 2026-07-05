@@ -16,55 +16,55 @@ This document compiles research findings on testing async timing edge cases in R
 ### Core Pattern: Request Sequencing with Version/Token Tracking
 
 ```typescript
-test('tracks operation versions to prevent staleness', async () => {
-  let executionVersion = 0
+test("tracks operation versions to prevent staleness", async () => {
+  let executionVersion = 0;
 
   const validator = vi.fn(async (value) => {
-    const myVersion = ++executionVersion
-    await new Promise(resolve => setTimeout(resolve, 100))
-    return { value, version: myVersion }
-  })
+    const myVersion = ++executionVersion;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return { value, version: myVersion };
+  });
 
   // Trigger multiple validations
-  validator('a')
-  await vi.advanceTimersByTimeAsync(50)
-  validator('b')
-  await vi.advanceTimersByTimeAsync(50)
-  validator('c')
-  await vi.runAllTimersAsync()
+  validator("a");
+  await vi.advanceTimersByTimeAsync(50);
+  validator("b");
+  await vi.advanceTimersByTimeAsync(50);
+  validator("c");
+  await vi.runAllTimersAsync();
 
   // Only latest should be used
-  const results = await validator.mock.results
-  expect(results[2].value.version).toBe(3)
-})
+  const results = await validator.mock.results;
+  expect(results[2].value.version).toBe(3);
+});
 ```
 
 ### Pattern: Latest-Only State Management
 
 ```typescript
-test('only applies latest async result', async () => {
-  let isLatest = false
+test("only applies latest async result", async () => {
+  let isLatest = false;
 
   const asyncOperation = (id: number) =>
-    new Promise(resolve =>
+    new Promise((resolve) =>
       setTimeout(() => {
-        if (isLatest) resolve({ id, applied: true })
-        else resolve({ id, applied: false })
-      }, 100)
-    )
+        if (isLatest) resolve({ id, applied: true });
+        else resolve({ id, applied: false });
+      }, 100),
+    );
 
   // Start operation 1
-  const op1 = asyncOperation(1)
+  const op1 = asyncOperation(1);
 
   // Mark operation 2 as latest and start it
-  isLatest = true
-  const op2 = asyncOperation(2)
+  isLatest = true;
+  const op2 = asyncOperation(2);
 
-  const [result1, result2] = await Promise.all([op1, op2])
+  const [result1, result2] = await Promise.all([op1, op2]);
 
-  expect(result1.applied).toBe(false)
-  expect(result2.applied).toBe(true)
-})
+  expect(result1.applied).toBe(false);
+  expect(result2.applied).toBe(true);
+});
 ```
 
 ---
@@ -74,64 +74,64 @@ test('only applies latest async result', async () => {
 ### Pattern: Precise Timer Control
 
 ```typescript
-test('overlapping async operations with fake timers', async () => {
-  vi.useFakeTimers()
+test("overlapping async operations with fake timers", async () => {
+  vi.useFakeTimers();
 
-  const timestamps: number[] = []
+  const timestamps: number[] = [];
 
   const scheduleOperation = (name: string, delay: number) => {
     setTimeout(() => {
-      timestamps.push(Date.now())
-    }, delay)
-  }
+      timestamps.push(Date.now());
+    }, delay);
+  };
 
-  scheduleOperation('op1', 100)
-  scheduleOperation('op2', 150)
-  scheduleOperation('op3', 200)
+  scheduleOperation("op1", 100);
+  scheduleOperation("op2", 150);
+  scheduleOperation("op3", 200);
 
   // Advance to first operation
-  await vi.advanceTimersByTimeAsync(100)
-  expect(timestamps).toHaveLength(1)
+  await vi.advanceTimersByTimeAsync(100);
+  expect(timestamps).toHaveLength(1);
 
   // Advance to second operation
-  await vi.advanceTimersByTimeAsync(50)
-  expect(timestamps).toHaveLength(2)
+  await vi.advanceTimersByTimeAsync(50);
+  expect(timestamps).toHaveLength(2);
 
   // Advance to final operation
-  await vi.advanceTimersByTimeAsync(50)
-  expect(timestamps).toHaveLength(3)
+  await vi.advanceTimersByTimeAsync(50);
+  expect(timestamps).toHaveLength(3);
 
-  vi.useRealTimers()
-})
+  vi.useRealTimers();
+});
 ```
 
 ### Pattern: Async Timer Callbacks
 
 ```typescript
-test('async timer callbacks with fake timers', async () => {
-  vi.useFakeTimers()
+test("async timer callbacks with fake timers", async () => {
+  vi.useFakeTimers();
 
-  const results: string[] = []
+  const results: string[] = [];
 
   const asyncTimeout = (ms: number, value: string) =>
-    new Promise(resolve =>
+    new Promise((resolve) =>
       setTimeout(() => {
-        resolve(value)
-      }, ms)
-    )
+        resolve(value);
+      }, ms),
+    );
 
-  const promise1 = asyncTimeout(100, 'first')
-  const promise2 = asyncTimeout(200, 'second')
+  const promise1 = asyncTimeout(100, "first");
+  const promise2 = asyncTimeout(200, "second");
 
   // Process first timer
-  await vi.runAllTimersAsync()
+  await vi.runAllTimersAsync();
 
-  results.push(await promise1)
-  results.push(await promise2)
+  results.push(await promise1);
+  results.push(await promise2);
 
-  expect(results).toEqual(['first', 'second'])
-  vi.useRealTimers()
-})
+  expect(results).toEqual(["first", "second"]);
+  vi.useRealTimers();
+});
 ```
 
 ---
@@ -211,54 +211,57 @@ test('handles rapid value changes', async () => {
 
 ```typescript
 // ❌ BAD: Fire and forget
-fireEvent.change(input, { target: { value: 'test' } })
+fireEvent.change(input, { target: { value: "test" } });
 
 // ✅ GOOD: Await all async operations
-await fireEvent.change(input, { target: { value: 'test' } })
+await fireEvent.change(input, { target: { value: "test" } });
 await waitFor(() => {
-  expect(result).toBe('expected')
-})
+  expect(result).toBe("expected");
+});
 ```
 
 ### 2. Prefer findBy Queries Over getBy
 
 ```typescript
 // ❌ BAD: Manual waiting with delay
-await waitFor(() => {
-  expect(screen.getByText('Result')).toBeInTheDocument()
-}, { timeout: 1000 })
+await waitFor(
+  () => {
+    expect(screen.getByText("Result")).toBeInTheDocument();
+  },
+  { timeout: 1000 },
+);
 
 // ✅ GOOD: findBy automatically waits
-const result = await screen.findByText('Result')
-expect(result).toBeInTheDocument()
+const result = await screen.findByText("Result");
+expect(result).toBeInTheDocument();
 ```
 
 ### 3. Control Time Explicitly
 
 ```typescript
 // ❌ BAD: Real timers are unpredictable
-await new Promise(resolve => setTimeout(resolve, 500))
+await new Promise((resolve) => setTimeout(resolve, 500));
 
 // ✅ GOOD: Fake timers are deterministic
-vi.useFakeTimers()
-await vi.advanceTimersByTimeAsync(500)
-vi.useRealTimers()
+vi.useFakeTimers();
+await vi.advanceTimersByTimeAsync(500);
+vi.useRealTimers();
 ```
 
 ### 4. Test Race Conditions Explicitly
 
 ```typescript
-test('handles concurrent operations', async () => {
+test("handles concurrent operations", async () => {
   // Start multiple async operations concurrently
-  const op1 = startOperation('a')
-  const op2 = startOperation('b')
-  const op3 = startOperation('c')
+  const op1 = startOperation("a");
+  const op2 = startOperation("b");
+  const op3 = startOperation("c");
 
   // Verify correct operation wins
   await waitFor(() => {
-    expect(result).toBe('c') // Latest value
-  })
-})
+    expect(result).toBe("c"); // Latest value
+  });
+});
 ```
 
 ### 5. Mock Async Delays Appropriately
@@ -266,39 +269,39 @@ test('handles concurrent operations', async () => {
 ```typescript
 // ✅ GOOD: Predictable delays in tests
 const testValidator = async (value: string) => {
-  await new Promise(resolve => setTimeout(resolve, 500)) // Fixed delay
-  return validate(value)
-}
+  await new Promise((resolve) => setTimeout(resolve, 500)); // Fixed delay
+  return validate(value);
+};
 
 // ❌ BAD: Variable delays make tests flaky
 const testValidator = async (value: string) => {
-  await new Promise(resolve => setTimeout(resolve, Math.random() * 1000))
-  return validate(value)
-}
+  await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));
+  return validate(value);
+};
 ```
 
 ### 6. Verify Intermediate States
 
 ```typescript
-test('validates state transitions', async () => {
-  const input = screen.getByTestId('field')
+test("validates state transitions", async () => {
+  const input = screen.getByTestId("field");
 
   // Initial state
-  expect(input).toHaveValue('')
-  expect(screen.queryByText('Validating')).not.toBeInTheDocument()
+  expect(input).toHaveValue("");
+  expect(screen.queryByText("Validating")).not.toBeInTheDocument();
 
   // Start validation
-  await userEvent.type(input, 'test')
+  await userEvent.type(input, "test");
 
   // Loading state
-  expect(screen.getByText('Validating')).toBeInTheDocument()
+  expect(screen.getByText("Validating")).toBeInTheDocument();
 
   // Complete state
   await waitFor(() => {
-    expect(screen.queryByText('Validating')).not.toBeInTheDocument()
-    expect(screen.getByText('Valid')).toBeInTheDocument()
-  })
-})
+    expect(screen.queryByText("Validating")).not.toBeInTheDocument();
+    expect(screen.getByText("Valid")).toBeInTheDocument();
+  });
+});
 ```
 
 ---
@@ -311,24 +314,24 @@ test('validates state transitions', async () => {
 
 ```typescript
 // ❌ BAD: Real timers
-test('validates async', async () => {
-  await userEvent.type(input, 'test')
-  await new Promise(resolve => setTimeout(resolve, 500)) // Unreliable
-  expect(result).toBe('valid')
-})
+test("validates async", async () => {
+  await userEvent.type(input, "test");
+  await new Promise((resolve) => setTimeout(resolve, 500)); // Unreliable
+  expect(result).toBe("valid");
+});
 ```
 
 **Solution:** Always use fake timers for async timing tests.
 
 ```typescript
 // ✅ GOOD: Fake timers
-test('validates async', async () => {
-  vi.useFakeTimers()
-  await userEvent.type(input, 'test')
-  await vi.advanceTimersByTimeAsync(500) // Reliable
-  expect(result).toBe('valid')
-  vi.useRealTimers()
-})
+test("validates async", async () => {
+  vi.useFakeTimers();
+  await userEvent.type(input, "test");
+  await vi.advanceTimersByTimeAsync(500); // Reliable
+  expect(result).toBe("valid");
+  vi.useRealTimers();
+});
 ```
 
 ### Pitfall 2: Not Wrapping Timer Advances in act()
@@ -337,7 +340,7 @@ test('validates async', async () => {
 
 ```typescript
 // ❌ BAD: No act() wrapper
-await vi.advanceTimersByTimeAsync(500)
+await vi.advanceTimersByTimeAsync(500);
 ```
 
 **Solution:** Always wrap in act() for React components.
@@ -345,8 +348,8 @@ await vi.advanceTimersByTimeAsync(500)
 ```typescript
 // ✅ GOOD: act() wrapper
 await act(async () => {
-  await vi.advanceTimersByTimeAsync(500)
-})
+  await vi.advanceTimersByTimeAsync(500);
+});
 ```
 
 ### Pitfall 3: Not Tracking Async Operation Order
@@ -355,8 +358,8 @@ await act(async () => {
 
 ```typescript
 // ❌ BAD: No tracking
-await userEvent.type(input, 'a')
-await userEvent.type(input, 'b')
+await userEvent.type(input, "a");
+await userEvent.type(input, "b");
 // Did 'a' validation complete? We don't know!
 ```
 
@@ -364,16 +367,16 @@ await userEvent.type(input, 'b')
 
 ```typescript
 // ✅ GOOD: Track calls
-const validationCalls: string[] = []
+const validationCalls: string[] = [];
 
 const validator = async (value: unknown) => {
-  validationCalls.push(`${value}:start`)
-  await validate(value)
-  validationCalls.push(`${value}:end`)
-}
+  validationCalls.push(`${value}:start`);
+  await validate(value);
+  validationCalls.push(`${value}:end`);
+};
 
 // Now we can verify order
-expect(validationCalls).toEqual(['a:start', 'b:start', 'b:end'])
+expect(validationCalls).toEqual(["a:start", "b:start", "b:end"]);
 // Note: 'a:end' is missing because it was aborted
 ```
 
@@ -384,9 +387,9 @@ expect(validationCalls).toEqual(['a:start', 'b:start', 'b:end'])
 ```typescript
 // ❌ BAD: 50ms delay (too fast for precise control)
 const validator = async (value: unknown) => {
-  await new Promise(resolve => setTimeout(resolve, 50))
-  return true
-}
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  return true;
+};
 ```
 
 **Solution:** Use longer delays (500ms) for precise timing control.
@@ -394,9 +397,9 @@ const validator = async (value: unknown) => {
 ```typescript
 // ✅ GOOD: 500ms delay (enables precise control)
 const validator = async (value: unknown) => {
-  await new Promise(resolve => setTimeout(resolve, 500))
-  return true
-}
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return true;
+};
 
 // Now we can:
 // 1. Start validation (0ms)
@@ -466,14 +469,14 @@ test('handles triple-change scenario', async () => {
 
 ## 7. Key Differences: Rapid Changes vs Async Timing
 
-| Aspect | Rapid Changes Test | Async Timing Test |
-|--------|-------------------|-------------------|
-| **Scenario** | 10+ rapid changes within debounce | Change DURING async validation |
-| **Validator Delay** | 50ms (fast) | 500ms (slow) |
-| **Timing Control** | Simulate rapid typing | Precise 200ms advances |
-| **Focus** | Debounce + version increment | Version checkpoints during validation |
-| **Key Assertion** | Only last value submitted | Only final value after mid-validation changes |
-| **Validation Calls** | Multiple start/end pairs | Missing end calls (aborted) |
+| Aspect               | Rapid Changes Test                | Async Timing Test                             |
+| -------------------- | --------------------------------- | --------------------------------------------- |
+| **Scenario**         | 10+ rapid changes within debounce | Change DURING async validation                |
+| **Validator Delay**  | 50ms (fast)                       | 500ms (slow)                                  |
+| **Timing Control**   | Simulate rapid typing             | Precise 200ms advances                        |
+| **Focus**            | Debounce + version increment      | Version checkpoints during validation         |
+| **Key Assertion**    | Only last value submitted         | Only final value after mid-validation changes |
+| **Validation Calls** | Multiple start/end pairs          | Missing end calls (aborted)                   |
 
 ---
 

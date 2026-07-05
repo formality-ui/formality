@@ -18,7 +18,7 @@
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Finish T2.1 — strict FormProps.config keys + generic FieldProps",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Close the strict key-checking half of Appendix C T2.1. (1) Re-parameterize ReactFormFieldsConfig<V> so unknown config keys on <Form<TFieldValues>> are rejected, while the default FieldValues collapses to today's string-keyed Record (non-breaking). (2) Make FieldProps generic over the field name (FieldProps<TName extends string = string>), defaulting to string so <Field name={anyString}/> still compiles. Audit internal call sites; add a type-level assertion that an unknown config key fails to compile.",
               "subtasks": [
                 {
@@ -47,7 +47,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S2",
                   "title": "Make FieldProps generic over the field name",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M1.T1.S1"

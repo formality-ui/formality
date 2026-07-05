@@ -20,6 +20,7 @@ This file is the PRIMARY reference for fake timer usage and auto-save testing pa
 **Key Patterns:**
 
 #### Fake Timer Setup (lines 87-95)
+
 ```typescript
 beforeEach(() => {
   validationCalls = [];
@@ -35,6 +36,7 @@ afterEach(() => {
 **Critical Note:** `{ shouldAdvanceTime: true }` is REQUIRED for reliable timer behavior.
 
 #### Timer Advancement Pattern
+
 ```typescript
 // Always wrap in act() for React state updates
 await act(async () => {
@@ -43,6 +45,7 @@ await act(async () => {
 ```
 
 #### Debounce Testing (lines 272-312)
+
 ```typescript
 it("should debounce multiple rapid changes and only submit once", async () => {
   // Type multiple characters rapidly
@@ -63,6 +66,7 @@ it("should debounce multiple rapid changes and only submit once", async () => {
 ```
 
 #### Debounce Reset Testing (lines 313-375)
+
 ```typescript
 it("should reset debounce timer when new change comes in", async () => {
   // First change
@@ -98,6 +102,7 @@ it("should reset debounce timer when new change comes in", async () => {
 ```
 
 #### Immediate Submission Pattern (lines 415-460)
+
 ```typescript
 it("should call submitHandler immediately when inputConfig.debounce is false", async () => {
   // Wait for initial render
@@ -123,6 +128,7 @@ it("should call submitHandler immediately when inputConfig.debounce is false", a
 This file is the PRIMARY reference for rapid changes testing and stress testing.
 
 #### Rapid Changes Test (lines 213-247)
+
 ```typescript
 it("should handle rapid changes without memory leaks", () => {
   const wrapper = createWrapper(inspectableContext);
@@ -149,7 +155,7 @@ it("should handle rapid changes without memory leaks", () => {
     {
       wrapper,
       initialProps: { subscriptions: ["field2"] },
-    }
+    },
   );
 
   // Simulate rapid changes
@@ -158,12 +164,13 @@ it("should handle rapid changes without memory leaks", () => {
   rerender({ subscriptions: ["field5"] });
 
   // Verify operations completed
-  expect(addCount).toBe(4);  // 1 initial + 3 changes
+  expect(addCount).toBe(4); // 1 initial + 3 changes
   expect(removeCount).toBe(3); // 3 cleanup calls
 });
 ```
 
 #### Stress Test with 100 Rapid Changes (lines 903-951)
+
 ```typescript
 it("should handle 100 rapid changes without issues (stress test)", () => {
   const { rerender } = renderHook(
@@ -171,7 +178,7 @@ it("should handle 100 rapid changes without issues (stress test)", () => {
     {
       wrapper,
       initialProps: { subscriptions: ["field2"] },
-    }
+    },
   );
 
   // Stress test with 100 rapid changes
@@ -181,9 +188,8 @@ it("should handle 100 rapid changes without issues (stress test)", () => {
 
   // Verify no memory leak warnings
   const warnCalls = vi.mocked(console.warn).mock.calls;
-  const memoryLeakWarnings = warnCalls.filter(call =>
-    call[0]?.includes('memory leak') ||
-    call[0]?.includes('orphaned')
+  const memoryLeakWarnings = warnCalls.filter(
+    (call) => call[0]?.includes("memory leak") || call[0]?.includes("orphaned"),
   );
   expect(memoryLeakWarnings).toHaveLength(0);
 });
@@ -212,6 +218,7 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
 ```
 
 **Key Points:**
+
 - Always include `data-testid` for reliable element selection
 - Use `forwardRef` for ref forwarding
 - Handle `value` being undefined with `?? ""`
@@ -259,10 +266,7 @@ const asyncValidator = async (value: unknown) => {
 };
 
 // Later verify validation sequence
-expect(validationCalls).toEqual([
-  "fieldA:start",
-  "fieldA:end",
-]);
+expect(validationCalls).toEqual(["fieldA:start", "fieldA:end"]);
 ```
 
 ---
@@ -288,13 +292,13 @@ This pattern allows testing rapid changes that occur while validation is in prog
 
 ## 5. Common Timer Values
 
-| Scenario | Debounce | Buffer | Advance Time |
-|----------|----------|--------|--------------|
-| Default form | 1000ms | +100ms | 1100ms |
-| Fast testing | 500ms | +100ms | 600ms |
-| Very fast | 100ms | +50ms | 150ms |
-| Immediate | 0ms | 0ms | 0ms |
-| Initial render | - | - | 100ms |
+| Scenario       | Debounce | Buffer | Advance Time |
+| -------------- | -------- | ------ | ------------ |
+| Default form   | 1000ms   | +100ms | 1100ms       |
+| Fast testing   | 500ms    | +100ms | 600ms        |
+| Very fast      | 100ms    | +50ms  | 150ms        |
+| Immediate      | 0ms      | 0ms    | 0ms          |
+| Initial render | -        | -      | 100ms        |
 
 ---
 
@@ -350,6 +354,7 @@ describe("Feature Name - Specific Scenario", () => {
 ## 7. Critical Gotchas
 
 ### Fake Timers
+
 ```typescript
 // ✅ GOOD: Use shouldAdvanceTime
 vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -359,6 +364,7 @@ vi.useFakeTimers();
 ```
 
 ### Timer Advancement
+
 ```typescript
 // ✅ GOOD: Wrap in act()
 await act(async () => {
@@ -370,6 +376,7 @@ await vi.advanceTimersByTimeAsync(600);
 ```
 
 ### Buffer Time
+
 ```typescript
 // ✅ GOOD: Add buffer to debounce
 await vi.advanceTimersByTimeAsync(600); // 500ms + 100ms buffer
@@ -379,6 +386,7 @@ await vi.advanceTimersByTimeAsync(500); // Exact debounce
 ```
 
 ### Rapid Input
+
 ```typescript
 // ✅ GOOD: Fastest input simulation
 await userEvent.type(field, "test", { delay: null });
@@ -388,6 +396,7 @@ await userEvent.type(field, "test");
 ```
 
 ### Cleanup
+
 ```typescript
 // ✅ GOOD: Always restore real timers
 afterEach(() => {
@@ -405,6 +414,7 @@ afterEach(() => {
 ## 8. Assertion Patterns
 
 ### Call Count Verification
+
 ```typescript
 // Specific count
 expect(submitHandler).toHaveBeenCalledTimes(1);
@@ -414,12 +424,13 @@ expect(submitHandler).not.toHaveBeenCalled();
 ```
 
 ### Value Verification
+
 ```typescript
 // Partial object match
 expect(submitHandler).toHaveBeenCalledWith(
   expect.objectContaining({
     fieldA: "expected value",
-  })
+  }),
 );
 
 // Exact match
@@ -430,6 +441,7 @@ expect(submitHandler).toHaveBeenCalledWith({
 ```
 
 ### Async Assertions
+
 ```typescript
 // Use waitFor for async operations
 await waitFor(() => {
@@ -438,6 +450,7 @@ await waitFor(() => {
 ```
 
 ### Sequence Verification
+
 ```typescript
 // Verify call order
 expect(mockFn).toHaveBeenNthCalledWith(1, "first");
@@ -449,16 +462,19 @@ expect(mockFn).toHaveBeenNthCalledWith(2, "second");
 ## 9. Related Files
 
 ### Implementation Files
+
 - `packages/react/src/components/Form.tsx` - Main Form component with executeAutoSave
 - `packages/react/src/components/Field.tsx` - Field component with change handlers
 - `packages/react/src/hooks/useSubscriptions.ts` - Subscription management
 
 ### Test Files
+
 - `packages/react/src/__tests__/autosave-validation.test.tsx` - Fake timer patterns
 - `packages/react/src/__tests__/useSubscriptions.test.tsx` - Rapid changes patterns
 - `packages/react/src/__tests__/setup.ts` - Test configuration
 
 ### Research Files
+
 - `plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T1S1/ANALYSIS.md` - executionVersionRef analysis
 - `plan/001_bbf464589edd/docs/research/vitest-fake-timers-research.md` - Vitest timer research
 - `plan/001_bbf464589edd/docs/research_P1M2T2S2/vitest-timer-api-reference.md` - Timer API reference

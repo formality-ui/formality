@@ -7,6 +7,7 @@
 **Deliverable**: Comprehensive test suite (`packages/react/src/__tests__/priorityOrder.test.tsx`) that validates the complete priority order system with all edge cases.
 
 **Success Definition**:
+
 - All 8 layers (plus coreProps) are tested in isolation
 - Adjacent layer priority tests verify each layer correctly overrides the previous
 - Skip-layer tests verify non-adjacent priority relationships
@@ -18,6 +19,7 @@
 ## Why
 
 The Formality framework implements an 8-layer prop priority system that allows developers to configure form fields at multiple levels:
+
 - **Provider level**: Global defaults for all forms
 - **Form level**: Form-specific defaults
 - **Input level**: Input type-specific defaults
@@ -25,6 +27,7 @@ The Formality framework implements an 8-layer prop priority system that allows d
 - **Component level**: JSX props for maximum specificity
 
 This sophisticated system requires comprehensive testing to ensure:
+
 1. Props merge correctly (shallow merge, not deep merge)
 2. Higher priority layers correctly override lower ones
 3. Expression-based props re-evaluate when dependencies change
@@ -51,16 +54,19 @@ CoreProps (always wins): name, value, onChange, onBlur, ref, disabled, error
 ### Key Implementation Details
 
 **Static vs Dynamic Layers**:
+
 - Static layers (1, 3, 5, 6, 8): Props are merged directly using `mergeStaticProps`
 - Dynamic layers (2, 4, 7): Props are evaluated using `usePropsEvaluation` hook with expression parsing
 
 **Merge Behavior**:
+
 - Uses `Object.assign` for shallow merge (NOT deep merge)
 - Later layers override earlier layers for same keys
 - Different keys from different layers are all applied
 - Arrays are replaced, not merged
 
 **Expression Evaluation**:
+
 - Uses `jsep` parser for expression strings
 - Dependencies are automatically tracked for re-evaluation
 - Function callbacks receive `(formState, methods)` parameters
@@ -85,6 +91,7 @@ CoreProps (always wins): name, value, onChange, onBlur, ref, disabled, error
 **Test**: If someone knew nothing about this codebase, would they have everything needed to implement these tests successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Complete layer definitions with code examples
 - Exact file paths to reference
 - Test fixture patterns to follow

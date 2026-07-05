@@ -4,6 +4,7 @@
 **Task:** P3M2T2S1 - Research external best practices for null arithmetic testing
 
 ## Table of Contents
+
 1. [TypeScript Testing Best Practices for Null/Undefined](#typescript-testing-best-practices)
 2. [Vitest Patterns for Testing Console Output](#vitest-console-testing-patterns)
 3. [Testing Environment-Specific Behavior](#testing-environment-specific-behavior)
@@ -19,26 +20,29 @@
 ### Understanding JavaScript Type Coercion
 
 **Null Behavior:**
+
 ```javascript
-null + 5    // 5 (null coerces to 0)
-null - 5    // -5
-null * 3    // 0
-null / 5    // 0
-null ** 2   // 0
+null + 5; // 5 (null coerces to 0)
+null - 5; // -5
+null * 3; // 0
+null / 5; // 0
+null ** 2; // 0
 ```
 
 **Undefined Behavior:**
+
 ```javascript
-undefined + 5  // NaN
-undefined - 5  // NaN
-undefined * 3  // NaN
-undefined / 5  // NaN
-undefined ** 2 // NaN
+undefined + 5; // NaN
+undefined - 5; // NaN
+undefined * 3; // NaN
+undefined / 5; // NaN
+undefined ** 2; // NaN
 ```
 
 ### TypeScript Strict Null Checks
 
 **tsconfig.json Configuration:**
+
 ```json
 {
   "compilerOptions": {
@@ -57,7 +61,10 @@ undefined ** 2 // NaN
 
 ```typescript
 // Pattern 1: Default values with nullish coalescing
-function safeAdd(a: number | null | undefined, b: number | null | undefined): number {
+function safeAdd(
+  a: number | null | undefined,
+  b: number | null | undefined,
+): number {
   const numA = a ?? 0;
   const numB = b ?? 0;
   return numA + numB;
@@ -66,10 +73,10 @@ function safeAdd(a: number | null | undefined, b: number | null | undefined): nu
 // Pattern 2: Explicit validation
 function safeDivide(
   numerator: number | null | undefined,
-  denominator: number | null | undefined
+  denominator: number | null | undefined,
 ): number | never {
   if (denominator === null || denominator === undefined || denominator === 0) {
-    throw new Error('Denominator must be a non-zero number');
+    throw new Error("Denominator must be a non-zero number");
   }
   const validatedNumerator = numerator ?? 0;
   return validatedNumerator / denominator;
@@ -78,7 +85,7 @@ function safeDivide(
 // Pattern 3: Return type indicates possible failure
 function safeOperation(
   a: number | null | undefined,
-  b: number | null | undefined
+  b: number | null | undefined,
 ): number | null {
   if (a === null || a === undefined || b === null || b === undefined) {
     return null;
@@ -94,24 +101,24 @@ function safeOperation(
 ### Basic Console Spying
 
 ```typescript
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
-describe('Console output testing', () => {
+describe("Console output testing", () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
   });
 
   afterEach(() => {
     consoleSpy.mockRestore();
   });
 
-  it('should log expected message', () => {
+  it("should log expected message", () => {
     const value = null;
-    console.log('Processing value:', value);
+    console.log("Processing value:", value);
 
-    expect(consoleSpy).toHaveBeenCalledWith('Processing value:', null);
+    expect(consoleSpy).toHaveBeenCalledWith("Processing value:", null);
     expect(consoleSpy).toHaveBeenCalledTimes(1);
   });
 });
@@ -120,9 +127,9 @@ describe('Console output testing', () => {
 ### Testing Development Logging
 
 ```typescript
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
-describe('Development-specific logging', () => {
+describe("Development-specific logging", () => {
   const originalEnv = process.env.NODE_ENV;
 
   beforeEach(() => {
@@ -130,23 +137,23 @@ describe('Development-specific logging', () => {
     process.env.NODE_ENV = originalEnv;
   });
 
-  it('should log warnings in development when null is used in arithmetic', () => {
-    process.env.NODE_ENV = 'development';
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it("should log warnings in development when null is used in arithmetic", () => {
+    process.env.NODE_ENV = "development";
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     // Function under test
     performArithmetic(null as any, 5);
 
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('null value')
+      expect.stringContaining("null value"),
     );
 
     consoleSpy.mockRestore();
   });
 
-  it('should not log warnings in production', () => {
-    process.env.NODE_ENV = 'production';
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it("should not log warnings in production", () => {
+    process.env.NODE_ENV = "production";
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     performArithmetic(null as any, 5);
 
@@ -160,24 +167,26 @@ describe('Development-specific logging', () => {
 ### Mocking All Console Methods
 
 ```typescript
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 export function setupConsoleMocks() {
   return {
-    log: vi.spyOn(console, 'log').mockImplementation(() => {}),
-    warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
-    error: vi.spyOn(console, 'error').mockImplementation(() => {}),
-    debug: vi.spyOn(console, 'debug').mockImplementation(() => {}),
+    log: vi.spyOn(console, "log").mockImplementation(() => {}),
+    warn: vi.spyOn(console, "warn").mockImplementation(() => {}),
+    error: vi.spyOn(console, "error").mockImplementation(() => {}),
+    debug: vi.spyOn(console, "debug").mockImplementation(() => {}),
   };
 }
 
-export function restoreConsoleMocks(mocks: ReturnType<typeof setupConsoleMocks>) {
-  Object.values(mocks).forEach(spy => spy.mockRestore());
+export function restoreConsoleMocks(
+  mocks: ReturnType<typeof setupConsoleMocks>,
+) {
+  Object.values(mocks).forEach((spy) => spy.mockRestore());
 }
 
 // Usage in tests
-describe('Comprehensive console testing', () => {
-  it('should use all console methods appropriately', () => {
+describe("Comprehensive console testing", () => {
+  it("should use all console methods appropriately", () => {
     const consoleMocks = setupConsoleMocks();
 
     try {
@@ -195,26 +204,26 @@ describe('Comprehensive console testing', () => {
 ### Testing Console Output Content
 
 ```typescript
-import { vi, expect, it } from 'vitest';
+import { vi, expect, it } from "vitest";
 
-it('should log specific patterns for null arithmetic', () => {
-  const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+it("should log specific patterns for null arithmetic", () => {
+  const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
   performArithmetic(null, 5);
 
   // Test exact match
   expect(consoleSpy).toHaveBeenCalledWith(
-    '[Development] Null value detected in arithmetic operation'
+    "[Development] Null value detected in arithmetic operation",
   );
 
   // Test partial match
   expect(consoleSpy).toHaveBeenCalledWith(
-    expect.stringContaining('Null value')
+    expect.stringContaining("Null value"),
   );
 
   // Test with matchers
   expect(consoleSpy).toHaveBeenCalledWith(
-    expect.stringMatching(/null.*arithmetic/i)
+    expect.stringMatching(/null.*arithmetic/i),
   );
 
   consoleSpy.mockRestore();
@@ -230,15 +239,15 @@ it('should log specific patterns for null arithmetic', () => {
 ```typescript
 // config/env.ts
 interface EnvironmentConfig {
-  NODE_ENV: 'development' | 'test' | 'production';
+  NODE_ENV: "development" | "test" | "production";
   ENABLE_DEV_LOGGING: boolean;
   STRICT_NULL_CHECKS: boolean;
 }
 
 export const config: EnvironmentConfig = {
-  NODE_ENV: (process.env.NODE_ENV as any) || 'development',
-  ENABLE_DEV_LOGGING: process.env.NODE_ENV !== 'production',
-  STRICT_NULL_CHECKS: process.env.STRICT_NULL_CHECKS === 'true',
+  NODE_ENV: (process.env.NODE_ENV as any) || "development",
+  ENABLE_DEV_LOGGING: process.env.NODE_ENV !== "production",
+  STRICT_NULL_CHECKS: process.env.STRICT_NULL_CHECKS === "true",
 };
 
 // utils/arithmetic.ts
@@ -250,10 +259,10 @@ export function devLog(message: string, ...args: any[]) {
 
 export function addWithLogging(a: number | null, b: number | null): number {
   if (a === null || a === undefined) {
-    devLog('Null/undefined value in addition', { a, b });
+    devLog("Null/undefined value in addition", { a, b });
   }
   if (b === null || b === undefined) {
-    devLog('Null/undefined value in addition', { a, b });
+    devLog("Null/undefined value in addition", { a, b });
   }
 
   const numA = a ?? 0;
@@ -265,27 +274,27 @@ export function addWithLogging(a: number | null, b: number | null): number {
 ### Testing Environment Switching
 
 ```typescript
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { config } from '@/config/env';
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import { config } from "@/config/env";
 
-describe('Environment-specific behavior', () => {
+describe("Environment-specific behavior", () => {
   const originalEnv = process.env.NODE_ENV;
 
   afterEach(() => {
     process.env.NODE_ENV = originalEnv;
   });
 
-  describe('Development mode', () => {
+  describe("Development mode", () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'development';
+      process.env.NODE_ENV = "development";
     });
 
-    it('should enable detailed logging', () => {
+    it("should enable detailed logging", () => {
       expect(config.ENABLE_DEV_LOGGING).toBe(true);
     });
 
-    it('should log warnings for null values', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    it("should log warnings for null values", () => {
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       addWithLogging(null, 5);
 
@@ -294,17 +303,17 @@ describe('Environment-specific behavior', () => {
     });
   });
 
-  describe('Production mode', () => {
+  describe("Production mode", () => {
     beforeEach(() => {
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
     });
 
-    it('should disable detailed logging', () => {
+    it("should disable detailed logging", () => {
       expect(config.ENABLE_DEV_LOGGING).toBe(false);
     });
 
-    it('should not log warnings for null values', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    it("should not log warnings for null values", () => {
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       addWithLogging(null, 5);
 
@@ -320,15 +329,16 @@ describe('Environment-specific behavior', () => {
 ```typescript
 // utils/featureFlags.ts
 export const featureFlags = {
-  ENABLE_NULL_GUARDS: process.env.ENABLE_NULL_GUARDS === 'true',
-  ENABLE_ARITHMETIC_VALIDATION: process.env.ENABLE_ARITHMETIC_VALIDATION === 'true',
+  ENABLE_NULL_GUARDS: process.env.ENABLE_NULL_GUARDS === "true",
+  ENABLE_ARITHMETIC_VALIDATION:
+    process.env.ENABLE_ARITHMETIC_VALIDATION === "true",
 };
 
 // utils/guardedArithmetic.ts
 export function guardedAdd(a: number | null, b: number | null): number {
   if (featureFlags.ENABLE_NULL_GUARDS) {
     if (a === null || a === undefined || b === null || b === undefined) {
-      throw new Error('Null values not allowed in guarded arithmetic');
+      throw new Error("Null values not allowed in guarded arithmetic");
     }
   }
 
@@ -336,15 +346,15 @@ export function guardedAdd(a: number | null, b: number | null): number {
 }
 
 // tests/featureFlags.test.ts
-describe('Feature flag controlled behavior', () => {
-  it('should throw error when null guards enabled', () => {
-    process.env.ENABLE_NULL_GUARDS = 'true';
+describe("Feature flag controlled behavior", () => {
+  it("should throw error when null guards enabled", () => {
+    process.env.ENABLE_NULL_GUARDS = "true";
 
-    expect(() => guardedAdd(null, 5)).toThrow('Null values not allowed');
+    expect(() => guardedAdd(null, 5)).toThrow("Null values not allowed");
   });
 
-  it('should use default values when null guards disabled', () => {
-    process.env.ENABLE_NULL_GUARDS = 'false';
+  it("should use default values when null guards disabled", () => {
+    process.env.ENABLE_NULL_GUARDS = "false";
 
     expect(guardedAdd(null, 5)).toBe(5);
   });
@@ -358,43 +368,43 @@ describe('Feature flag controlled behavior', () => {
 ### Comprehensive Edge Case Test Suite
 
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('Arithmetic operations - comprehensive edge cases', () => {
+describe("Arithmetic operations - comprehensive edge cases", () => {
   const testCases = [
     // Null cases
-    { a: null, b: 5, operation: 'addition', expected: 5 },
-    { a: 5, b: null, operation: 'addition', expected: 5 },
-    { a: null, b: null, operation: 'addition', expected: 0 },
+    { a: null, b: 5, operation: "addition", expected: 5 },
+    { a: 5, b: null, operation: "addition", expected: 5 },
+    { a: null, b: null, operation: "addition", expected: 0 },
 
     // Undefined cases
-    { a: undefined, b: 5, operation: 'addition', expected: NaN },
-    { a: 5, b: undefined, operation: 'addition', expected: NaN },
-    { a: undefined, b: undefined, operation: 'addition', expected: NaN },
+    { a: undefined, b: 5, operation: "addition", expected: NaN },
+    { a: 5, b: undefined, operation: "addition", expected: NaN },
+    { a: undefined, b: undefined, operation: "addition", expected: NaN },
 
     // Mixed null/undefined
-    { a: null, b: undefined, operation: 'addition', expected: NaN },
-    { a: undefined, b: null, operation: 'addition', expected: NaN },
+    { a: null, b: undefined, operation: "addition", expected: NaN },
+    { a: undefined, b: null, operation: "addition", expected: NaN },
 
     // Zero edge cases
-    { a: 0, b: null, operation: 'division', expected: NaN },
-    { a: null, b: 0, operation: 'division', expected: NaN },
+    { a: 0, b: null, operation: "division", expected: NaN },
+    { a: null, b: 0, operation: "division", expected: NaN },
 
     // Negative numbers with null
-    { a: -5, b: null, operation: 'addition', expected: -5 },
-    { a: null, b: -5, operation: 'multiplication', expected: 0 },
+    { a: -5, b: null, operation: "addition", expected: -5 },
+    { a: null, b: -5, operation: "multiplication", expected: 0 },
 
     // Special values
-    { a: NaN, b: null, operation: 'addition', expected: NaN },
-    { a: Infinity, b: null, operation: 'addition', expected: Infinity },
-    { a: null, b: Infinity, operation: 'multiplication', expected: NaN },
+    { a: NaN, b: null, operation: "addition", expected: NaN },
+    { a: Infinity, b: null, operation: "addition", expected: Infinity },
+    { a: null, b: Infinity, operation: "multiplication", expected: NaN },
   ];
 
   testCases.forEach(({ a, b, operation, expected }) => {
     it(`${operation}: ${a} ${operation} ${b} = ${expected}`, () => {
       const result = performOperation(a, b, operation);
 
-      if (typeof expected === 'number' && isNaN(expected)) {
+      if (typeof expected === "number" && isNaN(expected)) {
         expect(result).toBeNaN();
       } else {
         expect(result).toBe(expected);
@@ -406,19 +416,19 @@ describe('Arithmetic operations - comprehensive edge cases', () => {
 function performOperation(
   a: number | null | undefined,
   b: number | null | undefined,
-  operation: string
+  operation: string,
 ): number {
   switch (operation) {
-    case 'addition':
+    case "addition":
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (a as any) + (b as any);
-    case 'subtraction':
+    case "subtraction":
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (a as any) - (b as any);
-    case 'multiplication':
+    case "multiplication":
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (a as any) * (b as any);
-    case 'division':
+    case "division":
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (a as any) / (b as any);
     default:
@@ -430,14 +440,14 @@ function performOperation(
 ### Testing Arithmetic with Objects
 
 ```typescript
-describe('Object property arithmetic', () => {
-  it('should handle null in nested properties', () => {
+describe("Object property arithmetic", () => {
+  it("should handle null in nested properties", () => {
     const obj = {
       level1: {
         level2: {
-          value: null
-        }
-      }
+          value: null,
+        },
+      },
     };
 
     // Optional chaining prevents errors
@@ -445,7 +455,7 @@ describe('Object property arithmetic', () => {
     expect(result).toBe(0);
   });
 
-  it('should handle undefined in array access', () => {
+  it("should handle undefined in array access", () => {
     const arr: number[] = [1, 2, 3];
     const outOfBounds = arr[10]; // undefined
 
@@ -453,13 +463,15 @@ describe('Object property arithmetic', () => {
     expect(outOfBounds! * 2).toBeNaN();
   });
 
-  it('should handle arithmetic with array methods', () => {
+  it("should handle arithmetic with array methods", () => {
     const numbers: (number | null)[] = [1, null, 3, undefined, 5];
 
     const sum = numbers.reduce((acc, val) => acc + (val ?? 0), 0);
     expect(sum).toBe(9); // 1 + 0 + 3 + 0 + 5
 
-    const filtered = numbers.filter((val): val is number => val !== null && val !== undefined);
+    const filtered = numbers.filter(
+      (val): val is number => val !== null && val !== undefined,
+    );
     expect(filtered).toEqual([1, 3, 5]);
   });
 });
@@ -468,8 +480,8 @@ describe('Object property arithmetic', () => {
 ### Testing Arithmetic Expressions
 
 ```typescript
-describe('Complex arithmetic expressions', () => {
-  it('should handle null in compound expressions', () => {
+describe("Complex arithmetic expressions", () => {
+  it("should handle null in compound expressions", () => {
     const a = 10;
     const b: number | null = null;
     const c = 5;
@@ -481,7 +493,7 @@ describe('Complex arithmetic expressions', () => {
     expect(result).toBe(50);
   });
 
-  it('should handle undefined in compound expressions', () => {
+  it("should handle undefined in compound expressions", () => {
     const a = 10;
     const b: number | undefined = undefined;
     const c = 5;
@@ -493,7 +505,7 @@ describe('Complex arithmetic expressions', () => {
     expect(result).toBeNaN();
   });
 
-  it('should handle operator precedence with null values', () => {
+  it("should handle operator precedence with null values", () => {
     const a: number | null = null;
     const b = 5;
     const c = 3;
@@ -516,10 +528,12 @@ describe('Complex arithmetic expressions', () => {
 ```typescript
 // utils/typeGuards.ts
 export function isNumber(value: unknown): value is number {
-  return typeof value === 'number' && !Number.isNaN(value);
+  return typeof value === "number" && !Number.isNaN(value);
 }
 
-export function isNotNullOrUndefined<T>(value: T | null | undefined): value is T {
+export function isNotNullOrUndefined<T>(
+  value: T | null | undefined,
+): value is T {
   return value !== null && value !== undefined;
 }
 
@@ -528,29 +542,33 @@ export function isSafeForArithmetic(value: unknown): value is number {
 }
 
 // tests/typeGuards.test.ts
-import { describe, it, expect } from 'vitest';
-import { isNumber, isNotNullOrUndefined, isSafeForArithmetic } from '@/utils/typeGuards';
+import { describe, it, expect } from "vitest";
+import {
+  isNumber,
+  isNotNullOrUndefined,
+  isSafeForArithmetic,
+} from "@/utils/typeGuards";
 
-describe('Type guards', () => {
-  describe('isNumber', () => {
+describe("Type guards", () => {
+  describe("isNumber", () => {
     const validNumbers = [0, 1, -1, 3.14, Infinity, -Infinity];
-    const invalidNumbers = [null, undefined, NaN, '1', {}, [], true];
+    const invalidNumbers = [null, undefined, NaN, "1", {}, [], true];
 
-    validNumbers.forEach(value => {
+    validNumbers.forEach((value) => {
       it(`should identify ${value} as number`, () => {
         expect(isNumber(value)).toBe(true);
       });
     });
 
-    invalidNumbers.forEach(value => {
+    invalidNumbers.forEach((value) => {
       it(`should reject ${value}`, () => {
         expect(isNumber(value)).toBe(false);
       });
     });
   });
 
-  describe('isNotNullOrUndefined', () => {
-    it('should narrow type correctly', () => {
+  describe("isNotNullOrUndefined", () => {
+    it("should narrow type correctly", () => {
       const value: number | null | undefined = 5;
 
       if (isNotNullOrUndefined(value)) {
@@ -559,7 +577,7 @@ describe('Type guards', () => {
       }
     });
 
-    it('should filter null values', () => {
+    it("should filter null values", () => {
       const values: (number | null)[] = [1, null, 3, null, 5];
       const filtered = values.filter(isNotNullOrUndefined);
 
@@ -567,17 +585,17 @@ describe('Type guards', () => {
     });
   });
 
-  describe('isSafeForArithmetic', () => {
-    it('should reject NaN', () => {
+  describe("isSafeForArithmetic", () => {
+    it("should reject NaN", () => {
       expect(isSafeForArithmetic(NaN)).toBe(false);
     });
 
-    it('should reject Infinity', () => {
+    it("should reject Infinity", () => {
       expect(isSafeForArithmetic(Infinity)).toBe(false);
       expect(isSafeForArithmetic(-Infinity)).toBe(false);
     });
 
-    it('should accept finite numbers', () => {
+    it("should accept finite numbers", () => {
       expect(isSafeForArithmetic(42)).toBe(true);
       expect(isSafeForArithmetic(-3.14)).toBe(true);
       expect(isSafeForArithmetic(0)).toBe(true);
@@ -589,24 +607,26 @@ describe('Type guards', () => {
 ### Testing Type Guard Integration
 
 ```typescript
-describe('Type guard integration with arithmetic', () => {
-  it('should use type guards to prevent null arithmetic', () => {
+describe("Type guard integration with arithmetic", () => {
+  it("should use type guards to prevent null arithmetic", () => {
     function safeMultiply(a: unknown, b: unknown): number | never {
       if (!isSafeForArithmetic(a) || !isSafeForArithmetic(b)) {
-        throw new Error('Invalid arithmetic operands');
+        throw new Error("Invalid arithmetic operands");
       }
       return a * b;
     }
 
     expect(safeMultiply(5, 3)).toBe(15);
 
-    expect(() => safeMultiply(null, 5)).toThrow('Invalid arithmetic operands');
-    expect(() => safeMultiply(5, undefined)).toThrow('Invalid arithmetic operands');
-    expect(() => safeMultiply(NaN, 5)).toThrow('Invalid arithmetic operands');
+    expect(() => safeMultiply(null, 5)).toThrow("Invalid arithmetic operands");
+    expect(() => safeMultiply(5, undefined)).toThrow(
+      "Invalid arithmetic operands",
+    );
+    expect(() => safeMultiply(NaN, 5)).toThrow("Invalid arithmetic operands");
   });
 
-  it('should use type guards with array methods', () => {
-    const values: unknown[] = [1, null, 3, undefined, 5, 'invalid', 7];
+  it("should use type guards with array methods", () => {
+    const values: unknown[] = [1, null, 3, undefined, 5, "invalid", 7];
     const numbers = values.filter(isSafeForArithmetic);
 
     expect(numbers).toEqual([1, 3, 5, 7]);
@@ -628,20 +648,20 @@ export interface NumericValue {
 
 export function isNumericValue(obj: unknown): obj is NumericValue {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'value' in obj &&
-    'isValid' in obj &&
-    typeof (obj as NumericValue).value === 'number' &&
-    typeof (obj as NumericValue).isValid === 'boolean'
+    "value" in obj &&
+    "isValid" in obj &&
+    typeof (obj as NumericValue).value === "number" &&
+    typeof (obj as NumericValue).isValid === "boolean"
   );
 }
 
 // tests/customTypeGuards.test.ts
-describe('Custom type predicates', () => {
-  it('should correctly identify NumericValue objects', () => {
+describe("Custom type predicates", () => {
+  it("should correctly identify NumericValue objects", () => {
     const valid = { value: 42, isValid: true };
-    const invalid = { value: '42', isValid: true };
+    const invalid = { value: "42", isValid: true };
     const missingField = { value: 42 };
 
     expect(isNumericValue(valid)).toBe(true);
@@ -651,7 +671,7 @@ describe('Custom type predicates', () => {
     expect(isNumericValue(undefined)).toBe(false);
   });
 
-  it('should narrow type in conditional blocks', () => {
+  it("should narrow type in conditional blocks", () => {
     const obj: unknown = { value: 42, isValid: true };
 
     if (isNumericValue(obj)) {
@@ -670,6 +690,7 @@ describe('Custom type predicates', () => {
 ### 1. Relying on Type Assertions
 
 **Pitfall:**
+
 ```typescript
 // BAD: Using type assertions to bypass null checks
 function badAdd(a: number | null, b: number | null): number {
@@ -678,6 +699,7 @@ function badAdd(a: number | null, b: number | null): number {
 ```
 
 **Best Practice:**
+
 ```typescript
 // GOOD: Proper null handling
 function goodAdd(a: number | null, b: number | null): number {
@@ -688,6 +710,7 @@ function goodAdd(a: number | null, b: number | null): number {
 ### 2. Inconsistent Null Handling
 
 **Pitfall:**
+
 ```typescript
 // BAD: Different behavior for null vs undefined
 function inconsistent(value: number | null | undefined): number {
@@ -697,6 +720,7 @@ function inconsistent(value: number | null | undefined): number {
 ```
 
 **Best Practice:**
+
 ```typescript
 // GOOD: Consistent handling
 function consistent(value: number | null | undefined): number {
@@ -707,20 +731,22 @@ function consistent(value: number | null | undefined): number {
 ### 3. Forgetting to Restore Mocks
 
 **Pitfall:**
+
 ```typescript
 // BAD: Mock not restored, affects other tests
-it('logs warning', () => {
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
+it("logs warning", () => {
+  vi.spyOn(console, "warn").mockImplementation(() => {});
   // test code
   // Missing: consoleSpy.mockRestore();
 });
 ```
 
 **Best Practice:**
+
 ```typescript
 // GOOD: Always restore mocks
-it('logs warning', () => {
-  const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+it("logs warning", () => {
+  const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   try {
     // test code
   } finally {
@@ -729,18 +755,18 @@ it('logs warning', () => {
 });
 
 // BETTER: Use beforeEach/afterEach
-describe('tests', () => {
+describe("tests", () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
     consoleSpy.mockRestore();
   });
 
-  it('logs warning', () => {
+  it("logs warning", () => {
     // test code without worrying about cleanup
   });
 });
@@ -749,24 +775,28 @@ describe('tests', () => {
 ### 4. Testing Implementation Details
 
 **Pitfall:**
+
 ```typescript
 // BAD: Testing implementation (exact console output)
-it('logs exact message', () => {
-  const spy = vi.spyOn(console, 'warn');
+it("logs exact message", () => {
+  const spy = vi.spyOn(console, "warn");
   performCalculation(null, 5);
-  expect(spy).toHaveBeenCalledWith('[Development] Null value detected at 2025-01-13T10:30:00.000Z');
+  expect(spy).toHaveBeenCalledWith(
+    "[Development] Null value detected at 2025-01-13T10:30:00.000Z",
+  );
   // Fragile: breaks if message format or timestamp changes
 });
 ```
 
 **Best Practice:**
+
 ```typescript
 // GOOD: Testing behavior
-it('warns about null values in development', () => {
-  const spy = vi.spyOn(console, 'warn');
+it("warns about null values in development", () => {
+  const spy = vi.spyOn(console, "warn");
   performCalculation(null, 5);
   expect(spy).toHaveBeenCalledWith(
-    expect.stringContaining('Null value detected')
+    expect.stringContaining("Null value detected"),
   );
   // More robust: tests intent, not exact format
 });
@@ -775,10 +805,11 @@ it('warns about null values in development', () => {
 ### 5. Not Testing All Code Paths
 
 **Pitfall:**
+
 ```typescript
 // BAD: Missing edge case coverage
-describe('addition', () => {
-  it('adds two numbers', () => {
+describe("addition", () => {
+  it("adds two numbers", () => {
     expect(add(2, 3)).toBe(5);
   });
   // Missing: null, undefined, NaN, Infinity cases
@@ -786,22 +817,23 @@ describe('addition', () => {
 ```
 
 **Best Practice:**
+
 ```typescript
 // GOOD: Comprehensive coverage
-describe('addition', () => {
-  it('adds two numbers', () => {
+describe("addition", () => {
+  it("adds two numbers", () => {
     expect(add(2, 3)).toBe(5);
   });
 
-  it('handles null values', () => {
+  it("handles null values", () => {
     expect(add(null, 5)).toBe(5);
   });
 
-  it('handles undefined values', () => {
+  it("handles undefined values", () => {
     expect(add(undefined, 5)).toBeNaN();
   });
 
-  it('handles NaN', () => {
+  it("handles NaN", () => {
     expect(add(NaN, 5)).toBeNaN();
   });
 });
@@ -810,6 +842,7 @@ describe('addition', () => {
 ### 6. Ignoring TypeScript Errors
 
 **Pitfall:**
+
 ```typescript
 // BAD: Using @ts-ignore to bypass type checking
 // @ts-ignore
@@ -819,9 +852,13 @@ function riskyAdd(a: any, b: any): number {
 ```
 
 **Best Practice:**
+
 ```typescript
 // GOOD: Proper type definitions
-function safeAdd(a: number | null | undefined, b: number | null | undefined): number {
+function safeAdd(
+  a: number | null | undefined,
+  b: number | null | undefined,
+): number {
   const numA = a ?? 0;
   const numB = b ?? 0;
 
@@ -836,10 +873,11 @@ function safeAdd(a: number | null | undefined, b: number | null | undefined): nu
 ### 7. Not Testing Environment-Specific Behavior
 
 **Pitfall:**
+
 ```typescript
 // BAD: Only tests in default environment
-it('logs warnings', () => {
-  const spy = vi.spyOn(console, 'warn');
+it("logs warnings", () => {
+  const spy = vi.spyOn(console, "warn");
   performCalculation(null, 5);
   expect(spy).toHaveBeenCalled();
   // But what if NODE_ENV=production?
@@ -847,18 +885,19 @@ it('logs warnings', () => {
 ```
 
 **Best Practice:**
+
 ```typescript
 // GOOD: Tests all environments
-describe('logging behavior', () => {
+describe("logging behavior", () => {
   const originalEnv = process.env.NODE_ENV;
 
   afterEach(() => {
     process.env.NODE_ENV = originalEnv;
   });
 
-  it('logs warnings in development', () => {
-    process.env.NODE_ENV = 'development';
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it("logs warnings in development", () => {
+    process.env.NODE_ENV = "development";
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     performCalculation(null, 5);
 
@@ -866,9 +905,9 @@ describe('logging behavior', () => {
     spy.mockRestore();
   });
 
-  it('does not log warnings in production', () => {
-    process.env.NODE_ENV = 'production';
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  it("does not log warnings in production", () => {
+    process.env.NODE_ENV = "production";
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     performCalculation(null, 5);
 
@@ -883,24 +922,29 @@ describe('logging behavior', () => {
 ## Additional Resources
 
 ### TypeScript Documentation
+
 - **TypeScript Handbook - Null and Undefined**: https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
 - **TypeScript Compiler Options**: https://www.typescriptlang.org/tsconfig#strictNullChecks
 - **TypeScript Utility Types**: https://www.typescriptlang.org/docs/handbook/utility-types.html
 
 ### Vitest Documentation
+
 - **Vitest Mocking Guide**: https://vitest.dev/guide/mocking.html
 - **Vitest Assertion API**: https://vitest.dev/api/expect.html
 - **Vitest Configuration**: https://vitest.dev/config/
 
 ### Testing Best Practices
+
 - **Testing Library Principles**: https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
 - **JavaScript Testing Best Practices**: https://github.com/goldbergyoni/javascript-testing-best-practices
 
 ### Type Guard Resources
+
 - **TypeScript Type Guards and Predicates**: https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
 - **Defensive Programming in TypeScript**: https://basarat.gitbook.io/typescript/type-system/typeguard
 
 ### Arithmetic Edge Cases
+
 - **IEEE 754 Floating Point**: https://en.wikipedia.org/wiki/IEEE_754
 - **JavaScript Number Reference**: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 - **Type Equality in JavaScript**: https://dorey.github.io/JavaScript-Equality-Table/

@@ -9,6 +9,7 @@
 **Deliverable**: Updated `/packages/react/src/hooks/useConditions.ts` with disabled property added to field states via two-pass evaluation using the `useFieldDisabledState` hook from P2.M1.T1.S1.
 
 **Success Definition**:
+
 - Field states include `disabled` property populated by calling `useFieldDisabledState` for each field
 - Two-pass evaluation resolves the circular dependency (conditions need disabled, disabled needs conditions)
 - Existing condition evaluation logic continues to work for `visible`, `setValue`, and other matchers
@@ -105,6 +106,7 @@ const fieldStates = useMemo(() => {
 **The Problem**: We need to call a hook (`useFieldDisabledState`) inside `useMemo`, which violates React's Rules of Hooks (hooks can only be called at the top level of a component or hook).
 
 **The Solution**: Restructure `useConditions` to:
+
 1. Call `useFieldDisabledState` for each watched field at the hook's top level
 2. Build field states in a single `useMemo` that includes the disabled property
 
@@ -128,6 +130,7 @@ const fieldStates = useMemo(() => {
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed?
 
 ✅ **YES** - This PRP provides:
+
 - Exact file paths and line numbers for all modifications
 - Complete understanding of circular dependency and two-pass solution
 - Architectural challenge with React's Rules of Hooks
@@ -323,7 +326,7 @@ interface FieldStateInput {
   isValidating?: boolean;
   error?: unknown;
   invalid?: boolean;
-  disabled?: boolean;  // ← This property needs to be populated
+  disabled?: boolean; // ← This property needs to be populated
 }
 
 // Disabled state map structure
@@ -786,6 +789,7 @@ it("should support complex disabled condition chains", () => {
 **7/10** - One-pass implementation success likelihood
 
 **Confidence Justification**:
+
 - ✅ Clear architectural challenge identified (Rules of Hooks)
 - ✅ Circular dependency solution documented (two-pass evaluation)
 - ✅ Exact file paths and line numbers provided
@@ -795,12 +799,14 @@ it("should support complex disabled condition chains", () => {
 - ⚠️ May need iteration to find optimal approach
 
 **Risk Factors**:
+
 - React's Rules of Hooks constraint is significant
 - useFieldDisabledState cannot be used directly (must evaluate conditions)
 - Integration testing needed to verify circular dependency resolution
 - Performance impact of multiple condition evaluations
 
 **Mitigation**:
+
 - Direct condition evaluation pattern documented
 - Two-pass evaluation clearly explained
 - Integration test scenarios specified
@@ -828,7 +834,7 @@ const disabledStates = useMemo(() => {
   // Evaluate conditions for each field
   watchFields.forEach((fieldName) => {
     // Filter for conditions that have disabled action
-    const fieldConditions = conditions.filter(c => c.disabled !== undefined);
+    const fieldConditions = conditions.filter((c) => c.disabled !== undefined);
 
     if (fieldConditions.length === 0) {
       states[fieldName] = false;
@@ -839,7 +845,7 @@ const disabledStates = useMemo(() => {
     const result = evaluateConditions({
       conditions: fieldConditions,
       fieldValues,
-      fieldStates: baseFieldStates,  // Without disabled property
+      fieldStates: baseFieldStates, // Without disabled property
       record,
       props: { name: fieldName },
     });
@@ -852,6 +858,7 @@ const disabledStates = useMemo(() => {
 ```
 
 This approach:
+
 1. Avoids Rules of Hooks violation
 2. Uses existing evaluateConditions function
 3. Leverages Pass 1 field states (without disabled)
@@ -912,7 +919,9 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
   });
 
   // 3. Build field values map
-  const fieldValues = useMemo(() => { /* existing */ }, [watchFields, watchedValues]);
+  const fieldValues = useMemo(() => {
+    /* existing */
+  }, [watchFields, watchedValues]);
 
   // 4. Build base field states (Pass 1 - without disabled)
   const baseFieldStates = useMemo(() => {
@@ -930,6 +939,8 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
   }, [baseFieldStates, disabledStates]);
 
   // 7. Evaluate and return conditions (existing)
-  return useMemo(() => { /* existing */ }, [conditions, fieldValues, fieldStates, record, props]);
+  return useMemo(() => {
+    /* existing */
+  }, [conditions, fieldValues, fieldStates, record, props]);
 }
 ```

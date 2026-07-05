@@ -12,11 +12,13 @@
 **Feature Goal**: Implement two-pass evaluation in `useConditions` to resolve the circular dependency where conditions need to know disabled state, but disabled state is computed from conditions.
 
 **Deliverable**: Updated `/packages/react/src/hooks/useConditions.ts` with a robust two-pass evaluation pattern that:
+
 1. Pass 1: Builds base field states **without** the `disabled` property
 2. Pass 2: Computes `disabled` for each field using Pass 1 states for condition evaluation
 3. Pass 3: Merges Pass 1 states with Pass 2 `disabled` values into final field states
 
 **Success Definition**:
+
 - Field states returned by `useConditions` include the `disabled` property for each field
 - Two-pass evaluation prevents circular dependency (conditions use Pass 1 states without disabled)
 - The `isDisabled` matcher in conditions now works correctly (can reference other fields' disabled state)
@@ -34,12 +36,14 @@
 **Use Case**: Developers need to write conditions that reference the `disabled` state of other fields
 
 **User Journey**:
+
 1. Developer defines a field with conditions like `{ when: { field1: { isDisabled: true } }, disabled: true }`
 2. The condition system evaluates whether field1 is disabled
 3. Based on field1's disabled state, the current field becomes disabled
 4. This creates a circular dependency that must be resolved via two-pass evaluation
 
 **Pain Points Addressed**:
+
 - Currently, field states don't include `disabled` property, so `isDisabled` matcher doesn't work
 - Developers cannot write conditions based on whether other fields are disabled
 - Multi-field disabled conditions are impossible without circular dependency resolution
@@ -51,9 +55,11 @@
 - **Enables isDisabled Matcher**: The `isDisabled` matcher in conditions (lines 78-84 of evaluate.ts) currently returns `false` because `fieldState?.disabled` is always `undefined`
 
 - **Supports Multi-Field Disabled Conditions**: Users need to write conditions like:
+
   ```typescript
   { when: { field1: { isDisabled: true }, field2: { isDisabled: true } }, disabled: true }
   ```
+
   This requires knowing the disabled state of other fields during condition evaluation.
 
 - **Circular Dependency Challenge**: This creates a circular dependency:
@@ -149,6 +155,7 @@ Implement robust two-pass evaluation in `useConditions` hook at `/packages/react
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file locations and line numbers for modifications
 - Complete two-pass evaluation pattern with specific implementation guidance
 - All necessary imports and type definitions
@@ -295,7 +302,9 @@ watchFields.forEach((field) => {
 });
 // RIGHT: Call evaluateConditions directly (it's a pure function)
 watchFields.forEach((field) => {
-  const result = evaluateConditions({ /* ... */ }); // ✅
+  const result = evaluateConditions({
+    /* ... */
+  }); // ✅
 });
 
 // CRITICAL: useWatch with array of names returns array of values, not object
@@ -568,8 +577,7 @@ const disabledStates = useMemo(() => {
 
   watchFields.forEach((fieldName) => {
     // Get conditions for this specific field
-    const fieldConditions =
-      allFieldsConfig?.[fieldName]?.conditions || [];
+    const fieldConditions = allFieldsConfig?.[fieldName]?.conditions || [];
 
     // Evaluate conditions using Pass 1 states (without disabled)
     const result = evaluateConditions({
@@ -597,7 +605,7 @@ const fieldStates = useMemo(() => {
       };
       return acc;
     },
-    {} as Record<string, FieldStateInput>
+    {} as Record<string, FieldStateInput>,
   );
 }, [baseFieldStates, disabledStates]);
 
@@ -829,6 +837,7 @@ pnpm test examples/03-conditions.test.tsx -v
 **9/10** - Very high confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Two-pass evaluation pattern is well-researched and documented
 - Existing codebase shows similar patterns in useFieldDisabledState
 - Clear target location and implementation approach
@@ -837,6 +846,7 @@ pnpm test examples/03-conditions.test.tsx -v
 - Comprehensive research documentation available
 
 **Deduction (10→9)**:
+
 - **(-1)** API design question: Whether to add allFieldsConfig parameter vs use ConfigContext (both options provided)
 
 ---

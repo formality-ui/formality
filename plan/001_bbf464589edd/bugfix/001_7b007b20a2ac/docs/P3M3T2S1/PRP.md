@@ -13,12 +13,14 @@
 **Feature Goal**: Create a test that verifies `executionVersionRef` race condition prevention correctly handles rapid field changes, ensuring only the last value is submitted and intermediate saves are aborted.
 
 **Deliverable**: Test case file `packages/react/src/__tests__/autosave-rapid-changes.test.tsx` containing:
+
 1. Test for rapid field changes (10+ changes within debounce period)
 2. Verification that only the last value is submitted
 3. Verification that intermediate auto-save operations are aborted via version check
 4. Use of fake timers to control async validation timing
 
 **Success Definition**:
+
 - Test creates a Form with autoSave and async validation
 - Test simulates 10 rapid field changes using `userEvent.type()` with `{ delay: null }`
 - Test advances fake timers to trigger debounce
@@ -34,12 +36,14 @@
 **Target User**: Formality library maintainers and QA engineers who need to verify that the race condition prevention mechanism works correctly under real-world usage patterns.
 
 **Use Case**: Before releasing the race condition prevention feature, maintainers need to ensure that:
+
 1. Rapid user input (typing, pasting, rapid-fire changes) doesn't cause multiple submissions
 2. Only the final value is submitted when changes occur in quick succession
 3. Intermediate async operations are properly aborted via version tracking
 4. The feature works correctly with fake timers (simulated timing)
 
 **User Journey**:
+
 1. Maintainer runs the test suite: `pnpm test`
 2. Test simulates rapid field changes (10 characters typed rapidly)
 3. Test verifies only one submission occurs with the final value
@@ -47,6 +51,7 @@
 5. If test fails, maintainers know the execution version tracking has a bug
 
 **Pain Points Addressed**:
+
 - **Uncertainty About Race Conditions**: Without tests, we can't be sure the mechanism actually prevents stale saves
 - **Real-World Usage Patterns**: Users often type rapidly or paste content - we need to ensure this works
 - **Flaky Tests**: Race condition tests are often flaky - this test uses fake timers for reliability
@@ -71,6 +76,7 @@
 **This is a TEST task - no user-visible behavior changes.**
 
 **Test Output**: A test file that validates:
+
 1. When a user types rapidly (10+ characters within debounce period), only the last value is submitted
 2. Intermediate auto-save operations are aborted via `executionVersionRef` version check
 3. Async validation timing is controlled via fake timers
@@ -100,6 +106,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact implementation location and file path
 - Complete test structure with code examples
 - Specific patterns from existing tests to follow
@@ -231,17 +238,17 @@ packages/react/src/
 
 ```typescript
 // CRITICAL: Fake timers MUST use { shouldAdvanceTime: true }
-vi.useFakeTimers({ shouldAdvanceTime: true });  // ✅ GOOD: Reliable timing
+vi.useFakeTimers({ shouldAdvanceTime: true }); // ✅ GOOD: Reliable timing
 // vi.useFakeTimers();                            // ❌ BAD: Unreliable, may hang
 
 // CRITICAL: Always wrap timer advances in act()
 await act(async () => {
   await vi.advanceTimersByTimeAsync(600);
-});  // ✅ GOOD: Proper React state update
+}); // ✅ GOOD: Proper React state update
 // await vi.advanceTimersByTimeAsync(600);        // ❌ BAD: May cause warnings
 
 // CRITICAL: Use { delay: null } for rapid typing
-await userEvent.type(input, "hello", { delay: null });  // ✅ GOOD: Fastest input
+await userEvent.type(input, "hello", { delay: null }); // ✅ GOOD: Fastest input
 // await userEvent.type(input, "hello");                // ❌ BAD: Has delays
 
 // CRITICAL: Clear mock calls before rapid changes
@@ -251,18 +258,18 @@ submitHandler.mockClear();
 // CRITICAL: Use buffer time for debounce assertions
 // If debounce is 500ms, advance 600ms (500 + 100 buffer)
 await act(async () => {
-  await vi.advanceTimersByTimeAsync(600);  // 500ms debounce + 100ms buffer
+  await vi.advanceTimersByTimeAsync(600); // 500ms debounce + 100ms buffer
 });
 
 // CRITICAL: Always clean up fake timers in afterEach
 afterEach(() => {
-  vi.useRealTimers();  // ✅ REQUIRED: Prevents test pollution
+  vi.useRealTimers(); // ✅ REQUIRED: Prevents test pollution
 });
 
 // CRITICAL: Use waitFor() for async assertions
 await waitFor(() => {
   expect(submitHandler).toHaveBeenCalledTimes(1);
-});  // ✅ GOOD: Waits for async operation
+}); // ✅ GOOD: Waits for async operation
 // expect(submitHandler).toHaveBeenCalledTimes(1);  // ❌ BAD: May be flaky
 
 // CRITICAL: executionVersionRef has THREE checkpoints
@@ -273,14 +280,14 @@ await waitFor(() => {
 
 // CRITICAL: Version is incremented BEFORE capturing fields
 executionVersionRef.current++;
-const executionVersion = executionVersionRef.current;  // ✅ GOOD: After increment
+const executionVersion = executionVersionRef.current; // ✅ GOOD: After increment
 const changedFields = new Set(pendingChangedFields.current);
-pendingChangedFields.current.clear();  // Cleared after capture
+pendingChangedFields.current.clear(); // Cleared after capture
 
 // CRITICAL: waitForFieldValidation checks version INSIDE polling loop
 while (Date.now() - startTime < maxWaitMs) {
   if (executionVersionRef.current !== version) {
-    return false;  // Abort mid-wait if version changed
+    return false; // Abort mid-wait if version changed
   }
   // Check validation status...
 }
@@ -935,9 +942,11 @@ pnpm test --coverage
 This test task (P3.M3.T2.S1) is part of the Race Condition Prevention milestone:
 
 **P3.M3.T1: Review Existing Logic** (Complete)
+
 - P3.M3.T1.S1: Analyze executionVersionRef (provides analysis for this test)
 
 **P3.M3.T2: Add Tests for Race Conditions** (This Task)
+
 - P3.M3.T2.S1: Test rapid changes (THIS SUBTASK)
 - P3.M3.T2.S2: Test async timing (NEXT SUBTASK)
 
@@ -964,11 +973,13 @@ Based on the analysis from P3.M3.T1.S1:
 **File:** `packages/react/src/__tests__/autosave-rapid-changes.test.tsx`
 
 **Naming Rationale:**
+
 - `autosave-` prefix: Indicates it's testing auto-save functionality
 - `rapid-changes`: Indicates the specific scenario being tested
 - `.test.tsx`: Standard test file suffix for React components
 
 **Alternative Considered Names:**
+
 - `race-condition-rapid-changes.test.tsx` (too generic)
 - `executionVersion-rapid-changes.test.tsx` (tests implementation, not behavior)
 - `autosave-debounce-rapid.test.tsx` (doesn't emphasize race condition)
@@ -982,6 +993,7 @@ Based on the analysis from P3.M3.T1.S1:
 **10/10** for one-pass test implementation success
 
 **Reasoning**:
+
 - ✅ Exact file path and naming convention provided
 - ✅ Complete test structure with 4 specific test cases
 - ✅ Code examples for every test pattern

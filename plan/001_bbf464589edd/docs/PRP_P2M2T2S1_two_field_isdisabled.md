@@ -13,12 +13,14 @@
 **Feature Goal**: Add comprehensive tests for two-field isDisabled conditions using field state matchers in object `when` with top-level `isDisabled`.
 
 **Deliverable**:
+
 1. Core package unit tests for two-field isDisabled conditions in conditions.test.ts
 2. React integration tests for two-field isDisabled scenarios
 3. Test coverage for cases where BOTH fields must be disabled for condition to match
 4. Test coverage for cases where only ONE field is disabled (should NOT match)
 
 **Success Definition**:
+
 - Tests verify two-field isDisabled conditions work correctly with field state matchers
 - Tests confirm ALL fields must be disabled when `isDisabled: true`
 - Tests confirm NO fields are disabled when `isDisabled: false`
@@ -35,12 +37,14 @@
 **Use Case**: Enable conditional field disabled state based on the disabled state of two other fields.
 
 **User Journey**:
+
 1. Developer defines two fields (field1, field2) that can be disabled via their own conditions
 2. Developer defines a result field that should be disabled when BOTH field1 AND field2 are disabled
 3. When both fields become disabled, the result field automatically becomes disabled
 4. When only one field is disabled, the result field remains enabled
 
 **Pain Points Addressed**:
+
 - Currently, no tests verify this two-field isDisabled scenario works correctly
 - Developers need confidence that multi-field isDisabled conditions work as expected
 - Tests should catch regressions if the implementation changes
@@ -63,6 +67,7 @@ Add tests for two-field isDisabled conditions using field state matchers.
 ### Current State
 
 **Existing Tests** (conditions.test.ts lines 594-863):
+
 - Use VALUE matchers in object when: `{ field1: { is: "a" }, field2: { is: "b" } }`
 - Test top-level isDisabled with value matchers
 - Cover cases where fields are enabled/disabled
@@ -72,6 +77,7 @@ Add tests for two-field isDisabled conditions using field state matchers.
 ### Desired State
 
 **New Tests**:
+
 1. Pure field state matchers: `{ field1: { isDisabled: true }, field2: { isDisabled: true } }` with top-level `isDisabled: true`
 2. Test when BOTH fields are disabled → condition matches
 3. Test when ONE field is enabled → condition does NOT match
@@ -97,6 +103,7 @@ Add tests for two-field isDisabled conditions using field state matchers.
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact test file locations and patterns to follow
 - Complete test scenarios with expected results
 - React integration test setup requirements
@@ -274,14 +281,15 @@ packages/react/src/__tests__/
 **No new data models needed** - this PRP adds tests only.
 
 **Existing Data Structures Used**:
+
 ```typescript
 // FieldMatcher - Per-field matchers in object when
 interface FieldMatcher {
-  is?: unknown;           // Value matcher
-  truthy?: boolean;       // Value matcher
-  isTruthy?: boolean;     // Value matcher (alias)
-  isValid?: boolean;      // Field state matcher
-  isDisabled?: boolean;   // Field state matcher ← USED IN THIS PRP
+  is?: unknown; // Value matcher
+  truthy?: boolean; // Value matcher
+  isTruthy?: boolean; // Value matcher (alias)
+  isValid?: boolean; // Field state matcher
+  isDisabled?: boolean; // Field state matcher ← USED IN THIS PRP
 }
 
 // WhenMultiField - Object when with field-level matchers
@@ -290,8 +298,8 @@ type WhenMultiField = Record<string, FieldMatcher>;
 // ConditionDescriptor - Condition definition
 interface ConditionDescriptor {
   when?: string | WhenMultiField;
-  isDisabled?: boolean;  // Top-level field state matcher ← USED IN THIS PRP
-  disabled?: boolean;    // Action to apply
+  isDisabled?: boolean; // Top-level field state matcher ← USED IN THIS PRP
+  disabled?: boolean; // Action to apply
 }
 
 // FieldStateInput - Field state for condition evaluation
@@ -302,7 +310,7 @@ export interface FieldStateInput {
   isValidating?: boolean;
   error?: unknown;
   invalid?: boolean;
-  disabled?: boolean;     // ← USED IN THIS PRP
+  disabled?: boolean; // ← USED IN THIS PRP
 }
 ```
 
@@ -614,6 +622,7 @@ pnpm test -v
 - [ ] Test names describe the scenario being tested
 - [ ] Test comments explain the expected behavior
 - [ ] No deployment changes needed (tests only)
+
 ```
 
 ---
@@ -725,3 +734,4 @@ The P2.M2.T2.S2 work item will test mixed matcher scenarios.
 - [useFieldDisabledState Hook](../../../../packages/react/src/hooks/useFieldDisabledState.ts) - Disabled state computation
 - [Field Component](../../../../packages/react/src/components/Field.tsx) - Component integration
 - [Field Tests](../../../../packages/react/src/__tests__/Field.test.tsx) - React test patterns
+```

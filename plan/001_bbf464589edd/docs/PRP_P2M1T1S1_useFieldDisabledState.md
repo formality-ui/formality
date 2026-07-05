@@ -9,6 +9,7 @@
 **Deliverable**: New hook at `/packages/react/src/hooks/useFieldDisabledState.ts` returning a boolean indicating whether the field should be disabled.
 
 **Success Definition**:
+
 - Hook correctly implements priority order: JSX prop > field config > conditions > group state > false
 - Hook uses `useMemo` for performance optimization
 - Hook evaluates conditions to extract `disabled` result
@@ -91,6 +92,7 @@ interface UseFieldDisabledStateOptions {
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed?
 
 ✅ **YES** - This PRP provides:
+
 - Exact file paths and line numbers for all reference patterns
 - Complete code examples from existing hooks
 - Type definitions with all properties
@@ -322,7 +324,7 @@ Task 7: VERIFY EXPORT
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================
 // PATTERN 1: Hook Structure (Follow useConditions)
 // ============================================
@@ -347,7 +349,7 @@ interface UseFieldDisabledStateOptions {
 }
 
 export function useFieldDisabledState(
-  options: UseFieldDisabledStateOptions
+  options: UseFieldDisabledStateOptions,
 ): boolean {
   const {
     fieldName,
@@ -509,9 +511,9 @@ return useMemo(() => {
  * ```
  */
 export function useFieldDisabledState(
-  options: UseFieldDisabledStateOptions
-): boolean
-```
+  options: UseFieldDisabledStateOptions,
+): boolean;
+````
 
 ### Integration Points
 
@@ -696,6 +698,7 @@ pnpm --filter @formality-ui/react test integration
 **8/10** - One-pass implementation success likelihood
 
 **Confidence Justification**:
+
 - ✅ Reference pattern (useConditions) is well-documented and consistent
 - ✅ All file paths and line numbers provided
 - ✅ Type definitions are clear
@@ -705,11 +708,13 @@ pnpm --filter @formality-ui/react test integration
 - ✅ Testing patterns are established in codebase
 
 **Risk Factors**:
+
 - Circular dependency with condition evaluation is complex but documented
 - Priority order must be implemented precisely
 - Integration with useConditions in future tasks must be considered
 
 **Mitigation**:
+
 - Comprehensive gotcha documentation
 - Exact line number references for all patterns
 - Step-by-step implementation tasks

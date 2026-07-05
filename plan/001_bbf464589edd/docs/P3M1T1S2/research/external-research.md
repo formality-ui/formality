@@ -11,24 +11,26 @@ This document compiles external research on useEffect cleanup ordering, dependen
 React's `useEffect` cleanup functions run in **LIFO (Last-In, First-Out) order** by design.
 
 **Example**:
+
 ```javascript
 useEffect(() => {
-  console.log('Effect 1 setup');
-  return () => console.log('Effect 1 cleanup');
+  console.log("Effect 1 setup");
+  return () => console.log("Effect 1 cleanup");
 }, []);
 
 useEffect(() => {
-  console.log('Effect 2 setup');
-  return () => console.log('Effect 2 cleanup');
+  console.log("Effect 2 setup");
+  return () => console.log("Effect 2 cleanup");
 }, []);
 
 useEffect(() => {
-  console.log('Effect 3 setup');
-  return () => console.log('Effect 3 cleanup');
+  console.log("Effect 3 setup");
+  return () => console.log("Effect 3 cleanup");
 }, []);
 ```
 
 **On unmount, output is**:
+
 ```
 Effect 3 cleanup  // Last in, first out
 Effect 2 cleanup
@@ -40,22 +42,24 @@ Effect 1 cleanup  // First in, last out
 ### 2. When LIFO vs FIFO Matters
 
 **LIFO is critical when**:
+
 - **Effect B depends on Effect A**: B's cleanup runs first, preventing access to already-cleanup resources
 - **Resource allocation**: Stack-like behavior ensures resources are released in reverse order
 - **Event propagation**: Removing listeners in reverse prevents intermediate handlers from seeing events after cleanup
 
 **Example where order matters**:
+
 ```javascript
 useEffect(() => {
   // Setup global event handler
-  document.addEventListener('click', handleGlobalClick);
-  return () => document.removeEventListener('click', handleGlobalClick);
+  document.addEventListener("click", handleGlobalClick);
+  return () => document.removeEventListener("click", handleGlobalClick);
 }, []);
 
 useEffect(() => {
   // Setup local element-specific handler
-  element.addEventListener('click', handleElementClick);
-  return () => element.removeEventListener('click', handleElementClick);
+  element.addEventListener("click", handleElementClick);
+  return () => element.removeEventListener("click", handleElementClick);
 }, []);
 ```
 
@@ -90,13 +94,13 @@ const subscriptions = useRef(new Map());
 
 useEffect(() => {
   // Register dependencies
-  subscriptions.current.set('child', childSubscription);
-  subscriptions.current.set('parent', parentSubscription);
+  subscriptions.current.set("child", childSubscription);
+  subscriptions.current.set("parent", parentSubscription);
 
   return () => {
     // Cleanup in reverse dependency order
-    subscriptions.current.delete('child');
-    subscriptions.current.delete('parent');
+    subscriptions.current.delete("child");
+    subscriptions.current.delete("parent");
   };
 }, []);
 ```
@@ -150,7 +154,7 @@ const useSubscriptionManager = () => {
   };
 
   const cleanup = () => {
-    subscriptions.current.forEach(sub => sub.unsubscribe());
+    subscriptions.current.forEach((sub) => sub.unsubscribe());
     subscriptions.current.clear();
   };
 
@@ -161,6 +165,7 @@ const useSubscriptionManager = () => {
 ### 5. React-Specific Gotchas
 
 **Critical Gotchas**:
+
 1. **Effect runs twice in Strict Mode**: Cleanups must be idempotent
 2. **Stale closures**: Cleanup functions capture initial render values
 3. **Dependency array mistakes**: Missing deps cause stale subscriptions
@@ -172,10 +177,10 @@ const useSubscriptionManager = () => {
 
 ```javascript
 useEffect(() => {
-  console.log('[Subscription] Subscribed to', source.id);
+  console.log("[Subscription] Subscribed to", source.id);
 
   return () => {
-    console.log('[Subscription] Unsubscribed from', source.id);
+    console.log("[Subscription] Unsubscribed from", source.id);
   };
 }, [source]);
 ```
@@ -184,11 +189,11 @@ useEffect(() => {
 
 ```javascript
 useEffect(() => {
-  console.log('[Effect] Running with deps:', { source, callback });
+  console.log("[Effect] Running with deps:", { source, callback });
   const subscription = source.subscribe(callback);
 
   return () => {
-    console.log('[Effect] Cleanup for', source.id);
+    console.log("[Effect] Cleanup for", source.id);
     subscription.unsubscribe();
   };
 }, [source, callback]);
@@ -200,11 +205,11 @@ useEffect(() => {
 const subscriptionRegistry = useRef(new Map());
 
 useEffect(() => {
-  const id = Symbol('subscription');
+  const id = Symbol("subscription");
   subscriptionRegistry.current.set(id, {
     source: source.id,
     created: performance.now(),
-    active: true
+    active: true,
   });
 
   console.table([...subscriptionRegistry.current.values()]);
@@ -215,7 +220,7 @@ useEffect(() => {
     record.destroyed = performance.now();
     record.lifespan = record.destroyed - record.created;
 
-    console.log('[Subscription] Lifecycle:', record);
+    console.log("[Subscription] Lifecycle:", record);
     subscriptionRegistry.current.delete(id);
   };
 }, [source]);
@@ -226,19 +231,19 @@ useEffect(() => {
 ```javascript
 useEffect(() => {
   const depth = 1;
-  console.log('  '.repeat(depth) + '└─ Setup Effect A');
+  console.log("  ".repeat(depth) + "└─ Setup Effect A");
 
   return () => {
-    console.log('  '.repeat(depth) + '└─ Cleanup Effect A');
+    console.log("  ".repeat(depth) + "└─ Cleanup Effect A");
   };
 }, []);
 
 useEffect(() => {
   const depth = 2;
-  console.log('  '.repeat(depth) + '└─ Setup Effect B (depends on A)');
+  console.log("  ".repeat(depth) + "└─ Setup Effect B (depends on A)");
 
   return () => {
-    console.log('  '.repeat(depth) + '└─ Cleanup Effect B');
+    console.log("  ".repeat(depth) + "└─ Cleanup Effect B");
   };
 }, []);
 ```
@@ -286,6 +291,7 @@ useEffect(() => {
 ## Conclusion
 
 The external research confirms that:
+
 - LIFO ordering is the standard and correct approach for most cleanup scenarios
 - Per-effect tracking (from P3.M1.T1.S1) handles the main race condition concerns
 - Development logging and cleanup guards are the primary additions needed for P3.M1.T1.S2

@@ -10,6 +10,7 @@ This document summarizes existing test patterns in the Formality codebase releva
 ## 1. Unmount/Cleanup Test Patterns
 
 ### Location
+
 `/home/dustin/projects/formality/packages/react/src/__tests__/useSubscriptions.test.tsx`
 
 ### Basic Unmount Test Pattern
@@ -33,6 +34,7 @@ expect(mockContext.removeSubscription).toHaveBeenCalledWith("field2", "field1");
 ## 2. Per-Effect Cleanup Testing
 
 ### Test Pattern
+
 ```typescript
 it("should only cleanup subscriptions from current effect run", async () => {
   const { rerender } = renderHook(
@@ -51,15 +53,22 @@ it("should only cleanup subscriptions from current effect run", async () => {
   rerender({ subscriptions: ["field3"] });
 
   // Only previous subscriptions should be cleaned up
-  expect(mockContext.removeSubscription).toHaveBeenCalledWith("field2", "field1");
+  expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+    "field2",
+    "field1",
+  );
   // new subscriptions should not be cleaned up
-  expect(mockContext.removeSubscription).not.toHaveBeenCalledWith("field3", "field1");
+  expect(mockContext.removeSubscription).not.toHaveBeenCalledWith(
+    "field3",
+    "field1",
+  );
 });
 ```
 
 ## 3. LIFO Cleanup Ordering Test
 
 ### Test Pattern
+
 ```typescript
 it("should use LIFO cleanup ordering", () => {
   const { unmount } = renderHook(
@@ -68,9 +77,21 @@ it("should use LIFO cleanup ordering", () => {
   );
 
   // Subscriptions added in order: field2, field3, field4
-  expect(mockContext.addSubscription).toHaveBeenNthCalledWith(1, "field2", "field1");
-  expect(mockContext.addSubscription).toHaveBeenNthCalledWith(2, "field3", "field1");
-  expect(mockContext.addSubscription).toHaveBeenNthCalledWith(3, "field4", "field1");
+  expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+    1,
+    "field2",
+    "field1",
+  );
+  expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+    2,
+    "field3",
+    "field1",
+  );
+  expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+    3,
+    "field4",
+    "field1",
+  );
 
   // Clear calls
   mockContext.removeSubscription.mockClear();
@@ -79,15 +100,28 @@ it("should use LIFO cleanup ordering", () => {
   unmount();
 
   // LIFO cleanup: field4, field3, field2 (reverse order)
-  expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(1, "field4", "field1");
-  expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(2, "field3", "field1");
-  expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(3, "field2", "field1");
+  expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+    1,
+    "field4",
+    "field1",
+  );
+  expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+    2,
+    "field3",
+    "field1",
+  );
+  expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+    3,
+    "field2",
+    "field1",
+  );
 });
 ```
 
 ## 4. Rapid Changes Memory Leak Test
 
 ### Test Pattern
+
 ```typescript
 it("should handle rapid subscription changes without memory leaks", async () => {
   const { rerender, unmount } = renderHook(
@@ -107,16 +141,29 @@ it("should handle rapid subscription changes without memory leaks", async () => 
   unmount();
 
   // All subscriptions should be cleaned up properly
-  expect(mockContext.removeSubscription).toHaveBeenCalledWith("field2", "field1");
-  expect(mockContext.removeSubscription).toHaveBeenCalledWith("field3", "field1");
-  expect(mockContext.removeSubscription).toHaveBeenCalledWith("field4", "field1");
-  expect(mockContext.removeSubscription).toHaveBeenCalledWith("field5", "field1");
+  expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+    "field2",
+    "field1",
+  );
+  expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+    "field3",
+    "field1",
+  );
+  expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+    "field4",
+    "field1",
+  );
+  expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+    "field5",
+    "field1",
+  );
 });
 ```
 
 ## 5. React 18 Strict Mode Tests
 
 ### Double-Invocation Handling
+
 ```typescript
 it("should handle React 18 Strict Mode double-invocation", () => {
   const strictModeWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -144,6 +191,7 @@ it("should handle React 18 Strict Mode double-invocation", () => {
 ## 6. Test Setup Patterns
 
 ### Mock Context Creation
+
 ```typescript
 const createMockContext = () => {
   const mockAddSubscription = vi.fn();
@@ -158,6 +206,7 @@ const createMockContext = () => {
 ```
 
 ### Wrapper Creation
+
 ```typescript
 const createWrapper = (contextValue: ReturnType<typeof createMockContext>) => {
   return ({ children }: { children: React.ReactNode }) => (
@@ -167,6 +216,7 @@ const createWrapper = (contextValue: ReturnType<typeof createMockContext>) => {
 ```
 
 ### Global Cleanup (setup.ts)
+
 ```typescript
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";

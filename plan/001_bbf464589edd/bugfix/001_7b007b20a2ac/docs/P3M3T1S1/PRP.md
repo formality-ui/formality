@@ -15,6 +15,7 @@
 **Deliverable**: Analysis document stored at `plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T1S1/ANALYSIS.md` that confirms whether existing safeguards are robust or identifies edge cases requiring fixes.
 
 **Success Definition**:
+
 - executionVersionRef lifecycle is fully documented
 - All version checkpoints are identified and verified correct
 - Number overflow risk is assessed with mathematical justification
@@ -27,18 +28,21 @@
 **Target User**: Formality library maintainers who need to understand and verify the race condition prevention mechanism before writing comprehensive tests.
 
 **Use Case**: Before implementing tests for race conditions (P3.M3.T2), maintainers need to:
+
 1. Understand how executionVersionRef prevents stale saves
 2. Verify the implementation is correct
 3. Identify any edge cases that tests should cover
 4. Ensure the mechanism can handle rapid changes and concurrent operations
 
 **User Journey**:
+
 1. Maintainer reads this PRP and the referenced code
 2. Performs the analysis specified in Implementation Tasks
 3. Writes the analysis document confirming robustness or identifying issues
 4. Uses findings to guide test implementation in P3.M3.T2
 
 **Pain Points Addressed**:
+
 - **Uncertainty About Race Conditions**: Without analysis, maintainers cannot be confident the mechanism works correctly
 - **Missing Edge Case Coverage**: Rapid changes, concurrent operations, and number overflow are not well understood
 - **Testing Gap**: Without analysis, tests cannot be comprehensive
@@ -58,6 +62,7 @@
 **This is a RESEARCH task - no user-visible behavior changes.**
 
 **Analysis Output**: A document that answers:
+
 1. How does executionVersionRef prevent stale saves?
 2. At what points is the version checked? Are all checks necessary?
 3. Can rapid changes cause version check failures?
@@ -84,6 +89,7 @@
 **"No Prior Knowledge" Test**: If someone knew nothing about this codebase, would they have everything needed to implement this successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Exact file paths and line numbers for executionVersionRef implementation
 - Complete code snippets showing the pattern
 - Comparison with similar pattern (runIdRef) in the codebase
@@ -208,18 +214,19 @@ plan/001_bbf464589edd/bugfix/001_7b007b20a2ac/P3M3T1S1/
 ```typescript
 // CRITICAL: executionVersionRef uses incrementing numbers, not boolean flags
 // Boolean flags can't handle rapid changes - version tokens can
-executionVersionRef.current++;  // ✅ GOOD: Incrementing number
+executionVersionRef.current++; // ✅ GOOD: Incrementing number
 // isStale.current = true;      // ❌ BAD: Boolean flag
 
 // CRITICAL: Version must be captured AFTER incrementing, not before
 executionVersionRef.current++;
-const executionVersion = executionVersionRef.current;  // ✅ GOOD: After increment
+const executionVersion = executionVersionRef.current; // ✅ GOOD: After increment
 // const executionVersion = executionVersionRef.current;  // ❌ WRONG: Before increment
 // executionVersionRef.current++;
 
 // CRITICAL: Version check uses strict equality (===), not loose equality (==)
-if (executionVersionRef.current !== executionVersion) {  // ✅ GOOD: Strict equality
-  return;  // Abort
+if (executionVersionRef.current !== executionVersion) {
+  // ✅ GOOD: Strict equality
+  return; // Abort
 }
 // if (executionVersionRef.current != executionVersion) {  // ❌ WRONG: Loose equality
 
@@ -234,13 +241,13 @@ if (executionVersionRef.current !== executionVersion) {  // ✅ GOOD: Strict equ
 executionVersionRef.current++;
 const executionVersion = executionVersionRef.current;
 const changedFields = new Set(pendingChangedFields.current);
-pendingChangedFields.current.clear();  // ✅ Cleared after capture
+pendingChangedFields.current.clear(); // ✅ Cleared after capture
 
 // CRITICAL: waitForFieldValidation polls AND checks version
 // Both conditions must be met to continue
 while (Date.now() - startTime < maxWaitMs) {
   if (executionVersionRef.current !== version) {
-    return false;  // Version changed - abort
+    return false; // Version changed - abort
   }
   // Check if validation complete...
 }
@@ -376,14 +383,14 @@ const executeAutoSave = useCallback(async () => {
     !validationsComplete ||
     executionVersionRef.current !== executionVersion
   ) {
-    return;  // ABORT: New changes came in while waiting
+    return; // ABORT: New changes came in while waiting
   }
 
   // STEP 4: Check for errors (lines 510-517)
   for (const fieldName of changedFields) {
     const fieldState = methods.getFieldState(fieldName as any);
     if (fieldState.error) {
-      return;  // ABORT: Validation error
+      return; // ABORT: Validation error
     }
   }
 
@@ -393,11 +400,11 @@ const executeAutoSave = useCallback(async () => {
 
     // CHECKPOINT 2: After trigger validation (lines 524-526)
     if (executionVersionRef.current !== executionVersion) {
-      return;  // ABORT: New changes came in during trigger
+      return; // ABORT: New changes came in during trigger
     }
 
     if (!isValid) {
-      return;  // ABORT: Trigger validation failed
+      return; // ABORT: Trigger validation failed
     }
 
     // STEP 6: Third async operation (lines 534-544)
@@ -411,14 +418,14 @@ const executeAutoSave = useCallback(async () => {
       !postTriggerComplete ||
       executionVersionRef.current !== executionVersion
     ) {
-      return;  // ABORT: New changes came in while waiting
+      return; // ABORT: New changes came in while waiting
     }
   }
 
   // STEP 7: Check form errors (lines 548-551)
   const formState = methods.formState;
   if (Object.keys(formState.errors).length > 0) {
-    return;  // ABORT: Form has errors
+    return; // ABORT: Form has errors
   }
 
   // STEP 8: Final submission (lines 554-555)
@@ -444,7 +451,7 @@ const waitForFieldValidation = useCallback(
       // CRITICAL: Check version INSIDE the polling loop
       // This allows aborting mid-wait, not just at the end
       if (executionVersionRef.current !== version) {
-        return false;  // ABORT: New changes came in
+        return false; // ABORT: New changes came in
       }
 
       // Check if all fields have completed validation
@@ -452,7 +459,7 @@ const waitForFieldValidation = useCallback(
         (field) => !validatingFields.current.get(field),
       );
       if (allDone) {
-        return true;  // SUCCESS: All validations complete
+        return true; // SUCCESS: All validations complete
       }
 
       // Wait before next poll
@@ -517,18 +524,21 @@ useEffect(() => {
 const MAX_SAFE_INTEGER = 9007199254740991;
 
 // Realistic form usage: ~1 change per second
-const realisticRate = 1;  // changes per second
-const realisticYearsToOverflow = MAX_SAFE_INTEGER / (realisticRate * 365 * 24 * 3600);
+const realisticRate = 1; // changes per second
+const realisticYearsToOverflow =
+  MAX_SAFE_INTEGER / (realisticRate * 365 * 24 * 3600);
 // ~285,374,048 years
 
 // Aggressive usage: 100 changes per second (rapid typing)
-const aggressiveRate = 100;  // changes per second
-const aggressiveYearsToOverflow = MAX_SAFE_INTEGER / (aggressiveRate * 365 * 24 * 3600);
+const aggressiveRate = 100; // changes per second
+const aggressiveYearsToOverflow =
+  MAX_SAFE_INTEGER / (aggressiveRate * 365 * 24 * 3600);
 // ~2,853,740 years
 
 // Theoretical maximum: 1000 changes per second (programmatic)
-const theoreticalRate = 1000;  // changes per second
-const theoreticalYearsToOverflow = MAX_SAFE_INTEGER / (theoreticalRate * 365 * 24 * 3600);
+const theoreticalRate = 1000; // changes per second
+const theoreticalYearsToOverflow =
+  MAX_SAFE_INTEGER / (theoreticalRate * 365 * 24 * 3600);
 // ~285,374 years
 
 // CONCLUSION: Overflow is VIRTUALLY IMPOSSIBLE
@@ -545,14 +555,14 @@ function analyzeEdgeCase(name: string) {
       "What is the executionVersion value at each step?",
       "At which checkpoints is the version checked?",
       "Does the version check catch the condition?",
-      "What is the final result?"
+      "What is the final result?",
     ],
     questions: [
       "Can a stale save complete?",
       "Can memory leak occur?",
       "Can infinite loop occur?",
-      "Can error be thrown?"
-    ]
+      "Can error be thrown?",
+    ],
   };
 }
 
@@ -725,14 +735,17 @@ grep -E "edge case|scenario" \
 This analysis task (P3.M3.T1.S1) is part of the Race Condition Prevention milestone:
 
 **P3.M1: Memory Leak Prevention** (Complete)
+
 - P3.M1.T1: Improved subscription tracking with runIdRef
 - P3.M1.T2: Added comprehensive tests for memory leaks
 
 **P3.M2: Type Safety in Expressions** (In Progress - P3.M2.T2.S2 parallel)
+
 - P3.M2.T1: Added type guards for null/undefined arithmetic
 - P3.M2.T2: Adding tests for type safety
 
 **P3.M3: Race Condition Prevention** (This Task)
+
 - P3.M3.T1: Review Existing Logic (THIS TASK)
   - P3.M3.T1.S1: Analyze executionVersionRef (THIS SUBTASK)
 - P3.M3.T2: Add Tests for Race Conditions (NEXT TASK)
@@ -782,6 +795,7 @@ Based on preliminary research, the analysis is expected to conclude:
 **10/10** for one-pass analysis completion success
 
 **Reasoning**:
+
 - ✅ Exact file paths and line numbers provided
 - ✅ Complete implementation blueprint with 7 ordered tasks
 - ✅ Comprehensive external research included

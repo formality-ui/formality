@@ -18,6 +18,7 @@ into `FormProps<TFieldValues>.config` (Form.tsx:48) which is already typed
 `ReactFormFieldsConfig<TFieldValues>`.
 
 **Success Definition**:
+
 1. `tsc --noEmit` on `@formality-ui/react` (and root `tsc --build`) is green.
 2. `vitest run` for the react package is green — no test regressions.
 3. A new type-level assertion exists proving both:
@@ -109,16 +110,19 @@ references verified by grep (see Documentation & References).
 - file: packages/react/src/overlays.ts
   why: THE file to edit. Lines 72-76 contain the current unbounded Record<string, ...>.
   pattern: Existing overlay style — `export type X<V extends FieldValues = FieldValues> = ...`.
-  gotcha: The generic constraint `V extends FieldValues = FieldValues` MUST be preserved
-          exactly so the default collapses to `string`.
+  gotcha:
+    The generic constraint `V extends FieldValues = FieldValues` MUST be preserved
+    exactly so the default collapses to `string`.
 
 - file: packages/react/src/components/Form.tsx
   section: "FormProps<TFieldValues> (lines 43-71); config on line 48"
-  why: This is the consumer of ReactFormFieldsConfig<TFieldValues>. NO EDIT needed here —
-        the key-checking appears automatically once the alias is narrowed.
+  why:
+    This is the consumer of ReactFormFieldsConfig<TFieldValues>. NO EDIT needed here —
+    the key-checking appears automatically once the alias is narrowed.
   pattern: Line 38 `import type { ReactFormFieldsConfig } from "../overlays";`
-  gotcha: "Line 715 transformValuesForSubmit uses CORE FormFieldsConfig (default string) —
-           leave it ALONE. It is internal and unrelated."
+  gotcha:
+    "Line 715 transformValuesForSubmit uses CORE FormFieldsConfig (default string) —
+    leave it ALONE. It is internal and unrelated."
 
 - file: packages/react/src/index.ts
   section: "Line 95 — ReactFormFieldsConfig re-export"
@@ -128,8 +132,9 @@ references verified by grep (see Documentation & References).
 - file: plan/002_78ea74508dd8/architecture/type_system_state.md
   section: "§1 (overlays.ts) and §2 (Form.tsx)"
   why: Verified-current inventory of exact signatures at the touch points.
-  critical: Confirms Form.tsx:48 is the ONLY field-type usage of ReactFormFieldsConfig;
-            all other usages are the definition (overlays.ts:72) and the re-export (index.ts:95).
+  critical:
+    Confirms Form.tsx:48 is the ONLY field-type usage of ReactFormFieldsConfig;
+    all other usages are the definition (overlays.ts:72) and the re-export (index.ts:95).
 ```
 
 ### Current Codebase tree (relevant slice)

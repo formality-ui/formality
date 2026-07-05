@@ -14,12 +14,14 @@
 **Feature Goal**: Add explicit null/undefined handling to arithmetic operations with clear JSDoc documentation and comprehensive test coverage for edge cases.
 
 **Deliverable**:
+
 1. Enhanced type guard with explicit null/undefined checks and specific warning messages
 2. JSDoc documentation explaining null/undefined behavior in arithmetic operations
 3. Comprehensive test suite covering null/undefined edge cases (5 + null, undefined - 5, etc.)
 4. Documentation of the "Silent Zero Problem" and "NaN Cascade" prevention
 
 **Success Definition**:
+
 - Arithmetic operations with null operands return `undefined` with specific warning mentioning null
 - Arithmetic operations with undefined operands return `undefined` with specific warning mentioning undefined
 - Edge cases like `5 + null` and `undefined - 5` are tested and documented
@@ -36,6 +38,7 @@
 **Use Case**: Writing expressions that perform arithmetic operations on field values where fields may be empty (null) or undefined due to optional fields or conditional rendering.
 
 **User Journey**:
+
 1. Developer creates form with optional numeric fields (e.g., `discount`, `taxRate`)
 2. Developer writes expression: `price - discount + tax`
 3. User leaves optional fields empty (null or undefined)
@@ -43,6 +46,7 @@
 5. Developer can use nullish coalescing (`??`) to provide defaults: `price - (discount ?? 0) + tax`
 
 **Pain Points Addressed**:
+
 - **Silent Zero Problem**: In JavaScript, `null` coerces to `0`, hiding bugs where values are missing
 - **NaN Cascade**: `undefined` produces `NaN` which spreads through calculations
 - **Unclear Error Messages**: Generic "Invalid operands" doesn't distinguish null from undefined
@@ -66,12 +70,13 @@
 ### Current State Analysis
 
 **From P3.M2.T1.S1 Contract** (assumes completed):
+
 ```typescript
 // After P3.M2.T1.S1 implementation
 function isSafeNumber(value: unknown): value is number {
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value);
+  return (
+    typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)
+  );
 }
 
 // Usage in BinaryExpression case
@@ -79,8 +84,8 @@ if (!isSafeNumber(leftValue) || !isSafeNumber(rightValue)) {
   if (process.env.NODE_ENV !== "production") {
     console.warn(
       `[Formality Expression] Type error: ` +
-      `Invalid operands for ${binaryNode.operator}: ` +
-      `left=${typeof leftValue}, right=${typeof rightValue}`
+        `Invalid operands for ${binaryNode.operator}: ` +
+        `left=${typeof leftValue}, right=${typeof rightValue}`,
     );
   }
   return undefined;
@@ -88,11 +93,13 @@ if (!isSafeNumber(leftValue) || !isSafeNumber(rightValue)) {
 ```
 
 **Current Behavior** (after P3.M2.T1.S1):
+
 - `null + 5` → `undefined` (via `typeof null === 'object'` check)
 - `undefined + 5` → `undefined` (via `typeof undefined === 'undefined'` check)
 - Warning message: `"left=object, right=number"` or `"left=undefined, right=number"`
 
 **Problems with Current Approach**:
+
 1. Warning message shows `typeof` result (`object` for null) which is confusing
 2. No explicit mention of "null" or "undefined" in warnings
 3. JSDoc doesn't document null/undefined behavior
@@ -103,14 +110,14 @@ if (!isSafeNumber(leftValue) || !isSafeNumber(rightValue)) {
 
 ```javascript
 // JavaScript standard coercion (what we're preventing)
-null + 5        // → 5   (null coerces to 0)
-5 + null        // → 5
-undefined + 5   // → NaN (undefined coerces to NaN)
-5 + undefined   // → NaN
+null + 5; // → 5   (null coerces to 0)
+5 + null; // → 5
+undefined + 5; // → NaN (undefined coerces to NaN)
+5 + undefined; // → NaN
 
 // Division has special behavior
-5 / null        // → Infinity
-null / 5        // → 0
+5 / null; // → Infinity
+null / 5; // → 0
 ```
 
 **Our Goal**: Return `undefined` for ALL null/undefined arithmetic (safer, explicit error state)
@@ -135,6 +142,7 @@ null / 5        // → 0
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact relationship to P3.M2.T1.S1 contract
 - Specific code patterns for null/undefined detection
 - JSDoc patterns from codebase analysis
@@ -262,20 +270,20 @@ if (leftValue === null) {
 // This is why explicit === null check is needed before typeof
 
 // CRITICAL: JavaScript standard behavior (what we prevent)
-null + 5        // → 5   (The "Silent Zero Problem")
-undefined + 5   // → NaN (The "NaN Cascade")
+null + 5; // → 5   (The "Silent Zero Problem")
+undefined + 5; // → NaN (The "NaN Cascade")
 
 // Our behavior (safer)
-null + 5        // → undefined (with warning)
-undefined + 5   // → undefined (with warning)
+null + 5; // → undefined (with warning)
+undefined + 5; // → undefined (with warning)
 
 // GOTCHA: Division has special behavior in standard JS
-5 / null        // → Infinity (very dangerous!)
-null / 5        // → 0
+5 / null; // → Infinity (very dangerous!)
+null / 5; // → 0
 
 // Our behavior treats null/undefined consistently
-5 / null        // → undefined (with warning)
-null / 5        // → undefined (with warning)
+5 / null; // → undefined (with warning)
+null / 5; // → undefined (with warning)
 
 // CRITICAL: JSDoc must document WHY we deviate from JavaScript
 // This is a deliberate choice for safety over convenience
@@ -303,7 +311,7 @@ null / 5        // → undefined (with warning)
 
 No new data models. Modifying existing function documentation and validation logic.
 
-```typescript
+````typescript
 // ENHANCED: isSafeNumber with comprehensive JSDoc
 /**
  * Type guard to check if a value is safe for arithmetic operations
@@ -327,9 +335,9 @@ No new data models. Modifying existing function documentation and validation log
  * isSafeNumber("5")         // → false (string coercion not allowed)
  */
 function isSafeNumber(value: unknown): value is number {
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value);
+  return (
+    typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)
+  );
 }
 
 // ENHANCED: evaluate function JSDoc with null/undefined section
@@ -355,7 +363,7 @@ function isSafeNumber(value: unknown): value is number {
  * evaluate("price - (discount ?? 0)", context)
  * ```
  */
-```
+````
 
 ### Implementation Tasks (ordered by dependencies)
 
@@ -432,7 +440,7 @@ Task 7: RUN full test suite for regressions
 
 ### Implementation Patterns & Key Details
 
-```typescript
+````typescript
 // ============================================================================
 // PATTERN 1: Enhanced isSafeNumber JSDoc
 // ============================================================================
@@ -813,7 +821,7 @@ describe("Development Warnings - Null/Undefined", () => {
     );
   });
 });
-```
+````
 
 ### Integration Points
 
@@ -981,12 +989,14 @@ pnpm lint  # JSDoc comments should pass linting
 The P3.M2.T1.S1 PRP implements the `isSafeNumber()` type guard foundation.
 
 **This PRP Builds Upon**:
+
 1. P3.M2.T1.S1 provides `isSafeNumber()` function with `typeof value === 'number'` check
 2. P3.M2.T1.S1 adds type guards to arithmetic operators
 3. P3.M2.T1.S1 handles division by zero, NaN, Infinity
 4. P3.M2.T1.S1 establishes development warning pattern
 
 **This PRP Adds**:
+
 1. Explicit null/undefined checks BEFORE `isSafeNumber()` for better error messages
 2. JSDoc documentation of null/undefined behavior
 3. Explanation of deviation from JavaScript standard coercion
@@ -1000,6 +1010,7 @@ The P3.M2.T1.S1 PRP implements the `isSafeNumber()` type guard foundation.
 The P3.M2.T2 PRP will add comprehensive tests for type safety.
 
 **This PRP's Contract**:
+
 1. This PRP provides null/undefined test patterns for P3.M2.T2 to extend
 2. This PRP establishes the behavior that P3.M2.T2 will verify
 3. This PRP adds basic tests for null/undefined arithmetic
@@ -1014,6 +1025,7 @@ The P3.M2.T2 PRP will add comprehensive tests for type safety.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Clear scope: Add explicit null/undefined checks and documentation
 - Comprehensive research documented with specific URLs and examples
 - Clear implementation patterns from codebase analysis
@@ -1025,6 +1037,7 @@ The P3.M2.T2 PRP will add comprehensive tests for type safety.
 - Builds upon P3.M2.T1.S1 contract with clear integration points
 
 **Remaining 1 point uncertainty**:
+
 - Ensuring JSDoc adequately explains the deviation from JavaScript standard behavior (subjective)
 
 ---
@@ -1083,14 +1096,14 @@ if (leftValue === undefined) {
 
 ### JavaScript vs Our Behavior
 
-| Expression | JavaScript | Our Behavior | Why |
-|------------|------------|--------------|-----|
-| `5 + null` | `5` | `undefined` | Silent Zero Problem |
-| `5 + undefined` | `NaN` | `undefined` | NaN Cascade |
-| `5 / null` | `Infinity` | `undefined` | Dangerous: Infinity |
-| `null / 5` | `0` | `undefined` | Silent Zero Problem |
-| `5 * null` | `0` | `undefined` | Silent Zero Problem |
-| `5 * undefined` | `NaN` | `undefined` | NaN Cascade |
+| Expression      | JavaScript | Our Behavior | Why                 |
+| --------------- | ---------- | ------------ | ------------------- |
+| `5 + null`      | `5`        | `undefined`  | Silent Zero Problem |
+| `5 + undefined` | `NaN`      | `undefined`  | NaN Cascade         |
+| `5 / null`      | `Infinity` | `undefined`  | Dangerous: Infinity |
+| `null / 5`      | `0`        | `undefined`  | Silent Zero Problem |
+| `5 * null`      | `0`        | `undefined`  | Silent Zero Problem |
+| `5 * undefined` | `NaN`      | `undefined`  | NaN Cascade         |
 
 ### Warning Messages
 
@@ -1103,9 +1116,9 @@ if (leftValue === undefined) {
 ### Test Coverage Matrix
 
 | Operator | +null | null+ | +undefined | undefined+ | null+null | undefined+undefined |
-|----------|-------|-------|------------|------------|----------|-------------------|
-| `+` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `-` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `*` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `/` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `%` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| -------- | ----- | ----- | ---------- | ---------- | --------- | ------------------- |
+| `+`      | ✓     | ✓     | ✓          | ✓          | ✓         | ✓                   |
+| `-`      | ✓     | ✓     | ✓          | ✓          | ✓         | ✓                   |
+| `*`      | ✓     | ✓     | ✓          | ✓          | ✓         | ✓                   |
+| `/`      | ✓     | ✓     | ✓          | ✓          | ✓         | ✓                   |
+| `%`      | ✓     | ✓     | ✓          | ✓          | ✓         | ✓                   |

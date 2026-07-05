@@ -33,6 +33,7 @@ const changeField = useCallback(
 ```
 
 **Key Points:**
+
 - The function checks `inputConfig?.debounce === false` to determine if immediate submission is needed
 - If `debounce: false` is set in inputConfig, it calls `submitImmediate()`
 - Otherwise, it calls `debouncedSubmit()`
@@ -45,13 +46,16 @@ The `useEffect` hook (Lines 525-558) handles the debounce configuration:
 useEffect(() => {
   // When debounce is false, use immediate execution (no debouncing)
   if (debounceMs === false) {
-    const immediateFn = Object.assign(() => {
-      executeAutoSave();
-    }, {
-      cancel: () => {}, // No-op for immediate function
-      flush: () => executeAutoSave(), // Execute immediately on flush
-      pending: () => false, // Never pending when immediate
-    }) as DebouncedFunction;
+    const immediateFn = Object.assign(
+      () => {
+        executeAutoSave();
+      },
+      {
+        cancel: () => {}, // No-op for immediate function
+        flush: () => executeAutoSave(), // Execute immediately on flush
+        pending: () => false, // Never pending when immediate
+      },
+    ) as DebouncedFunction;
 
     debouncedSubmitRef.current = immediateFn;
 
@@ -83,6 +87,7 @@ useEffect(() => {
 **autoSave**: This is a prop that defaults to `false`. When enabled, it triggers auto-saving on field changes.
 
 **submitImmediate function** (Lines 564-566):
+
 ```typescript
 const submitImmediate = useCallback(() => {
   debouncedSubmitRef.current?.flush();
@@ -90,6 +95,7 @@ const submitImmediate = useCallback(() => {
 ```
 
 **Key Points:**
+
 - When `debounce: false` is configured at the form level, the useEffect creates an immediate function
 - This immediate function's `flush()` method directly calls `executeAutoSave()`
 - When `debounce: false` is set at the field level via inputConfig, it calls `submitImmediate()` which flushes the debounced function
@@ -98,18 +104,21 @@ const submitImmediate = useCallback(() => {
 ## 4. Code Paths Summary
 
 **Immediate Submission Path:**
+
 1. Field change triggers `changeField()` with `inputConfig?.debounce === false`
 2. `changeField()` calls `submitImmediate()`
 3. `submitImmediate()` calls `debouncedSubmitRef.current?.flush()`
 4. For immediate functions, this directly executes `executeAutoSave()`
 
 **Debounced Submission Path:**
+
 1. Field change triggers `changeField()` without `debounce: false` in inputConfig
 2. `changeField()` calls `debouncedSubmit()`
 3. `debouncedSubmit()` calls `debouncedSubmitRef.current?.()`
 4. This triggers the lodash debounce function with the configured delay
 
 **Form Level Configuration:**
+
 - Form-level `debounce: false` creates an immediate function in the useEffect
 - Form-level `debounce: number` creates a standard debounce function
 - Field-level `inputConfig.debounce: false` overrides form-level behavior for that specific field

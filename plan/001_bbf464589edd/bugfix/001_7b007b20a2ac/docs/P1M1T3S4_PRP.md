@@ -7,6 +7,7 @@
 **Deliverable**: Test suite (`packages/core/src/__tests__/expression.complex.test.ts`) that validates complex expression scenarios with full edge case and error handling coverage.
 
 **Success Definition**:
+
 - Complex expressions with multiple operators evaluate correctly
 - Field references (both qualified and unqualified) work in all contexts
 - Re-evaluation triggers correctly when any dependency changes
@@ -19,6 +20,7 @@
 The Formality framework's expression engine supports complex expressions using JSEP (JavaScript Expression Parser) for evaluating dynamic prop values. This power comes with complexity:
 
 **Multiple Operator Types**:
+
 - **Logical operators**: `&&`, `||`, `??` (with short-circuit evaluation)
 - **Comparison operators**: `===`, `!==`, `<`, `>`, `<=`, `>=`
 - **Arithmetic operators**: `+`, `-`, `*`, `/`, `%`
@@ -28,6 +30,7 @@ The Formality framework's expression engine supports complex expressions using J
 - **Array expressions**: `[1, 2, 3]`
 
 **Critical Gaps Identified**:
+
 1. No existing tests for **nested ternary operators**
 2. No existing tests for **complex boolean logic** combining multiple operators
 3. No existing tests for **expression error handling** (malformed syntax, type errors)
@@ -35,6 +38,7 @@ The Formality framework's expression engine supports complex expressions using J
 5. No existing tests for **field proxy unwrapping** in complex contexts
 
 **Why This Matters**:
+
 - Users rely on expressions like `'fields.count > 5 ? "Many" : "Few"' for conditional rendering
 - Form-level expressions like `!fields.signed && fields.count > 0` control field visibility
 - Expression errors shouldn't crash the entire form - they must be handled gracefully
@@ -44,18 +48,21 @@ The Formality framework's expression engine supports complex expressions using J
 ### Test Categories
 
 #### 1. Complex Logical Expressions
+
 - **AND chains**: `a && b && c` (short-circuit behavior)
 - **OR chains**: `a || b || c` (short-circuit behavior)
 - **Mixed logic**: `a && (b || c)` with proper precedence
 - **Nullish coalescing**: `a ?? b ?? c` with null/undefined handling
 
 #### 2. Complex Ternary Expressions
+
 - **Nested ternaries**: `a ? b ? c : d : e` (right-associative)
 - **Ternary with logical operators**: `a && b ? c : d`
 - **Ternary with comparisons**: `count > 5 ? "Many" : "Few"`
 - **Ternary with field access**: `fields.clientType ? fields.clientType + " - " + fields.clientName : "Guest"`
 
 #### 3. Field Reference Patterns
+
 - **Qualified access**: `fields.count`, `fields.client.name`
 - **Unqualified access**: `count`, `client.name` (via field proxies)
 - **Bracket notation**: `fields["dynamicKey"]`
@@ -63,16 +70,19 @@ The Formality framework's expression engine supports complex expressions using J
 - **Array element access**: `fields.items[0]`
 
 #### 4. Arithmetic and String Operations
+
 - **String concatenation**: `fields.firstName + " " + fields.lastName`
 - **Mixed operations**: `fields.count * 10 + 5`
 - **Comparison chains**: `fields.count >= 0 && fields.count <= 100`
 
 #### 5. Re-evaluation Tests
+
 - **Single dependency change**: Expression re-evaluates when one field changes
 - **Multiple dependencies**: Expression re-evaluates when any referenced field changes
 - **No false positives**: Expression doesn't re-evaluate for unrelated field changes
 
 #### 6. Error Handling
+
 - **Syntax errors**: Malformed expressions return undefined
 - **Runtime errors**: Division by zero, invalid member access
 - **Missing variables**: References to undefined fields return undefined
@@ -94,6 +104,7 @@ The Formality framework's expression engine supports complex expressions using J
 **Test**: If someone knew nothing about this codebase, would they have everything needed to implement these tests successfully?
 
 **Answer**: YES - This PRP provides:
+
 - Complete expression engine implementation details
 - Field proxy system explanation
 - Existing test patterns to follow
@@ -437,10 +448,14 @@ describe("Complex Logical Expressions", () => {
         count: { value: 5 },
       };
       const context = buildEvaluationContext(
-        { client: fields.client.value, signed: fields.signed.value, count: fields.count.value },
+        {
+          client: fields.client.value,
+          signed: fields.signed.value,
+          count: fields.count.value,
+        },
         {},
         {},
-        { client: fields.client, signed: fields.signed, count: fields.count }
+        { client: fields.client, signed: fields.signed, count: fields.count },
       );
 
       const result = evaluate("client && signed && count > 0", context);
@@ -472,9 +487,13 @@ describe("Complex Logical Expressions", () => {
 
   describe("Nullish Coalescing", () => {
     it("should return first non-nullish value", () => {
-      expect(evaluate("a ?? b ?? c", { a: null, b: undefined, c: "default" })).toBe("default");
+      expect(
+        evaluate("a ?? b ?? c", { a: null, b: undefined, c: "default" }),
+      ).toBe("default");
       expect(evaluate("a ?? b ?? c", { a: 0, b: "", c: "default" })).toBe(0); // 0 is not nullish
-      expect(evaluate("a ?? b ?? c", { a: false, b: "", c: "default" })).toBe(false); // false is not nullish
+      expect(evaluate("a ?? b ?? c", { a: false, b: "", c: "default" })).toBe(
+        false,
+      ); // false is not nullish
     });
 
     it("should handle nullish with field proxies", () => {
@@ -482,7 +501,7 @@ describe("Complex Logical Expressions", () => {
         { required: null, optional: "value" },
         {},
         {},
-        { required: { value: null }, optional: { value: "value" } }
+        { required: { value: null }, optional: { value: "value" } },
       );
 
       expect(evaluate("required ?? optional", context)).toBe("value");
@@ -497,8 +516,12 @@ describe("Complex Logical Expressions", () => {
     });
 
     it("should handle nullish with logical operators", () => {
-      expect(evaluate("a ?? b && c", { a: null, b: true, c: "value" })).toBe("value");
-      expect(evaluate("a && b ?? c", { a: null, b: true, c: "default" })).toBe(null);
+      expect(evaluate("a ?? b && c", { a: null, b: true, c: "value" })).toBe(
+        "value",
+      );
+      expect(evaluate("a && b ?? c", { a: null, b: true, c: "default" })).toBe(
+        null,
+      );
     });
   });
 });
@@ -510,7 +533,8 @@ describe("Complex Logical Expressions", () => {
 describe("Nested Ternary Operators", () => {
   it("should evaluate basic nested ternary", () => {
     const context = { status: "pending" };
-    const expr = 'status === "active" ? "Go" : status === "pending" ? "Wait" : "Stop"';
+    const expr =
+      'status === "active" ? "Go" : status === "pending" ? "Wait" : "Stop"';
     expect(evaluate(expr, context)).toBe("Wait");
   });
 
@@ -536,7 +560,7 @@ describe("Nested Ternary Operators", () => {
       { client: fields.client.value, defaultType: fields.defaultType.value },
       {},
       {},
-      { client: fields.client, defaultType: fields.defaultType }
+      { client: fields.client, defaultType: fields.defaultType },
     );
 
     const expr = 'client ? client.type + " - " + client.name : defaultType';
@@ -546,7 +570,9 @@ describe("Nested Ternary Operators", () => {
   it("should handle ternary with arithmetic", () => {
     const context = { count: 3 };
     expect(evaluate("count > 5 ? count * 2 : count + 10", context)).toBe(13);
-    expect(evaluate("count > 5 ? count * 2 : count + 10", { count: 10 })).toBe(20);
+    expect(evaluate("count > 5 ? count * 2 : count + 10", { count: 10 })).toBe(
+      20,
+    );
   });
 
   it("should handle complex expression from work item", () => {
@@ -556,10 +582,18 @@ describe("Nested Ternary Operators", () => {
       clientName: { value: "Acme" },
     };
     const context = buildEvaluationContext(
-      { count: fields.count.value, clientType: fields.clientType.value, clientName: fields.clientName.value },
+      {
+        count: fields.count.value,
+        clientType: fields.clientType.value,
+        clientName: fields.clientName.value,
+      },
       {},
       {},
-      { count: fields.count, clientType: fields.clientType, clientName: fields.clientName }
+      {
+        count: fields.count,
+        clientType: fields.clientType,
+        clientName: fields.clientName,
+      },
     );
 
     // Work item example: 'fields.count > 5 ? "Many" : "Few"'
@@ -567,7 +601,9 @@ describe("Nested Ternary Operators", () => {
     expect(evaluate('count > 5 ? "Many" : "Few"', { count: 3 })).toBe("Few");
 
     // Work item example: 'fields.clientType + " - " + fields.clientName'
-    expect(evaluate('clientType + " - " + clientName', context)).toBe("Premium - Acme");
+    expect(evaluate('clientType + " - " + clientName', context)).toBe(
+      "Premium - Acme",
+    );
   });
 });
 ```
@@ -579,7 +615,12 @@ describe("Field Reference Patterns", () => {
   describe("Qualified Access (fields.*)", () => {
     it("should access simple field value", () => {
       const fields = { count: { value: 42 } };
-      const context = buildEvaluationContext({ count: 42 }, {}, {}, { count: fields.count });
+      const context = buildEvaluationContext(
+        { count: 42 },
+        {},
+        {},
+        { count: fields.count },
+      );
 
       expect(evaluate("fields.count.value", context)).toBe(42);
       expect(evaluate("fields.count", context)).toBe(42); // Proxy unwraps to value
@@ -593,10 +634,12 @@ describe("Field Reference Patterns", () => {
         { client: fields.client.value },
         {},
         {},
-        { client: fields.client }
+        { client: fields.client },
       );
 
-      expect(evaluate("fields.client.profile.email", context)).toBe("test@example.com");
+      expect(evaluate("fields.client.profile.email", context)).toBe(
+        "test@example.com",
+      );
     });
 
     it("should access field metadata", () => {
@@ -607,7 +650,7 @@ describe("Field Reference Patterns", () => {
         { client: fields.client.value },
         {},
         {},
-        { client: fields.client }
+        { client: fields.client },
       );
 
       expect(evaluate("fields.client.isTouched", context)).toBe(true);
@@ -619,7 +662,12 @@ describe("Field Reference Patterns", () => {
   describe("Unqualified Access (via Proxies)", () => {
     it("should access field value directly", () => {
       const fields = { count: { value: 42 } };
-      const context = buildEvaluationContext({ count: 42 }, {}, {}, { count: fields.count });
+      const context = buildEvaluationContext(
+        { count: 42 },
+        {},
+        {},
+        { count: fields.count },
+      );
 
       expect(evaluate("count", context)).toBe(42); // Proxy unwraps to value
     });
@@ -632,7 +680,7 @@ describe("Field Reference Patterns", () => {
         { client: fields.client.value },
         {},
         {},
-        { client: fields.client }
+        { client: fields.client },
       );
 
       expect(evaluate("client.name", context)).toBe("Acme"); // Delegates to value.name
@@ -647,7 +695,7 @@ describe("Field Reference Patterns", () => {
         { client: fields.client.value },
         {},
         {},
-        { client: fields.client }
+        { client: fields.client },
       );
 
       expect(evaluate("client.isTouched", context)).toBe(true); // Returns metadata
@@ -662,7 +710,7 @@ describe("Field Reference Patterns", () => {
         { client: fields.client.value },
         {},
         {},
-        { client: fields.client }
+        { client: fields.client },
       );
 
       expect(evaluate('fields.client["name"]', context)).toBe("Acme");
@@ -677,7 +725,7 @@ describe("Field Reference Patterns", () => {
         { client: fields.client.value, prop: fields.prop.value },
         {},
         {},
-        { client: fields.client, prop: fields.prop }
+        { client: fields.client, prop: fields.prop },
       );
 
       expect(evaluate("fields.client[prop]", context)).toBe("Acme");
@@ -690,10 +738,14 @@ describe("Field Reference Patterns", () => {
         suffix: { value: "st" },
       };
       const context = buildEvaluationContext(
-        { items: fields.items.value, prefix: fields.prefix.value, suffix: fields.suffix.value },
+        {
+          items: fields.items.value,
+          prefix: fields.prefix.value,
+          suffix: fields.suffix.value,
+        },
         {},
         {},
-        { items: fields.items, prefix: fields.prefix, suffix: fields.suffix }
+        { items: fields.items, prefix: fields.prefix, suffix: fields.suffix },
       );
 
       expect(evaluate("items[prefix + suffix]", context)).toBe("a");
@@ -710,12 +762,16 @@ describe("Field Reference Patterns", () => {
         { signed: fields.signed.value, count: fields.count.value },
         {},
         {},
-        { signed: fields.signed, count: fields.count }
+        { signed: fields.signed, count: fields.count },
       );
 
       expect(evaluate("!signed && count > 0", context)).toBe(true);
-      expect(evaluate("!signed && count > 0", { signed: true, count: 5 })).toBe(false);
-      expect(evaluate("!signed && count > 0", { signed: false, count: 0 })).toBe(false);
+      expect(evaluate("!signed && count > 0", { signed: true, count: 5 })).toBe(
+        false,
+      );
+      expect(
+        evaluate("!signed && count > 0", { signed: false, count: 0 }),
+      ).toBe(false);
     });
   });
 });
@@ -787,7 +843,7 @@ describe("Error Handling", () => {
     });
 
     it("should handle typeof null", () => {
-      expect(evaluate('typeof null', {})).toBe("object"); // Historical bug
+      expect(evaluate("typeof null", {})).toBe("object"); // Historical bug
     });
 
     it("should handle very long expressions", () => {
@@ -1040,11 +1096,13 @@ pnpm test:coverage
 The previous PRP (P1.M1.T3.S3) focused on testing the **8-layer prop priority system**. This PRP focuses on **complex expression evaluation**. The two are related but distinct:
 
 **P1.M1.T3.S3 (8-Layer Priority)**:
+
 - Tests how props merge across 8 configuration layers
 - Tests that dynamic layers (2, 4, 7) evaluate expressions
 - Tests expression evaluation as a dependency of priority testing
 
 **P1.M1.T3.S4 (Complex Expressions)**:
+
 - Tests complex expression patterns themselves
 - Tests edge cases and error handling in expressions
 - Tests field reference patterns and proxy unwrapping
@@ -1055,11 +1113,13 @@ The previous PRP (P1.M1.T3.S3) focused on testing the **8-layer prop priority sy
 ### Existing Test Status
 
 **Current State** (from research):
+
 - Basic expression tests exist at `packages/core/src/__tests__/expression.test.ts`
 - Covers: literals, identifiers, simple operators, basic ternary
 - **Gaps**: No complex logical chains, no nested ternaries, no error handling
 
 **This PRP Fills Those Gaps**:
+
 - Complex logical expressions (AND/OR/nullish chains)
 - Nested ternary operators
 - Field reference patterns with proxies

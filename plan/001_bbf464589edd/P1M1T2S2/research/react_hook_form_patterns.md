@@ -45,6 +45,7 @@ The most common and recommended pattern is to specify react-hook-form as a peer 
 ```
 
 **Key Points:**
+
 - Use `^7.0.0` to allow any 7.x version (backward compatible within major version)
 - Include react-hook-form in `devDependencies` for your library's tests
 - Use semver ranges that match typical usage patterns
@@ -55,6 +56,7 @@ The most common and recommended pattern is to specify react-hook-form as a peer 
 Different approaches based on library goals:
 
 **Conservative (Breaking changes OK):**
+
 ```json
 {
   "peerDependencies": {
@@ -62,11 +64,13 @@ Different approaches based on library goals:
   }
 }
 ```
+
 - Use when you rely on newer features
 - Forces users to upgrade RHF
 - Allows you to use latest APIs
 
 **Liberal (Maximum compatibility):**
+
 ```json
 {
   "peerDependencies": {
@@ -74,11 +78,13 @@ Different approaches based on library goals:
   }
 }
 ```
+
 - Use for maximum compatibility
 - Must ensure your code works with older 7.x versions
 - Risk: newer APIs may not exist
 
 **Current Best Practice (2025):**
+
 ```json
 {
   "peerDependencies": {
@@ -86,6 +92,7 @@ Different approaches based on library goals:
   }
 }
 ```
+
 - Balances compatibility and API availability
 - Works with all 7.x versions
 - Users get latest compatible version via dependency resolution
@@ -108,6 +115,7 @@ For libraries that can work with OR without react-hook-form:
 ```
 
 **Use Cases:**
+
 - Libraries that offer enhanced features when RHF is present
 - Migration libraries supporting both Formik and RHF
 - UI libraries with optional form integration
@@ -133,11 +141,12 @@ For libraries that can work with OR without react-hook-form:
 ```
 
 **Analysis:**
+
 - ✅ Correctly specifies RHF as peer dependency
 - ✅ Includes RHF in devDependencies for testing
 - ✅ Uses `^7.0.0` for broad compatibility
 - ✅ Explicitly lists React versions
-- ℹ️  Could update to `^18.0.0 || ^19.0.0` for React 19 support
+- ℹ️ Could update to `^18.0.0 || ^19.0.0` for React 19 support
 
 ---
 
@@ -183,12 +192,14 @@ export function Form<T extends FieldValues = FieldValues>({
 ```
 
 **Pros:**
+
 - Encapsulates RHF setup
 - Provides clean API
 - Supports render props for advanced usage
 - Easy to add cross-cutting concerns (auto-save, etc.)
 
 **Cons:**
+
 - Less flexibility than direct RHF usage
 - May need to expose all RHF methods
 
@@ -230,10 +241,11 @@ export function FormField<T extends FieldValues = FieldValues>({
 ```
 
 **Usage:**
+
 ```tsx
 <FormField
   name="email"
-  rules={{ required: 'Email is required' }}
+  rules={{ required: "Email is required" }}
   render={({ value, onChange }) => (
     <input
       type="email"
@@ -249,21 +261,30 @@ export function FormField<T extends FieldValues = FieldValues>({
 Create a custom context that wraps RHF's FormProvider:
 
 ```typescript
-import { createContext, useContext, type UseFormReturn, type FieldValues } from 'react-hook-form';
+import {
+  createContext,
+  useContext,
+  type UseFormReturn,
+  type FieldValues,
+} from "react-hook-form";
 
 interface EnhancedFormContextValue<T extends FieldValues> {
   methods: UseFormReturn<T>;
   // Add your library-specific features
   autoSave?: boolean;
-  validate?: (data: T) => Record<string, string> | Promise<Record<string, string>>;
+  validate?: (
+    data: T,
+  ) => Record<string, string> | Promise<Record<string, string>>;
 }
 
-const EnhancedFormContext = createContext<EnhancedFormContextValue<any> | null>(null);
+const EnhancedFormContext = createContext<EnhancedFormContextValue<any> | null>(
+  null,
+);
 
 export function useEnhancedForm<T extends FieldValues = FieldValues>() {
   const context = useContext(EnhancedFormContext);
   if (!context) {
-    throw new Error('useEnhancedForm must be used within EnhancedFormProvider');
+    throw new Error("useEnhancedForm must be used within EnhancedFormProvider");
   }
   return context as EnhancedFormContextValue<T>;
 }
@@ -319,7 +340,9 @@ export const FormContext = createContext<FormContextValue | null>(null);
 export function useFormContext<
   TFieldValues extends FieldValues = FieldValues,
 >(): FormContextValue<TFieldValues> {
-  const context = useContext(FormContext) as FormContextValue<TFieldValues> | null;
+  const context = useContext(
+    FormContext,
+  ) as FormContextValue<TFieldValues> | null;
 
   if (!context) {
     throw new Error(
@@ -333,6 +356,7 @@ export function useFormContext<
 ```
 
 **Key Features:**
+
 - Extends RHF functionality with custom features
 - Provides registry operations for field tracking
 - Manages subscriptions for conditional logic
@@ -344,10 +368,16 @@ export function useFormContext<
 Export custom hooks that wrap RHF hooks:
 
 ```typescript
-import { useFormContext, type FieldValues } from 'react-hook-form';
+import { useFormContext, type FieldValues } from "react-hook-form";
 
-export function useFormField<T extends FieldValues = FieldValues>(name: string) {
-  const { register, formState: { errors }, getFieldState } = useFormContext<T>();
+export function useFormField<T extends FieldValues = FieldValues>(
+  name: string,
+) {
+  const {
+    register,
+    formState: { errors },
+    getFieldState,
+  } = useFormContext<T>();
 
   const fieldState = getFieldState(name as any);
 
@@ -392,12 +422,14 @@ function App() {
 ```
 
 **Key Pattern:**
+
 - Exports resolver functions compatible with RHF's `resolver` option
 - No peer dependency on RHF in package.json (function is compatible)
 - User provides RHF instance
 - Simple function exports, no components
 
 **Package.json:**
+
 ```json
 {
   "name": "@hookform/resolvers",
@@ -431,6 +463,7 @@ function App() {
 ```
 
 **Key Pattern:**
+
 - Takes `control` object as prop
 - Doesn't need to be inside FormProvider
 - Standalone debugging component
@@ -462,6 +495,7 @@ function App() {
 ```
 
 **Key Patterns:**
+
 - Wrapper components for each MUI input type
 - `FormContainer` manages RHF instance internally
 - Components auto-register with parent form
@@ -517,6 +551,7 @@ function App() {
 ```
 
 **Key Patterns:**
+
 - Uses `useForm` internally to create RHF instance
 - Wraps children in `FormProvider` for context access
 - Creates custom `FormContext` for library-specific features
@@ -525,6 +560,7 @@ function App() {
 - Tracks unused fields for config-driven rendering
 
 **Integration Points:**
+
 1. **Peer Dependency:** RHF as peer dep
 2. **Internal Usage:** `useForm()` hook in Form component
 3. **Context Passthrough:** `FormProvider` wraps children
@@ -616,7 +652,7 @@ export type {
 
   // Validation types
   RegisterOptions,
-} from 'react-hook-form';
+} from "react-hook-form";
 ```
 
 **Example from Formality:**
@@ -653,13 +689,17 @@ Extend RHF types with your library's features:
 
 ```typescript
 // library-types.ts
-import type { UseFormReturn, FieldValues } from 'react-hook-form';
+import type { UseFormReturn, FieldValues } from "react-hook-form";
 
-export interface EnhancedFormReturn<T extends FieldValues> extends UseFormReturn<T> {
+export interface EnhancedFormReturn<
+  T extends FieldValues,
+> extends UseFormReturn<T> {
   // Add your library-specific methods
   autoSave: (enabled: boolean) => void;
   validateField: (name: string) => Promise<boolean>;
-  getFieldValue: <TField extends FieldPath<T>>(name: TField) => FieldPathValue<T, TField>;
+  getFieldValue: <TField extends FieldPath<T>>(
+    name: TField,
+  ) => FieldPathValue<T, TField>;
 }
 ```
 
@@ -668,7 +708,7 @@ export interface EnhancedFormReturn<T extends FieldValues> extends UseFormReturn
 Maintain type safety through generics:
 
 ```typescript
-import type { FieldValues } from 'react-hook-form';
+import type { FieldValues } from "react-hook-form";
 
 interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   defaultValues?: Partial<TFieldValues>;
@@ -706,6 +746,7 @@ export function useFormContext<
 ```
 
 **Benefits:**
+
 - Maintains type inference
 - Default `FieldValues` for flexibility
 - Allows specific typing when needed
@@ -740,7 +781,7 @@ export type FormProps<T extends FieldValues> =
 Create helper types for common patterns:
 
 ```typescript
-import type { FieldValues, FieldPath, FieldPathValue } from 'react-hook-form';
+import type { FieldValues, FieldPath, FieldPathValue } from "react-hook-form";
 
 // Extract field names from schema
 export type FieldNames<T> = keyof T & string;
@@ -759,6 +800,7 @@ export type GetFieldType<T, K extends keyof T> = T[K];
 ### 4.6 Best Practices Summary
 
 **DO:**
+
 - ✅ Re-export commonly used RHF types
 - ✅ Maintain generic type parameters
 - ✅ Extend RHF types rather than replacing them
@@ -767,6 +809,7 @@ export type GetFieldType<T, K extends keyof T> = T[K];
 - ✅ Use proper type constraints (`extends FieldValues`)
 
 **DON'T:**
+
 - ❌ Create duplicate type definitions
 - ❌ Break type inference from RHF
 - ❌ Use `any` unnecessarily
@@ -801,6 +844,7 @@ function ChildComponent() {
 ```
 
 **Key Points:**
+
 - Spread all `useForm` return values to `FormProvider`
 - Children access via `useFormContext()` from RHF
 - Single source of truth for form state
@@ -893,6 +937,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 ```
 
 **Pattern Highlights:**
+
 1. **Dual Context:** Uses both `FormProvider` (RHF) and `FormContext` (custom)
 2. **Context Composition:** Wraps additional contexts (e.g., `GroupContext`)
 3. **Passthrough:** Exposes `methods` directly in custom context
@@ -903,9 +948,9 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 For libraries that may be used alongside other RHF forms:
 
 ```typescript
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
 
-const FORM_CONTEXT_KEY = Symbol('your-library-form');
+const FORM_CONTEXT_KEY = Symbol("your-library-form");
 
 export function createIsolatedContext<T extends FieldValues>() {
   const context = createContext<UseFormReturn<T> | null>(null);
@@ -915,10 +960,10 @@ export function createIsolatedContext<T extends FieldValues>() {
     useContext: () => {
       const formContext = useContext(context);
       if (!formContext) {
-        throw new Error('Must be used within form provider');
+        throw new Error("Must be used within form provider");
       }
       return formContext;
-    }
+    },
   };
 }
 ```
@@ -969,8 +1014,8 @@ export function FormStackProvider({ children }: { children: React.ReactNode }) {
 Prevent unnecessary re-renders with selective context:
 
 ```typescript
-import { createContext, useContext, useMemo } from 'react';
-import type { UseFormReturn, FieldValues } from 'react-hook-form';
+import { createContext, useContext, useMemo } from "react";
+import type { UseFormReturn, FieldValues } from "react-hook-form";
 
 interface FormContextValue<T extends FieldValues> {
   methods: UseFormReturn<T>;
@@ -980,17 +1025,19 @@ const FormContext = createContext<FormContextValue<any> | null>(null);
 
 // Split into separate contexts to avoid re-renders
 const FormMethodsContext = createContext<UseFormReturn<any> | null>(null);
-const FormMetadataContext = createContext<{ isSubmitting: boolean } | null>(null);
+const FormMetadataContext = createContext<{ isSubmitting: boolean } | null>(
+  null,
+);
 
 export function useFormMethods<T extends FieldValues>() {
   const methods = useContext(FormMethodsContext);
-  if (!methods) throw new Error('Must be in form');
+  if (!methods) throw new Error("Must be in form");
   return methods as UseFormReturn<T>;
 }
 
 export function useFormMetadata() {
   const metadata = useContext(FormMetadataContext);
-  if (!metadata) throw new Error('Must be in form');
+  if (!metadata) throw new Error("Must be in form");
   return metadata;
 }
 ```
@@ -1024,6 +1071,7 @@ return (
 ```
 
 **Key Pattern:**
+
 - Only access `methods.formState` when needed (render function)
 - Static children don't subscribe to form state
 - Prevents unnecessary re-renders of child components
@@ -1033,17 +1081,17 @@ return (
 Provide helpful errors for context misuse:
 
 ```typescript
-import { useContext } from 'react';
-import { useFormContext as useRHFContext } from 'react-hook-form';
+import { useContext } from "react";
+import { useFormContext as useRHFContext } from "react-hook-form";
 
 export function useFormContext<T extends FieldValues = FieldValues>() {
   try {
     return useRHFContext<T>() as UseFormReturn<T>;
   } catch (error) {
-    if (error instanceof Error && error.message.includes('useFormContext')) {
+    if (error instanceof Error && error.message.includes("useFormContext")) {
       throw new Error(
-        'useFormContext must be used within a Form component. ' +
-        'Wrap your component in <Form>...</Form>'
+        "useFormContext must be used within a Form component. " +
+          "Wrap your component in <Form>...</Form>",
       );
     }
     throw error;
@@ -1058,13 +1106,13 @@ export function useFormContext<T extends FieldValues = FieldValues>() {
 ### 6.1 Auto-Save Implementation
 
 ```typescript
-import { useForm, useFormState } from 'react-hook-form';
-import { useEffect, useRef } from 'react';
-import { debounce } from 'lodash-es';
+import { useForm, useFormState } from "react-hook-form";
+import { useEffect, useRef } from "react";
+import { debounce } from "lodash-es";
 
 export function useAutoSave(
   onSubmit: (data: any) => Promise<void>,
-  debounceMs = 1000
+  debounceMs = 1000,
 ) {
   const { dirtyFields } = useFormState();
   const isSavingRef = useRef(false);
@@ -1079,7 +1127,7 @@ export function useAutoSave(
           isSavingRef.current = false;
         }
       }
-    }, debounceMs)
+    }, debounceMs),
   ).current;
 
   useEffect(() => {
@@ -1145,7 +1193,10 @@ const executeAutoSave = useCallback(async () => {
     executionVersion,
   );
 
-  if (!validationsComplete || executionVersionRef.current !== executionVersion) {
+  if (
+    !validationsComplete ||
+    executionVersionRef.current !== executionVersion
+  ) {
     return; // Abort - new changes came in
   }
 
@@ -1156,6 +1207,7 @@ const executeAutoSave = useCallback(async () => {
 ```
 
 **Advanced Features:**
+
 - Version tracking to abort stale saves
 - Validation completion waiting
 - Field dependency tracking
@@ -1164,12 +1216,12 @@ const executeAutoSave = useCallback(async () => {
 ### 6.2 Conditional Field Rendering
 
 ```typescript
-import { useFormContext, useFormState } from 'react-hook-form';
-import { useMemo } from 'react';
+import { useFormContext, useFormState } from "react-hook-form";
+import { useMemo } from "react";
 
 export function useConditionalField(
   name: string,
-  condition: (values: any) => boolean
+  condition: (values: any) => boolean,
 ) {
   const { watch } = useFormContext();
   const formValues = watch();
@@ -1185,7 +1237,7 @@ export function useConditionalField(
 ### 6.3 Field Subscription Management
 
 ```typescript
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef } from "react";
 
 export function useFieldSubscriptions() {
   // Inverted index: target -> Set<subscribers>
@@ -1198,9 +1250,12 @@ export function useFieldSubscriptions() {
     invertedSubscriptions.current.get(target)!.add(subscriber);
   }, []);
 
-  const removeSubscription = useCallback((target: string, subscriber: string) => {
-    invertedSubscriptions.current.get(target)?.delete(subscriber);
-  }, []);
+  const removeSubscription = useCallback(
+    (target: string, subscriber: string) => {
+      invertedSubscriptions.current.get(target)?.delete(subscriber);
+    },
+    [],
+  );
 
   const getSubscribers = useCallback((target: string) => {
     return invertedSubscriptions.current.get(target) || new Set();
@@ -1259,12 +1314,12 @@ const getAffectedFields = useCallback((changedField: string): Set<string> => {
 ### 6.4 Dynamic Form Schemas
 
 ```typescript
-import { useForm } from 'react-hook-form';
-import { useMemo } from 'react';
+import { useForm } from "react-hook-form";
+import { useMemo } from "react";
 
 export function useDynamicForm<T extends FieldValues>(
   schemaFactory: (values: Partial<T>) => T,
-  initialValues: Partial<T>
+  initialValues: Partial<T>,
 ) {
   const form = useForm<T>({
     defaultValues: initialValues as T,
@@ -1284,23 +1339,23 @@ export function useDynamicForm<T extends FieldValues>(
 ### 6.5 Cross-Field Validation
 
 ```typescript
-import { useFormContext } from 'react-hook-form';
-import { useCallback } from 'react';
+import { useFormContext } from "react-hook-form";
+import { useCallback } from "react";
 
 export function useCrossFieldValidation() {
   const { trigger, watch } = useFormContext();
 
-  const validateRelatedFields = useCallback(async (
-    fieldName: string,
-    relatedFields: string[]
-  ) => {
-    const values = watch();
+  const validateRelatedFields = useCallback(
+    async (fieldName: string, relatedFields: string[]) => {
+      const values = watch();
 
-    // Trigger validation for all related fields
-    await trigger([fieldName, ...relatedFields] as any);
+      // Trigger validation for all related fields
+      await trigger([fieldName, ...relatedFields] as any);
 
-    return values;
-  }, [trigger, watch]);
+      return values;
+    },
+    [trigger, watch],
+  );
 
   return { validateRelatedFields };
 }
@@ -1440,7 +1495,7 @@ const contextValue = useMemo(
     unregisterField,
     // ... other values
   }),
-  [methods, registerField, unregisterField]
+  [methods, registerField, unregisterField],
 );
 ```
 
@@ -1507,12 +1562,12 @@ const unregisterField = useCallback((name: string) => {
 ### 8.4 Debounce Expensive Operations
 
 ```typescript
-import { debounce } from 'lodash-es';
-import { useRef, useEffect } from 'react';
+import { debounce } from "lodash-es";
+import { useRef, useEffect } from "react";
 
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
-  delay: number
+  delay: number,
 ): T {
   const debouncedRef = useRef<ReturnType<typeof debounce>>();
 
@@ -1534,11 +1589,13 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 ### 9.1 Official Documentation
 
 **React Hook Form**
+
 - Website: https://react-hook-form.com
 - GitHub: https://github.com/react-hook-form/react-hook-form
 - Documentation: https://react-hook-form.com/docs
 
 **Key Documentation Sections:**
+
 - `useForm` API: https://react-hook-form.com/docs/useform
 - `useFormContext` API: https://react-hook-form.com/docs/useformcontext
 - `FormProvider` API: https://react-hook-form.com/docs/useformcontext
@@ -1548,11 +1605,13 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 ### 9.2 Official RHF Packages
 
 **@hookform/resolvers**
+
 - Repository: https://github.com/react-hook-form/resolvers
 - npm: https://www.npmjs.com/package/@hookform/resolvers
 - Purpose: Validation schema integration (Zod, Yup, Joi, etc.)
 
 **@hookform/devtools**
+
 - Repository: https://github.com/react-hook-form/devtools
 - npm: https://www.npmjs.com/package/@hookform/devtools
 - Purpose: Development tools for debugging
@@ -1560,10 +1619,12 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 ### 9.3 Community Libraries
 
 **MUI Integrations:**
+
 - mui-hook-form: https://github.com/dohomi/mui-hook-form
 - react-hook-form-mui: https://github.com/react-hook-form/react-hook-form-mui
 
 **Other UI Libraries:**
+
 - rhf-mui: Material-UI components for RHF
 - chakra-ui-hook-form: Chakra UI integration
 - mantine-hook-form: Mantine UI integration
@@ -1571,30 +1632,36 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 ### 9.4 Best Practices
 
 **Peer Dependency Management:**
+
 - npm docs on peerDependencies: https://docs.npmjs.com/cli/v9/configuring-npm/package-json#v748
 - Semantic Versioning: https://semver.org/
 
 **TypeScript Patterns:**
+
 - React Hook Form TypeScript: https://react-hook-form.com/ts
 - TypeScript Generics: https://www.typescriptlang.org/docs/handbook/2/generics.html
 
 **Testing:**
+
 - React Testing Library: https://testing-library.com/docs/react-testing-library/intro/
 - Testing RHF Forms: https://react-hook-form.com/advanced-use#testing
 
 ### 9.5 Articles and Tutorials
 
 **Integration Patterns:**
+
 - Building a Form Library with React Hook Form (various blog posts)
 - Advanced React Hook Form Patterns (community articles)
 
 **Performance:**
+
 - Optimizing React Hook Form Performance
 - Minimizing Re-renders with React Hook Form
 
 ### 9.6 Code Examples
 
 **This Project (Formality):**
+
 - Repository: `/home/dustin/projects/formality`
 - React Package: `/home/dustin/projects/formality/packages/react`
 - Key Files:
@@ -1607,12 +1674,14 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 ### 9.7 Version Compatibility
 
 **React Hook Form v7:**
+
 - Released: 2021
 - Current: v7.51.x (as of 2025)
 - Minimum React: 16.8.0 (hooks)
 - Recommended React: 18.0.0+
 
 **React Version Support:**
+
 - React 16.8: Supported
 - React 17.x: Supported
 - React 18.x: Supported
@@ -1621,18 +1690,22 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 ### 9.8 Common Issues and Solutions
 
 **Issue 1: Multiple RHF Instances**
+
 - Problem: Conflicting form contexts
 - Solution: Use `FormProvider` consistently
 
 **Issue 2: Type Inference Lost**
+
 - Problem: Generic types not propagating
 - Solution: Maintain type parameters through component hierarchy
 
 **Issue 3: Unnecessary Re-renders**
+
 - Problem: Accessing `formState` in components
 - Solution: Use `useFormState` with selectors or isolated context
 
 **Issue 4: Peer Dependency Conflicts**
+
 - Problem: Multiple versions of RHF
 - Solution: Use `^7.0.0` for compatibility, dedupe dependencies
 
@@ -1695,16 +1768,16 @@ packages/react/
 
 **When to use each pattern:**
 
-| Scenario | Pattern | Why |
-|----------|---------|-----|
-| Simple form wrapper | Pattern 1 | Basic RHF encapsulation |
-| Custom input library | Pattern 2 | Controlled input integration |
-| Feature-rich form library | Pattern 3 | Extended context needed |
-| Composable hooks | Pattern 4 | Reusable field logic |
-| Config-driven forms | Formality approach | Dynamic field rendering |
+| Scenario                  | Pattern            | Why                          |
+| ------------------------- | ------------------ | ---------------------------- |
+| Simple form wrapper       | Pattern 1          | Basic RHF encapsulation      |
+| Custom input library      | Pattern 2          | Controlled input integration |
+| Feature-rich form library | Pattern 3          | Extended context needed      |
+| Composable hooks          | Pattern 4          | Reusable field logic         |
+| Config-driven forms       | Formality approach | Dynamic field rendering      |
 
 ---
 
 **End of Research Document**
 
-*This document is a living resource. Update as new patterns emerge and React Hook Form evolves.*
+_This document is a living resource. Update as new patterns emerge and React Hook Form evolves._

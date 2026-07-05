@@ -24,11 +24,13 @@ beforeEach(() => {
 ```
 
 **Options**:
+
 - `shouldAdvanceTime: boolean` - Whether time should advance automatically (default: false)
 - `toFake: string[]` - Specific APIs to fake (default: all timers)
 - `now: number | Date` - Initial time value
 
 **Usage in Formality**:
+
 ```typescript
 // From autosave-validation.test.tsx
 beforeEach(() => {
@@ -39,6 +41,7 @@ beforeEach(() => {
 ```
 
 **Why `shouldAdvanceTime: true`?**
+
 - Allows `setTimeout` callbacks to run synchronously when time advances
 - Necessary for testing debounced functions that use `setTimeout`
 - Without it, timers wouldn't fire even when advancing time
@@ -72,11 +75,13 @@ await act(async () => {
 ```
 
 **Parameters**:
+
 - `ms`: number - Milliseconds to advance
 
 **Returns**: Promise<void>
 
 **Usage Pattern**:
+
 ```typescript
 // Change field value
 await userEvent.type(field, "test");
@@ -156,6 +161,7 @@ expect(vi.getTimerCount()).toBe(0);
 **Usage**: Verify no timers are pending after a test.
 
 **In Formality**:
+
 ```typescript
 // After immediate submission, no debounce timers should be pending
 expect(vi.getTimerCount()).toBe(0);
@@ -211,6 +217,7 @@ it("should debounce submission", async () => {
 ```
 
 **Key Assertions**:
+
 1. `expect(submitHandler).not.toHaveBeenCalled()` before debounce completes
 2. `expect(submitHandler).toHaveBeenCalledTimes(1)` after debounce completes
 
@@ -320,12 +327,12 @@ it("should submit immediately when debounce: false", async () => {
 
 ### Common Debounce Values
 
-| Value | Use Case | Test Buffer | Advance Time |
-|-------|----------|-------------|--------------|
-| 1000ms | Default form debounce | +100ms | 1100ms |
-| 500ms | Fast testing debounce | +100ms | 600ms |
-| 100ms | Very fast debounce | +50ms | 150ms |
-| 0ms | Immediate (no debounce) | 0ms | 0ms |
+| Value  | Use Case                | Test Buffer | Advance Time |
+| ------ | ----------------------- | ----------- | ------------ |
+| 1000ms | Default form debounce   | +100ms      | 1100ms       |
+| 500ms  | Fast testing debounce   | +100ms      | 600ms        |
+| 100ms  | Very fast debounce      | +50ms       | 150ms        |
+| 0ms    | Immediate (no debounce) | 0ms         | 0ms          |
 
 ### Buffer Calculation
 
@@ -338,6 +345,7 @@ await vi.advanceTimersByTimeAsync(advanceTime);
 ```
 
 **Why add buffer?**
+
 - Ensures timer callback has time to execute
 - Accounts for microtask queue processing
 - Prevents flaky tests due to timing edge cases
@@ -371,6 +379,7 @@ await waitFor(() => {
 ```
 
 **When to use**:
+
 - When timer advancement triggers async state updates
 - When you need to wait for callback execution
 - Default timeout is 1000ms (configurable)
@@ -462,6 +471,7 @@ submitHandler.mockClear();
 ```
 
 **Why 100ms?**
+
 - Allows React to complete initial render
 - Flushes any initial useEffect callbacks
 - Clears any startup timers
@@ -476,6 +486,7 @@ await userEvent.type(field, "test", { delay: null });
 ```
 
 **Why `delay: null`?**
+
 - Default is to type with realistic delays
 - `delay: null` types all characters instantly
 - Prevents tests from taking longer than necessary
@@ -518,18 +529,21 @@ expect(submitHandler).toHaveBeenCalledTimes(1);
 ## Summary
 
 **Primary APIs for Formality Testing**:
+
 1. `vi.useFakeTimers({ shouldAdvanceTime: true })` - Setup
 2. `vi.useRealTimers()` - Cleanup
 3. `vi.advanceTimersByTimeAsync(ms)` - Advance time
 4. `vi.getTimerCount()` - Inspect timers
 
 **Always**:
+
 - Wrap timer operations in `act()`
 - Use `waitFor()` for assertions after timer advancement
 - Add buffer to debounce values when advancing
 - Clean up with `useRealTimers()` in `afterEach()`
 
 **Never**:
+
 - Use exact debounce values without buffer
 - Forget to wrap timer operations in `act()`
 - Skip cleanup in `afterEach()`

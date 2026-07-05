@@ -5,6 +5,7 @@ Research compiled on 2025-01-13 for testing async operations, race conditions, d
 ---
 
 ## Table of Contents
+
 1. [Testing Patterns for Race Conditions](#testing-patterns-for-race-conditions)
 2. [Testing Operation Abortion](#testing-operation-abortion)
 3. [Testing Debounce and Throttle](#testing-debounce-and-throttle)
@@ -41,6 +42,7 @@ const executeAutoSave = useCallback(async () => {
 ```
 
 **Why This Works:**
+
 - Atomic increment ensures each operation gets a unique version
 - Version checkpoints after async operations detect staleness
 - No race conditions between increment and check (single-threaded JS)
@@ -54,7 +56,7 @@ let requestId = 0;
 async function makeRequest() {
   const currentRequestId = ++requestId;
 
-  const response = await fetch('/api/data');
+  const response = await fetch("/api/data");
 
   // Only process if this is still the latest request
   if (currentRequestId === requestId) {
@@ -77,12 +79,12 @@ async function makeRequest() {
   abortControllerRef.current = controller;
 
   try {
-    const response = await fetch('/api/data', {
-      signal: controller.signal
+    const response = await fetch("/api/data", {
+      signal: controller.signal,
     });
     processData(response);
   } catch (error) {
-    if (error.name !== 'AbortError') {
+    if (error.name !== "AbortError") {
       handleError(error);
     }
   }
@@ -96,7 +98,7 @@ async function makeRequest() {
 async function testRaceCondition() {
   const result = await Promise.race([
     slowOperation(),
-    timeout(1000, 'timeout')
+    timeout(1000, "timeout"),
   ]);
 
   // Handle result or timeout
@@ -110,6 +112,7 @@ async function testRaceCondition() {
 ### Testing That Operations Are Properly Ignored
 
 **Key Principles:**
+
 1. **Track call counts** - Verify only expected operations execute
 2. **Log execution order** - Ensure proper sequencing
 3. **Mock timing** - Use fake timers for deterministic tests
@@ -189,7 +192,7 @@ it("should clean up state when operation is aborted", async () => {
     result.current.start(); // Should abort previous
   });
 
-  expect(result.current.state).toBe('idle');
+  expect(result.current.state).toBe("idle");
   expect(result.current.error).toBeNull();
 });
 ```
@@ -201,6 +204,7 @@ it("should clean up state when operation is aborted", async () => {
 ### Vitest Fake Timers Setup
 
 **Critical Configuration:**
+
 ```typescript
 beforeEach(() => {
   // CRITICAL: Use { shouldAdvanceTime: true } for reliable timer behavior
@@ -216,12 +220,12 @@ afterEach(() => {
 ### Testing Debounce - Basic Pattern
 
 ```typescript
-describe('debounce', () => {
-  it('should delay function execution', () => {
+describe("debounce", () => {
+  it("should delay function execution", () => {
     const mockFn = vi.fn();
     const debouncedFn = debounce(mockFn, 1000);
 
-    debouncedFn('test');
+    debouncedFn("test");
 
     // Not called yet
     expect(mockFn).not.toHaveBeenCalled();
@@ -231,24 +235,24 @@ describe('debounce', () => {
       vi.advanceTimersByTimeAsync(1000);
     });
 
-    expect(mockFn).toHaveBeenCalledWith('test');
+    expect(mockFn).toHaveBeenCalledWith("test");
   });
 
-  it('should reset delay on repeated calls', () => {
+  it("should reset delay on repeated calls", () => {
     const mockFn = vi.fn();
     const debouncedFn = debounce(mockFn, 1000);
 
-    debouncedFn('first');
+    debouncedFn("first");
     vi.advanceTimersByTimeAsync(500);
 
-    debouncedFn('second'); // Resets timer
+    debouncedFn("second"); // Resets timer
     vi.advanceTimersByTimeAsync(500);
 
     // Still not called (only 500ms since last call)
     expect(mockFn).not.toHaveBeenCalled();
 
     vi.advanceTimersByTimeAsync(500);
-    expect(mockFn).toHaveBeenCalledWith('second');
+    expect(mockFn).toHaveBeenCalledWith("second");
     expect(mockFn).toHaveBeenCalledTimes(1);
   });
 });
@@ -257,14 +261,14 @@ describe('debounce', () => {
 ### Testing Debounce with Rapid Input
 
 ```typescript
-it('should handle rapid input changes', async () => {
+it("should handle rapid input changes", async () => {
   const mockFn = vi.fn();
   const debouncedFn = debounce(mockFn, 500);
 
-  const input = screen.getByRole('textbox');
+  const input = screen.getByRole("textbox");
 
   // Simulate typing (rapid changes)
-  await userEvent.type(input, 'hello world', { delay: null });
+  await userEvent.type(input, "hello world", { delay: null });
 
   // Clear pending
   await vi.advanceTimersByTimeAsync(100);
@@ -277,39 +281,39 @@ it('should handle rapid input changes', async () => {
 
   // Called once with final value
   expect(mockFn).toHaveBeenCalledTimes(1);
-  expect(mockFn).toHaveBeenCalledWith('hello world');
+  expect(mockFn).toHaveBeenCalledWith("hello world");
 });
 ```
 
 ### Testing Throttle
 
 ```typescript
-describe('throttle', () => {
-  it('should limit call frequency', () => {
+describe("throttle", () => {
+  it("should limit call frequency", () => {
     const mockFn = vi.fn();
     const throttledFn = throttle(mockFn, 1000);
 
-    throttledFn('call1');
-    throttledFn('call2'); // Ignored (within throttle period)
-    throttledFn('call3'); // Ignored
+    throttledFn("call1");
+    throttledFn("call2"); // Ignored (within throttle period)
+    throttledFn("call3"); // Ignored
 
     expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('call1');
+    expect(mockFn).toHaveBeenCalledWith("call1");
 
     // Advance past throttle period
     vi.advanceTimersByTimeAsync(1000);
 
-    throttledFn('call4');
+    throttledFn("call4");
     expect(mockFn).toHaveBeenCalledTimes(2);
-    expect(mockFn).toHaveBeenCalledWith('call4');
+    expect(mockFn).toHaveBeenCalledWith("call4");
   });
 
-  it('should allow leading call', () => {
+  it("should allow leading call", () => {
     const mockFn = vi.fn();
     const throttledFn = throttle(mockFn, 1000);
 
     const startTime = Date.now();
-    throttledFn('first');
+    throttledFn("first");
 
     // Should call immediately (leading edge)
     expect(mockFn).toHaveBeenCalledTimes(1);
@@ -337,7 +341,7 @@ function createAsyncValidator(fieldName: string, delayMs: number = 50) {
   };
 }
 
-it('should handle rapid changes during async validation', async () => {
+it("should handle rapid changes during async validation", async () => {
   validationCalls = [];
 
   const slowValidator = async (value: unknown) => {
@@ -358,8 +362,8 @@ it('should handle rapid changes during async validation', async () => {
   await vi.advanceTimersByTimeAsync(600);
 
   // CRITICAL ASSERTION: Verify validation pattern
-  const validationStarts = validationCalls.filter(c => c.includes(':start'));
-  const validationEnds = validationCalls.filter(c => c.includes(':end'));
+  const validationStarts = validationCalls.filter((c) => c.includes(":start"));
+  const validationEnds = validationCalls.filter((c) => c.includes(":end"));
 
   expect(validationStarts.length).toBeGreaterThan(0);
   expect(validationEnds.length).toBeGreaterThan(0);
@@ -369,14 +373,14 @@ it('should handle rapid changes during async validation', async () => {
 ### Pattern: Mocking Different Response Times
 
 ```typescript
-it('should handle validators with different speeds', async () => {
+it("should handle validators with different speeds", async () => {
   const fastValidator = async (value: unknown) => {
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     return true;
   };
 
   const slowValidator = async (value: unknown) => {
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     return true;
   };
 
@@ -388,28 +392,28 @@ it('should handle validators with different speeds', async () => {
 ### Pattern: Validation State Tracking
 
 ```typescript
-it('should track validation state correctly', async () => {
+it("should track validation state correctly", async () => {
   const { result } = renderHook(() =>
     useForm({
       field1: {
         validator: async (v) => {
           await delay(100);
           return v.length > 3;
-        }
-      }
-    })
+        },
+      },
+    }),
   );
 
   act(() => {
-    result.current.validate('field1', 'ab');
+    result.current.validate("field1", "ab");
   });
 
   // Should be validating
-  expect(result.current.isValidating('field1')).toBe(true);
+  expect(result.current.isValidating("field1")).toBe(true);
 
   // Wait for validation
   await waitFor(() => {
-    expect(result.current.isValidating('field1')).toBe(false);
+    expect(result.current.isValidating("field1")).toBe(false);
   });
 
   // Should have error
@@ -424,6 +428,7 @@ it('should track validation state correctly', async () => {
 ### Pattern 1: Sequential Counter (Your Current Approach)
 
 **Implementation:**
+
 ```typescript
 const executionVersionRef = useRef(0);
 
@@ -438,8 +443,9 @@ function isOperationStale(operationId: number) {
 ```
 
 **Test Pattern:**
+
 ```typescript
-it('should track operation versions correctly', async () => {
+it("should track operation versions correctly", async () => {
   let capturedVersions: number[] = [];
 
   function operation() {
@@ -448,9 +454,9 @@ it('should track operation versions correctly', async () => {
 
     return delay(100).then(() => {
       if (isOperationStale(version)) {
-        return 'stale';
+        return "stale";
       }
-      return 'fresh';
+      return "fresh";
     });
   }
 
@@ -461,9 +467,9 @@ it('should track operation versions correctly', async () => {
   await Promise.all([result1, result2, result3]);
 
   expect(capturedVersions).toEqual([1, 2, 3]);
-  expect(await result1).toBe('stale');
-  expect(await result2).toBe('stale');
-  expect(await result3).toBe('fresh');
+  expect(await result1).toBe("stale");
+  expect(await result2).toBe("stale");
+  expect(await result3).toBe("fresh");
 });
 ```
 
@@ -494,8 +500,9 @@ function startOperation() {
 }
 
 function isOperationStale(operationTime: number, maxAge: number = 1000) {
-  return operationTime < lastOperationTime ||
-         (Date.now() - operationTime) > maxAge;
+  return (
+    operationTime < lastOperationTime || Date.now() - operationTime > maxAge
+  );
 }
 ```
 
@@ -529,6 +536,7 @@ function isOperationActive(operationId: number) {
 ### Blog Posts and Articles
 
 #### Testing Race Conditions
+
 1. **Testing Async JavaScript** - Kent C. Dodds
    - https://kentcdodds.com/blog/test-isolation-with-react
    - Covers testing async operations, timers, and cleanup
@@ -542,6 +550,7 @@ function isOperationActive(operationId: number) {
    - Deep dive into async/await and race conditions
 
 #### Debounce and Throttle Testing
+
 4. **Testing Debounce and Throttle** - Ben Ilegbodu
    - https://www.benmvp.com/blog/testing-debounce-throttle/
    - Jest-specific patterns for testing timing functions
@@ -551,6 +560,7 @@ function isOperationActive(operationId: number) {
    - Official docs on timer mocking in Vitest
 
 #### Async Validation Testing
+
 6. **Testing Form Validation** - React Hook Form
    - https://react-hook-form.com/advanced-fields#TestingForm
    - Official testing patterns for form validation
@@ -613,6 +623,7 @@ function isOperationActive(operationId: number) {
 ## Common Testing Anti-Patterns to Avoid
 
 ### 1. Not Restoring Timers
+
 ```typescript
 // BAD
 beforeEach(() => {
@@ -632,26 +643,28 @@ afterEach(() => {
 ```
 
 ### 2. Insufficient Waiting
+
 ```typescript
 // BAD
 await act(async () => {
   userEvent.click(button);
 });
-expect(result).toBe('success'); // Race condition!
+expect(result).toBe("success"); // Race condition!
 
 // GOOD
 await act(async () => {
   userEvent.click(button);
 });
 await waitFor(() => {
-  expect(result).toBe('success');
+  expect(result).toBe("success");
 });
 ```
 
 ### 3. Testing Timer Implementation
+
 ```typescript
 // BAD - Tests setTimeout directly
-it('should wait 500ms', () => {
+it("should wait 500ms", () => {
   vi.useFakeTimers();
   const fn = vi.fn();
   setTimeout(fn, 500);
@@ -660,12 +673,12 @@ it('should wait 500ms', () => {
 });
 
 // GOOD - Tests behavior
-it('should debounce input', () => {
+it("should debounce input", () => {
   const fn = vi.fn();
   const debounced = debounce(fn, 500);
-  debounced('test');
+  debounced("test");
   vi.advanceTimersByTime(500);
-  expect(fn).toHaveBeenCalledWith('test');
+  expect(fn).toHaveBeenCalledWith("test");
 });
 ```
 

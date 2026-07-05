@@ -13,11 +13,13 @@ The codebase uses **behavioral testing** rather than explicit type checking. Typ
 ### Test File Locations
 
 **Core Package Tests:**
+
 - `/home/dustin/projects/formality/packages/core/src/__tests__/conditions.test.ts`
 - `/home/dustin/projects/formality/packages/core/src/__tests__/expression.test.ts`
 - `/home/dustin/projects/formality/packages/core/src/__tests__/validation.test.ts`
 
 **React Package Tests:**
+
 - `/home/dustin/projects/formality/packages/react/src/__tests__/Field.test.tsx`
 - `/home/dustin/projects/formality/packages/react/src/__tests__/Form.test.tsx`
 - `/home/dustin/projects/formality/packages/react/src/__tests__/useFieldDisabledState.test.tsx`
@@ -37,8 +39,8 @@ const fieldStates = {
     isTouched: false,
     isDirty: false,
     isValidating: false,
-    watchers: {}
-  }
+    watchers: {},
+  },
 };
 ```
 
@@ -51,21 +53,21 @@ Test that the new property works correctly in context:
 ```typescript
 it("should handle disabled property in field state", () => {
   const conditions: ConditionDescriptor[] = [
-    { when: "field1", isDisabled: true, disabled: true }
+    { when: "field1", isDisabled: true, disabled: true },
   ];
 
   const fieldStates = {
     field1: {
       value: "test",
       invalid: false,
-      disabled: true  // ← New property being tested
-    }
+      disabled: true, // ← New property being tested
+    },
   };
 
   const result = evaluateConditions({
     conditions,
     fieldValues: { field1: "test" },
-    fieldStates
+    fieldStates,
   });
 
   expect(result.disabled).toBe(true);
@@ -78,22 +80,20 @@ Test the property in context with related functionality:
 
 ```typescript
 it("should work with isDisabled matcher", () => {
-  const conditions = [
-    { when: "email", isDisabled: true, visible: false }
-  ];
+  const conditions = [{ when: "email", isDisabled: true, visible: false }];
 
   const fieldStates = {
     email: {
       value: "test@example.com",
       invalid: false,
-      disabled: true  // ← Property affects condition evaluation
-    }
+      disabled: true, // ← Property affects condition evaluation
+    },
   };
 
   const result = evaluateConditions({
     conditions,
     fieldValues: { email: "test@example.com" },
-    fieldStates
+    fieldStates,
   });
 
   expect(result.visible).toBe(false);
@@ -112,7 +112,7 @@ it("should accept FieldState with disabled property", () => {
     isDirty: false,
     isValidating: false,
     invalid: false,
-    disabled: true  // ← Should compile without error
+    disabled: true, // ← Should compile without error
   };
 
   expect(fieldState.disabled).toBe(true);
@@ -130,7 +130,7 @@ it("should work without disabled property (backward compatibility)", () => {
     isTouched: false,
     isDirty: false,
     isValidating: false,
-    invalid: false
+    invalid: false,
     // disabled not provided
   };
 
@@ -144,6 +144,7 @@ it("should work without disabled property (backward compatibility)", () => {
 **Environment**: Node.js for core, jsdom for React
 **Type Checking**: TypeScript compiler with `"strict": true`
 **Testing Libraries**:
+
 - `@testing-library/react` for React components
 - `@testing-library/jest-dom` for DOM assertions
 - `vitest` for test assertions
@@ -167,6 +168,7 @@ pnpm test packages/core/src/__tests__/conditions.test.ts
 ## What NOT Found (Intentionally)
 
 The codebase does **NOT** use:
+
 - ❌ Explicit type assertion tests (expectType, expectNotType, etc.)
 - ❌ Type-only test files (`.test-d.ts`)
 - ❌ TypeScript type utility library usage
@@ -187,7 +189,7 @@ describe("FieldStateInput Type Verification", () => {
   it("should accept disabled property", () => {
     const fieldState: FieldStateInput = {
       value: "test",
-      disabled: true
+      disabled: true,
     };
     expect(fieldState.disabled).toBe(true);
   });
@@ -199,7 +201,7 @@ describe("FieldStateInput Type Verification", () => {
     const result = evaluateConditions({
       conditions,
       fieldValues: { field: "test" },
-      fieldStates
+      fieldStates,
     });
 
     expect(result.disabled).toBe(true);
@@ -210,6 +212,7 @@ describe("FieldStateInput Type Verification", () => {
 ## Summary
 
 For P2.M1.T2.S1 (Verify FieldStateInput type):
+
 - **FieldStateInput already has `disabled?: boolean`** (✅ Complete)
 - **Verification needed**: Test that existing property works correctly
 - **Use behavioral tests**: Create objects with the property and test behavior

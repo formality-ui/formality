@@ -19,6 +19,7 @@ This report documents the current implementation state of the Formality codebase
 **Purpose**: Implements the 8-layer props merge pipeline defined in the PRD.
 
 **Key Functions**:
+
 - `mergeFieldProps()` - Merges all 8 prop layers in priority order
 - `selectDefaultFieldProps()` - Resolves default props from config
 - Priority order (highest to lowest):
@@ -32,6 +33,7 @@ This report documents the current implementation state of the Formality codebase
   8. Provider config `defaultFieldProps` (static)
 
 **Current Implementation Status**:
+
 - ✅ Static props layers work correctly
 - ❌ `selectDefaultFieldProps` are NOT evaluated (passed as empty objects)
 - ✅ `selectProps` evaluation works via `usePropsEvaluation` hook
@@ -45,18 +47,21 @@ This report documents the current implementation state of the Formality codebase
 **Purpose**: Evaluates field conditions (disabled, visible, setValue, etc.).
 
 **Key Functions**:
+
 - `evaluateConditions()` - Main condition evaluation function
 - `evaluateFieldMatcher()` - Evaluates individual field matchers including `isDisabled`
 - `conditionMatches()` - Checks if a condition matches current field values
 - `mergeConditionResults()` - Merges multiple condition results
 
 **Condition Matchers Supported**:
+
 - Value matchers: `is`, `isNot`, `pattern`, `truthy`, `falsy`
 - Field state matchers: `isValid`, `isDisabled`
 - Array matchers: `includes`, `doesNotInclude`
 - Range matchers: `gt`, `gte`, `lt`, `lte`
 
 **Current Implementation Status**:
+
 - ✅ `isDisabled` matcher implemented in `evaluateFieldMatcher()` (lines 78-84)
 - ✅ Field state interface includes `disabled` property
 - ❌ Field states are built WITHOUT `disabled` property (line 114 in `useConditions.ts`)
@@ -70,11 +75,13 @@ This report documents the current implementation state of the Formality codebase
 **Purpose**: Safely evaluates expressions against form state.
 
 **Key Functions**:
+
 - `evaluate()` - Evaluates an expression string with context
 - `parseExpression()` - Parses expression using jsep
 - `inferFieldsFromExpression()` - Extracts field dependencies from expression
 
 **Expression Capabilities**:
+
 - Field value access: `client.id`, `signed && approved`
 - Logical operators: `&&`, `||`, `!`
 - Comparison operators: `===`, `!==`, `>`, `<`, `>=`, `<=`
@@ -83,11 +90,13 @@ This report documents the current implementation state of the Formality codebase
 - Member access: `object.property`, `array[index]`
 
 **Security Constraints**:
+
 - No function calls allowed
 - Sandboxed evaluation context
 - Only form state and field metadata accessible
 
 **Current Implementation Status**:
+
 - ✅ Expression parsing and evaluation work correctly
 - ⚠️ Type safety issues with arithmetic operations (Issue 6)
 - ✅ Caching of parsed ASTs for performance
@@ -101,6 +110,7 @@ This report documents the current implementation state of the Formality codebase
 **Purpose**: Defines TypeScript types for configuration.
 
 **Key Types**:
+
 - `InputConfig<T>` - Defines input type configuration
   - `debounce?: number | false` - Supports immediate (false) or delayed (number)
 - `FieldConfig` - Field instance configuration
@@ -108,6 +118,7 @@ This report documents the current implementation state of the Formality codebase
 - `FieldStateInput` - Field state interface with `disabled?: boolean`
 
 **Current Implementation Status**:
+
 - ✅ Type definitions support all PRD requirements
 - ✅ `debounce: false` is properly typed
 - ✅ Field state includes `disabled` property
@@ -123,12 +134,14 @@ This report documents the current implementation state of the Formality codebase
 **Purpose**: Renders individual form fields with full props pipeline.
 
 **Key Responsibilities**:
+
 - Implements 8-layer props pipeline via `mergeFieldProps()` (lines 393-402)
 - Evaluates conditions via `useConditions` hook
 - Handles disabled/visible resolution (lines 257-285)
 - Integrates with React Hook Form `Controller` component
 
 **Props Pipeline Implementation** (lines 393-402):
+
 ```typescript
 const finalProps = mergeFieldProps({
   providerDefaultFieldProps: providerConfig.defaultFieldProps,
@@ -143,6 +156,7 @@ const finalProps = mergeFieldProps({
 ```
 
 **Current Implementation Status**:
+
 - ✅ `selectProps` evaluation works via `usePropsEvaluation` hook
 - ❌ `selectDefaultFieldProps` are empty objects, never evaluated
 - ✅ Condition evaluation for disabled/visible works
@@ -157,12 +171,14 @@ const finalProps = mergeFieldProps({
 **Purpose**: Manages form state, auto-save, and submission.
 
 **Key Responsibilities**:
+
 - Provides `FormContext` for all child components
 - Implements auto-save with debouncing (lines 299-317)
 - Coordinates async validation before submission (lines 404-430)
 - Handles field change callbacks
 
 **Auto-Save Implementation** (lines 299-317):
+
 ```typescript
 const changeField = useCallback(
   (name: string, value: unknown) => {
@@ -180,11 +196,13 @@ const changeField = useCallback(
 ```
 
 **Debounce Configuration** (line 136):
+
 ```typescript
 debounceMs = props.debounce ?? 1000; // ❌ Ignores debounce: false
 ```
 
 **Current Implementation Status**:
+
 - ❌ Does NOT support `debounce: false` for immediate submission
 - ✅ Debounce timer implementation works correctly for number values
 - ✅ Async validation coordination is well-implemented
@@ -199,12 +217,14 @@ debounceMs = props.debounce ?? 1000; // ❌ Ignores debounce: false
 **Purpose**: Evaluates field conditions and returns disabled/visible state.
 
 **Key Responsibilities**:
+
 - Watches dependent fields via `useWatch`
 - Builds field states for condition evaluation
 - Calls core `evaluateConditions()` function
 - Returns merged condition results
 
 **Field State Building** (lines 98-119):
+
 ```typescript
 const fieldStates = useMemo(() => {
   const states: Record<string, FieldStateInput> = {};
@@ -227,6 +247,7 @@ const fieldStates = useMemo(() => {
 ```
 
 **Current Implementation Status**:
+
 - ✅ Condition evaluation logic is correct
 - ❌ Field states do NOT include `disabled` property
 - ❌ `isValidating` is hardcoded to `false`
@@ -241,14 +262,16 @@ const fieldStates = useMemo(() => {
 **Purpose**: Evaluates dynamic props (`selectProps`) against form state.
 
 **Key Responsibilities**:
+
 - Evaluates expressions with field context
 - Infers field dependencies automatically
 - Creates proxy-wrapped field states for evaluation
 
 **Evaluation Pattern**:
+
 ```typescript
 const evaluatedProps = useMemo(() => {
-  if (typeof selectProps === 'function') {
+  if (typeof selectProps === "function") {
     return selectProps(proxyFieldStates);
   }
   return selectProps;
@@ -256,6 +279,7 @@ const evaluatedProps = useMemo(() => {
 ```
 
 **Current Implementation Status**:
+
 - ✅ Expression evaluation works correctly
 - ✅ Proxy state pattern enables reactive access
 - ✅ Dependency inference prevents unnecessary re-evaluation
@@ -270,11 +294,13 @@ const evaluatedProps = useMemo(() => {
 ### Issue 1: `selectDefaultFieldProps` Not Implemented
 
 **PRD Requirement**:
+
 - Section 6.3.2 defines 8-layer props pipeline
 - Layers 2 and 4 should evaluate `selectDefaultFieldProps` functions
 - Evaluation should happen against form state
 
 **Actual Implementation**:
+
 - `selectDefaultFieldProps` are passed to `mergeFieldProps()` as empty objects
 - Comments indicate "should be evaluated" but evaluation never happens
 - `usePropsEvaluation` hook exists but only evaluates `selectProps`
@@ -288,10 +314,12 @@ const evaluatedProps = useMemo(() => {
 ### Issue 2: Per-Field `debounce: false` Not Implemented
 
 **PRD Requirement**:
+
 - Section 11.1 states: "If field has `debounce: false`, submit immediately"
 - Section 6.3.1 defines `debounce?: number | false`
 
 **Actual Implementation**:
+
 - Type definition correctly supports `debounce?: number | false`
 - Form component defaults to `1000` if `debounce` prop is falsy (line 136)
 - No check for `inputConfig.debounce === false` in `changeField` callback
@@ -305,10 +333,12 @@ const evaluatedProps = useMemo(() => {
 ### Issue 3: `disabled` Property Missing From Field States
 
 **PRD Requirement**:
+
 - Section 7.1 documents `isDisabled` condition matcher
 - Section 8.3 shows `isDisabled` usage in conditions
 
 **Actual Implementation**:
+
 - `evaluateFieldMatcher()` correctly checks `isDisabled` matcher
 - `FieldStateInput` interface includes `disabled?: boolean`
 - Field states are built WITHOUT `disabled` property (line 114 in `useConditions.ts`)
@@ -318,6 +348,7 @@ const evaluatedProps = useMemo(() => {
 **Root Cause**: `methods.getFieldState()` from React Hook Form does NOT return `disabled` property. The disabled state comes from condition evaluation, creating a circular dependency.
 
 **Complexity**: HIGH - Disabled state has multiple sources:
+
 1. JSX prop: `<Field disabled />`
 2. Field config: `{ disabled: true }`
 3. Condition evaluation: `conditions: [{ disabled: true }]`
@@ -328,9 +359,11 @@ const evaluatedProps = useMemo(() => {
 ### Issue 4: `isDisabled` Condition Matcher Only Works for String `when`
 
 **PRD Requirement**:
+
 - Section 8.3 shows multi-field conditions with `isDisabled`
 
 **Actual Implementation**:
+
 - `isDisabled` matcher is only checked when `condition.when` is a string (lines 177-199 in `evaluate.ts`)
 - For object `when` conditions, `isDisabled` is ignored
 
@@ -343,9 +376,11 @@ const evaluatedProps = useMemo(() => {
 ### Issue 5: Potential Memory Leak in Subscription Cleanup
 
 **PRD Requirement**:
+
 - N/A (general robustness)
 
 **Actual Implementation**:
+
 - `useSubscriptions` hook manages field subscriptions
 - Cleanup function may not handle rapid subscription changes
 
@@ -358,9 +393,11 @@ const evaluatedProps = useMemo(() => {
 ### Issue 6: Type Safety Issues in Expression Evaluation
 
 **PRD Requirement**:
+
 - Section 5.2 defines expression evaluation
 
 **Actual Implementation**:
+
 - Arithmetic operations assume `number` type without runtime checks
 - `evaluate("null + 5", context)` would throw error
 
@@ -373,9 +410,11 @@ const evaluatedProps = useMemo(() => {
 ### Issue 7: Race Condition in Auto-Save Validation
 
 **PRD Requirement**:
+
 - Section 12 defines auto-save system
 
 **Actual Implementation**:
+
 - Current implementation has version checking (`executionVersionRef`)
 - May have edge cases where validation completes after version check
 
@@ -392,23 +431,26 @@ const evaluatedProps = useMemo(() => {
 **Pattern**: Safe, sandboxed expression evaluation with field context
 
 **Implementation**:
+
 1. **Parsing**: jsep library parses expressions into AST
 2. **Caching**: Parsed ASTs are cached in Map for performance
 3. **Evaluation**: Safe evaluation with context containing field values
 4. **Proxy Unwrapping**: Field proxies are unwrapped to get raw values
 
 **Example**:
+
 ```typescript
 // Expression: "client.id && approved"
 const context = {
   client: { id: 123 },
-  approved: true
+  approved: true,
 };
-evaluate("client.id && approved", context)
+evaluate("client.id && approved", context);
 // → true
 ```
 
 **Usage in Fixes**:
+
 - Use same `evaluate()` function for `selectDefaultFieldProps`
 - Follow same caching pattern for performance
 - Use same proxy unwrapping logic
@@ -420,12 +462,14 @@ evaluate("client.id && approved", context)
 **Pattern**: All hooks follow consistent structure for state management
 
 **Implementation**:
+
 1. **Subscription Inference**: Use `useInferredInputs` to determine dependencies
 2. **Isolated Watching**: Use `useWatch` with specific field names
 3. **State Building**: Build minimal required state on change
 4. **Memoization**: Cache results with proper dependencies
 
 **Example from `useConditions`**:
+
 ```typescript
 const watchFields = useInferredInputs({ conditions, subscribesTo });
 const watchedValues = useWatch({ control: methods.control, name: watchFields });
@@ -436,6 +480,7 @@ const fieldStates = useMemo(() => {
 ```
 
 **Usage in Fixes**:
+
 - Follow same pattern for new `useDefaultPropsEvaluation` hook
 - Use `useInferredInputs` for dependency inference
 - Use `useWatch` for isolated subscriptions
@@ -447,12 +492,14 @@ const fieldStates = useMemo(() => {
 **Pattern**: Field states use proxy objects to provide dual access (value + metadata)
 
 **Implementation**:
+
 1. **Minimal Wrapper**: Only expose necessary properties
 2. **Value Proxies**: Wrap values to enable reactive updates
 3. **State Metadata**: Include touched/dirty/validating states
 4. **Unwrapping**: Special handling to unwrap proxies for evaluation
 
 **Example**:
+
 ```typescript
 const proxyState = createFieldStateProxy(fieldName, fieldValue, fieldMetadata);
 
@@ -464,6 +511,7 @@ proxyState.client.isTouched → true
 ```
 
 **Usage in Fixes**:
+
 - Use same proxy pattern for `selectDefaultFieldProps` evaluation
 - Ensure proxies are properly unwrapped before evaluation
 
@@ -474,12 +522,14 @@ proxyState.client.isTouched → true
 **Pattern**: 8-layer merge with strict priority order
 
 **Implementation**:
+
 1. **Layer Separation**: Each layer has distinct purpose
 2. **Priority Order**: Higher layers override lower layers
 3. **Static vs Dynamic**: Static props merged first, dynamic evaluated last
 4. **Type Safety**: TypeScript ensures layer compatibility
 
 **Layer Order** (highest to lowest):
+
 1. Component props (JSX)
 2. Field config `selectProps` (dynamic)
 3. Field config `props` (static)
@@ -490,6 +540,7 @@ proxyState.client.isTouched → true
 8. Provider config `defaultFieldProps` (static)
 
 **Usage in Fixes**:
+
 - Insert evaluated `selectDefaultFieldProps` at layers 5 and 7
 - Ensure evaluated props override static props
 - Maintain strict priority order
@@ -542,12 +593,14 @@ proxyState.client.isTouched → true
 ### For Issue 1: `selectDefaultFieldProps` Evaluation
 
 **Approach**:
+
 1. Extend `usePropsEvaluation` hook to handle form/provider level props
 2. Add new parameters for `selectDefaultFieldProps` from form and provider
 3. Evaluate these using the same expression engine
 4. Pass evaluated results to `mergeFieldProps()`
 
 **Files to Modify**:
+
 - `packages/react/src/hooks/usePropsEvaluation.ts` - Add evaluation logic
 - `packages/react/src/components/Field.tsx` - Pass evaluated props
 - `packages/react/src/components/Form.tsx` - Provide form-level props
@@ -560,12 +613,14 @@ proxyState.client.isTouched → true
 ### For Issue 2: `debounce: false` Support
 
 **Approach**:
+
 1. Modify `changeField` callback to accept `inputConfig` parameter
 2. Check if `inputConfig.debounce === false`
 3. If true, call `submitImmediate()` instead of `debouncedSubmit()`
 4. Create `submitImmediate()` function that bypasses debounce
 
 **Files to Modify**:
+
 - `packages/react/src/components/Form.tsx` - Add immediate submission logic
 
 **Pattern to Follow**: Similar to existing debounced submit, but without debounce
@@ -575,12 +630,14 @@ proxyState.client.isTouched → true
 ### For Issue 3 & 4: `isDisabled` Conditions
 
 **Approach**:
+
 1. Resolve actual disabled state for each field (from all sources)
 2. Include `disabled` property in field states
 3. Move `isDisabled` matcher check outside string-only block
 4. Support multi-field conditions with `isDisabled`
 
 **Files to Modify**:
+
 - `packages/react/src/hooks/useConditions.ts` - Build field states with disabled
 - `packages/core/src/conditions/evaluate.ts` - Support multi-field isDisabled
 - `packages/react/src/components/Field.tsx` - Expose resolved disabled state
@@ -592,11 +649,13 @@ proxyState.client.isTouched → true
 ### For Issue 5: Memory Leak Prevention
 
 **Approach**:
+
 1. Add tracking of subscriptions per effect invocation
 2. Ensure cleanup only removes subscriptions added in that invocation
 3. Test with rapid subscription changes
 
 **Files to Modify**:
+
 - `packages/react/src/hooks/useSubscriptions.ts` - Improve cleanup logic
 
 **Pattern to Follow**: Similar to existing useEffect cleanup patterns
@@ -606,11 +665,13 @@ proxyState.client.isTouched → true
 ### For Issue 6: Type Safety in Expressions
 
 **Approach**:
+
 1. Add type guards before arithmetic operations
 2. Return `undefined` or handle gracefully for non-numeric values
 3. Add tests for type edge cases
 
 **Files to Modify**:
+
 - `packages/core/src/expression/evaluate.ts` - Add type checking
 
 **Pattern to Follow**: Same as other error handling in expression evaluation
@@ -620,11 +681,13 @@ proxyState.client.isTouched → true
 ### For Issue 7: Race Condition Prevention
 
 **Approach**:
+
 1. Review existing version checking logic
 2. Add additional safeguards if needed
 3. Test with rapid field changes
 
 **Files to Modify**:
+
 - `packages/react/src/components/Form.tsx` - Strengthen validation coordination
 
 **Pattern to Follow**: Enhance existing execution versioning
@@ -636,6 +699,7 @@ proxyState.client.isTouched → true
 ### Test Structure
 
 Tests follow consistent patterns:
+
 - **Vitest** for testing framework
 - **Testing Library** for DOM testing
 - **forwardRef** components for test fixtures
@@ -683,17 +747,13 @@ describe("Feature", () => {
 ### Priority Order
 
 **Critical (Must Fix)**:
+
 1. Issue 1: `selectDefaultFieldProps` - Core feature missing
 2. Issue 2: `debounce: false` - Breaking expected behavior
 
-**Major (Should Fix)**:
-3. Issue 3: `disabled` property - Blocks condition functionality
-4. Issue 4: Multi-field `isDisabled` - Limits condition expressiveness
-5. Issue 5: Memory leak - Could cause production issues
+**Major (Should Fix)**: 3. Issue 3: `disabled` property - Blocks condition functionality 4. Issue 4: Multi-field `isDisabled` - Limits condition expressiveness 5. Issue 5: Memory leak - Could cause production issues
 
-**Medium (Consider Fixing)**:
-6. Issue 6: Type safety - Could cause runtime crashes
-7. Issue 7: Race condition - Could lead to inconsistent state
+**Medium (Consider Fixing)**: 6. Issue 6: Type safety - Could cause runtime crashes 7. Issue 7: Race condition - Could lead to inconsistent state
 
 ---
 

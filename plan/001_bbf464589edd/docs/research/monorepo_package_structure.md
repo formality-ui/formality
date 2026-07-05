@@ -1,6 +1,7 @@
 # pnpm Monorepo Package Structure Research
 
 ## Table of Contents
+
 1. [Workspace Package Configuration](#1-workspace-package-configuration)
 2. [Package Naming Conventions](#2-package-naming-conventions)
 3. [Root vs Workspace Package.json](#3-root-vs-workspace-packagejson)
@@ -19,12 +20,13 @@ The foundation of a pnpm monorepo is the `pnpm-workspace.yaml` file in the root 
 ```yaml
 # pnpm-workspace.yaml
 packages:
-  - 'packages/*'
-  - 'apps/*'
-  - 'tools/*'
+  - "packages/*"
+  - "apps/*"
+  - "tools/*"
 ```
 
 **Key Points:**
+
 - Defines which directories contain workspace packages
 - Uses glob patterns to match package directories
 - Each matching directory must contain a valid `package.json`
@@ -53,9 +55,7 @@ Each workspace package requires a properly configured `package.json`:
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -75,6 +75,7 @@ Each workspace package requires a properly configured `package.json`:
 ```
 
 **Essential Fields:**
+
 - `name`: Unique package identifier (should be scoped for monorepos)
 - `version`: Semantic version number
 - `private`: Set to `false` for publishable packages, `true` for internal-only
@@ -103,6 +104,7 @@ Each workspace package requires a properly configured `package.json`:
 ```
 
 **Benefits of Scoped Naming:**
+
 - Prevents naming conflicts with public npm packages
 - Clearly indicates package ownership/organization
 - Groups related packages together
@@ -111,6 +113,7 @@ Each workspace package requires a properly configured `package.json`:
 ### 2.2 Naming Patterns
 
 **Framework-Specific Packages:**
+
 ```
 @formality-ui/react     # React integration
 @formality-ui/vue       # Vue integration
@@ -119,6 +122,7 @@ Each workspace package requires a properly configured `package.json`:
 ```
 
 **Core/Shared Packages:**
+
 ```
 @formality-ui/core      # Core logic/framework-agnostic
 @formality-ui/utils     # Utility functions
@@ -126,6 +130,7 @@ Each workspace package requires a properly configured `package.json`:
 ```
 
 **Feature Packages:**
+
 ```
 @formality-ui/validation    # Validation features
 @formality-ui/evaluation    # Expression evaluation
@@ -141,11 +146,13 @@ Each workspace package requires a properly configured `package.json`:
 5. **Keep it short:** Prefer shorter, memorable names
 
 **Good Examples:**
+
 - `@formality-ui/core`
 - `@formality-ui/react-components`
 - `@formality-ui/validation-rules`
 
 **Avoid:**
+
 - `@formality-ui/Core` (camelCase)
 - `@formality-ui.core` (dots)
 - `@formality-ui_core` (underscores)
@@ -191,6 +198,7 @@ The root `package.json` serves as the monorepo configuration hub:
 ```
 
 **Root Package Characteristics:**
+
 - `private: true` - Prevents accidental publishing of root
 - Shared dev dependencies (TypeScript, linters, testing)
 - Orchestrator scripts using `pnpm -r` (recursive)
@@ -220,9 +228,7 @@ Workspace packages focus on their specific functionality:
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -249,6 +255,7 @@ Workspace packages focus on their specific functionality:
 ```
 
 **Workspace Package Characteristics:**
+
 - Scoped name for organization
 - Focused dependencies (only what that package needs)
 - Workspace references to internal packages
@@ -258,14 +265,14 @@ Workspace packages focus on their specific functionality:
 
 ### 3.3 Key Differences
 
-| Aspect | Root Package | Workspace Package |
-|--------|--------------|-------------------|
-| `private` | `true` | `false` (usually) |
-| Purpose | Orchestration | Functionality |
-| Dependencies | Dev tooling only | Runtime + workspace deps |
-| Scripts | Run across all packages (`-r`) | Package-specific |
-| Publishing | Never published | Published to npm |
-| Location | Root directory | `packages/*` or `apps/*` |
+| Aspect       | Root Package                   | Workspace Package        |
+| ------------ | ------------------------------ | ------------------------ |
+| `private`    | `true`                         | `false` (usually)        |
+| Purpose      | Orchestration                  | Functionality            |
+| Dependencies | Dev tooling only               | Runtime + workspace deps |
+| Scripts      | Run across all packages (`-r`) | Package-specific         |
+| Publishing   | Never published                | Published to npm         |
+| Location     | Root directory                 | `packages/*` or `apps/*` |
 
 ---
 
@@ -307,6 +314,7 @@ The `workspace:` protocol is pnpm's way to link packages within a monorepo:
 ### 4.2 How workspace: Works
 
 **During Development:**
+
 ```json
 {
   "dependencies": {
@@ -314,14 +322,17 @@ The `workspace:` protocol is pnpm's way to link packages within a monorepo:
   }
 }
 ```
+
 - Creates a symlink to the local package
 - Changes in `@formality-ui/core` are immediately available
 - No need to reinstall or rebuild
 
 **During Publishing:**
+
 ```bash
 pnpm publish
 ```
+
 - `workspace:*` is replaced with the actual version number
 - Example: `"@formality-ui/core": "workspace:*"` → `"@formality-ui/core": "0.1.0"`
 
@@ -376,6 +387,7 @@ pnpm publish
    - Prevents unnecessary coupling
 
 3. **Use peerDependencies for frameworks**
+
    ```json
    {
      "peerDependencies": {
@@ -456,55 +468,63 @@ formality/
 ### 5.2 pnpm-workspace.yaml Configuration
 
 **Simple Structure:**
+
 ```yaml
 packages:
-  - 'packages/*'
+  - "packages/*"
 ```
 
 **Multi-Directory Structure:**
+
 ```yaml
 packages:
-  - 'packages/*'
-  - 'apps/*'
-  - 'tools/*'
-  - 'examples/*'
+  - "packages/*"
+  - "apps/*"
+  - "tools/*"
+  - "examples/*"
 ```
 
 **Selective Structure:**
+
 ```yaml
 packages:
-  - 'packages/*'
-  - 'apps/*'
-  - '!**/test/**'
+  - "packages/*"
+  - "apps/*"
+  - "!**/test/**"
 ```
 
 ### 5.3 Common Package Categories
 
 **1. Core Packages** (`packages/`)
+
 - Framework-agnostic logic
 - Shared utilities
 - Type definitions
 - Base functionality
 
 **2. Framework Packages** (`packages/`)
+
 - React integration
 - Vue integration
 - Svelte integration
 - Angular integration
 
 **3. Feature Packages** (`packages/`)
+
 - Validation
 - Evaluation
 - Providers
 - Components
 
 **4. Application Packages** (`apps/`)
+
 - Documentation site
 - Example apps
 - Demo applications
 - Internal tools
 
 **5. Development Tools** (`tools/`)
+
 - Shared TypeScript configs
 - ESLint configurations
 - Build scripts
@@ -513,6 +533,7 @@ packages:
 ### 5.4 Alternative Patterns
 
 **Pattern 1: Domain-Driven Structure**
+
 ```
 packages/
 ├── auth/
@@ -522,6 +543,7 @@ packages/
 ```
 
 **Pattern 2: Layer-Based Structure**
+
 ```
 packages/
 ├── ui-components/
@@ -531,6 +553,7 @@ packages/
 ```
 
 **Pattern 3: Type-Based Structure**
+
 ```
 packages/
 ├── libraries/
@@ -572,6 +595,7 @@ packages/
 ### 6.1 Core pnpm Workspace Documentation
 
 **Main Workspaces Documentation**
+
 - URL: https://pnpm.io/workspaces
 - Sections:
   - Workspace setup
@@ -580,6 +604,7 @@ packages/
   - Linking workspace packages
 
 **Workspace Protocol Documentation**
+
 - URL: https://pnpm.io/workspaces#workspace-protocol-workspace
 - Sections:
   - `workspace:` protocol syntax
@@ -588,6 +613,7 @@ packages/
   - Workspace protocol examples
 
 **Package.json Reference**
+
 - URL: https://pnpm.io/package_json
 - Sections:
   - package.json fields
@@ -598,6 +624,7 @@ packages/
 ### 6.2 Dependency Management
 
 **Dependencies Documentation**
+
 - URL: https://pnpm.io/dependency-types
 - Sections:
   - dependencies
@@ -606,6 +633,7 @@ packages/
   - optionalDependencies
 
 **Workspace Dependencies**
+
 - URL: https://pnpm.io/workspaces#workspace-dependencies
 - Sections:
   - Adding workspace dependencies
@@ -615,6 +643,7 @@ packages/
 ### 6.3 Publishing from Monorepos
 
 **Publishing Workspaces**
+
 - URL: https://pnpm.io/publishing-workspace-packages
 - Sections:
   - Publishing workspace packages
@@ -623,6 +652,7 @@ packages/
   - Access control
 
 **Changesets with pnpm**
+
 - URL: https://pnpm.io/using-changesets
 - Sections:
   - Changeset configuration
@@ -632,6 +662,7 @@ packages/
 ### 6.4 CLI Commands
 
 **Workspace CLI Commands**
+
 - URL: https://pnpm.io/cli/add
 - Sections:
   - Adding workspace dependencies
@@ -639,6 +670,7 @@ packages/
   - `--filter` option
 
 **Recursive Commands**
+
 - URL: https://pnpm.io/cli/recursive
 - Sections:
   - `pnpm -r` (recursive)
@@ -648,6 +680,7 @@ packages/
 ### 6.5 Best Practices
 
 **Monorepo Best Practices**
+
 - URL: https://pnpm.io/workspaces#best-practices
 - Sections:
   - Workspace organization
@@ -658,14 +691,17 @@ packages/
 ### 6.6 Additional Resources
 
 **GitHub Repository**
+
 - URL: https://github.com/pnpm/pnpm
 - Issues, discussions, and examples
 
 **Discord Community**
+
 - URL: https://pnpm.io/pnpm-discord
 - Real-time help and discussions
 
 **Blog**
+
 - URL: https://pnpm.io/blog
 - Feature announcements, tutorials, best practices
 
@@ -710,6 +746,7 @@ packages/
 The Formality project demonstrates these principles:
 
 **Current Structure:**
+
 ```
 formality/
 ├── pnpm-workspace.yaml       # Defines packages/*
@@ -723,6 +760,7 @@ formality/
 ```
 
 **Workspace Dependency Example:**
+
 ```json
 // packages/react/package.json
 {

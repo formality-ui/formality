@@ -14,6 +14,7 @@
 **Feature Goal**: Create comprehensive tests that verify rapid prop/config changes don't cause memory leaks, subscription count imbalances, or performance degradation in the useSubscriptions hook.
 
 **Deliverable**:
+
 1. Test suite verifying subscription count balance during rapid changes (10+ iterations)
 2. Tests tracking subscription lifecycle through inspectable Maps
 3. Tests verifying final subscription count matches expected state
@@ -21,6 +22,7 @@
 5. Tests verifying no console warnings during rapid changes
 
 **Success Definition**:
+
 - Subscription counts remain balanced after 10+ rapid changes
 - `runSubscriptionsRef` Map doesn't accumulate entries (old runs are deleted)
 - Final subscription state matches the last prop value
@@ -35,11 +37,13 @@
 **Target User**: Form developers using the Formality library
 
 **Use Case**: Developing dynamic forms where field configurations change rapidly at runtime, ensuring:
+
 - Forms handle rapid field config changes without memory leaks
 - Dynamic field updates (e.g., conditional fields showing/hiding) don't accumulate subscriptions
 - Long-running applications with frequent config updates remain stable
 
 **User Journey**:
+
 1. Developer creates form with dynamic field configuration
 2. Field configuration changes rapidly (e.g., user selects different options, fields show/hide)
 3. Subscriptions are added and removed correctly for each config change
@@ -47,6 +51,7 @@
 5. Memory usage remains stable
 
 **Pain Points Addressed**:
+
 - **Memory leak anxiety**: Uncertainty if rapid changes leave orphaned subscriptions
 - **Performance degradation**: Forms becoming slower as subscriptions accumulate
 - **Difficult debugging**: Hard to detect subscription leaks without proper tests
@@ -69,6 +74,7 @@
 
 **From P3.M1.T1.S1 Contract**:
 The previous work item (P3.M1.T1.S1) implements per-effect tracking with:
+
 - `runIdRef`: Incrementing counter for each effect run
 - `runSubscriptionsRef`: `Map<number, string[]>` storing subscriptions per run
 - LIFO cleanup: `[...thisRunSubscriptions].reverse().forEach(...)`
@@ -76,12 +82,14 @@ The previous work item (P3.M1.T1.S1) implements per-effect tracking with:
 
 **From P3.M1.T2.S1 Contract**:
 The parallel work item (P3.M1.T2.S1) tests unmount cleanup scenarios:
+
 - Tests verify Maps are empty after unmount
 - Tests use WeakMap for component instance tracking
 - Tests verify no console warnings during unmount
 
-**Existing Tests** (packages/react/src/__tests__/useSubscriptions.test.tsx):
+**Existing Tests** (packages/react/src/**tests**/useSubscriptions.test.tsx):
 The test file already includes:
+
 - Basic functionality tests
 - Per-effect cleanup tests
 - LIFO ordering tests
@@ -92,6 +100,7 @@ The test file already includes:
 - **Lines 213-230**: Basic rapid changes test (only 3 changes)
 
 **Problem**:
+
 1. Existing rapid changes test only does 3 iterations (not stress testing)
 2. No tests tracking subscription count balance
 3. No tests verifying `runSubscriptionsRef` Map doesn't accumulate
@@ -119,6 +128,7 @@ The test file already includes:
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file paths and existing test structure
 - Previous PRP contracts (P3.M1.T1.S1, P3.M1.T2.S1) as foundation
 - Complete implementation patterns with code examples
@@ -288,6 +298,7 @@ packages/react/src/
 ### Data models and structure
 
 No new data models needed. Testing existing structures:
+
 ```typescript
 // Existing data structures to verify during rapid changes
 type RunId = number;
@@ -397,7 +408,7 @@ describe("rapid changes - subscription count tracking", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] },
-      }
+      },
     );
 
     // Initial subscription
@@ -427,7 +438,7 @@ describe("rapid changes - subscription count tracking", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] },
-      }
+      },
     );
 
     // Perform rapid changes
@@ -444,7 +455,8 @@ describe("rapid changes - subscription count tracking", () => {
     expect(state.invertedSubscriptions.get("field12")).toContain("field1");
     // Previous fields should not have field1 as subscriber
     for (let i = 0; i < 11; i++) {
-      if (i !== 10) { // Skip the last one
+      if (i !== 10) {
+        // Skip the last one
         const fieldName = `field${i + 2}`;
         const watchers = state.invertedSubscriptions.get(fieldName);
         expect(watchers?.contains("field1") ?? false).toBe(false);
@@ -461,7 +473,7 @@ describe("rapid changes - subscription count tracking", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["fieldA", "fieldB"] },
-      }
+      },
     );
 
     // Rapid changes to different subscription sets
@@ -472,12 +484,24 @@ describe("rapid changes - subscription count tracking", () => {
     // Verify final state matches last prop
     const state = inspectableContext.getInspectableState();
     expect(state.invertedSubscriptions.get("fieldG")).toContain("field1");
-    expect(state.invertedSubscriptions.get("fieldA")?.has("field1") ?? false).toBe(false);
-    expect(state.invertedSubscriptions.get("fieldB")?.has("field1") ?? false).toBe(false);
-    expect(state.invertedSubscriptions.get("fieldC")?.has("field1") ?? false).toBe(false);
-    expect(state.invertedSubscriptions.get("fieldD")?.has("field1") ?? false).toBe(false);
-    expect(state.invertedSubscriptions.get("fieldE")?.has("field1") ?? false).toBe(false);
-    expect(state.invertedSubscriptions.get("fieldF")?.has("field1") ?? false).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("fieldA")?.has("field1") ?? false,
+    ).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("fieldB")?.has("field1") ?? false,
+    ).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("fieldC")?.has("field1") ?? false,
+    ).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("fieldD")?.has("field1") ?? false,
+    ).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("fieldE")?.has("field1") ?? false,
+    ).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("fieldF")?.has("field1") ?? false,
+    ).toBe(false);
   });
 });
 
@@ -489,7 +513,7 @@ describe("rapid changes - subscription count tracking", () => {
 
 describe("rapid changes - memory leak detection", () => {
   beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -499,7 +523,7 @@ describe("rapid changes - memory leak detection", () => {
   it("should not leak memory with 10+ rapid changes (performance.memory)", () => {
     // Skip if performance.memory not available (Chrome/Edge only)
     if (!performance.memory) {
-      console.warn('performance.memory not available - skipping memory test');
+      console.warn("performance.memory not available - skipping memory test");
       return;
     }
 
@@ -517,7 +541,7 @@ describe("rapid changes - memory leak detection", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] },
-      }
+      },
     );
 
     // Perform many rapid changes
@@ -546,7 +570,7 @@ describe("rapid changes - memory leak detection", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] },
-      }
+      },
     );
 
     // Clear existing logs
@@ -559,10 +583,11 @@ describe("rapid changes - memory leak detection", () => {
 
     // Check for memory leak warnings
     const warnCalls = vi.mocked(console.warn).mock.calls;
-    const memoryLeakWarnings = warnCalls.filter(call =>
-      call[0]?.includes('memory leak') ||
-      call[0]?.includes('orphaned') ||
-      call[0]?.includes('WARNING')
+    const memoryLeakWarnings = warnCalls.filter(
+      (call) =>
+        call[0]?.includes("memory leak") ||
+        call[0]?.includes("orphaned") ||
+        call[0]?.includes("WARNING"),
     );
 
     // Development logging is expected (e.g., "Run X: cleaning up")
@@ -579,7 +604,7 @@ describe("rapid changes - memory leak detection", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] },
-      }
+      },
     );
 
     // Stress test with 100 rapid changes
@@ -594,9 +619,9 @@ describe("rapid changes - memory leak detection", () => {
 
     // Verify no warnings
     const warnCalls = vi.mocked(console.warn).mock.calls;
-    const memoryLeakWarnings = warnCalls.filter(call =>
-      call[0]?.includes('memory leak') ||
-      call[0]?.includes('orphaned')
+    const memoryLeakWarnings = warnCalls.filter(
+      (call) =>
+        call[0]?.includes("memory leak") || call[0]?.includes("orphaned"),
     );
     expect(memoryLeakWarnings).toHaveLength(0);
   });
@@ -618,7 +643,7 @@ describe("rapid changes - different patterns", () => {
       {
         wrapper,
         initialProps: { subscriptions: ["field2"] },
-      }
+      },
     );
 
     // Loop-based changes
@@ -630,7 +655,7 @@ describe("rapid changes - different patterns", () => {
       ["field10"],
     ];
 
-    subscriptionsList.forEach(subs => {
+    subscriptionsList.forEach((subs) => {
       rerender({ subscriptions: subs });
     });
 
@@ -648,7 +673,7 @@ describe("rapid changes - different patterns", () => {
       {
         wrapper,
         initialProps: { fieldName: "field1" },
-      }
+      },
     );
 
     // Rapid field name changes
@@ -662,7 +687,9 @@ describe("rapid changes - different patterns", () => {
 
     // Previous fields should not be subscribed
     for (let i = 1; i < 11; i++) {
-      expect(state.invertedSubscriptions.get("targetField")).not.toContain(`field${i}`);
+      expect(state.invertedSubscriptions.get("targetField")).not.toContain(
+        `field${i}`,
+      );
     }
   });
 
@@ -671,14 +698,15 @@ describe("rapid changes - different patterns", () => {
     const wrapper = createWrapper(inspectableContext);
 
     const { rerender } = renderHook(
-      ({ fieldName, subscriptions }) => useSubscriptions(fieldName, subscriptions),
+      ({ fieldName, subscriptions }) =>
+        useSubscriptions(fieldName, subscriptions),
       {
         wrapper,
         initialProps: {
           fieldName: "field1",
-          subscriptions: ["target1"]
+          subscriptions: ["target1"],
         },
-      }
+      },
     );
 
     // Mixed changes
@@ -692,9 +720,15 @@ describe("rapid changes - different patterns", () => {
     expect(state.invertedSubscriptions.get("target3")).toContain("field3");
 
     // Previous subscriptions should be cleaned up
-    expect(state.invertedSubscriptions.get("target1")?.has("field1") ?? false).toBe(false);
-    expect(state.invertedSubscriptions.get("target2")?.has("field1") ?? false).toBe(false);
-    expect(state.invertedSubscriptions.get("target2")?.has("field2") ?? false).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("target1")?.has("field1") ?? false,
+    ).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("target2")?.has("field1") ?? false,
+    ).toBe(false);
+    expect(
+      state.invertedSubscriptions.get("target2")?.has("field2") ?? false,
+    ).toBe(false);
   });
 });
 ```
@@ -849,6 +883,7 @@ done
 The P3.M1.T1.S1 PRP implements per-effect subscription tracking.
 
 **This PRP's Contract**:
+
 1. This PRP TESTS the per-effect tracking from P3.M1.T1.S1
 2. This PRP VERIFIES that runIdRef increments correctly during rapid changes
 3. This PRP VERIFIES that runSubscriptionsRef only has the latest entry after rapid changes
@@ -862,6 +897,7 @@ The P3.M1.T1.S1 PRP implements per-effect subscription tracking.
 The P3.M1.T2.S1 PRP adds tests for unmount cleanup scenarios.
 
 **This PRP's Contract**:
+
 1. This PRP is DISTINCT from P3.M1.T2.S1 (no overlap)
 2. P3.M1.T2.S1 tests UNMOUNT scenarios (component destruction)
 3. P3.M1.T2.S2 tests RAPID CHANGES (component stays mounted, props change)
@@ -875,6 +911,7 @@ The P3.M1.T2.S1 PRP adds tests for unmount cleanup scenarios.
 The P3.M1.T1.S2 PRP adds development logging and double-cleanup detection.
 
 **This PRP's Contract**:
+
 1. This PRP TESTS the development logging from P3.M1.T1.S2
 2. This PRP VERIFIES that console.warn is called correctly during rapid changes
 3. This PRP VERIFIES that no unexpected warnings appear during rapid changes
@@ -889,6 +926,7 @@ The P3.M1.T1.S2 PRP adds development logging and double-cleanup detection.
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Clear scope: Add tests only, no implementation changes
 - Previous PRPs (P3.M1.T1.S1, P3.M1.T1.S2, P3.M1.T2.S1) provide solid foundation
 - Comprehensive research documented with code examples
@@ -970,7 +1008,7 @@ let removeCount = 0;
 
 const { rerender } = renderHook(
   ({ subscriptions }) => useSubscriptions("field1", subscriptions),
-  { wrapper, initialProps: { subscriptions: ["field2"] } }
+  { wrapper, initialProps: { subscriptions: ["field2"] } },
 );
 
 for (let i = 0; i < 15; i++) {
@@ -992,7 +1030,7 @@ if (performance.memory) {
 
 // Pattern 3: Console Warning Spy
 beforeEach(() => {
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -1001,20 +1039,20 @@ afterEach(() => {
 
 // ... rapid changes ...
 
-const memoryLeakWarnings = vi.mocked(console.warn).mock.calls.filter(call =>
-  call[0]?.includes('memory leak')
-);
+const memoryLeakWarnings = vi
+  .mocked(console.warn)
+  .mock.calls.filter((call) => call[0]?.includes("memory leak"));
 expect(memoryLeakWarnings).toHaveLength(0);
 ```
 
 ### Distinction from P3.M1.T2.S1
 
-| Aspect | P3.M1.T2.S1 (Unmount) | P3.M1.T2.S2 (Rapid Changes) |
-|--------|----------------------|------------------------------|
-| Focus | Component unmount/destruction | Rapid prop changes while mounted |
-| Key Operation | `unmount()` | `rerender()` |
-| Scenario | Field removed from form | Field config changes rapidly |
-| Verification | Maps empty after unmount | Subscription count balance |
-| Stress Test | Multiple fields unmounting | 10+ rapid changes |
+| Aspect        | P3.M1.T2.S1 (Unmount)         | P3.M1.T2.S2 (Rapid Changes)      |
+| ------------- | ----------------------------- | -------------------------------- |
+| Focus         | Component unmount/destruction | Rapid prop changes while mounted |
+| Key Operation | `unmount()`                   | `rerender()`                     |
+| Scenario      | Field removed from form       | Field config changes rapidly     |
+| Verification  | Maps empty after unmount      | Subscription count balance       |
+| Stress Test   | Multiple fields unmounting    | 10+ rapid changes                |
 
 **DO NOT duplicate unmount tests in P3.M1.T2.S2**

@@ -5,6 +5,7 @@ Supplementary examples and patterns for testing async operations, race condition
 ---
 
 ## Table of Contents
+
 1. [Setup and Utilities](#setup-and-utilities)
 2. [Debounce Testing Examples](#debounce-testing-examples)
 3. [Throttle Testing Examples](#throttle-testing-examples)
@@ -21,9 +22,9 @@ Supplementary examples and patterns for testing async operations, race condition
 
 ```typescript
 // Vitest setup with fake timers
-import { vi, beforeEach, afterEach } from 'vitest';
+import { vi, beforeEach, afterEach } from "vitest";
 
-describe('Async Tests', () => {
+describe("Async Tests", () => {
   beforeEach(() => {
     // CRITICAL: Enable time advancement for realistic async behavior
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -41,7 +42,7 @@ describe('Async Tests', () => {
 ```typescript
 // Utility for creating delay promises
 export const delay = (ms: number) =>
-  new Promise(resolve => setTimeout(resolve, ms));
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 // Usage in tests
 await delay(100);
@@ -52,16 +53,19 @@ await delay(100);
 ```typescript
 // Track async operation lifecycle
 export class AsyncOperationTracker {
-  private operations = new Map<string, {
-    startTime: number;
-    endTime?: number;
-    status: 'pending' | 'resolved' | 'rejected' | 'aborted';
-  }>();
+  private operations = new Map<
+    string,
+    {
+      startTime: number;
+      endTime?: number;
+      status: "pending" | "resolved" | "rejected" | "aborted";
+    }
+  >();
 
   start(operationId: string) {
     this.operations.set(operationId, {
       startTime: Date.now(),
-      status: 'pending'
+      status: "pending",
     });
   }
 
@@ -69,7 +73,7 @@ export class AsyncOperationTracker {
     const op = this.operations.get(operationId);
     if (op) {
       op.endTime = Date.now();
-      op.status = success ? 'resolved' : 'rejected';
+      op.status = success ? "resolved" : "rejected";
     }
   }
 
@@ -77,14 +81,15 @@ export class AsyncOperationTracker {
     const op = this.operations.get(operationId);
     if (op) {
       op.endTime = Date.now();
-      op.status = 'aborted';
+      op.status = "aborted";
     }
   }
 
   getOperationCount(status?: string) {
     if (!status) return this.operations.size;
-    return Array.from(this.operations.values())
-      .filter(op => op.status === status).length;
+    return Array.from(this.operations.values()).filter(
+      (op) => op.status === status,
+    ).length;
   }
 
   getOperationDuration(operationId: string) {
@@ -104,7 +109,7 @@ export class AsyncOperationTracker {
 // Debounce implementation
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -118,7 +123,7 @@ export function debounce<T extends (...args: any[]) => any>(
 ### Basic Tests
 
 ```typescript
-describe('debounce', () => {
+describe("debounce", () => {
   let mockFn: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -130,10 +135,10 @@ describe('debounce', () => {
     vi.useRealTimers();
   });
 
-  it('should delay function execution', () => {
+  it("should delay function execution", () => {
     const debouncedFn = debounce(mockFn, 500);
 
-    debouncedFn('test');
+    debouncedFn("test");
 
     // Not called immediately
     expect(mockFn).not.toHaveBeenCalled();
@@ -143,20 +148,20 @@ describe('debounce', () => {
 
     // Should be called now
     expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('test');
+    expect(mockFn).toHaveBeenCalledWith("test");
   });
 
-  it('should reset delay on subsequent calls', () => {
+  it("should reset delay on subsequent calls", () => {
     const debouncedFn = debounce(mockFn, 500);
 
-    debouncedFn('first');
+    debouncedFn("first");
     vi.advanceTimersByTimeAsync(300);
 
     // Not called yet
     expect(mockFn).not.toHaveBeenCalled();
 
     // Second call resets the timer
-    debouncedFn('second');
+    debouncedFn("second");
     vi.advanceTimersByTimeAsync(300);
 
     // Still not called (300ms since second call)
@@ -167,23 +172,23 @@ describe('debounce', () => {
 
     // Should be called now
     expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('second');
+    expect(mockFn).toHaveBeenCalledWith("second");
   });
 
-  it('should handle rapid successive calls', () => {
+  it("should handle rapid successive calls", () => {
     const debouncedFn = debounce(mockFn, 500);
 
     // Rapid calls
-    debouncedFn('call1');
-    debouncedFn('call2');
-    debouncedFn('call3');
-    debouncedFn('call4');
+    debouncedFn("call1");
+    debouncedFn("call2");
+    debouncedFn("call3");
+    debouncedFn("call4");
 
     vi.advanceTimersByTimeAsync(500);
 
     // Only called once with last value
     expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('call4');
+    expect(mockFn).toHaveBeenCalledWith("call4");
   });
 });
 ```
@@ -258,20 +263,20 @@ describe('debounce - User Input Integration', () => {
 ### Leading Edge Debounce Tests
 
 ```typescript
-describe('debounce - Leading Edge', () => {
-  it('should call immediately on leading edge', () => {
+describe("debounce - Leading Edge", () => {
+  it("should call immediately on leading edge", () => {
     const mockFn = vi.fn();
     const debouncedFn = debounce(mockFn, 500, { leading: true });
 
-    debouncedFn('test');
+    debouncedFn("test");
 
     // Called immediately on leading edge
     expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('test');
+    expect(mockFn).toHaveBeenCalledWith("test");
 
     // Subsequent calls within debounce period are ignored
-    debouncedFn('test2');
-    debouncedFn('test3');
+    debouncedFn("test2");
+    debouncedFn("test3");
 
     vi.advanceTimersByTimeAsync(500);
 
@@ -291,7 +296,7 @@ describe('debounce - Leading Edge', () => {
 // Throttle implementation
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
 
@@ -308,7 +313,7 @@ export function throttle<T extends (...args: any[]) => any>(
 ### Basic Tests
 
 ```typescript
-describe('throttle', () => {
+describe("throttle", () => {
   let mockFn: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -320,43 +325,43 @@ describe('throttle', () => {
     vi.useRealTimers();
   });
 
-  it('should call function immediately', () => {
+  it("should call function immediately", () => {
     const throttledFn = throttle(mockFn, 1000);
 
-    throttledFn('test');
+    throttledFn("test");
 
     // Called immediately (leading edge)
     expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('test');
+    expect(mockFn).toHaveBeenCalledWith("test");
   });
 
-  it('should ignore calls within throttle period', () => {
+  it("should ignore calls within throttle period", () => {
     const throttledFn = throttle(mockFn, 1000);
 
-    throttledFn('call1');
-    throttledFn('call2'); // Ignored
-    throttledFn('call3'); // Ignored
+    throttledFn("call1");
+    throttledFn("call2"); // Ignored
+    throttledFn("call3"); // Ignored
 
     expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('call1');
+    expect(mockFn).toHaveBeenCalledWith("call1");
   });
 
-  it('should allow calls after throttle period', () => {
+  it("should allow calls after throttle period", () => {
     const throttledFn = throttle(mockFn, 1000);
 
-    throttledFn('call1');
+    throttledFn("call1");
 
     vi.advanceTimersByTimeAsync(1000);
 
     // Throttle period over, can call again
-    throttledFn('call2');
+    throttledFn("call2");
 
     expect(mockFn).toHaveBeenCalledTimes(2);
-    expect(mockFn).toHaveBeenNthCalledWith(1, 'call1');
-    expect(mockFn).toHaveBeenNthCalledWith(2, 'call2');
+    expect(mockFn).toHaveBeenNthCalledWith(1, "call1");
+    expect(mockFn).toHaveBeenNthCalledWith(2, "call2");
   });
 
-  it('should handle rapid scroll events', () => {
+  it("should handle rapid scroll events", () => {
     const scrollHandler = vi.fn();
     const throttledScroll = throttle(scrollHandler, 100);
 
@@ -383,14 +388,14 @@ describe('throttle', () => {
 ### Trailing Edge Tests
 
 ```typescript
-describe('throttle - Trailing Edge', () => {
-  it('should call on trailing edge', () => {
+describe("throttle - Trailing Edge", () => {
+  it("should call on trailing edge", () => {
     const mockFn = vi.fn();
     const throttledFn = throttle(mockFn, 1000, { trailing: true });
 
-    throttledFn('call1');
+    throttledFn("call1");
     vi.advanceTimersByTimeAsync(100);
-    throttledFn('call2'); // Queued for trailing edge
+    throttledFn("call2"); // Queued for trailing edge
 
     expect(mockFn).toHaveBeenCalledTimes(1); // Only leading call
 
@@ -398,7 +403,7 @@ describe('throttle - Trailing Edge', () => {
 
     // Trailing call executed
     expect(mockFn).toHaveBeenCalledTimes(2);
-    expect(mockFn).toHaveBeenLastCalledWith('call2');
+    expect(mockFn).toHaveBeenLastCalledWith("call2");
   });
 });
 ```
@@ -430,7 +435,7 @@ export class VersionTracker {
 // Async operation with version checking
 export async function performOperation<T>(
   tracker: VersionTracker,
-  operation: (version: number) => Promise<T>
+  operation: (version: number) => Promise<T>,
 ): Promise<T | null> {
   const version = tracker.increment();
 
@@ -456,8 +461,8 @@ export async function performOperation<T>(
 ### Version Tracking Tests
 
 ```typescript
-describe('Version Tracking - Race Conditions', () => {
-  it('should abort stale operations', async () => {
+describe("Version Tracking - Race Conditions", () => {
+  it("should abort stale operations", async () => {
     const tracker = new VersionTracker();
     const results: string[] = [];
 
@@ -482,10 +487,10 @@ describe('Version Tracking - Race Conditions', () => {
     // Only latest operation should return result
     expect(result1).toBeNull(); // Aborted
     expect(result2).toBeNull(); // Aborted
-    expect(result3).toBe('result-3'); // Success
+    expect(result3).toBe("result-3"); // Success
   });
 
-  it('should handle rapid version changes', async () => {
+  it("should handle rapid version changes", async () => {
     const tracker = new VersionTracker();
     const executionLog: string[] = [];
 
@@ -504,17 +509,17 @@ describe('Version Tracking - Race Conditions', () => {
 
     // Start multiple operations rapidly
     await Promise.all([
-      trackedOperation('op1'),
-      trackedOperation('op2'),
-      trackedOperation('op3'),
+      trackedOperation("op1"),
+      trackedOperation("op2"),
+      trackedOperation("op3"),
     ]);
 
     // Verify only last operation completed
-    const completions = executionLog.filter(log => log.includes('complete'));
-    const abortions = executionLog.filter(log => log.includes('aborted'));
+    const completions = executionLog.filter((log) => log.includes("complete"));
+    const abortions = executionLog.filter((log) => log.includes("aborted"));
 
     expect(completions).toHaveLength(1);
-    expect(completions[0]).toContain('v3'); // Last version
+    expect(completions[0]).toContain("v3"); // Last version
     expect(abortions).toHaveLength(2); // Previous two aborted
   });
 });
@@ -589,8 +594,8 @@ describe('Promise.race - Race Conditions', () => {
 ### Request Deduplication Tests
 
 ```typescript
-describe('Request Deduplication', () => {
-  it('should deduplicate concurrent requests', async () => {
+describe("Request Deduplication", () => {
+  it("should deduplicate concurrent requests", async () => {
     const requestCache = new Map<string, Promise<any>>();
 
     async function fetchWithDedupe(key: string): Promise<string> {
@@ -612,15 +617,15 @@ describe('Request Deduplication', () => {
 
     // Start multiple concurrent requests for same key
     const [result1, result2, result3] = await Promise.all([
-      fetchWithDedupe('user-123'),
-      fetchWithDedupe('user-123'),
-      fetchWithDedupe('user-123'),
+      fetchWithDedupe("user-123"),
+      fetchWithDedupe("user-123"),
+      fetchWithDedupe("user-123"),
     ]);
 
     // All should resolve with same data
-    expect(result1).toBe('data:user-123');
-    expect(result2).toBe('data:user-123');
-    expect(result3).toBe('data:user-123');
+    expect(result1).toBe("data:user-123");
+    expect(result2).toBe("data:user-123");
+    expect(result3).toBe("data:user-123");
 
     // Only one actual request should have been made
     // (In real implementation, verify fetch was called once)
@@ -635,12 +640,12 @@ describe('Request Deduplication', () => {
 ### Validation State Machine Tests
 
 ```typescript
-describe('Async Validation - State Machine', () => {
-  it('should track validation states correctly', async () => {
-    type ValidationState = 'idle' | 'validating' | 'valid' | 'invalid';
+describe("Async Validation - State Machine", () => {
+  it("should track validation states correctly", async () => {
+    type ValidationState = "idle" | "validating" | "valid" | "invalid";
     const stateChanges: ValidationState[] = [];
 
-    let currentState: ValidationState = 'idle';
+    let currentState: ValidationState = "idle";
 
     const setState = (newState: ValidationState) => {
       currentState = newState;
@@ -648,29 +653,29 @@ describe('Async Validation - State Machine', () => {
     };
 
     async function validate(value: string): Promise<boolean> {
-      setState('validating');
+      setState("validating");
       await delay(100);
 
       if (value.length < 3) {
-        setState('invalid');
+        setState("invalid");
         return false;
       }
 
-      setState('valid');
+      setState("valid");
       return true;
     }
 
     // First validation
-    await validate('ab');
-    expect(stateChanges).toEqual(['validating', 'invalid']);
+    await validate("ab");
+    expect(stateChanges).toEqual(["validating", "invalid"]);
 
     // Second validation
     stateChanges.length = 0;
-    await validate('abc');
-    expect(stateChanges).toEqual(['validating', 'valid']);
+    await validate("abc");
+    expect(stateChanges).toEqual(["validating", "valid"]);
   });
 
-  it('should handle validation interruption', async () => {
+  it("should handle validation interruption", async () => {
     const validationResults: Array<{ value: string; valid: boolean }> = [];
 
     async function validateAndTrack(value: string): Promise<void> {
@@ -679,18 +684,18 @@ describe('Async Validation - State Machine', () => {
     }
 
     // Start validation (will be interrupted)
-    const validation1 = validateAndTrack('ab');
+    const validation1 = validateAndTrack("ab");
     await delay(50);
 
     // New validation starts (should supersede)
-    const validation2 = validateAndTrack('abc');
+    const validation2 = validateAndTrack("abc");
 
     await Promise.all([validation1, validation2]);
 
     // Both validations complete, but we should only use the latest
     expect(validationResults).toHaveLength(2);
-    expect(validationResults[0]).toEqual({ value: 'ab', valid: false });
-    expect(validationResults[1]).toEqual({ value: 'abc', valid: true });
+    expect(validationResults[0]).toEqual({ value: "ab", valid: false });
+    expect(validationResults[1]).toEqual({ value: "abc", valid: true });
   });
 });
 ```
@@ -775,41 +780,41 @@ describe('Field Validation - Rapid Changes', () => {
 ### Cross-Field Validation Tests
 
 ```typescript
-describe('Cross-Field Validation', () => {
-  it('should revalidate dependent fields when source changes', async () => {
+describe("Cross-Field Validation", () => {
+  it("should revalidate dependent fields when source changes", async () => {
     const validations = new Map<string, boolean>();
 
     const validatePassword = async (password: string): Promise<boolean> => {
       await delay(50);
       const valid = password.length >= 8;
-      validations.set('password', valid);
+      validations.set("password", valid);
       return valid;
     };
 
     const validateConfirmPassword = async (
       password: string,
-      confirmPassword: string
+      confirmPassword: string,
     ): Promise<boolean> => {
       await delay(50);
       const valid = password === confirmPassword;
-      validations.set('confirmPassword', valid);
+      validations.set("confirmPassword", valid);
       return valid;
     };
 
     // Enter password
-    await validatePassword('password123');
-    await validateConfirmPassword('password123', 'password123');
+    await validatePassword("password123");
+    await validateConfirmPassword("password123", "password123");
 
-    expect(validations.get('password')).toBe(true);
-    expect(validations.get('confirmPassword')).toBe(true);
+    expect(validations.get("password")).toBe(true);
+    expect(validations.get("confirmPassword")).toBe(true);
 
     // Change password (should invalidate confirmPassword)
-    await validatePassword('newpassword456');
+    await validatePassword("newpassword456");
 
     // Revalidate confirmPassword
-    await validateConfirmPassword('newpassword456', 'password123');
+    await validateConfirmPassword("newpassword456", "password123");
 
-    expect(validations.get('confirmPassword')).toBe(false); // No longer matches
+    expect(validations.get("confirmPassword")).toBe(false); // No longer matches
   });
 });
 ```
@@ -821,27 +826,27 @@ describe('Cross-Field Validation', () => {
 ### AbortController Implementation Tests
 
 ```typescript
-describe('AbortController', () => {
-  it('should abort fetch requests', async () => {
+describe("AbortController", () => {
+  it("should abort fetch requests", async () => {
     const controller = new AbortController();
     const signal = controller.signal;
 
-    const fetchPromise = fetch('/api/data', { signal });
+    const fetchPromise = fetch("/api/data", { signal });
 
     // Abort the request
     controller.abort();
 
-    await expect(fetchPromise).rejects.toThrow('AbortError');
+    await expect(fetchPromise).rejects.toThrow("AbortError");
   });
 
-  it('should handle aborted operations gracefully', async () => {
+  it("should handle aborted operations gracefully", async () => {
     let cleanupCalled = false;
 
     async function operationWithCleanup(signal: AbortSignal): Promise<string> {
       try {
         await delay(100);
-        if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
-        return 'success';
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+        return "success";
       } finally {
         cleanupCalled = true;
       }
@@ -855,20 +860,20 @@ describe('AbortController', () => {
     // Abort immediately
     controller.abort();
 
-    await expect(promise).rejects.toThrow('AbortError');
+    await expect(promise).rejects.toThrow("AbortError");
     expect(cleanupCalled).toBe(true); // Cleanup still runs
   });
 
-  it('should chain AbortControllers', async () => {
+  it("should chain AbortControllers", async () => {
     const parentController = new AbortController();
     const childController = new AbortController();
 
     // Child aborts when parent aborts
-    parentController.signal.addEventListener('abort', () => {
+    parentController.signal.addEventListener("abort", () => {
       childController.abort();
     });
 
-    const operationPromise = fetch('/api/data', {
+    const operationPromise = fetch("/api/data", {
       signal: childController.signal,
     });
 
@@ -877,7 +882,7 @@ describe('AbortController', () => {
 
     // Child should also be aborted
     expect(childController.signal.aborted).toBe(true);
-    await expect(operationPromise).rejects.toThrow('AbortError');
+    await expect(operationPromise).rejects.toThrow("AbortError");
   });
 });
 ```
@@ -885,13 +890,11 @@ describe('AbortController', () => {
 ### AbortController with Retry Logic
 
 ```typescript
-describe('AbortController with Retry', () => {
-  it('should retry with new AbortController', async () => {
+describe("AbortController with Retry", () => {
+  it("should retry with new AbortController", async () => {
     let attemptCount = 0;
 
-    async function fetchWithRetry(
-      maxRetries: number = 3
-    ): Promise<string> {
+    async function fetchWithRetry(maxRetries: number = 3): Promise<string> {
       for (let i = 0; i < maxRetries; i++) {
         attemptCount++;
         const controller = new AbortController();
@@ -901,21 +904,21 @@ describe('AbortController with Retry', () => {
           if (attemptCount < 3) {
             await delay(50);
             controller.abort();
-            throw new DOMException('Aborted', 'AbortError');
+            throw new DOMException("Aborted", "AbortError");
           }
 
-          return 'success';
+          return "success";
         } catch (error) {
           if (i === maxRetries - 1) throw error;
           // Retry
         }
       }
 
-      throw new Error('Max retries exceeded');
+      throw new Error("Max retries exceeded");
     }
 
     const result = await fetchWithRetry();
-    expect(result).toBe('success');
+    expect(result).toBe("success");
     expect(attemptCount).toBe(3);
   });
 });
@@ -1012,31 +1015,31 @@ describe('Form Auto-Save - Race Conditions', () => {
 ### Validation Queue Testing
 
 ```typescript
-describe('Form Validation Queue', () => {
-  it('should process validations in order', async () => {
+describe("Form Validation Queue", () => {
+  it("should process validations in order", async () => {
     const validationOrder: string[] = [];
 
     const queue = new ValidationQueue();
 
     // Add validations to queue
-    await queue.validate('field1', async () => {
-      validationOrder.push('field1:start');
+    await queue.validate("field1", async () => {
+      validationOrder.push("field1:start");
       await delay(50);
-      validationOrder.push('field1:end');
+      validationOrder.push("field1:end");
       return true;
     });
 
-    await queue.validate('field2', async () => {
-      validationOrder.push('field2:start');
+    await queue.validate("field2", async () => {
+      validationOrder.push("field2:start");
       await delay(30);
-      validationOrder.push('field2:end');
+      validationOrder.push("field2:end");
       return true;
     });
 
-    await queue.validate('field3', async () => {
-      validationOrder.push('field3:start');
+    await queue.validate("field3", async () => {
+      validationOrder.push("field3:start");
       await delay(20);
-      validationOrder.push('field3:end');
+      validationOrder.push("field3:end");
       return true;
     });
 
@@ -1045,12 +1048,12 @@ describe('Form Validation Queue', () => {
 
     // Verify sequential execution
     expect(validationOrder).toEqual([
-      'field1:start',
-      'field1:end',
-      'field2:start',
-      'field2:end',
-      'field3:start',
-      'field3:end',
+      "field1:start",
+      "field1:end",
+      "field2:start",
+      "field2:end",
+      "field3:start",
+      "field3:end",
     ]);
   });
 });
@@ -1063,8 +1066,8 @@ describe('Form Validation Queue', () => {
 ### Observable State with Versioning
 
 ```typescript
-describe('Observable State - Versioned Updates', () => {
-  it('should ignore stale state updates', () => {
+describe("Observable State - Versioned Updates", () => {
+  it("should ignore stale state updates", () => {
     const state = {
       version: 0,
       data: null as any,
@@ -1084,15 +1087,15 @@ describe('Observable State - Versioned Updates', () => {
     }
 
     // Start multiple updates
-    updateState('data1');
-    updateState('data2');
-    updateState('data3');
+    updateState("data1");
+    updateState("data2");
+    updateState("data3");
 
     vi.advanceTimersByTimeAsync(150);
 
     // Only last update should apply
     expect(updates).toHaveLength(1);
-    expect(updates[0]).toEqual({ version: 3, data: 'data3' });
+    expect(updates[0]).toEqual({ version: 3, data: "data3" });
   });
 });
 ```
@@ -1100,8 +1103,8 @@ describe('Observable State - Versioned Updates', () => {
 ### React Query-Style Cache Invalidation
 
 ```typescript
-describe('Query Cache - Invalidation Patterns', () => {
-  it('should invalidate stale cache on mutation', async () => {
+describe("Query Cache - Invalidation Patterns", () => {
+  it("should invalidate stale cache on mutation", async () => {
     const cache = new Map<string, { data: any; version: number }>();
     let queryVersion = 0;
 
@@ -1114,7 +1117,7 @@ describe('Query Cache - Invalidation Patterns', () => {
         return cache.get(key)?.data;
       }
 
-      const data = { key, value: 'fetched' };
+      const data = { key, value: "fetched" };
       cache.set(key, { data, version });
       return data;
     }
@@ -1131,14 +1134,14 @@ describe('Query Cache - Invalidation Patterns', () => {
     }
 
     // Initial fetch
-    const result1 = await fetchQuery('user-123');
-    expect(result1.value).toBe('fetched');
+    const result1 = await fetchQuery("user-123");
+    expect(result1.value).toBe("fetched");
 
     // Mutation
-    await mutate('user-123');
+    await mutate("user-123");
 
     // Cache should be invalidated and refetched
-    const result2 = await fetchQuery('user-123');
+    const result2 = await fetchQuery("user-123");
     expect(result2.version).not.toBe(result1.version);
   });
 });
@@ -1159,5 +1162,6 @@ This document provides comprehensive code examples for testing race conditions, 
 7. **Form Auto-Save** - Test that only final values are submitted
 
 For implementation reference, see:
+
 - `/home/dustin/projects/formality/packages/react/src/__tests__/autosave-rapid-changes.test.tsx`
 - `/home/dustin/projects/formality/packages/react/src/components/Form.tsx` (executionVersionRef pattern)

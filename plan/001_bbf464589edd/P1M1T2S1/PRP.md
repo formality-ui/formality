@@ -8,6 +8,7 @@ description: |
 **Feature Goal**: Create the @formality-ui/core package structure as a framework-agnostic core package with ZERO FRAMEWORK dependencies that will be consumed by framework-specific packages (@formality-ui/react, @formality-ui/vue, @formality-ui/svelte).
 
 **Deliverable**: A `packages/core/` directory with:
+
 - `package.json` with proper package name, exports configuration, and utility dependencies (jsep, jse-eval for expression parsing)
 - `src/index.ts` as a placeholder entry point for future TypeScript type definitions and pure functions
 
@@ -18,11 +19,13 @@ description: |
 **Target User**: Build System / Framework Package Developers - This package is consumed by framework-specific adapters (@formality-ui/react, @formality-ui/vue, @formality-ui/svelte) and provides the foundational type system and pure functions.
 
 **Use Case**: Provide a framework-agnostic core that:
+
 1. Defines all TypeScript interfaces for the formality system (InputConfig, FieldConfig, FormConfig, State types, etc.)
 2. Provides pure functions for expression evaluation, condition checking, validation, and transformation
 3. Can be imported by any framework without pulling in framework-specific dependencies
 
 **User Journey**:
+
 1. @formality-ui/react imports types and functions from @formality-ui/core
 2. @formality-ui/vue imports the same types and functions from @formality-ui/core
 3. @formality-ui/svelte imports the same types and functions from @formality-ui/core
@@ -30,6 +33,7 @@ description: |
 5. Changes to core are immediately available to all framework packages
 
 **Pain Points Addressed**:
+
 - Eliminates duplicate type definitions across framework packages
 - Ensures consistency across all framework implementations
 - Reduces bundle size by not including framework-specific code in core
@@ -73,9 +77,7 @@ packages/core/
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -363,38 +365,38 @@ _The "No Prior Knowledge" test_: If someone knew nothing about pnpm monorepos or
 ```json
 // Core package.json structure
 {
-  "name": "@formality-ui/core",        // Scoped package name
-  "version": "0.0.0",                   // Initial development version
-  "private": false,                     // Package will be published
-  "type": "module",                     // ES modules
+  "name": "@formality-ui/core", // Scoped package name
+  "version": "0.0.0", // Initial development version
+  "private": false, // Package will be published
+  "type": "module", // ES modules
 
   // Legacy entry points (for older tooling)
-  "main": "./dist/index.cjs",          // CommonJS entry point
-  "module": "./dist/index.js",         // ESM entry point
-  "types": "./dist/index.d.ts",        // TypeScript declarations
+  "main": "./dist/index.cjs", // CommonJS entry point
+  "module": "./dist/index.js", // ESM entry point
+  "types": "./dist/index.d.ts", // TypeScript declarations
 
   // Modern conditional exports
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",    // TypeScript types
-      "import": "./dist/index.js",     // ESM import
-      "require": "./dist/index.cjs"    // CommonJS require
+      "types": "./dist/index.d.ts", // TypeScript types
+      "import": "./dist/index.js", // ESM import
+      "require": "./dist/index.cjs" // CommonJS require
     }
   },
 
-  "files": ["dist"],                    // Only publish dist/
-  "sideEffects": false,                 // Enable tree-shaking
+  "files": ["dist"], // Only publish dist/
+  "sideEffects": false, // Enable tree-shaking
 
   "scripts": {
-    "build": "tsup",                   // Build with tsup (configured in packages/core/tsup.config.ts)
-    "dev": "tsup --watch",             // Watch mode for development
-    "test": "vitest run"               // Run tests (configured in packages/core/vitest.config.ts)
+    "build": "tsup", // Build with tsup (configured in packages/core/tsup.config.ts)
+    "dev": "tsup --watch", // Watch mode for development
+    "test": "vitest run" // Run tests (configured in packages/core/vitest.config.ts)
   },
 
   // Utility dependencies (NOT framework dependencies)
   "dependencies": {
-    "jsep": "^1.4.0",                  // JavaScript expression parser
-    "jse-eval": "^1.5.2"               // Expression evaluator
+    "jsep": "^1.4.0", // JavaScript expression parser
+    "jse-eval": "^1.5.2" // Expression evaluator
   }
 }
 ```
@@ -888,11 +890,13 @@ P2: @formality-ui/core Implementation (expands core with additional types and fu
 ### Relationship with Previous PRPs
 
 **INPUT from P1.M1.T1.S1:**
+
 - File: `/pnpm-workspace.yaml`
 - Content: `packages: ["packages/*"]`
 - Purpose: Enables pnpm workspace discovery
 
 **INPUT from P1.M1.T1.S2:**
+
 - File: `/package.json`
 - Content: Root devDependencies (typescript, tsup, vitest)
 - Purpose: Provides shared tooling for all workspace packages
@@ -902,28 +906,34 @@ P2: @formality-ui/core Implementation (expands core with additional types and fu
 ### Outputs for Next Tasks
 
 **PROVIDED to P1.M1.T2.S2 (Create @formality-ui/react):**
+
 - Core package with name "@formality-ui/core"
 - Core package with proper exports configuration
 - Core package with utility dependencies (jsep, jse-eval) but NO framework dependencies
-- Contract: React package will use "@formality-ui/core": "workspace:*" in dependencies
+- Contract: React package will use "@formality-ui/core": "workspace:\*" in dependencies
 
 **PROVIDED to P1.M1.T2.S3 (Create Vue and Svelte stubs):**
+
 - Core package structure to follow
 - Contract: Vue and Svelte packages will also use workspace dependencies
 
 **PROVIDED to P1.M2.T1.S2 (Create package-level tsconfig files):**
+
 - Core package directory for tsconfig.json placement
 - Contract: packages/core/tsconfig.json already exists and should be validated
 
 **PROVIDED to P1.M2.T2.S1 (Create tsup configuration for core):**
+
 - Core package with scripts referencing tsup
 - Contract: packages/core/tsup.config.ts already exists and should be validated
 
 **PROVIDED to P1.M3.T1.S2 (Create package-level vitest configurations):**
+
 - Core package with scripts referencing vitest
 - Contract: packages/core/vitest.config.ts already exists and should be validated
 
 **PROVIDED to P2 (Core Implementation):**
+
 - Core package structure ready for type definitions
 - Core package structure ready for pure functions
 - Contract: Phase P2 will expand src/index.ts with additional exports
@@ -953,12 +963,12 @@ The core package has ZERO FRAMEWORK dependencies but has utility dependencies be
 
 ### Key Distinction: Framework vs Utility Dependencies
 
-| Type | Examples | Allowed in Core? | Reason |
-|------|----------|------------------|--------|
-| **Framework** | react, vue, svelte, solid, angular | ❌ NO | Couples core to specific UI framework |
-| **Framework Libs** | react-dom, @vue/*, svelte/* | ❌ NO | Framework-specific libraries |
-| **Utilities** | jsep, lodash-es, date-fns | ✅ YES | Pure functions, no framework coupling |
-| **Validation** | zod, valibot | ✅ YES | Schema validation, framework-agnostic |
+| Type               | Examples                           | Allowed in Core? | Reason                                |
+| ------------------ | ---------------------------------- | ---------------- | ------------------------------------- |
+| **Framework**      | react, vue, svelte, solid, angular | ❌ NO            | Couples core to specific UI framework |
+| **Framework Libs** | react-dom, @vue/_, svelte/_        | ❌ NO            | Framework-specific libraries          |
+| **Utilities**      | jsep, lodash-es, date-fns          | ✅ YES           | Pure functions, no framework coupling |
+| **Validation**     | zod, valibot                       | ✅ YES           | Schema validation, framework-agnostic |
 
 ### Phase P2 Preview
 
@@ -988,6 +998,7 @@ When @formality-ui/react is created (P1.M1.T2.S2), its package.json will include
 ```
 
 The `workspace:*` protocol:
+
 - Resolves to the local packages/core during development
 - Is converted to the actual version by changesets during publishing
 - Enables local development without npm publishing

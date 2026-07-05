@@ -57,7 +57,7 @@ interface UseMyHookOptions {
   newParameter?: boolean;
 
   /** Union type parameter */
-  mode?: 'light' | 'dark' | 'auto';
+  mode?: "light" | "dark" | "auto";
 }
 
 function useMyHook(options: UseMyHookOptions) {
@@ -65,7 +65,7 @@ function useMyHook(options: UseMyHookOptions) {
     required,
     optional = 42,
     newParameter = false,
-    mode = 'auto'
+    mode = "auto",
   } = options;
 
   // Implementation
@@ -111,9 +111,12 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
 // Configure hook with static options
 function useMyHook(config: UseMyHookConfig) {
   // Return a hook that accepts runtime parameters
-  return useCallback((runtime: RuntimeParams) => {
-    // Implementation with both config and runtime
-  }, [config]);
+  return useCallback(
+    (runtime: RuntimeParams) => {
+      // Implementation with both config and runtime
+    },
+    [config],
+  );
 }
 
 // Usage
@@ -141,12 +144,7 @@ interface UseDebounceOptions {
 }
 
 function useDebounce(callback: Function, options: UseDebounceOptions = {}) {
-  const {
-    delay = 300,
-    leading = false,
-    trailing = true,
-    maxWait
-  } = options;
+  const { delay = 300, leading = false, trailing = true, maxWait } = options;
 
   // Implementation
 }
@@ -166,26 +164,26 @@ function useDebounce(callback: Function, options: UseDebounceOptions = {}) {
 // Version 1.0
 interface UseFetchOptions {
   url: string;
-  method?: 'GET' | 'POST';
+  method?: "GET" | "POST";
 }
 
 // Version 2.0 - Adding new optional properties (backward compatible!)
 interface UseFetchOptions {
   url: string;
-  method?: 'GET' | 'POST';
-  headers?: Record<string, string>;  // NEW - optional
-  timeout?: number;                  // NEW - optional
-  retry?: number;                    // NEW - optional
+  method?: "GET" | "POST";
+  headers?: Record<string, string>; // NEW - optional
+  timeout?: number; // NEW - optional
+  retry?: number; // NEW - optional
 }
 
 // Version 1.0 code still works
-useFetch({ url: '/api/data' });
+useFetch({ url: "/api/data" });
 
 // Version 2.0 code can use new features
 useFetch({
-  url: '/api/data',
-  headers: { 'Authorization': 'Bearer token' },
-  timeout: 5000
+  url: "/api/data",
+  headers: { Authorization: "Bearer token" },
+  timeout: 5000,
 });
 ```
 
@@ -196,20 +194,20 @@ useFetch({
 ```typescript
 // Support both string and object forms
 type UseFetchInput =
-  | string  // Simple: just URL
-  | { url: string; options?: UseFetchOptions };  // Advanced: URL + options
+  | string // Simple: just URL
+  | { url: string; options?: UseFetchOptions }; // Advanced: URL + options
 
 function useFetch(input: UseFetchInput) {
   // Handle both forms
-  const url = typeof input === 'string' ? input : input.url;
-  const options = typeof input === 'string' ? {} : input.options ?? {};
+  const url = typeof input === "string" ? input : input.url;
+  const options = typeof input === "string" ? {} : (input.options ?? {});
 
   // Implementation
 }
 
 // Both work
-useFetch('/api/data');
-useFetch({ url: '/api/data', options: { timeout: 5000 } });
+useFetch("/api/data");
+useFetch({ url: "/api/data", options: { timeout: 5000 } });
 ```
 
 ### 2.3 Strategy 3: Function Overloads
@@ -230,8 +228,8 @@ function useMyHook(required: string, options?: UseMyHookOptions): Result {
 }
 
 // Both work
-useMyHook('value');
-useMyHook('value', { enabled: true });
+useMyHook("value");
+useMyHook("value", { enabled: true });
 ```
 
 ### 2.4 Strategy 4: Discriminated Unions
@@ -240,12 +238,12 @@ useMyHook('value', { enabled: true });
 
 ```typescript
 interface BaseOptions {
-  mode: 'simple';
+  mode: "simple";
   value: string;
 }
 
 interface AdvancedOptions {
-  mode: 'advanced';
+  mode: "advanced";
   value: number;
   precision?: number;
 }
@@ -253,7 +251,7 @@ interface AdvancedOptions {
 type UseMyHookOptions = BaseOptions | AdvancedOptions;
 
 function useMyHook(options: UseMyHookOptions) {
-  if (options.mode === 'simple') {
+  if (options.mode === "simple") {
     // options.value is string
     return options.value.toUpperCase();
   } else {
@@ -263,9 +261,9 @@ function useMyHook(options: UseMyHookOptions) {
 }
 
 // Type-safe usage
-useMyHook({ mode: 'simple', value: 'hello' });      // OK
-useMyHook({ mode: 'advanced', value: 42 });         // OK
-useMyHook({ mode: 'simple', value: 42 });           // TYPE ERROR!
+useMyHook({ mode: "simple", value: "hello" }); // OK
+useMyHook({ mode: "advanced", value: 42 }); // OK
+useMyHook({ mode: "simple", value: 42 }); // TYPE ERROR!
 ```
 
 ### 2.5 Deprecation Pattern
@@ -284,8 +282,8 @@ interface UseMyHookOptions {
 function useMyHook(options: UseMyHookOptions) {
   // Support both with deprecation warning
   if (options.oldParameter !== undefined) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('oldParameter is deprecated. Use newParameter instead.');
+    if (process.env.NODE_ENV === "development") {
+      console.warn("oldParameter is deprecated. Use newParameter instead.");
     }
   }
 
@@ -310,10 +308,10 @@ function useMyHook(options: UseMyHookOptions) {
  * Supports expressions, functions, objects, and arrays
  */
 export type SelectValue<TReturn = unknown> =
-  | string                                    // Expression: "client.id"
-  | SelectFunction<TReturn>                   // Function callback
-  | { [key: string]: SelectValue }            // Nested object
-  | SelectValue[];                            // Array of values
+  | string // Expression: "client.id"
+  | SelectFunction<TReturn> // Function callback
+  | { [key: string]: SelectValue } // Nested object
+  | SelectValue[]; // Array of values
 
 /**
  * SelectFunction - Callback signature
@@ -402,12 +400,12 @@ interface UseAsyncOptions<T> {
 // Conditional return type based on enabled
 function useAsync<T>(
   url: string,
-  options: UseAsyncOptions<T> & { enabled: true }
+  options: UseAsyncOptions<T> & { enabled: true },
 ): UseAsyncResult<T>;
 
 function useAsync<T>(
   url: string,
-  options?: UseAsyncOptions<T>
+  options?: UseAsyncOptions<T>,
 ): UseAsyncResult<T | null>;
 
 // Implementation
@@ -458,7 +456,7 @@ export interface FormProps<TFieldValues extends FieldValues = FieldValues> {
 type SelectValue =
   | string
   | SelectFunction
-  | { [key: string]: SelectValue }  // Recursive!
+  | { [key: string]: SelectValue } // Recursive!
   | SelectValue[];
 
 // Valid nested structures:
@@ -466,8 +464,8 @@ const nested: SelectValue = {
   disabled: "!signed",
   props: {
     placeholder: "client.name",
-    className: "field-{client.status}"
-  }
+    className: "field-{client.status}",
+  },
 };
 ```
 
@@ -507,15 +505,15 @@ export function mergeFieldProps(options: {
 
   // Merge in priority order (later overrides earlier)
   return mergeStaticProps(
-    providerDefaultFieldProps,           // Layer 1: Lowest priority
-    providerSelectDefaultFieldProps,     // Layer 2
-    formDefaultFieldProps,               // Layer 3
-    formSelectDefaultFieldProps,         // Layer 4
-    inputProps,                          // Layer 5
-    fieldConfigProps,                    // Layer 6
-    selectProps,                         // Layer 7
-    componentProps,                      // Layer 8
-    coreProps,                           // Layer 9: Highest priority (always wins)
+    providerDefaultFieldProps, // Layer 1: Lowest priority
+    providerSelectDefaultFieldProps, // Layer 2
+    formDefaultFieldProps, // Layer 3
+    formSelectDefaultFieldProps, // Layer 4
+    inputProps, // Layer 5
+    fieldConfigProps, // Layer 6
+    selectProps, // Layer 7
+    componentProps, // Layer 8
+    coreProps, // Layer 9: Highest priority (always wins)
   );
 }
 ```
@@ -687,7 +685,7 @@ describe("mergeFieldProps", () => {
 
 **File:** `/home/dustin/projects/formality/packages/react/src/hooks/useConditions.ts`
 
-```typescript
+````typescript
 interface UseConditionsOptions {
   /** Conditions to evaluate */
   conditions: ConditionDescriptor[];
@@ -721,7 +719,7 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
   const { conditions, subscribesTo, props } = options;
   // Implementation...
 }
-```
+````
 
 **Pattern Highlights:**
 
@@ -734,7 +732,7 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
 
 **File:** `/home/dustin/projects/formality/packages/react/src/hooks/usePropsEvaluation.ts`
 
-```typescript
+````typescript
 interface UsePropsEvaluationOptions {
   /** Dynamic props descriptor to evaluate */
   selectProps?: SelectValue;
@@ -768,7 +766,7 @@ export function usePropsEvaluation(
   const { selectProps, subscribesTo, fieldName } = options;
   // Implementation...
 }
-```
+````
 
 **Pattern Highlights:**
 
@@ -870,6 +868,7 @@ export interface ConditionDescriptor {
 ### 6.1 React Official Documentation
 
 #### Custom Hooks
+
 - **URL:** https://react.dev/reference/react
 - **Section:** Building Your Own Hooks
 - **Key Topics:**
@@ -879,6 +878,7 @@ export interface ConditionDescriptor {
   - Accept parameters and return values
 
 #### Hooks Rules
+
 - **URL:** https://react.dev/reference/react
 - **Section:** Rules of Hooks
 - **Key Topics:**
@@ -887,6 +887,7 @@ export interface ConditionDescriptor {
   - Consistent hook order across renders
 
 #### forwardRef
+
 - **URL:** https://react.dev/reference/react/forwardRef
 - **Key Topics:**
   - Passing refs through components
@@ -896,6 +897,7 @@ export interface ConditionDescriptor {
 ### 6.2 TypeScript + React Patterns
 
 #### Generic Component Types
+
 - **Best Practice:** Use generic constraints for props
   ```typescript
   interface Props<T extends FieldValues> {
@@ -905,15 +907,18 @@ export interface ConditionDescriptor {
   ```
 
 #### Union Types for Props
+
 - **Best Practice:** Discriminated unions for mutually exclusive props
   ```typescript
   type Props =
-    | { mode: 'simple'; value: string }
-    | { mode: 'advanced'; value: number };
+    | { mode: "simple"; value: string }
+    | { mode: "advanced"; value: number };
   ```
 
 #### Optional Properties
+
 - **Best Practice:** Use optional properties with defaults
+
   ```typescript
   interface Options {
     required: string;
@@ -928,6 +933,7 @@ export interface ConditionDescriptor {
 ### 6.3 React Hook Form Patterns
 
 #### Controller Integration
+
 - **Documentation:** https://react-hook-form.com/docs/usecontroller
 - **Key Pattern:**
   - Input components must use `forwardRef`
@@ -935,6 +941,7 @@ export interface ConditionDescriptor {
   - Destructure `field`, `fieldState`, `formState` from render prop
 
 #### useWatch API
+
 - **Documentation:** https://react-hook-form.com/docs/usewatch
 - **Key Pattern:**
   - Creates isolated field subscriptions
@@ -942,6 +949,7 @@ export interface ConditionDescriptor {
   - Array form returns array, single form returns single value
 
 #### getFieldState
+
 - **Documentation:** https://react-hook-form.com/docs/useform/getfieldstate
 - **Key Pattern:**
   - Non-reactive field metadata access
@@ -951,6 +959,7 @@ export interface ConditionDescriptor {
 ### 6.4 Open Source Examples
 
 #### react-use
+
 - **Repository:** https://github.com/streamich/react-use
 - **Examples of:**
   - Hooks with options objects
@@ -959,6 +968,7 @@ export interface ConditionDescriptor {
   - Union type parameters
 
 #### @tanstack/react-query
+
 - **Repository:** https://github.com/TanStack/query
 - **Examples of:**
   - Generic hooks with type parameters
@@ -967,6 +977,7 @@ export interface ConditionDescriptor {
   - Union types for mutation/query options
 
 #### react-hook-form
+
 - **Repository:** https://github.com/react-hook-form/react-hook-form
 - **Examples of:**
   - Controller props merging
@@ -1002,7 +1013,7 @@ interface UseMyHookOptions {
   flag?: boolean;
 
   // Union type parameters
-  mode?: 'light' | 'dark' | 'auto';
+  mode?: "light" | "dark" | "auto";
 
   // Polymorphic parameters
   transform?: string | ((value: unknown) => unknown);
@@ -1025,7 +1036,7 @@ function useMyHook(options: UseMyHookOptions): UseMyHookResult {
     required,
     optional = 42,
     flag = false,
-    mode = 'auto',
+    mode = "auto",
     transform,
     newFeature = false,
   } = options;
@@ -1059,15 +1070,10 @@ interface UseMyHookOptions {
   newFeature?: boolean;
 }
 
-function useMyHook(
-  input: string | UseMyHookOptions,
-  optional?: number
-) {
+function useMyHook(input: string | UseMyHookOptions, optional?: number) {
   // Support both old and new signatures
   const options: UseMyHookOptions =
-    typeof input === 'string'
-      ? { required: input, optional }
-      : input;
+    typeof input === "string" ? { required: input, optional } : input;
 
   // Implementation with options
   const { required, optional: opt = 0, newFeature = false } = options;
@@ -1076,33 +1082,28 @@ function useMyHook(
 }
 
 // Version 3.0 - Deprecate old signature
-function useMyHook(
-  input: string | UseMyHookOptions,
-  optional?: number
-) {
+function useMyHook(input: string | UseMyHookOptions, optional?: number) {
   // Show deprecation warning for old signature
-  if (typeof input === 'string') {
-    if (process.env.NODE_ENV === 'development') {
+  if (typeof input === "string") {
+    if (process.env.NODE_ENV === "development") {
       console.warn(
-        'useMyHook: Passing separate parameters is deprecated. ' +
-        'Use options object instead: useMyHook({ required: "...", optional: 42 })'
+        "useMyHook: Passing separate parameters is deprecated. " +
+          'Use options object instead: useMyHook({ required: "...", optional: 42 })',
       );
     }
   }
 
   const options: UseMyHookOptions =
-    typeof input === 'string'
-      ? { required: input, optional }
-      : input;
+    typeof input === "string" ? { required: input, optional } : input;
 
   // Implementation
 }
 
 // All versions work:
-useMyHook('value');                    // V1.0
-useMyHook('value', 42);                // V1.0
-useMyHook({ required: 'value' });      // V2.0
-useMyHook({ required: 'value', optional: 42, newFeature: true }); // V3.0
+useMyHook("value"); // V1.0
+useMyHook("value", 42); // V1.0
+useMyHook({ required: "value" }); // V2.0
+useMyHook({ required: "value", optional: 42, newFeature: true }); // V3.0
 ```
 
 ### 7.3 Pattern: Type-Safe Props Merging
@@ -1144,7 +1145,7 @@ function mergeProps(
   base: BaseProps,
   input: InputProps,
   field: FieldProps,
-  override: OverrideProps
+  override: OverrideProps,
 ): Record<string, unknown> {
   return {
     // Lowest priority: base
@@ -1160,10 +1161,10 @@ function mergeProps(
 
 // Usage
 const finalProps = mergeProps(
-  { className: 'base', style: { color: 'red' } },
-  { type: 'text', placeholder: 'Enter value' },
-  { name: 'email', value: '', onChange: () => {} },
-  { className: 'override', disabled: true }
+  { className: "base", style: { color: "red" } },
+  { type: "text", placeholder: "Enter value" },
+  { name: "email", value: "", onChange: () => {} },
+  { className: "override", disabled: true },
 );
 
 // Result:
@@ -1194,23 +1195,26 @@ const finalProps = mergeProps(
 
 // Define polymorphic input type
 type PolymorphicInput<T> =
-  | T                                          // Direct value
-  | (() => T)                                  // Function
-  | { value: T }                               // Object wrapper
-  | Array<T | (() => T) | { value: T }>;       // Array
+  | T // Direct value
+  | (() => T) // Function
+  | { value: T } // Object wrapper
+  | Array<T | (() => T) | { value: T }>; // Array
 
 // Hook implementation
 function usePolymorphic<T>(input: PolymorphicInput<T>): T {
   // Resolve based on type
-  if (typeof input === 'function') {
+  if (typeof input === "function") {
     // Function form
     return (input as () => T)();
   } else if (Array.isArray(input)) {
     // Array form - return first element
     const first = input[0];
-    return typeof first === 'function' ? first() :
-           typeof first === 'object' ? first.value : first;
-  } else if (typeof input === 'object' && input !== null) {
+    return typeof first === "function"
+      ? first()
+      : typeof first === "object"
+        ? first.value
+        : first;
+  } else if (typeof input === "object" && input !== null) {
     // Object wrapper form
     return (input as { value: T }).value;
   } else {
@@ -1220,10 +1224,10 @@ function usePolymorphic<T>(input: PolymorphicInput<T>): T {
 }
 
 // All valid:
-usePolymorphic('hello');                                    // Direct value
-usePolymorphic(() => 'hello');                              // Function
-usePolymorphic({ value: 'hello' });                         // Object
-usePolymorphic(['hello', () => 'world', { value: '!' }]);   // Array
+usePolymorphic("hello"); // Direct value
+usePolymorphic(() => "hello"); // Function
+usePolymorphic({ value: "hello" }); // Object
+usePolymorphic(["hello", () => "world", { value: "!" }]); // Array
 ```
 
 ---
@@ -1275,17 +1279,20 @@ usePolymorphic(['hello', () => 'world', { value: '!' }]);   // Array
 ## 9. Recommended Resources
 
 ### Official Documentation
+
 - **React Hooks:** https://react.dev/reference/react
 - **React forwardRef:** https://react.dev/reference/react/forwardRef
 - **TypeScript Handbook:** https://www.typescriptlang.org/docs/handbook/2/types-from-types.html
 - **React Hook Form:** https://react-hook-form.com
 
 ### Open Source Examples
+
 - **react-use:** https://github.com/streamich/react-use
 - **@tanstack/react-query:** https://github.com/TanStack/query
 - **react-hook-form:** https://github.com/react-hook-form/react-hook-form
 
 ### Community Resources
+
 - **React Patterns:** https://reactpatterns.com
 - **TypeScript React Starter:** https://github.com/Microsoft/TypeScript-React-Starter
 - **React TypeScript Cheatsheet:** https://react-typescript-cheatsheet.netlify.app

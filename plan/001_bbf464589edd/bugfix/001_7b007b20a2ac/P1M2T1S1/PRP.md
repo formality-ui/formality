@@ -13,6 +13,7 @@
 **Deliverable**: Updated `changeField` function signature `(name: string, value: unknown, inputConfig?: InputConfig) => void` with proper TypeScript typing and dependency array configuration.
 
 **Success Definition**:
+
 - Function signature updated with optional `inputConfig` parameter
 - Type imports added for `InputConfig` from `@formality-ui/core`
 - Dependency array includes `inputConfig` (when used in conditional logic in next subtask)
@@ -34,11 +35,13 @@
 Add an optional third parameter to the `changeField` callback function:
 
 **Current Signature**:
+
 ```typescript
 changeField: (name: string, value: unknown) => void;
 ```
 
 **Target Signature**:
+
 ```typescript
 changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
 ```
@@ -58,6 +61,7 @@ changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
 ### Context Completeness Check
 
 ✅ **Passes "No Prior Knowledge" test**: This PRP provides all necessary context including:
+
 - Exact file paths and line numbers
 - Complete type definitions
 - Import patterns used in the codebase
@@ -181,12 +185,13 @@ packages/react/src/context/FormContext.ts     # Update FormContextValue.changeFi
 No new data models - this task modifies an existing callback signature.
 
 **InputConfig Type** (already exists in core package):
+
 ```typescript
 // packages/core/src/types/config.ts:45-78
 export interface InputConfig<TValue = unknown> {
   component: unknown;
   defaultValue: TValue;
-  debounce?: number | false;  // Key property for P1.M2.T1.S2
+  debounce?: number | false; // Key property for P1.M2.T1.S2
   inputFieldProp?: string;
   valueField?: string;
   getSubmitField?: (fieldName: string) => string;
@@ -262,7 +267,9 @@ const changeField = useCallback(
 );
 
 // PATTERN: Interface signature with optional parameter (FormContext.ts line 91)
-export interface FormContextValue<TFieldValues extends FieldValues = FieldValues> {
+export interface FormContextValue<
+  TFieldValues extends FieldValues = FieldValues,
+> {
   // ... other properties ...
 
   /**
@@ -271,7 +278,11 @@ export interface FormContextValue<TFieldValues extends FieldValues = FieldValues
    * @param value - New value
    * @param inputConfig - Optional input configuration for this field type
    */
-  changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
+  changeField: (
+    name: string,
+    value: unknown,
+    inputConfig?: InputConfig,
+  ) => void;
   //                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ADDED
 }
 
@@ -288,7 +299,7 @@ export interface FormContextValue<TFieldValues extends FieldValues = FieldValues
 ```yaml
 TYPE_IMPORTS:
   - file: packages/react/src/context/FormContext.ts
-    add: "import type { InputConfig } from \"@formality-ui/core\";"
+    add: 'import type { InputConfig } from "@formality-ui/core";'
     to: "Existing type imports section (lines 6-10)"
 
   - file: packages/react/src/components/Form.tsx
@@ -452,6 +463,7 @@ pnpm exec tsc --noEmit /tmp/test-inputconfig-param.tsx
 **8/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - ✅ Clear, bounded scope (single parameter addition)
 - ✅ All file paths and line numbers specified
 - ✅ Type definitions provided

@@ -13,6 +13,7 @@
 **Feature Goal**: Refactor the `isDisabled` matcher check from being nested inside the string-only `when` block to be positioned before the trigger type determination, allowing the matcher logic to be more maintainable and preparing for broader application across condition types.
 
 **Deliverable**:
+
 1. Refactored `evaluateConditionMatch` function in `/packages/core/src/conditions/evaluate.ts`
 2. Extracted `isDisabled` and `isValid` matcher validation logic
 3. Updated code comments to clarify the scope of these matchers
@@ -20,6 +21,7 @@
 5. No behavior changes for existing valid usage patterns
 
 **Success Definition**:
+
 - `isDisabled` matcher check is no longer nested inside the string-only block
 - Code is more maintainable with clearer separation of concerns
 - All existing tests pass without modification
@@ -38,6 +40,7 @@
 **User Journey**: N/A - No user-facing changes
 
 **Pain Points Addressed**:
+
 - Code is harder to maintain with nested validation logic
 - Unclear why `isDisabled` is restricted to string-only block
 - Future enhancements require understanding this implementation detail
@@ -61,6 +64,7 @@ Refactor the `evaluateConditionMatch` function to extract the field state matche
 ### Current State
 
 **Current Implementation (Lines 177-199 of evaluate.ts)**:
+
 ```typescript
 // Apply field state matchers (require string 'when' trigger for field reference)
 if (typeof condition.when === "string" && fieldStates) {
@@ -87,6 +91,7 @@ if (typeof condition.when === "string" && fieldStates) {
 ```
 
 **Current Flow**:
+
 1. Lines 143-151: Handle object `when` (multi-field) - returns early if all matchers pass
 2. Lines 157-175: Handle string `when` and `selectWhen` - get trigger value
 3. Lines 177-199: Field state matchers - ONLY for string `when`
@@ -98,12 +103,14 @@ if (typeof condition.when === "string" && fieldStates) {
 
 **Refactored Implementation**:
 The field state matcher checks will be restructured to:
+
 1. Be more clearly scoped to string `when` triggers
 2. Have improved code comments explaining the restriction
 3. Be positioned for better code flow
 4. Maintain exact backward compatibility
 
 **Key Insight**: The type definitions (conditions.ts lines 79-91) explicitly state that `isValid` and `isDisabled` "require 'when' trigger" and check the "'when' field's state". This design intent is:
+
 - For **string `when`**: Top-level `isValid`/`isDisabled` check that single field's state
 - For **object `when`**: These matchers at top level don't make sense (no single field to check)
 - For **selectWhen`**: These matchers don't make sense (no direct field reference)
@@ -130,6 +137,7 @@ The refactoring will make this design intent explicit in the code structure.
 _If someone knew nothing about this codebase, would they have everything needed to implement this successfully?_
 
 **Answer**: Yes. This PRP provides:
+
 - Exact file location and line numbers for the code to refactor
 - Complete context on the current implementation
 - Clear explanation of the design intent and constraints
@@ -309,6 +317,7 @@ packages/core/src/conditions/
 **No new data models needed** - this PRP is a pure refactoring with no behavior changes.
 
 **Existing Data Structures**:
+
 ```typescript
 // FieldStateInput - Field state with metadata
 interface FieldStateInput {
@@ -318,21 +327,21 @@ interface FieldStateInput {
   isValidating?: boolean;
   error?: unknown;
   invalid?: boolean;
-  disabled?: boolean;  // The property we're checking with isDisabled matcher
+  disabled?: boolean; // The property we're checking with isDisabled matcher
 }
 
 // ConditionDescriptor - Condition definition
 interface ConditionDescriptor {
-  when?: string | WhenMultiField;  // Trigger: string or object
-  selectWhen?: SelectValue<boolean>;  // Expression trigger
-  is?: unknown;  // Value matcher
-  truthy?: boolean;  // Truthy matcher
-  isValid?: boolean;  // Field state matcher (requires string when)
-  isDisabled?: boolean;  // Field state matcher (requires string when)
-  disabled?: boolean;  // Action to apply when matched
-  visible?: boolean;  // Action to apply when matched
-  set?: unknown;  // Action to set value
-  selectSet?: SelectValue;  // Action to set value from expression
+  when?: string | WhenMultiField; // Trigger: string or object
+  selectWhen?: SelectValue<boolean>; // Expression trigger
+  is?: unknown; // Value matcher
+  truthy?: boolean; // Truthy matcher
+  isValid?: boolean; // Field state matcher (requires string when)
+  isDisabled?: boolean; // Field state matcher (requires string when)
+  disabled?: boolean; // Action to apply when matched
+  visible?: boolean; // Action to apply when matched
+  set?: unknown; // Action to set value
+  selectSet?: SelectValue; // Action to set value from expression
 }
 ```
 
@@ -687,11 +696,13 @@ pnpm test -v
 ### From P2.M1 - Disabled Property in Field States (Complete)
 
 The P2.M1 work items specify that:
+
 1. `FieldState.disabled` property exists and is used by condition evaluation
 2. Two-pass evaluation prevents circular dependencies
 3. Tests verify `isDisabled` matcher works with string `when` conditions
 
 **This PRP's Contract**:
+
 1. Refactor the existing `isDisabled` matcher implementation
 2. Do NOT change how `isDisabled` is evaluated
 3. Do NOT add support for new usage patterns
@@ -702,11 +713,13 @@ The P2.M1 work items specify that:
 ### From P2.M1.T3.S3 - Test Disabled from Conditions (Complete)
 
 The P2.M1.T3.S3 PRP specifies that:
+
 1. Tests for `isDisabled` matcher with string `when` exist
 2. Tests for `isDisabled` with object `when` do NOT exist
 3. Tests verify the current behavior is correct
 
 **This PRP's Contract**:
+
 1. All existing tests continue to pass
 2. No new tests are added (that's P2.M2.T2)
 3. Test coverage remains the same
@@ -718,6 +731,7 @@ The P2.M1.T3.S3 PRP specifies that:
 The P2.M2.T1.S2 work item will implement `isDisabled` for object `when` conditions.
 
 **This PRP's Contract**:
+
 1. This refactoring clarifies the current scope restriction
 2. Makes the code easier to extend for P2.M2.T1.S2
 3. Does NOT implement the feature itself (that's P2.M2.T1.S2)
@@ -731,6 +745,7 @@ The P2.M2.T1.S2 work item will implement `isDisabled` for object `when` conditio
 **9/10** - High confidence for one-pass implementation success
 
 **Reasoning**:
+
 - Well-scoped refactoring task (no behavior changes)
 - Clear file location and exact lines to modify
 - Comprehensive understanding of current implementation
