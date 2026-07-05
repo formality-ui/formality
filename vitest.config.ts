@@ -23,6 +23,13 @@ export default defineConfig({
         // package build output (e.g. packages/*/dist/**).
         "**/dist/**",
       ],
+      // Hard gate — CI fails (exit 1) if any of these drop below 90%. PRD §1.3.7.
+      thresholds: {
+        statements: 90,
+        branches: 90,
+        functions: 90,
+        lines: 90,
+      },
     },
   },
 });
