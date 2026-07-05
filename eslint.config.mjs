@@ -112,6 +112,21 @@ export default tseslint.config(
     },
   },
 
+  // --- Internal Node scripts (release tooling): define Node globals so
+  //     `process`/`console`/etc. aren't flagged as undefined by no-undef. ---
+  {
+    files: ["scripts/**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        console: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+      },
+    },
+  },
+
   // --- Disable formatting rules that conflict with Prettier (MUST be last) ---
   prettier,
 );
