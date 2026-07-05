@@ -55,7 +55,7 @@ export function useSubscriptions(
       if (process.env.NODE_ENV !== "production") {
         console.warn(
           `[Formality Subscription] Run ${currentRunId}: ` +
-          `"${fieldName}" subscribing to "${target}"`
+            `"${fieldName}" subscribing to "${target}"`,
         );
       }
     });
@@ -63,14 +63,15 @@ export function useSubscriptions(
     // Cleanup only removes subscriptions added in THIS run
     return () => {
       // Get subscriptions for THIS specific run (not current subscriptions value)
-      const thisRunSubscriptions = runSubscriptionsRef.current.get(currentRunId);
+      const thisRunSubscriptions =
+        runSubscriptionsRef.current.get(currentRunId);
 
       if (thisRunSubscriptions) {
         // Log cleanup start (development only)
         if (process.env.NODE_ENV !== "production") {
           console.warn(
             `[Formality Subscription] Run ${currentRunId}: ` +
-            `"${fieldName}" cleaning up [${thisRunSubscriptions.join(', ')}]`
+              `"${fieldName}" cleaning up [${thisRunSubscriptions.join(", ")}]`,
           );
         }
 

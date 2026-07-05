@@ -51,9 +51,9 @@ function isSafeNumber(value: unknown): value is number {
     return false;
   }
   // Then check for valid finite number
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value);
+  return (
+    typeof value === "number" && !Number.isNaN(value) && Number.isFinite(value)
+  );
 }
 
 /**
@@ -133,17 +133,21 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       const rightValue = unwrapFieldProxy(right);
 
       // Handle string concatenation and numeric addition for +
-      if (binaryNode.operator === '+') {
+      if (binaryNode.operator === "+") {
         // If either operand is a string or array (converts to string), do string concatenation
-        const leftIsString = typeof leftValue === 'string';
-        const rightIsString = typeof rightValue === 'string';
+        const leftIsString = typeof leftValue === "string";
+        const rightIsString = typeof rightValue === "string";
         const leftIsArray = Array.isArray(leftValue);
         const rightIsArray = Array.isArray(rightValue);
 
         if (leftIsString || rightIsString || leftIsArray || rightIsArray) {
           // Convert arrays to strings for concatenation
-          const leftStr = leftIsArray ? (leftValue as unknown[]).join(',') : String(leftValue ?? '');
-          const rightStr = rightIsArray ? (rightValue as unknown[]).join(',') : String(rightValue ?? '');
+          const leftStr = leftIsArray
+            ? (leftValue as unknown[]).join(",")
+            : String(leftValue ?? "");
+          const rightStr = rightIsArray
+            ? (rightValue as unknown[]).join(",")
+            : String(rightValue ?? "");
           return leftStr + rightStr;
         }
         // For numeric addition, validate both are safe numbers
@@ -151,8 +155,8 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
           if (process.env.NODE_ENV !== "production") {
             console.warn(
               `[Formality Expression] Type error: ` +
-              `Invalid operands for + (null/undefined not allowed): ` +
-              `left=${typeof leftValue}, right=${typeof rightValue}`
+                `Invalid operands for + (null/undefined not allowed): ` +
+                `left=${typeof leftValue}, right=${typeof rightValue}`,
             );
           }
           return undefined;
@@ -163,7 +167,7 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
           if (process.env.NODE_ENV !== "production") {
             console.warn(
               `[Formality Expression] Arithmetic overflow: ` +
-              `${leftValue} + ${rightValue} produced ${result}`
+                `${leftValue} + ${rightValue} produced ${result}`,
             );
           }
           return undefined;
@@ -172,15 +176,15 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
       }
 
       // Other arithmetic operators need strict type guard validation
-      const arithmeticOps = ['-', '*', '/', '%'];
+      const arithmeticOps = ["-", "*", "/", "%"];
       if (arithmeticOps.includes(binaryNode.operator as string)) {
         // Validate operands are safe numbers
         if (!isSafeNumber(leftValue) || !isSafeNumber(rightValue)) {
           if (process.env.NODE_ENV !== "production") {
             console.warn(
               `[Formality Expression] Type error: ` +
-              `Invalid operands for ${binaryNode.operator} (null/undefined not allowed): ` +
-              `left=${typeof leftValue}, right=${typeof rightValue}`
+                `Invalid operands for ${binaryNode.operator} (null/undefined not allowed): ` +
+                `left=${typeof leftValue}, right=${typeof rightValue}`,
             );
           }
           return undefined;
@@ -191,13 +195,12 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
         const r = rightValue as number;
 
         // Special handling for division/modulo by zero
-        if (binaryNode.operator === '/' || binaryNode.operator === '%') {
+        if (binaryNode.operator === "/" || binaryNode.operator === "%") {
           if (r === 0) {
             if (process.env.NODE_ENV !== "production") {
-              const opName = binaryNode.operator === '/' ? 'Division' : 'Modulo';
-              console.warn(
-                `[Formality Expression] ${opName} by zero`
-              );
+              const opName =
+                binaryNode.operator === "/" ? "Division" : "Modulo";
+              console.warn(`[Formality Expression] ${opName} by zero`);
             }
             return undefined;
           }
@@ -206,10 +209,18 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
         // Perform arithmetic operation
         let result: number;
         switch (binaryNode.operator) {
-          case '-': result = l - r; break;
-          case '*': result = l * r; break;
-          case '/': result = l / r; break;
-          case '%': result = l % r; break;
+          case "-":
+            result = l - r;
+            break;
+          case "*":
+            result = l * r;
+            break;
+          case "/":
+            result = l / r;
+            break;
+          case "%":
+            result = l % r;
+            break;
           default:
             throw new Error(`Unknown operator: ${binaryNode.operator}`);
         }
@@ -219,7 +230,7 @@ function evaluateNode(node: Expression, context: EvaluationContext): unknown {
           if (process.env.NODE_ENV !== "production") {
             console.warn(
               `[Formality Expression] Arithmetic overflow: ` +
-              `${l} ${binaryNode.operator} ${r} produced ${result}`
+                `${l} ${binaryNode.operator} ${r} produced ${result}`,
             );
           }
           return undefined;

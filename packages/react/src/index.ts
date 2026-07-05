@@ -94,3 +94,6 @@ export type {
   ReactFieldConfig,
   ReactFormFieldsConfig,
 } from "./overlays";
+
+// `defineInputs` is a VALUE export (identity function), not a type.
+export { defineInputs } from "./overlays";

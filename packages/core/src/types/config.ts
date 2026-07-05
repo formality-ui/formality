@@ -161,8 +161,10 @@ export interface FieldConfig {
  * unknown config keys. Defaults to `string`, which is identical to the previous
  * non-generic `Record<string, FieldConfig>` (backwards compatible).
  */
-export type FormFieldsConfig<TName extends string = string> =
-  Record<TName, FieldConfig>;
+export type FormFieldsConfig<TName extends string = string> = Record<
+  TName,
+  FieldConfig
+>;
 
 /**
  * GroupConfig - Configuration for a FieldGroup

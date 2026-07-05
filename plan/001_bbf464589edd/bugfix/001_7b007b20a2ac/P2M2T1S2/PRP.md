@@ -129,6 +129,7 @@ if (condition.when !== undefined && typeof condition.when === "object") {
 
 - Object `when` with field-level `isDisabled`: ✅ Still works
 - Object `when` with top-level `isDisabled`: ✅ Now supported
+
   ```typescript
   { when: { field1: { ... }, field2: { ... } }, isDisabled: true }
   ```

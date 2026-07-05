@@ -83,5 +83,11 @@ export function useInferredInputs(options: UseInferredInputsOptions): string[] {
 
     // Return unique field names
     return [...new Set(inferred)];
-  }, [providerDefaultFieldProps, formDefaultFieldProps, selectProps, conditions, subscribesTo]);
+  }, [
+    providerDefaultFieldProps,
+    formDefaultFieldProps,
+    selectProps,
+    conditions,
+    subscribesTo,
+  ]);
 }

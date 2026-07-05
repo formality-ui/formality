@@ -194,11 +194,10 @@ export function Field<TName extends string = string>({
       }
     }
 
-    const baseInputConfig =
-      resolveInputConfig(type, mergedInputs) ?? {
-        component: "input",
-        defaultValue: "",
-      };
+    const baseInputConfig = resolveInputConfig(type, mergedInputs) ?? {
+      component: "input",
+      defaultValue: "",
+    };
 
     // Merge with inputConfig prop (prop has highest priority)
     return inputConfigProp
@@ -331,13 +330,14 @@ export function Field<TName extends string = string>({
 
   // === PROPS EVALUATION ===
 
-  const { providerSelectProps, formSelectProps, fieldSelectProps } = usePropsEvaluation({
-    selectProps: fieldConfig.selectProps,
-    formDefaultFieldProps: formConfig.selectDefaultFieldProps,
-    providerDefaultFieldProps: providerConfig.selectDefaultFieldProps,
-    subscribesTo: fieldConfig.subscribesTo,
-    fieldName: name,
-  });
+  const { providerSelectProps, formSelectProps, fieldSelectProps } =
+    usePropsEvaluation({
+      selectProps: fieldConfig.selectProps,
+      formDefaultFieldProps: formConfig.selectDefaultFieldProps,
+      providerDefaultFieldProps: providerConfig.selectDefaultFieldProps,
+      subscribesTo: fieldConfig.subscribesTo,
+      fieldName: name,
+    });
 
   // Resolve label
   const label = useMemo(() => {
@@ -413,7 +413,13 @@ export function Field<TName extends string = string>({
       // Notify subscribers
       changeField(name, parsedValue, inputConfig);
     },
-    [inputConfig.parser, providerConfig.parsers, changeField, name, inputConfig],
+    [
+      inputConfig.parser,
+      providerConfig.parsers,
+      changeField,
+      name,
+      inputConfig,
+    ],
   );
 
   // Don't render if not visible

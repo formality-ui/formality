@@ -405,7 +405,11 @@ describe("Priority Order - Single Layer Tests", () => {
 
       // Layer 5 inputProps comes from the InputConfig's props field
       const testInputsWithLayer5: Record<string, InputConfig> = {
-        textField: { component: TestInput, defaultValue: "", props: { className: "layer-5" } },
+        textField: {
+          component: TestInput,
+          defaultValue: "",
+          props: { className: "layer-5" },
+        },
         switch: { component: TestSwitch, defaultValue: false },
       };
 
@@ -456,7 +460,11 @@ describe("Priority Order - Single Layer Tests", () => {
 
       // Layer 5 inputProps applies to all fields using this input type
       const testInputsWithLayer5: Record<string, InputConfig> = {
-        textField: { component: TestInput, defaultValue: "", props: { className: "input-layer" } },
+        textField: {
+          component: TestInput,
+          defaultValue: "",
+          props: { className: "input-layer" },
+        },
         switch: { component: TestSwitch, defaultValue: false },
       };
 
@@ -737,7 +745,11 @@ describe("Priority Order - Adjacent Layers", () => {
 
     // Layer 5 inputProps from InputConfig.props
     const testInputsWithLayer5: Record<string, InputConfig> = {
-      textField: { component: TestInput, defaultValue: "", props: { className: "layer-5" } },
+      textField: {
+        component: TestInput,
+        defaultValue: "",
+        props: { className: "layer-5" },
+      },
       switch: { component: TestSwitch, defaultValue: false },
     };
 
@@ -767,7 +779,11 @@ describe("Priority Order - Adjacent Layers", () => {
 
     // Layer 5 inputProps from InputConfig.props
     const testInputsWithLayer5: Record<string, InputConfig> = {
-      textField: { component: TestInput, defaultValue: "", props: { className: "layer-5" } },
+      textField: {
+        component: TestInput,
+        defaultValue: "",
+        props: { className: "layer-5" },
+      },
       switch: { component: TestSwitch, defaultValue: false },
     };
 
@@ -889,7 +905,11 @@ describe("Priority Order - Skip Layers", () => {
 
     // Layer 5 inputProps from InputConfig.props
     const testInputsWithLayer5: Record<string, InputConfig> = {
-      textField: { component: TestInput, defaultValue: "", props: { className: "layer-5" } },
+      textField: {
+        component: TestInput,
+        defaultValue: "",
+        props: { className: "layer-5" },
+      },
       switch: { component: TestSwitch, defaultValue: false },
     };
 

@@ -193,16 +193,20 @@ export function usePropsEvaluation(
       // Handle function providerDefaultFieldProps
       if (typeof providerDefaultFieldProps === "function") {
         providerResult =
-          (providerDefaultFieldProps(formState, methods) as Record<string, unknown>) ??
-          {};
+          (providerDefaultFieldProps(formState, methods) as Record<
+            string,
+            unknown
+          >) ?? {};
       } else {
         // Build evaluation context
         const context = buildFieldContext(formState, fieldName);
 
         // Evaluate descriptor (string expression, object with expressions, or array)
         providerResult =
-          (evaluateDescriptor(providerDefaultFieldProps, context) as Record<string, unknown>) ??
-          {};
+          (evaluateDescriptor(providerDefaultFieldProps, context) as Record<
+            string,
+            unknown
+          >) ?? {};
       }
     }
 
@@ -212,15 +216,20 @@ export function usePropsEvaluation(
       // Handle function formDefaultFieldProps
       if (typeof formDefaultFieldProps === "function") {
         formResult =
-          (formDefaultFieldProps(formState, methods) as Record<string, unknown>) ?? {};
+          (formDefaultFieldProps(formState, methods) as Record<
+            string,
+            unknown
+          >) ?? {};
       } else {
         // Build evaluation context
         const context = buildFieldContext(formState, fieldName);
 
         // Evaluate descriptor (string expression, object with expressions, or array)
         formResult =
-          (evaluateDescriptor(formDefaultFieldProps, context) as Record<string, unknown>) ??
-          {};
+          (evaluateDescriptor(formDefaultFieldProps, context) as Record<
+            string,
+            unknown
+          >) ?? {};
       }
     }
 
@@ -237,7 +246,10 @@ export function usePropsEvaluation(
 
         // Evaluate descriptor (string expression, object with expressions, or array)
         fieldResult =
-          (evaluateDescriptor(selectProps, context) as Record<string, unknown>) ?? {};
+          (evaluateDescriptor(selectProps, context) as Record<
+            string,
+            unknown
+          >) ?? {};
       }
     }
 
@@ -247,5 +259,12 @@ export function usePropsEvaluation(
       formSelectProps: formResult,
       fieldSelectProps: fieldResult,
     };
-  }, [providerDefaultFieldProps, formDefaultFieldProps, selectProps, formState, methods, fieldName]);
+  }, [
+    providerDefaultFieldProps,
+    formDefaultFieldProps,
+    selectProps,
+    formState,
+    methods,
+    fieldName,
+  ]);
 }

@@ -30,7 +30,22 @@ interface TestInputProps {
 }
 
 const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  ({ value, onChange, disabled, label, error, name, placeholder, className, size, variant, ...props }, ref) => (
+  (
+    {
+      value,
+      onChange,
+      disabled,
+      label,
+      error,
+      name,
+      placeholder,
+      className,
+      size,
+      variant,
+      ...props
+    },
+    ref,
+  ) => (
     <div>
       {label && <label data-testid={`${name}-label`}>{label}</label>}
       <input
@@ -100,13 +115,15 @@ describe("selectDefaultFieldProps - Provider Level - Expression-Based", () => {
     render(
       <FormalityProvider
         inputs={testInputs}
-        selectDefaultFieldProps={{ className: 'signed ? "signed-enabled" : "signed-disabled"' }}
+        selectDefaultFieldProps={{
+          className: 'signed ? "signed-enabled" : "signed-disabled"',
+        }}
       >
         <Form config={config}>
           <Field name="signed" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - signed=false → "signed-disabled"
@@ -138,7 +155,7 @@ describe("selectDefaultFieldProps - Provider Level - Expression-Based", () => {
           <Field name="client" />
           <Field name="contact" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial placeholder is empty (client has no value)
@@ -168,14 +185,14 @@ describe("selectDefaultFieldProps - Provider Level - Expression-Based", () => {
       <FormalityProvider
         inputs={testInputs}
         selectDefaultFieldProps={{
-          className: 'userType === "admin" ? "admin-field" : "user-field"'
+          className: 'userType === "admin" ? "admin-field" : "user-field"',
         }}
       >
         <Form config={config} defaultValues={{ userType: "user" }}>
           <Field name="userType" />
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - userType="user" → "user-field" class
@@ -208,7 +225,7 @@ describe("selectDefaultFieldProps - Provider Level - Expression-Based", () => {
           <Field name="source" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // Type in source and verify target placeholder updates
@@ -243,14 +260,16 @@ describe("selectDefaultFieldProps - Provider Level - Function Callbacks", () => 
         inputs={testInputs}
         selectDefaultFieldProps={(formState) => {
           capturedFormState = formState;
-          return { className: formState.fields.signed?.value ? "enabled" : "disabled" };
+          return {
+            className: formState.fields.signed?.value ? "enabled" : "disabled",
+          };
         }}
       >
         <Form config={config}>
           <Field name="signed" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Function was called with formState
@@ -278,7 +297,7 @@ describe("selectDefaultFieldProps - Provider Level - Function Callbacks", () => 
         <Form config={config}>
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Function was called with react-hook-form methods
@@ -300,13 +319,15 @@ describe("selectDefaultFieldProps - Provider Level - Function Callbacks", () => 
     render(
       <FormalityProvider
         inputs={testInputs}
-        selectDefaultFieldProps={{ className: 'toggle ? "toggle-on" : "toggle-off"' }}
+        selectDefaultFieldProps={{
+          className: 'toggle ? "toggle-on" : "toggle-off"',
+        }}
       >
         <Form config={config}>
           <Field name="toggle" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - toggle=false → "toggle-off"
@@ -344,7 +365,7 @@ describe("selectDefaultFieldProps - Provider Level - Re-Evaluation", () => {
           <Field name="signed" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - signed=false → "no"
@@ -379,7 +400,9 @@ describe("selectDefaultFieldProps - Provider Level - Re-Evaluation", () => {
     render(
       <FormalityProvider
         inputs={testInputs}
-        selectDefaultFieldProps={{ className: 'signed ? "enabled" : "disabled"' }}
+        selectDefaultFieldProps={{
+          className: 'signed ? "enabled" : "disabled"',
+        }}
       >
         <Form config={config}>
           <Field name="signed" />
@@ -387,7 +410,7 @@ describe("selectDefaultFieldProps - Provider Level - Re-Evaluation", () => {
           <Field name="field2" />
           <Field name="field3" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: All fields have "disabled" class initially (signed=false)
@@ -425,7 +448,7 @@ describe("selectDefaultFieldProps - Provider Level - Re-Evaluation", () => {
           <Field name="target1" />
           <Field name="target2" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const user = userEvent.setup();
@@ -433,8 +456,14 @@ describe("selectDefaultFieldProps - Provider Level - Re-Evaluation", () => {
 
     // Both targets should update
     await waitFor(() => {
-      expect(screen.getByTestId("target1")).toHaveAttribute("placeholder", "Test");
-      expect(screen.getByTestId("target2")).toHaveAttribute("placeholder", "Test");
+      expect(screen.getByTestId("target1")).toHaveAttribute(
+        "placeholder",
+        "Test",
+      );
+      expect(screen.getByTestId("target2")).toHaveAttribute(
+        "placeholder",
+        "Test",
+      );
     });
   });
 });
@@ -461,7 +490,7 @@ describe("selectDefaultFieldProps - Provider Level - Priority Ordering", () => {
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const field = screen.getByTestId("field");
@@ -490,11 +519,14 @@ describe("selectDefaultFieldProps - Provider Level - Priority Ordering", () => {
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Field variant wins (highest priority)
-    expect(screen.getByTestId("field")).toHaveAttribute("data-variant", "standard");
+    expect(screen.getByTestId("field")).toHaveAttribute(
+      "data-variant",
+      "standard",
+    );
   });
 
   it("should merge provider props with field config props", () => {
@@ -511,7 +543,7 @@ describe("selectDefaultFieldProps - Provider Level - Priority Ordering", () => {
         <Form config={config}>
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const field = screen.getByTestId("field");
@@ -537,11 +569,16 @@ describe("selectDefaultFieldProps - Provider Level - Priority Ordering", () => {
       >
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { size: '"form"', className: '"form-class"' } }}
+          formConfig={{
+            selectDefaultFieldProps: {
+              size: '"form"',
+              className: '"form-class"',
+            },
+          }}
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const field = screen.getByTestId("field");
@@ -580,7 +617,7 @@ describe("selectDefaultFieldProps - Provider Level - Multiple Fields", () => {
           <Field name="field3" />
           <Field name="field4" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: All fields have "no" class initially (signed=false)
@@ -614,7 +651,8 @@ describe("selectDefaultFieldProps - Provider Level - Multiple Fields", () => {
       <FormalityProvider
         inputs={testInputs}
         selectDefaultFieldProps={{
-          placeholder: 'props.name === "fieldA" ? "Enter A" : props.name === "fieldB" ? "Enter B" : "Enter C"'
+          placeholder:
+            'props.name === "fieldA" ? "Enter A" : props.name === "fieldB" ? "Enter B" : "Enter C"',
         }}
       >
         <Form config={config}>
@@ -622,13 +660,22 @@ describe("selectDefaultFieldProps - Provider Level - Multiple Fields", () => {
           <Field name="fieldB" />
           <Field name="fieldC" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Each field has its own evaluated placeholder
-    expect(screen.getByTestId("fieldA")).toHaveAttribute("placeholder", "Enter A");
-    expect(screen.getByTestId("fieldB")).toHaveAttribute("placeholder", "Enter B");
-    expect(screen.getByTestId("fieldC")).toHaveAttribute("placeholder", "Enter C");
+    expect(screen.getByTestId("fieldA")).toHaveAttribute(
+      "placeholder",
+      "Enter A",
+    );
+    expect(screen.getByTestId("fieldB")).toHaveAttribute(
+      "placeholder",
+      "Enter B",
+    );
+    expect(screen.getByTestId("fieldC")).toHaveAttribute(
+      "placeholder",
+      "Enter C",
+    );
   });
 });
 
@@ -649,12 +696,16 @@ describe("selectDefaultFieldProps - Form Level - Expression-Based", () => {
       <FormalityProvider inputs={testInputs}>
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { className: 'signed ? "signed-enabled" : "signed-disabled"' } }}
+          formConfig={{
+            selectDefaultFieldProps: {
+              className: 'signed ? "signed-enabled" : "signed-disabled"',
+            },
+          }}
         >
           <Field name="signed" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - signed=false → "signed-disabled"
@@ -686,7 +737,7 @@ describe("selectDefaultFieldProps - Form Level - Expression-Based", () => {
           <Field name="client" />
           <Field name="contact" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial placeholder is empty (client has no value)
@@ -718,14 +769,14 @@ describe("selectDefaultFieldProps - Form Level - Expression-Based", () => {
           config={config}
           formConfig={{
             selectDefaultFieldProps: {
-              className: 'userType === "admin" ? "admin-field" : "user-field"'
-            }
+              className: 'userType === "admin" ? "admin-field" : "user-field"',
+            },
           }}
         >
           <Field name="userType" />
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - userType="user" → "user-field" class
@@ -758,7 +809,7 @@ describe("selectDefaultFieldProps - Form Level - Expression-Based", () => {
           <Field name="source" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // Type in source and verify target placeholder updates
@@ -795,12 +846,12 @@ describe("selectDefaultFieldProps - Form Level - Function Callbacks", () => {
             selectDefaultFieldProps: (formState) => {
               capturedFormState = formState;
               return { className: "test-class" };
-            }
+            },
           }}
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Function was called with formState
@@ -823,12 +874,12 @@ describe("selectDefaultFieldProps - Form Level - Function Callbacks", () => {
             selectDefaultFieldProps: (formState, methods) => {
               capturedMethods = methods;
               return {};
-            }
+            },
           }}
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Function was called with react-hook-form methods
@@ -851,12 +902,16 @@ describe("selectDefaultFieldProps - Form Level - Function Callbacks", () => {
       <FormalityProvider inputs={testInputs}>
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { className: 'toggle ? "toggle-on" : "toggle-off"' } }}
+          formConfig={{
+            selectDefaultFieldProps: {
+              className: 'toggle ? "toggle-on" : "toggle-off"',
+            },
+          }}
         >
           <Field name="toggle" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - toggle=false → "toggle-off"
@@ -889,12 +944,14 @@ describe("selectDefaultFieldProps - Form Level - Re-Evaluation", () => {
       <FormalityProvider inputs={testInputs}>
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { className: 'signed ? "yes" : "no"' } }}
+          formConfig={{
+            selectDefaultFieldProps: { className: 'signed ? "yes" : "no"' },
+          }}
         >
           <Field name="signed" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - signed=false → "no"
@@ -930,14 +987,18 @@ describe("selectDefaultFieldProps - Form Level - Re-Evaluation", () => {
       <FormalityProvider inputs={testInputs}>
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { className: 'signed ? "enabled" : "disabled"' } }}
+          formConfig={{
+            selectDefaultFieldProps: {
+              className: 'signed ? "enabled" : "disabled"',
+            },
+          }}
         >
           <Field name="signed" />
           <Field name="field1" />
           <Field name="field2" />
           <Field name="field3" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: All fields have "disabled" class initially (signed=false)
@@ -975,7 +1036,7 @@ describe("selectDefaultFieldProps - Form Level - Re-Evaluation", () => {
           <Field name="target1" />
           <Field name="target2" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const user = userEvent.setup();
@@ -983,8 +1044,14 @@ describe("selectDefaultFieldProps - Form Level - Re-Evaluation", () => {
 
     // Both targets should update
     await waitFor(() => {
-      expect(screen.getByTestId("target1")).toHaveAttribute("placeholder", "Test");
-      expect(screen.getByTestId("target2")).toHaveAttribute("placeholder", "Test");
+      expect(screen.getByTestId("target1")).toHaveAttribute(
+        "placeholder",
+        "Test",
+      );
+      expect(screen.getByTestId("target2")).toHaveAttribute(
+        "placeholder",
+        "Test",
+      );
     });
   });
 });
@@ -1008,7 +1075,9 @@ describe("selectDefaultFieldProps - Form Level - Multiple Fields", () => {
       <FormalityProvider inputs={testInputs}>
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { className: 'signed ? "yes" : "no"' } }}
+          formConfig={{
+            selectDefaultFieldProps: { className: 'signed ? "yes" : "no"' },
+          }}
         >
           <Field name="signed" />
           <Field name="field1" />
@@ -1016,7 +1085,7 @@ describe("selectDefaultFieldProps - Form Level - Multiple Fields", () => {
           <Field name="field3" />
           <Field name="field4" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: All fields have "no" class initially (signed=false)
@@ -1052,21 +1121,31 @@ describe("selectDefaultFieldProps - Form Level - Multiple Fields", () => {
           config={config}
           formConfig={{
             selectDefaultFieldProps: {
-              placeholder: 'props.name === "fieldA" ? "Enter A" : props.name === "fieldB" ? "Enter B" : "Enter C"'
-            }
+              placeholder:
+                'props.name === "fieldA" ? "Enter A" : props.name === "fieldB" ? "Enter B" : "Enter C"',
+            },
           }}
         >
           <Field name="fieldA" />
           <Field name="fieldB" />
           <Field name="fieldC" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Each field has its own evaluated placeholder
-    expect(screen.getByTestId("fieldA")).toHaveAttribute("placeholder", "Enter A");
-    expect(screen.getByTestId("fieldB")).toHaveAttribute("placeholder", "Enter B");
-    expect(screen.getByTestId("fieldC")).toHaveAttribute("placeholder", "Enter C");
+    expect(screen.getByTestId("fieldA")).toHaveAttribute(
+      "placeholder",
+      "Enter A",
+    );
+    expect(screen.getByTestId("fieldB")).toHaveAttribute(
+      "placeholder",
+      "Enter B",
+    );
+    expect(screen.getByTestId("fieldC")).toHaveAttribute(
+      "placeholder",
+      "Enter C",
+    );
   });
 
   it("should not apply form props to fields in other forms", async () => {
@@ -1083,7 +1162,9 @@ describe("selectDefaultFieldProps - Form Level - Multiple Fields", () => {
       <FormalityProvider inputs={testInputs}>
         <Form
           config={config1}
-          formConfig={{ selectDefaultFieldProps: { className: 'signed ? "yes" : "no"' } }}
+          formConfig={{
+            selectDefaultFieldProps: { className: 'signed ? "yes" : "no"' },
+          }}
         >
           <Field name="signed" />
           <Field name="field1" />
@@ -1091,7 +1172,7 @@ describe("selectDefaultFieldProps - Form Level - Multiple Fields", () => {
         <Form config={config2}>
           <Field name="field2" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: field1 gets form-level props, field2 does not
@@ -1122,7 +1203,7 @@ describe("selectDefaultFieldProps - Form Level - Priority Ordering", () => {
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const field = screen.getByTestId("field");
@@ -1143,7 +1224,10 @@ describe("selectDefaultFieldProps - Form Level - Priority Ordering", () => {
     render(
       <FormalityProvider
         inputs={testInputs}
-        selectDefaultFieldProps={{ size: '"small"', className: '"provider-class"' }}
+        selectDefaultFieldProps={{
+          size: '"small"',
+          className: '"provider-class"',
+        }}
       >
         <Form
           config={config}
@@ -1151,15 +1235,15 @@ describe("selectDefaultFieldProps - Form Level - Priority Ordering", () => {
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const field = screen.getByTestId("field");
 
     // ASSERT: All three props are applied (merged)
-    expect(field).toHaveAttribute("data-size", "small");      // Provider
-    expect(field).toHaveAttribute("data-variant", "form");    // Form
-    expect(field).toHaveClass("provider-class");              // Provider
+    expect(field).toHaveAttribute("data-size", "small"); // Provider
+    expect(field).toHaveAttribute("data-variant", "form"); // Form
+    expect(field).toHaveClass("provider-class"); // Provider
   });
 
   it("should verify form overrides provider for priority", () => {
@@ -1175,11 +1259,13 @@ describe("selectDefaultFieldProps - Form Level - Priority Ordering", () => {
       >
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { size: '"form"', variant: '"form"' } }}
+          formConfig={{
+            selectDefaultFieldProps: { size: '"form"', variant: '"form"' },
+          }}
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     const field = screen.getByTestId("field");
@@ -1199,16 +1285,22 @@ describe("selectDefaultFieldProps - Form Level - Priority Ordering", () => {
     render(
       <FormalityProvider
         inputs={testInputs}
-        selectDefaultFieldProps={{ className: 'toggle ? "provider-on" : "provider-off"' }}
+        selectDefaultFieldProps={{
+          className: 'toggle ? "provider-on" : "provider-off"',
+        }}
       >
         <Form
           config={config}
-          formConfig={{ selectDefaultFieldProps: { className: 'toggle ? "form-on" : "form-off"' } }}
+          formConfig={{
+            selectDefaultFieldProps: {
+              className: 'toggle ? "form-on" : "form-off"',
+            },
+          }}
         >
           <Field name="toggle" />
           <Field name="target" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Initial state - form-level expression wins
@@ -1247,17 +1339,17 @@ describe("selectDefaultFieldProps - Form Level - Priority Ordering", () => {
             selectDefaultFieldProps: () => {
               formCalled = true;
               return { className: "form-result" };
-            }
+            },
           }}
         >
           <Field name="field" />
         </Form>
-      </FormalityProvider>
+      </FormalityProvider>,
     );
 
     // ASSERT: Form result wins (both functions are called)
-    expect(providerCalled).toBe(true);  // Provider function is called
-    expect(formCalled).toBe(true);      // Form function is called
+    expect(providerCalled).toBe(true); // Provider function is called
+    expect(formCalled).toBe(true); // Form function is called
     expect(screen.getByTestId("field")).toHaveClass("form-result");
     expect(screen.getByTestId("field")).not.toHaveClass("provider-result");
   });

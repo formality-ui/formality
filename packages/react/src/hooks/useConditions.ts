@@ -215,7 +215,7 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
 
         // Priority: config > conditions
         // Config-level disabled takes precedence over condition-based disabled
-        newDisabled[fieldName] = configDisabled ?? (result.disabled ?? false);
+        newDisabled[fieldName] = configDisabled ?? result.disabled ?? false;
       }
 
       // Create new states with updated disabled
@@ -245,7 +245,15 @@ export function useConditions(options: UseConditionsOptions): ConditionResult {
     }
 
     return disabled;
-  }, [watchFields, allFieldsConfig, fieldValues, baseFieldStates, record, props, methods]);
+  }, [
+    watchFields,
+    allFieldsConfig,
+    fieldValues,
+    baseFieldStates,
+    record,
+    props,
+    methods,
+  ]);
 
   // ============================================================================
   // PASS 3: Merge base states with disabled into final field states

@@ -193,13 +193,15 @@ function evaluateConditionMatch(
       // Backward compatibility: If no state matchers exist, check all fields
       // This preserves existing behavior for pure value matcher conditions
       // New behavior: When state matchers are present, only check those fields
-      const fieldsToCheck = fieldsWithStateMatchers.length > 0
-        ? fieldsWithStateMatchers
-        : Object.keys(condition.when);
+      const fieldsToCheck =
+        fieldsWithStateMatchers.length > 0
+          ? fieldsWithStateMatchers
+          : Object.keys(condition.when);
 
       // Check if all fields match the expected disabled state
       const allFieldsMatchDisabled = fieldsToCheck.every(
-        (fieldName) => fieldStates[fieldName]?.disabled === condition.isDisabled
+        (fieldName) =>
+          fieldStates[fieldName]?.disabled === condition.isDisabled,
       );
 
       if (!allFieldsMatchDisabled) {

@@ -475,7 +475,9 @@ describe("AutoSave Race Condition - Rapid Changes", () => {
 
       // Verify both validations completed (not aborted mid-validation)
       // But only the second value was submitted
-      const validationEnds = validationCalls.filter((c) => c.startsWith("end:"));
+      const validationEnds = validationCalls.filter((c) =>
+        c.startsWith("end:"),
+      );
       expect(validationEnds.length).toBeGreaterThanOrEqual(1);
     });
   });

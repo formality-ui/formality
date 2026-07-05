@@ -220,7 +220,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     // Log subscription addition (development only)
     if (process.env.NODE_ENV !== "production") {
       console.warn(
-        `[Formality Subscription] "${subscriber}" added to watch "${target}"`
+        `[Formality Subscription] "${subscriber}" added to watch "${target}"`,
       );
     }
 
@@ -250,12 +250,12 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       if (process.env.NODE_ENV !== "production") {
         if (subscriptionExists) {
           console.warn(
-            `[Formality Subscription] "${subscriber}" removed from watching "${target}"`
+            `[Formality Subscription] "${subscriber}" removed from watching "${target}"`,
           );
         } else {
           console.warn(
             `[Formality Subscription] WARNING: Double-cleanup attempt - ` +
-            `"${subscriber}" was not watching "${target}"`
+              `"${subscriber}" was not watching "${target}"`,
           );
         }
       }
@@ -562,13 +562,16 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   useEffect(() => {
     // When debounce is false, use immediate execution (no debouncing)
     if (debounceMs === false) {
-      const immediateFn = Object.assign(() => {
-        executeAutoSave();
-      }, {
-        cancel: () => {}, // No-op for immediate function
-        flush: () => executeAutoSave(), // Execute immediately on flush
-        pending: () => false, // Never pending when immediate
-      }) as DebouncedFunction;
+      const immediateFn = Object.assign(
+        () => {
+          executeAutoSave();
+        },
+        {
+          cancel: () => {}, // No-op for immediate function
+          flush: () => executeAutoSave(), // Execute immediately on flush
+          pending: () => false, // Never pending when immediate
+        },
+      ) as DebouncedFunction;
 
       debouncedSubmitRef.current = immediateFn;
 

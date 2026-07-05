@@ -50,10 +50,14 @@ describe("Complex Expression Evaluation", () => {
           count: { value: 5 },
         };
         const context = buildEvaluationContext(
-          { client: fields.client.value, signed: fields.signed.value, count: fields.count.value },
+          {
+            client: fields.client.value,
+            signed: fields.signed.value,
+            count: fields.count.value,
+          },
           {},
           {},
-          { client: fields.client, signed: fields.signed, count: fields.count }
+          { client: fields.client, signed: fields.signed, count: fields.count },
         );
 
         const result = evaluate("client && signed && count > 0", context);
@@ -99,10 +103,18 @@ describe("Complex Expression Evaluation", () => {
           fallback: { value: "default" },
         };
         const context = buildEvaluationContext(
-          { primary: fields.primary.value, secondary: fields.secondary.value, fallback: fields.fallback.value },
+          {
+            primary: fields.primary.value,
+            secondary: fields.secondary.value,
+            fallback: fields.fallback.value,
+          },
           {},
           {},
-          { primary: fields.primary, secondary: fields.secondary, fallback: fields.fallback }
+          {
+            primary: fields.primary,
+            secondary: fields.secondary,
+            fallback: fields.fallback,
+          },
         );
 
         const result = evaluate("primary || secondary || fallback", context);
@@ -117,9 +129,13 @@ describe("Complex Expression Evaluation", () => {
 
     describe("Nullish Coalescing", () => {
       it("should return first non-nullish value", () => {
-        expect(evaluate("a ?? b ?? c", { a: null, b: undefined, c: "default" })).toBe("default");
+        expect(
+          evaluate("a ?? b ?? c", { a: null, b: undefined, c: "default" }),
+        ).toBe("default");
         expect(evaluate("a ?? b ?? c", { a: 0, b: "", c: "default" })).toBe(0); // 0 is not nullish
-        expect(evaluate("a ?? b ?? c", { a: false, b: "", c: "default" })).toBe(false); // false is not nullish
+        expect(evaluate("a ?? b ?? c", { a: false, b: "", c: "default" })).toBe(
+          false,
+        ); // false is not nullish
       });
 
       it("should handle nullish with field proxies", () => {
@@ -127,7 +143,7 @@ describe("Complex Expression Evaluation", () => {
           { required: null, optional: "value" },
           {},
           {},
-          { required: { value: null }, optional: { value: "value" } }
+          { required: { value: null }, optional: { value: "value" } },
         );
 
         expect(evaluate("required ?? optional", context)).toBe("value");
@@ -142,7 +158,15 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should handle long nullish chains", () => {
-        expect(evaluate("a ?? b ?? c ?? d ?? e", { a: null, b: undefined, c: null, d: undefined, e: "final" })).toBe("final");
+        expect(
+          evaluate("a ?? b ?? c ?? d ?? e", {
+            a: null,
+            b: undefined,
+            c: null,
+            d: undefined,
+            e: "final",
+          }),
+        ).toBe("final");
       });
     });
 
@@ -154,9 +178,13 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should handle nullish with logical operators", () => {
-        expect(evaluate("a ?? b && c", { a: null, b: true, c: "value" })).toBe("value");
+        expect(evaluate("a ?? b && c", { a: null, b: true, c: "value" })).toBe(
+          "value",
+        );
         // && has higher precedence than ??, so (a && b) ?? c
-        expect(evaluate("a && b ?? c", { a: null, b: true, c: "default" })).toBe("default"); // (null && true) ?? "default" = null ?? "default" = "default"
+        expect(
+          evaluate("a && b ?? c", { a: null, b: true, c: "default" }),
+        ).toBe("default"); // (null && true) ?? "default" = null ?? "default" = "default"
       });
 
       it("should handle complex mixed expressions", () => {
@@ -168,8 +196,12 @@ describe("Complex Expression Evaluation", () => {
 
       it("should handle precedence correctly", () => {
         // && has higher precedence than ||
-        expect(evaluate("a || b && c", { a: false, b: true, c: "result" })).toBe("result"); // a || (b && c)
-        expect(evaluate("a && b || c", { a: true, b: false, c: "result" })).toBe("result"); // (a && b) || c
+        expect(
+          evaluate("a || b && c", { a: false, b: true, c: "result" }),
+        ).toBe("result"); // a || (b && c)
+        expect(
+          evaluate("a && b || c", { a: true, b: false, c: "result" }),
+        ).toBe("result"); // (a && b) || c
       });
     });
   });
@@ -177,7 +209,8 @@ describe("Complex Expression Evaluation", () => {
   describe("Nested Ternary Operators", () => {
     it("should evaluate basic nested ternary", () => {
       const context = { status: "pending" };
-      const expr = 'status === "active" ? "Go" : status === "pending" ? "Wait" : "Stop"';
+      const expr =
+        'status === "active" ? "Go" : status === "pending" ? "Wait" : "Stop"';
       expect(evaluate(expr, context)).toBe("Wait");
     });
 
@@ -185,7 +218,9 @@ describe("Complex Expression Evaluation", () => {
       const context = { a: 1, b: 2, c: 3, d: 4 };
       // a ? b : c ? d : e is parsed as a ? b : (c ? d : e)
       expect(evaluate("a ? b : c ? d : e", context)).toBe(2); // a is truthy, return b
-      expect(evaluate("false ? b : c ? d : e", { a: false, ...context })).toBe(4); // a falsy, c truthy, return d
+      expect(evaluate("false ? b : c ? d : e", { a: false, ...context })).toBe(
+        4,
+      ); // a falsy, c truthy, return d
     });
 
     it("should handle ternary with logical operators", () => {
@@ -203,7 +238,7 @@ describe("Complex Expression Evaluation", () => {
         { client: fields.client.value, defaultType: fields.defaultType.value },
         {},
         {},
-        { client: fields.client, defaultType: fields.defaultType }
+        { client: fields.client, defaultType: fields.defaultType },
       );
 
       const expr = 'client ? client.type + " - " + client.name : defaultType';
@@ -213,7 +248,9 @@ describe("Complex Expression Evaluation", () => {
     it("should handle ternary with arithmetic", () => {
       const context = { count: 3 };
       expect(evaluate("count > 5 ? count * 2 : count + 10", context)).toBe(13);
-      expect(evaluate("count > 5 ? count * 2 : count + 10", { count: 10 })).toBe(20);
+      expect(
+        evaluate("count > 5 ? count * 2 : count + 10", { count: 10 }),
+      ).toBe(20);
     });
 
     it("should handle complex expression from work item", () => {
@@ -223,10 +260,18 @@ describe("Complex Expression Evaluation", () => {
         clientName: { value: "Acme" },
       };
       const context = buildEvaluationContext(
-        { count: fields.count.value, clientType: fields.clientType.value, clientName: fields.clientName.value },
+        {
+          count: fields.count.value,
+          clientType: fields.clientType.value,
+          clientName: fields.clientName.value,
+        },
         {},
         {},
-        { count: fields.count, clientType: fields.clientType, clientName: fields.clientName }
+        {
+          count: fields.count,
+          clientType: fields.clientType,
+          clientName: fields.clientName,
+        },
       );
 
       // Work item example: 'fields.count > 5 ? "Many" : "Few"'
@@ -234,13 +279,16 @@ describe("Complex Expression Evaluation", () => {
       expect(evaluate('count > 5 ? "Many" : "Few"', { count: 3 })).toBe("Few");
 
       // Work item example: 'fields.clientType + " - " + fields.clientName'
-      expect(evaluate('clientType + " - " + clientName', context)).toBe("Premium - Acme");
+      expect(evaluate('clientType + " - " + clientName', context)).toBe(
+        "Premium - Acme",
+      );
     });
 
     it("should handle deeply nested ternaries", () => {
       const context = { score: 85 };
       // grade >= 90 ? "A" : grade >= 80 ? "B" : grade >= 70 ? "C" : "F"
-      const expr = 'score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : "F"';
+      const expr =
+        'score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : "F"';
       expect(evaluate(expr, context)).toBe("B");
       expect(evaluate(expr, { score: 95 })).toBe("A");
       expect(evaluate(expr, { score: 75 })).toBe("C");
@@ -260,7 +308,12 @@ describe("Complex Expression Evaluation", () => {
     describe("Qualified Access (fields.*)", () => {
       it("should access simple field value", () => {
         const fields = { count: { value: 42 } };
-        const context = buildEvaluationContext({ count: 42 }, {}, {}, { count: fields.count });
+        const context = buildEvaluationContext(
+          { count: 42 },
+          {},
+          {},
+          { count: fields.count },
+        );
 
         expect(evaluate("fields.count.value", context)).toBe(42);
         // fields.count returns the FieldState object, not unwrapped
@@ -275,13 +328,17 @@ describe("Complex Expression Evaluation", () => {
           { client: fields.client.value },
           {},
           {},
-          { client: fields.client }
+          { client: fields.client },
         );
 
         // Need to use .value to access the actual value from FieldState
-        expect(evaluate("fields.client.value.profile.email", context)).toBe("test@example.com");
+        expect(evaluate("fields.client.value.profile.email", context)).toBe(
+          "test@example.com",
+        );
         // Or use unqualified access (via proxy)
-        expect(evaluate("client.profile.email", context)).toBe("test@example.com");
+        expect(evaluate("client.profile.email", context)).toBe(
+          "test@example.com",
+        );
       });
 
       it("should access field metadata", () => {
@@ -292,7 +349,7 @@ describe("Complex Expression Evaluation", () => {
           { client: fields.client.value },
           {},
           {},
-          { client: fields.client }
+          { client: fields.client },
         );
 
         expect(evaluate("fields.client.isTouched", context)).toBe(true);
@@ -308,7 +365,7 @@ describe("Complex Expression Evaluation", () => {
           { data: fields.data.value },
           {},
           {},
-          { data: fields.data }
+          { data: fields.data },
         );
 
         // Need to use .value to access the actual value from FieldState
@@ -321,7 +378,12 @@ describe("Complex Expression Evaluation", () => {
     describe("Unqualified Access (via Proxies)", () => {
       it("should access field value directly", () => {
         const fields = { count: { value: 42 } };
-        const context = buildEvaluationContext({ count: 42 }, {}, {}, { count: fields.count });
+        const context = buildEvaluationContext(
+          { count: 42 },
+          {},
+          {},
+          { count: fields.count },
+        );
 
         expect(evaluate("count", context)).toBe(42); // Proxy unwraps to value
       });
@@ -334,7 +396,7 @@ describe("Complex Expression Evaluation", () => {
           { client: fields.client.value },
           {},
           {},
-          { client: fields.client }
+          { client: fields.client },
         );
 
         expect(evaluate("client.name", context)).toBe("Acme"); // Delegates to value.name
@@ -349,7 +411,7 @@ describe("Complex Expression Evaluation", () => {
           { client: fields.client.value },
           {},
           {},
-          { client: fields.client }
+          { client: fields.client },
         );
 
         expect(evaluate("client.isTouched", context)).toBe(true); // Returns metadata
@@ -364,7 +426,7 @@ describe("Complex Expression Evaluation", () => {
           { client: fields.client.value },
           {},
           {},
-          { client: fields.client }
+          { client: fields.client },
         );
 
         expect(evaluate("client.isTouched", context)).toBe(true);
@@ -379,7 +441,7 @@ describe("Complex Expression Evaluation", () => {
           { client: fields.client.value },
           {},
           {},
-          { client: fields.client }
+          { client: fields.client },
         );
 
         // Use unqualified access (client) which uses a proxy
@@ -397,7 +459,7 @@ describe("Complex Expression Evaluation", () => {
           { client: fields.client.value, prop: fields.prop.value },
           {},
           {},
-          { client: fields.client, prop: fields.prop }
+          { client: fields.client, prop: fields.prop },
         );
 
         // Use unqualified access (client) which uses a proxy
@@ -411,10 +473,14 @@ describe("Complex Expression Evaluation", () => {
           suffix: { value: "st" },
         };
         const context = buildEvaluationContext(
-          { items: fields.items.value, prefix: fields.prefix.value, suffix: fields.suffix.value },
+          {
+            items: fields.items.value,
+            prefix: fields.prefix.value,
+            suffix: fields.suffix.value,
+          },
           {},
           {},
-          { items: fields.items, prefix: fields.prefix, suffix: fields.suffix }
+          { items: fields.items, prefix: fields.prefix, suffix: fields.suffix },
         );
 
         expect(evaluate("items[prefix + suffix]", context)).toBe("a");
@@ -436,7 +502,7 @@ describe("Complex Expression Evaluation", () => {
           { data: fields.data.value, idx: fields.idx.value },
           {},
           {},
-          { data: fields.data, idx: fields.idx }
+          { data: fields.data, idx: fields.idx },
         );
 
         expect(evaluate("data.items[idx]", context)).toBe("second");
@@ -453,7 +519,7 @@ describe("Complex Expression Evaluation", () => {
           { items: fields.items.value },
           {},
           {},
-          { items: fields.items }
+          { items: fields.items },
         );
 
         expect(evaluate("items[0]", context)).toBe("a");
@@ -469,7 +535,7 @@ describe("Complex Expression Evaluation", () => {
           { items: fields.items.value },
           {},
           {},
-          { items: fields.items }
+          { items: fields.items },
         );
 
         expect(evaluate("items[5]", context)).toBeUndefined();
@@ -485,7 +551,7 @@ describe("Complex Expression Evaluation", () => {
           { items: fields.items.value, index: fields.index.value },
           {},
           {},
-          { items: fields.items, index: fields.index }
+          { items: fields.items, index: fields.index },
         );
 
         expect(evaluate("items[index]", context)).toBe("b");
@@ -502,25 +568,31 @@ describe("Complex Expression Evaluation", () => {
           { signed: fields.signed.value, count: fields.count.value },
           {},
           {},
-          { signed: fields.signed, count: fields.count }
+          { signed: fields.signed, count: fields.count },
         );
 
         expect(evaluate("!signed && count > 0", context)).toBe(true);
-        expect(evaluate("!signed && count > 0", { signed: true, count: 5 })).toBe(false);
-        expect(evaluate("!signed && count > 0", { signed: false, count: 0 })).toBe(false);
+        expect(
+          evaluate("!signed && count > 0", { signed: true, count: 5 }),
+        ).toBe(false);
+        expect(
+          evaluate("!signed && count > 0", { signed: false, count: 0 }),
+        ).toBe(false);
       });
 
-      it("should evaluate 'fields.count > 5 ? \"Many\" : \"Few\"'", () => {
+      it('should evaluate \'fields.count > 5 ? "Many" : "Few"\'', () => {
         const fields = { count: { value: 10 } };
         const context = buildEvaluationContext(
           { count: fields.count.value },
           {},
           {},
-          { count: fields.count }
+          { count: fields.count },
         );
 
         expect(evaluate('count > 5 ? "Many" : "Few"', context)).toBe("Many");
-        expect(evaluate('count > 5 ? "Many" : "Few"', { count: 3 })).toBe("Few");
+        expect(evaluate('count > 5 ? "Many" : "Few"', { count: 3 })).toBe(
+          "Few",
+        );
       });
 
       it("should evaluate 'fields.clientType + \" - \" + fields.clientName'", () => {
@@ -529,13 +601,18 @@ describe("Complex Expression Evaluation", () => {
           clientName: { value: "Acme" },
         };
         const context = buildEvaluationContext(
-          { clientType: fields.clientType.value, clientName: fields.clientName.value },
+          {
+            clientType: fields.clientType.value,
+            clientName: fields.clientName.value,
+          },
           {},
           {},
-          { clientType: fields.clientType, clientName: fields.clientName }
+          { clientType: fields.clientType, clientName: fields.clientName },
         );
 
-        expect(evaluate('clientType + " - " + clientName', context)).toBe("Premium - Acme");
+        expect(evaluate('clientType + " - " + clientName', context)).toBe(
+          "Premium - Acme",
+        );
       });
     });
   });
@@ -550,7 +627,7 @@ describe("Complex Expression Evaluation", () => {
         { firstName: fields.firstName.value, lastName: fields.lastName.value },
         {},
         {},
-        { firstName: fields.firstName, lastName: fields.lastName }
+        { firstName: fields.firstName, lastName: fields.lastName },
       );
 
       expect(evaluate('firstName + " " + lastName', context)).toBe("John Doe");
@@ -566,14 +643,20 @@ describe("Complex Expression Evaluation", () => {
     it("should handle comparison chains", () => {
       const context = { count: 50 };
       expect(evaluate("count >= 0 && count <= 100", context)).toBe(true);
-      expect(evaluate("count >= 0 && count <= 100", { count: 150 })).toBe(false);
-      expect(evaluate("count >= 0 && count <= 100", { count: -10 })).toBe(false);
+      expect(evaluate("count >= 0 && count <= 100", { count: 150 })).toBe(
+        false,
+      );
+      expect(evaluate("count >= 0 && count <= 100", { count: -10 })).toBe(
+        false,
+      );
     });
 
     it("should handle arithmetic in ternary", () => {
       const context = { count: 3 };
       expect(evaluate("count > 5 ? count * 2 : count + 10", context)).toBe(13);
-      expect(evaluate("count > 5 ? count * 2 : count + 10", { count: 10 })).toBe(20);
+      expect(
+        evaluate("count > 5 ? count * 2 : count + 10", { count: 10 }),
+      ).toBe(20);
     });
 
     it("should handle complex expressions", () => {
@@ -586,7 +669,7 @@ describe("Complex Expression Evaluation", () => {
         { a: fields.a.value, b: fields.b.value, c: fields.c.value },
         {},
         {},
-        { a: fields.a, b: fields.b, c: fields.c }
+        { a: fields.a, b: fields.b, c: fields.c },
       );
 
       expect(evaluate('a + "-" + b + "-" + c', context)).toBe("A-B-C");
@@ -636,7 +719,9 @@ describe("Complex Expression Evaluation", () => {
       const context = { a: false, b: true, c: "yes", d: "no" };
       // (a || b) ? c : d = true ? c : d = "yes"
       expect(evaluate("a || b ? c : d", context)).toBe("yes");
-      expect(evaluate("a || b ? c : d", { a: false, b: false, c: "yes", d: "no" })).toBe("no");
+      expect(
+        evaluate("a || b ? c : d", { a: false, b: false, c: "yes", d: "no" }),
+      ).toBe("no");
     });
 
     it("should handle unary operator precedence (!a && b, -a + b)", () => {
@@ -654,8 +739,12 @@ describe("Complex Expression Evaluation", () => {
       expect(evaluate("(a + b) * c", context)).toBe(20); // (2 + 3) * 4 = 20
       expect(evaluate("a + b * c", context)).toBe(14); // 2 + (3 * 4) = 14
 
-      expect(evaluate("(a && b) || c", { a: true, b: false, c: true })).toBe(true);
-      expect(evaluate("a && (b || c)", { a: true, b: false, c: true })).toBe(true);
+      expect(evaluate("(a && b) || c", { a: true, b: false, c: true })).toBe(
+        true,
+      );
+      expect(evaluate("a && (b || c)", { a: true, b: false, c: true })).toBe(
+        true,
+      );
     });
 
     it("should handle complex precedence chains", () => {
@@ -709,7 +798,9 @@ describe("Complex Expression Evaluation", () => {
         expect(evaluate("Math.max(1, 2)", {})).toBeUndefined();
         expect(evaluate("alert('hello')", {})).toBeUndefined();
         expect(evaluate("toString()", {})).toBeUndefined();
-        expect(evaluate("obj.method()", { obj: { method: () => "result" } })).toBeUndefined();
+        expect(
+          evaluate("obj.method()", { obj: { method: () => "result" } }),
+        ).toBeUndefined();
       });
 
       it("should return undefined for invalid member access", () => {
@@ -788,8 +879,8 @@ describe("Complex Expression Evaluation", () => {
 
       it("should handle typeof null", () => {
         // null is parsed as an identifier. Provide actual null in context
-        expect(evaluate('typeof null', { null: null })).toBe("object"); // Historical bug
-        expect(evaluate('typeof undefined', {})).toBe("undefined");
+        expect(evaluate("typeof null", { null: null })).toBe("object"); // Historical bug
+        expect(evaluate("typeof undefined", {})).toBe("undefined");
       });
 
       it("should handle typeof with field proxies", () => {
@@ -797,7 +888,11 @@ describe("Complex Expression Evaluation", () => {
           { value: "string", num: 42, bool: true },
           {},
           {},
-          { value: { value: "string" }, num: { value: 42 }, bool: { value: true } }
+          {
+            value: { value: "string" },
+            num: { value: 42 },
+            bool: { value: true },
+          },
         );
 
         expect(evaluate("typeof value", context)).toBe("string");
@@ -812,9 +907,33 @@ describe("Complex Expression Evaluation", () => {
 
       it("should handle deeply nested ternaries", () => {
         const deepTernary = "a ? b ? c ? d ? e ? 1 : 2 : 3 : 4 : 5 : 6";
-        expect(evaluate(deepTernary, { a: true, b: true, c: true, d: true, e: true })).toBe(1);
-        expect(evaluate(deepTernary, { a: true, b: true, c: true, d: true, e: false })).toBe(2);
-        expect(evaluate(deepTernary, { a: false, b: true, c: true, d: true, e: true })).toBe(6);
+        expect(
+          evaluate(deepTernary, {
+            a: true,
+            b: true,
+            c: true,
+            d: true,
+            e: true,
+          }),
+        ).toBe(1);
+        expect(
+          evaluate(deepTernary, {
+            a: true,
+            b: true,
+            c: true,
+            d: true,
+            e: false,
+          }),
+        ).toBe(2);
+        expect(
+          evaluate(deepTernary, {
+            a: false,
+            b: true,
+            c: true,
+            d: true,
+            e: true,
+          }),
+        ).toBe(6);
       });
 
       it("should handle empty array expressions", () => {
@@ -823,7 +942,13 @@ describe("Complex Expression Evaluation", () => {
 
       it("should handle mixed array expressions", () => {
         const context = { a: 1, b: "hello", c: true };
-        expect(evaluate("[a, b, c, null, undefined]", context)).toEqual([1, "hello", true, null, undefined]);
+        expect(evaluate("[a, b, c, null, undefined]", context)).toEqual([
+          1,
+          "hello",
+          true,
+          null,
+          undefined,
+        ]);
       });
     });
 
@@ -874,13 +999,21 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should block custom function calls", () => {
-        expect(evaluate("customFunc()", { customFunc: () => "result" })).toBeUndefined();
-        expect(evaluate("obj.method()", { obj: { method: () => "result" } })).toBeUndefined();
+        expect(
+          evaluate("customFunc()", { customFunc: () => "result" }),
+        ).toBeUndefined();
+        expect(
+          evaluate("obj.method()", { obj: { method: () => "result" } }),
+        ).toBeUndefined();
       });
 
       it("should block function calls in expressions", () => {
-        expect(evaluate("a ? b() : c", { a: true, b: () => "yes", c: "no" })).toBeUndefined();
-        expect(evaluate("a && b()", { a: true, b: () => "yes" })).toBeUndefined();
+        expect(
+          evaluate("a ? b() : c", { a: true, b: () => "yes", c: "no" }),
+        ).toBeUndefined();
+        expect(
+          evaluate("a && b()", { a: true, b: () => "yes" }),
+        ).toBeUndefined();
       });
     });
   });
@@ -911,13 +1044,13 @@ describe("Complex Expression Evaluation", () => {
 
     it("should handle typeof", () => {
       expect(evaluate('typeof "string"', {})).toBe("string");
-      expect(evaluate('typeof 42', {})).toBe("number");
-      expect(evaluate('typeof true', {})).toBe("boolean");
-      expect(evaluate('typeof undefined', {})).toBe("undefined");
-      expect(evaluate('typeof null', {})).toBe("object");
+      expect(evaluate("typeof 42", {})).toBe("number");
+      expect(evaluate("typeof true", {})).toBe("boolean");
+      expect(evaluate("typeof undefined", {})).toBe("undefined");
+      expect(evaluate("typeof null", {})).toBe("object");
       // typeof {} and typeof [] need context variables because {} is parsed as a block
-      expect(evaluate('typeof obj', { obj: {} })).toBe("object");
-      expect(evaluate('typeof arr', { arr: [] })).toBe("object");
+      expect(evaluate("typeof obj", { obj: {} })).toBe("object");
+      expect(evaluate("typeof arr", { arr: [] })).toBe("object");
     });
 
     it("should handle typeof with identifiers", () => {
@@ -942,7 +1075,10 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should evaluate nested array expressions", () => {
-      expect(evaluate("[[1, 2], [3, 4]]", {})).toEqual([[1, 2], [3, 4]]);
+      expect(evaluate("[[1, 2], [3, 4]]", {})).toEqual([
+        [1, 2],
+        [3, 4],
+      ]);
       expect(evaluate("[1, [2, [3, 4]]]", {})).toEqual([1, [2, [3, 4]]]);
     });
 
@@ -959,7 +1095,13 @@ describe("Complex Expression Evaluation", () => {
 
     it("should handle mixed type arrays", () => {
       const context = { a: 1, b: "text", c: true };
-      expect(evaluate("[a, b, c, null, undefined]", context)).toEqual([1, "text", true, null, undefined]);
+      expect(evaluate("[a, b, c, null, undefined]", context)).toEqual([
+        1,
+        "text",
+        true,
+        null,
+        undefined,
+      ]);
     });
   });
 
@@ -1036,21 +1178,21 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should return undefined for null + number", () => {
-        expect(evaluate('null + 1', {})).toBeUndefined();
+        expect(evaluate("null + 1", {})).toBeUndefined();
       });
 
       it("should return undefined for undefined + number", () => {
-        expect(evaluate('undefined + 1', {})).toBeUndefined();
+        expect(evaluate("undefined + 1", {})).toBeUndefined();
       });
 
       it("should return undefined for object + number", () => {
-        expect(evaluate('{} + 1', {})).toBeUndefined();
+        expect(evaluate("{} + 1", {})).toBeUndefined();
       });
 
       it("should work with valid numbers", () => {
-        expect(evaluate('5 + 3', {})).toBe(8);
-        expect(evaluate('0 + 0', {})).toBe(0);
-        expect(evaluate('-5 + 3', {})).toBe(-2);
+        expect(evaluate("5 + 3", {})).toBe(8);
+        expect(evaluate("0 + 0", {})).toBe(0);
+        expect(evaluate("-5 + 3", {})).toBe(-2);
       });
     });
 
@@ -1060,21 +1202,21 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should return undefined for null - number", () => {
-        expect(evaluate('null - 1', {})).toBeUndefined();
+        expect(evaluate("null - 1", {})).toBeUndefined();
       });
 
       it("should return undefined for undefined - number", () => {
-        expect(evaluate('undefined - 1', {})).toBeUndefined();
+        expect(evaluate("undefined - 1", {})).toBeUndefined();
       });
 
       it("should return undefined for object - number", () => {
-        expect(evaluate('{} - 1', {})).toBeUndefined();
+        expect(evaluate("{} - 1", {})).toBeUndefined();
       });
 
       it("should work with valid numbers", () => {
-        expect(evaluate('10 - 4', {})).toBe(6);
-        expect(evaluate('5 - 5', {})).toBe(0);
-        expect(evaluate('3 - 10', {})).toBe(-7);
+        expect(evaluate("10 - 4", {})).toBe(6);
+        expect(evaluate("5 - 5", {})).toBe(0);
+        expect(evaluate("3 - 10", {})).toBe(-7);
       });
     });
 
@@ -1084,21 +1226,21 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should return undefined for null * number", () => {
-        expect(evaluate('null * 2', {})).toBeUndefined();
+        expect(evaluate("null * 2", {})).toBeUndefined();
       });
 
       it("should return undefined for undefined * number", () => {
-        expect(evaluate('undefined * 2', {})).toBeUndefined();
+        expect(evaluate("undefined * 2", {})).toBeUndefined();
       });
 
       it("should return undefined for object * number", () => {
-        expect(evaluate('{} * 2', {})).toBeUndefined();
+        expect(evaluate("{} * 2", {})).toBeUndefined();
       });
 
       it("should work with valid numbers", () => {
-        expect(evaluate('5 * 3', {})).toBe(15);
-        expect(evaluate('0 * 100', {})).toBe(0);
-        expect(evaluate('-5 * 3', {})).toBe(-15);
+        expect(evaluate("5 * 3", {})).toBe(15);
+        expect(evaluate("0 * 100", {})).toBe(0);
+        expect(evaluate("-5 * 3", {})).toBe(-15);
       });
     });
 
@@ -1108,28 +1250,28 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should return undefined for null / number", () => {
-        expect(evaluate('null / 2', {})).toBeUndefined();
+        expect(evaluate("null / 2", {})).toBeUndefined();
       });
 
       it("should return undefined for undefined / number", () => {
-        expect(evaluate('undefined / 2', {})).toBeUndefined();
+        expect(evaluate("undefined / 2", {})).toBeUndefined();
       });
 
       it("should return undefined for object / number", () => {
-        expect(evaluate('{} / 2', {})).toBeUndefined();
+        expect(evaluate("{} / 2", {})).toBeUndefined();
       });
 
       it("should return undefined for division by zero", () => {
-        expect(evaluate('1 / 0', {})).toBeUndefined();
-        expect(evaluate('-1 / 0', {})).toBeUndefined();
-        expect(evaluate('0 / 0', {})).toBeUndefined();
-        expect(evaluate('100 / 0', {})).toBeUndefined();
+        expect(evaluate("1 / 0", {})).toBeUndefined();
+        expect(evaluate("-1 / 0", {})).toBeUndefined();
+        expect(evaluate("0 / 0", {})).toBeUndefined();
+        expect(evaluate("100 / 0", {})).toBeUndefined();
       });
 
       it("should work with valid numbers", () => {
-        expect(evaluate('10 / 2', {})).toBe(5);
-        expect(evaluate('7 / 2', {})).toBe(3.5);
-        expect(evaluate('-10 / 2', {})).toBe(-5);
+        expect(evaluate("10 / 2", {})).toBe(5);
+        expect(evaluate("7 / 2", {})).toBe(3.5);
+        expect(evaluate("-10 / 2", {})).toBe(-5);
       });
     });
 
@@ -1139,27 +1281,27 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should return undefined for null % number", () => {
-        expect(evaluate('null % 2', {})).toBeUndefined();
+        expect(evaluate("null % 2", {})).toBeUndefined();
       });
 
       it("should return undefined for undefined % number", () => {
-        expect(evaluate('undefined % 2', {})).toBeUndefined();
+        expect(evaluate("undefined % 2", {})).toBeUndefined();
       });
 
       it("should return undefined for object % number", () => {
-        expect(evaluate('{} % 2', {})).toBeUndefined();
+        expect(evaluate("{} % 2", {})).toBeUndefined();
       });
 
       it("should return undefined for modulo by zero", () => {
-        expect(evaluate('10 % 0', {})).toBeUndefined();
-        expect(evaluate('1 % 0', {})).toBeUndefined();
-        expect(evaluate('0 % 0', {})).toBeUndefined();
+        expect(evaluate("10 % 0", {})).toBeUndefined();
+        expect(evaluate("1 % 0", {})).toBeUndefined();
+        expect(evaluate("0 % 0", {})).toBeUndefined();
       });
 
       it("should work with valid numbers", () => {
-        expect(evaluate('10 % 3', {})).toBe(1);
-        expect(evaluate('15 % 4', {})).toBe(3);
-        expect(evaluate('7 % 2', {})).toBe(1);
+        expect(evaluate("10 % 3", {})).toBe(1);
+        expect(evaluate("15 % 4", {})).toBe(3);
+        expect(evaluate("7 % 2", {})).toBe(1);
       });
     });
 
@@ -1167,168 +1309,178 @@ describe("Complex Expression Evaluation", () => {
       describe("Addition (+)", () => {
         it("should return undefined for number + null", () => {
           // jsep parses 'null' as identifier, so provide actual null in context
-          expect(evaluate('5 + null', { null: null })).toBeUndefined();
+          expect(evaluate("5 + null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for null + number", () => {
-          expect(evaluate('null + 1', { null: null })).toBeUndefined();
+          expect(evaluate("null + 1", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for number + undefined", () => {
-          expect(evaluate('5 + undefined', { undefined })).toBeUndefined();
+          expect(evaluate("5 + undefined", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for undefined + number", () => {
-          expect(evaluate('undefined + 1', { undefined })).toBeUndefined();
+          expect(evaluate("undefined + 1", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for null + null", () => {
-          expect(evaluate('null + null', { null: null })).toBeUndefined();
+          expect(evaluate("null + null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for undefined + undefined", () => {
-          expect(evaluate('undefined + undefined', { undefined })).toBeUndefined();
+          expect(
+            evaluate("undefined + undefined", { undefined }),
+          ).toBeUndefined();
         });
 
         it("should work with valid numbers (regression test)", () => {
-          expect(evaluate('5 + 3', {})).toBe(8);
+          expect(evaluate("5 + 3", {})).toBe(8);
         });
       });
 
       describe("Subtraction (-)", () => {
         it("should return undefined for number - null", () => {
-          expect(evaluate('5 - null', { null: null })).toBeUndefined();
+          expect(evaluate("5 - null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for null - number", () => {
-          expect(evaluate('null - 1', { null: null })).toBeUndefined();
+          expect(evaluate("null - 1", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for number - undefined", () => {
-          expect(evaluate('5 - undefined', { undefined })).toBeUndefined();
+          expect(evaluate("5 - undefined", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for undefined - number", () => {
-          expect(evaluate('undefined - 1', { undefined })).toBeUndefined();
+          expect(evaluate("undefined - 1", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for null - null", () => {
-          expect(evaluate('null - null', { null: null })).toBeUndefined();
+          expect(evaluate("null - null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for undefined - undefined", () => {
-          expect(evaluate('undefined - undefined', { undefined })).toBeUndefined();
+          expect(
+            evaluate("undefined - undefined", { undefined }),
+          ).toBeUndefined();
         });
 
         it("should work with valid numbers (regression test)", () => {
-          expect(evaluate('10 - 4', {})).toBe(6);
+          expect(evaluate("10 - 4", {})).toBe(6);
         });
       });
 
       describe("Multiplication (*)", () => {
         it("should return undefined for number * null", () => {
-          expect(evaluate('10 * null', { null: null })).toBeUndefined();
+          expect(evaluate("10 * null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for null * number", () => {
-          expect(evaluate('null * 2', { null: null })).toBeUndefined();
+          expect(evaluate("null * 2", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for number * undefined", () => {
-          expect(evaluate('10 * undefined', { undefined })).toBeUndefined();
+          expect(evaluate("10 * undefined", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for undefined * number", () => {
-          expect(evaluate('undefined * 2', { undefined })).toBeUndefined();
+          expect(evaluate("undefined * 2", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for null * null", () => {
-          expect(evaluate('null * null', { null: null })).toBeUndefined();
+          expect(evaluate("null * null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for undefined * undefined", () => {
-          expect(evaluate('undefined * undefined', { undefined })).toBeUndefined();
+          expect(
+            evaluate("undefined * undefined", { undefined }),
+          ).toBeUndefined();
         });
 
         it("should work with valid numbers (regression test)", () => {
-          expect(evaluate('5 * 3', {})).toBe(15);
+          expect(evaluate("5 * 3", {})).toBe(15);
         });
       });
 
       describe("Division (/)", () => {
         it("should return undefined for number / null", () => {
-          expect(evaluate('10 / null', { null: null })).toBeUndefined();
+          expect(evaluate("10 / null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for null / number", () => {
-          expect(evaluate('null / 2', { null: null })).toBeUndefined();
+          expect(evaluate("null / 2", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for number / undefined", () => {
-          expect(evaluate('10 / undefined', { undefined })).toBeUndefined();
+          expect(evaluate("10 / undefined", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for undefined / number", () => {
-          expect(evaluate('undefined / 2', { undefined })).toBeUndefined();
+          expect(evaluate("undefined / 2", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for null / null", () => {
-          expect(evaluate('null / null', { null: null })).toBeUndefined();
+          expect(evaluate("null / null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for undefined / undefined", () => {
-          expect(evaluate('undefined / undefined', { undefined })).toBeUndefined();
+          expect(
+            evaluate("undefined / undefined", { undefined }),
+          ).toBeUndefined();
         });
 
         it("should work with valid numbers (regression test)", () => {
-          expect(evaluate('10 / 2', {})).toBe(5);
+          expect(evaluate("10 / 2", {})).toBe(5);
         });
       });
 
       describe("Modulo (%)", () => {
         it("should return undefined for number % null", () => {
-          expect(evaluate('10 % null', { null: null })).toBeUndefined();
+          expect(evaluate("10 % null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for null % number", () => {
-          expect(evaluate('null % 3', { null: null })).toBeUndefined();
+          expect(evaluate("null % 3", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for number % undefined", () => {
-          expect(evaluate('10 % undefined', { undefined })).toBeUndefined();
+          expect(evaluate("10 % undefined", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for undefined % number", () => {
-          expect(evaluate('undefined % 3', { undefined })).toBeUndefined();
+          expect(evaluate("undefined % 3", { undefined })).toBeUndefined();
         });
 
         it("should return undefined for null % null", () => {
-          expect(evaluate('null % null', { null: null })).toBeUndefined();
+          expect(evaluate("null % null", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for undefined % undefined", () => {
-          expect(evaluate('undefined % undefined', { undefined })).toBeUndefined();
+          expect(
+            evaluate("undefined % undefined", { undefined }),
+          ).toBeUndefined();
         });
 
         it("should work with valid numbers (regression test)", () => {
-          expect(evaluate('10 % 3', {})).toBe(1);
+          expect(evaluate("10 % 3", {})).toBe(1);
         });
       });
 
       describe("Complex Expressions with Null/Undefined", () => {
         it("should return undefined for chained arithmetic with null", () => {
-          expect(evaluate('5 + 3 - null', { null: null })).toBeUndefined();
-          expect(evaluate('10 * null + 5', { null: null })).toBeUndefined();
+          expect(evaluate("5 + 3 - null", { null: null })).toBeUndefined();
+          expect(evaluate("10 * null + 5", { null: null })).toBeUndefined();
         });
 
         it("should return undefined for chained arithmetic with undefined", () => {
-          expect(evaluate('5 + 3 - undefined', { undefined })).toBeUndefined();
-          expect(evaluate('10 * undefined + 5', { undefined })).toBeUndefined();
+          expect(evaluate("5 + 3 - undefined", { undefined })).toBeUndefined();
+          expect(evaluate("10 * undefined + 5", { undefined })).toBeUndefined();
         });
 
         it("should handle mixed null/undefined in complex expression", () => {
-          expect(evaluate('null + 5 * 2', { null: null })).toBeUndefined();
-          expect(evaluate('5 * undefined + 10', { undefined })).toBeUndefined();
+          expect(evaluate("null + 5 * 2", { null: null })).toBeUndefined();
+          expect(evaluate("5 * undefined + 10", { undefined })).toBeUndefined();
         });
       });
     });
@@ -1336,7 +1488,7 @@ describe("Complex Expression Evaluation", () => {
 
   describe("Development Warnings", () => {
     beforeEach(() => {
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -1359,10 +1511,10 @@ describe("Complex Expression Evaluation", () => {
       evaluate('"text" - 1', {});
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid operands')
+        expect.stringContaining("Invalid operands"),
       );
     });
 
@@ -1370,75 +1522,75 @@ describe("Complex Expression Evaluation", () => {
       evaluate('"text" * 2', {});
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid operands')
+        expect.stringContaining("Invalid operands"),
       );
     });
 
     it("should warn for division by zero", () => {
-      evaluate('1 / 0', {});
+      evaluate("1 / 0", {});
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Division by zero')
+        expect.stringContaining("Division by zero"),
       );
     });
 
     it("should warn for modulo by zero", () => {
-      evaluate('10 % 0', {});
+      evaluate("10 % 0", {});
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Modulo by zero')
+        expect.stringContaining("Modulo by zero"),
       );
     });
 
     it("should warn for arithmetic overflow", () => {
       // Using very large numbers to trigger overflow
-      evaluate('1e308 + 1e308', {});
+      evaluate("1e308 + 1e308", {});
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Arithmetic overflow')
+        expect.stringContaining("Arithmetic overflow"),
       );
     });
 
     it("should not warn for valid arithmetic", () => {
-      evaluate('5 + 3', {});
+      evaluate("5 + 3", {});
 
       expect(console.warn).not.toHaveBeenCalled();
     });
 
     it("should not warn for valid division", () => {
-      evaluate('10 / 2', {});
+      evaluate("10 / 2", {});
 
       expect(console.warn).not.toHaveBeenCalled();
     });
 
     it("should show correct operand types in warning", () => {
-      evaluate('null + 1', {});
+      evaluate("null + 1", {});
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('left=object')
+        expect.stringContaining("left=object"),
       );
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('right=number')
+        expect.stringContaining("right=number"),
       );
     });
 
     it("should warn for null + number (not a valid operation)", () => {
-      evaluate('null + 1', {});
+      evaluate("null + 1", {});
 
       expect(console.warn).toHaveBeenCalledWith(
-        expect.stringContaining('[Formality Expression]')
+        expect.stringContaining("[Formality Expression]"),
       );
     });
   });
@@ -1448,7 +1600,7 @@ describe("Complex Expression Evaluation", () => {
 
     beforeEach(() => {
       clearExpressionCache();
-      consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -1457,351 +1609,351 @@ describe("Complex Expression Evaluation", () => {
 
     describe("Addition (+)", () => {
       it("should warn for null + number with correct message", () => {
-        evaluate('null + 5', { null: null });
+        evaluate("null + 5", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands for +')
+          expect.stringContaining("Invalid operands for +"),
         );
       });
 
       it("should show operand types in warning for null + number", () => {
-        evaluate('null + 5', { null: null });
+        evaluate("null + 5", { null: null });
 
         // typeof null is 'object'
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=object')
+          expect.stringContaining("left=object"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('right=number')
+          expect.stringContaining("right=number"),
         );
       });
 
       it("should warn for number + null", () => {
-        evaluate('5 + null', { null: null });
+        evaluate("5 + null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined + number", () => {
-        evaluate('undefined + 5', { undefined });
+        evaluate("undefined + 5", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for number + undefined", () => {
-        evaluate('5 + undefined', { undefined });
+        evaluate("5 + undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for null + null", () => {
-        evaluate('null + null', { null: null });
+        evaluate("null + null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined + undefined", () => {
-        evaluate('undefined + undefined', { undefined });
+        evaluate("undefined + undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
     });
 
     describe("Subtraction (-)", () => {
       it("should warn for null - number with correct message", () => {
-        evaluate('null - 5', { null: null });
+        evaluate("null - 5", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands for -')
+          expect.stringContaining("Invalid operands for -"),
         );
       });
 
       it("should show operand types in warning for null - number", () => {
-        evaluate('null - 5', { null: null });
+        evaluate("null - 5", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=object')
+          expect.stringContaining("left=object"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('right=number')
+          expect.stringContaining("right=number"),
         );
       });
 
       it("should warn for number - null", () => {
-        evaluate('5 - null', { null: null });
+        evaluate("5 - null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined - number", () => {
-        evaluate('undefined - 5', { undefined });
+        evaluate("undefined - 5", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for number - undefined", () => {
-        evaluate('5 - undefined', { undefined });
+        evaluate("5 - undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for null - null", () => {
-        evaluate('null - null', { null: null });
+        evaluate("null - null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined - undefined", () => {
-        evaluate('undefined - undefined', { undefined });
+        evaluate("undefined - undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
     });
 
     describe("Multiplication (*)", () => {
       it("should warn for null * number with correct message", () => {
-        evaluate('null * 5', { null: null });
+        evaluate("null * 5", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands for *')
+          expect.stringContaining("Invalid operands for *"),
         );
       });
 
       it("should show operand types in warning for null * number", () => {
-        evaluate('null * 5', { null: null });
+        evaluate("null * 5", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=object')
+          expect.stringContaining("left=object"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('right=number')
+          expect.stringContaining("right=number"),
         );
       });
 
       it("should warn for number * null", () => {
-        evaluate('10 * null', { null: null });
+        evaluate("10 * null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined * number", () => {
-        evaluate('undefined * 5', { undefined });
+        evaluate("undefined * 5", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for number * undefined", () => {
-        evaluate('10 * undefined', { undefined });
+        evaluate("10 * undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for null * null", () => {
-        evaluate('null * null', { null: null });
+        evaluate("null * null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined * undefined", () => {
-        evaluate('undefined * undefined', { undefined });
+        evaluate("undefined * undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
     });
 
     describe("Division (/)", () => {
       it("should warn for null / number with correct message", () => {
-        evaluate('null / 2', { null: null });
+        evaluate("null / 2", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands for /')
+          expect.stringContaining("Invalid operands for /"),
         );
       });
 
       it("should show operand types in warning for null / number", () => {
-        evaluate('null / 2', { null: null });
+        evaluate("null / 2", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=object')
+          expect.stringContaining("left=object"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('right=number')
+          expect.stringContaining("right=number"),
         );
       });
 
       it("should warn for number / null", () => {
-        evaluate('10 / null', { null: null });
+        evaluate("10 / null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined / number", () => {
-        evaluate('undefined / 2', { undefined });
+        evaluate("undefined / 2", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for number / undefined", () => {
-        evaluate('10 / undefined', { undefined });
+        evaluate("10 / undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for null / null", () => {
-        evaluate('null / null', { null: null });
+        evaluate("null / null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined / undefined", () => {
-        evaluate('undefined / undefined', { undefined });
+        evaluate("undefined / undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
     });
 
     describe("Modulo (%)", () => {
       it("should warn for null % number with correct message", () => {
-        evaluate('null % 3', { null: null });
+        evaluate("null % 3", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands for %')
+          expect.stringContaining("Invalid operands for %"),
         );
       });
 
       it("should show operand types in warning for null % number", () => {
-        evaluate('null % 3', { null: null });
+        evaluate("null % 3", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=object')
+          expect.stringContaining("left=object"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('right=number')
+          expect.stringContaining("right=number"),
         );
       });
 
       it("should warn for number % null", () => {
-        evaluate('10 % null', { null: null });
+        evaluate("10 % null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined % number", () => {
-        evaluate('undefined % 3', { undefined });
+        evaluate("undefined % 3", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for number % undefined", () => {
-        evaluate('10 % undefined', { undefined });
+        evaluate("10 % undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for null % null", () => {
-        evaluate('null % null', { null: null });
+        evaluate("null % null", { null: null });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
 
       it("should warn for undefined % undefined", () => {
-        evaluate('undefined % undefined', { undefined });
+        evaluate("undefined % undefined", { undefined });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('null/undefined')
+          expect.stringContaining("null/undefined"),
         );
       });
     });
@@ -1819,14 +1971,14 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should not warn for null arithmetic in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      evaluate('null + 5', { null: null });
-      evaluate('undefined * 3', { undefined });
-      evaluate('10 - null', { null: null });
-      evaluate('null / 2', { null: null });
-      evaluate('15 % null', { null: null });
+      evaluate("null + 5", { null: null });
+      evaluate("undefined * 3", { undefined });
+      evaluate("10 - null", { null: null });
+      evaluate("null / 2", { null: null });
+      evaluate("15 % null", { null: null });
 
       expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -1834,24 +1986,24 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should still return undefined in production mode", () => {
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
 
-      expect(evaluate('null + 5', { null: null })).toBeUndefined();
-      expect(evaluate('undefined - 3', { undefined })).toBeUndefined();
-      expect(evaluate('null * 2', { null: null })).toBeUndefined();
-      expect(evaluate('undefined / 2', { undefined })).toBeUndefined();
-      expect(evaluate('10 % null', { null: null })).toBeUndefined();
+      expect(evaluate("null + 5", { null: null })).toBeUndefined();
+      expect(evaluate("undefined - 3", { undefined })).toBeUndefined();
+      expect(evaluate("null * 2", { null: null })).toBeUndefined();
+      expect(evaluate("undefined / 2", { undefined })).toBeUndefined();
+      expect(evaluate("10 % null", { null: null })).toBeUndefined();
     });
 
     it("should not warn for undefined arithmetic in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      evaluate('undefined + 5', { undefined });
-      evaluate('undefined - 5', { undefined });
-      evaluate('undefined * 5', { undefined });
-      evaluate('undefined / 2', { undefined });
-      evaluate('undefined % 3', { undefined });
+      evaluate("undefined + 5", { undefined });
+      evaluate("undefined - 5", { undefined });
+      evaluate("undefined * 5", { undefined });
+      evaluate("undefined / 2", { undefined });
+      evaluate("undefined % 3", { undefined });
 
       expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -1859,14 +2011,14 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should not warn for null + null in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      evaluate('null + null', { null: null });
-      evaluate('null - null', { null: null });
-      evaluate('null * null', { null: null });
-      evaluate('null / null', { null: null });
-      evaluate('null % null', { null: null });
+      evaluate("null + null", { null: null });
+      evaluate("null - null", { null: null });
+      evaluate("null * null", { null: null });
+      evaluate("null / null", { null: null });
+      evaluate("null % null", { null: null });
 
       expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -1874,14 +2026,14 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should not warn for undefined + undefined in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      evaluate('undefined + undefined', { undefined });
-      evaluate('undefined - undefined', { undefined });
-      evaluate('undefined * undefined', { undefined });
-      evaluate('undefined / undefined', { undefined });
-      evaluate('undefined % undefined', { undefined });
+      evaluate("undefined + undefined", { undefined });
+      evaluate("undefined - undefined", { undefined });
+      evaluate("undefined * undefined", { undefined });
+      evaluate("undefined / undefined", { undefined });
+      evaluate("undefined % undefined", { undefined });
 
       expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -1889,13 +2041,13 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should work with valid numbers in production mode (regression test)", () => {
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
 
-      expect(evaluate('5 + 3', {})).toBe(8);
-      expect(evaluate('10 - 4', {})).toBe(6);
-      expect(evaluate('5 * 3', {})).toBe(15);
-      expect(evaluate('10 / 2', {})).toBe(5);
-      expect(evaluate('10 % 3', {})).toBe(1);
+      expect(evaluate("5 + 3", {})).toBe(8);
+      expect(evaluate("10 - 4", {})).toBe(6);
+      expect(evaluate("5 * 3", {})).toBe(15);
+      expect(evaluate("10 / 2", {})).toBe(5);
+      expect(evaluate("10 % 3", {})).toBe(1);
     });
   });
 
@@ -1906,113 +2058,113 @@ describe("Complex Expression Evaluation", () => {
 
     describe("Subtraction (-)", () => {
       it("should return undefined for empty array - number", () => {
-        expect(evaluate('[] - 5', {})).toBeUndefined();
+        expect(evaluate("[] - 5", {})).toBeUndefined();
       });
 
       it("should return undefined for number - empty array", () => {
-        expect(evaluate('5 - []', {})).toBeUndefined();
+        expect(evaluate("5 - []", {})).toBeUndefined();
       });
 
       it("should return undefined for non-empty array - number", () => {
-        expect(evaluate('[1, 2] - 5', {})).toBeUndefined();
+        expect(evaluate("[1, 2] - 5", {})).toBeUndefined();
       });
 
       it("should return undefined for number - non-empty array", () => {
-        expect(evaluate('5 - [1, 2]', {})).toBeUndefined();
+        expect(evaluate("5 - [1, 2]", {})).toBeUndefined();
       });
 
       it("should return undefined for array - array", () => {
-        expect(evaluate('[] - []', {})).toBeUndefined();
-        expect(evaluate('[1] - [2]', {})).toBeUndefined();
+        expect(evaluate("[] - []", {})).toBeUndefined();
+        expect(evaluate("[1] - [2]", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('5 - 3', {})).toBe(2);
-        expect(evaluate('10 - 4', {})).toBe(6);
+        expect(evaluate("5 - 3", {})).toBe(2);
+        expect(evaluate("10 - 4", {})).toBe(6);
       });
     });
 
     describe("Multiplication (*)", () => {
       it("should return undefined for empty array * number", () => {
-        expect(evaluate('[] * 2', {})).toBeUndefined();
+        expect(evaluate("[] * 2", {})).toBeUndefined();
       });
 
       it("should return undefined for number * empty array", () => {
-        expect(evaluate('2 * []', {})).toBeUndefined();
+        expect(evaluate("2 * []", {})).toBeUndefined();
       });
 
       it("should return undefined for non-empty array * number", () => {
-        expect(evaluate('[1] * 3', {})).toBeUndefined();
+        expect(evaluate("[1] * 3", {})).toBeUndefined();
       });
 
       it("should return undefined for number * non-empty array", () => {
-        expect(evaluate('3 * [1]', {})).toBeUndefined();
+        expect(evaluate("3 * [1]", {})).toBeUndefined();
       });
 
       it("should return undefined for array * array", () => {
-        expect(evaluate('[] * []', {})).toBeUndefined();
-        expect(evaluate('[1] * [2]', {})).toBeUndefined();
+        expect(evaluate("[] * []", {})).toBeUndefined();
+        expect(evaluate("[1] * [2]", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('5 * 3', {})).toBe(15);
-        expect(evaluate('2 * 4', {})).toBe(8);
+        expect(evaluate("5 * 3", {})).toBe(15);
+        expect(evaluate("2 * 4", {})).toBe(8);
       });
     });
 
     describe("Division (/)", () => {
       it("should return undefined for empty array / number", () => {
-        expect(evaluate('[] / 2', {})).toBeUndefined();
+        expect(evaluate("[] / 2", {})).toBeUndefined();
       });
 
       it("should return undefined for number / empty array", () => {
-        expect(evaluate('10 / []', {})).toBeUndefined();
+        expect(evaluate("10 / []", {})).toBeUndefined();
       });
 
       it("should return undefined for non-empty array / number", () => {
-        expect(evaluate('[1] / 2', {})).toBeUndefined();
+        expect(evaluate("[1] / 2", {})).toBeUndefined();
       });
 
       it("should return undefined for number / non-empty array", () => {
-        expect(evaluate('10 / [1]', {})).toBeUndefined();
+        expect(evaluate("10 / [1]", {})).toBeUndefined();
       });
 
       it("should return undefined for array / array", () => {
-        expect(evaluate('[] / []', {})).toBeUndefined();
-        expect(evaluate('[1] / [2]', {})).toBeUndefined();
+        expect(evaluate("[] / []", {})).toBeUndefined();
+        expect(evaluate("[1] / [2]", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('10 / 2', {})).toBe(5);
-        expect(evaluate('7 / 2', {})).toBe(3.5);
+        expect(evaluate("10 / 2", {})).toBe(5);
+        expect(evaluate("7 / 2", {})).toBe(3.5);
       });
     });
 
     describe("Modulo (%)", () => {
       it("should return undefined for empty array % number", () => {
-        expect(evaluate('[] % 2', {})).toBeUndefined();
+        expect(evaluate("[] % 2", {})).toBeUndefined();
       });
 
       it("should return undefined for number % empty array", () => {
-        expect(evaluate('10 % []', {})).toBeUndefined();
+        expect(evaluate("10 % []", {})).toBeUndefined();
       });
 
       it("should return undefined for non-empty array % number", () => {
-        expect(evaluate('[1] % 3', {})).toBeUndefined();
+        expect(evaluate("[1] % 3", {})).toBeUndefined();
       });
 
       it("should return undefined for number % non-empty array", () => {
-        expect(evaluate('10 % [1]', {})).toBeUndefined();
+        expect(evaluate("10 % [1]", {})).toBeUndefined();
       });
 
       it("should return undefined for array % array", () => {
-        expect(evaluate('[] % []', {})).toBeUndefined();
-        expect(evaluate('[1] % [2]', {})).toBeUndefined();
+        expect(evaluate("[] % []", {})).toBeUndefined();
+        expect(evaluate("[1] % [2]", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('10 % 3', {})).toBe(1);
-        expect(evaluate('7 % 2', {})).toBe(1);
+        expect(evaluate("10 % 3", {})).toBe(1);
+        expect(evaluate("7 % 2", {})).toBe(1);
       });
     });
   });
@@ -2024,116 +2176,116 @@ describe("Complex Expression Evaluation", () => {
 
     describe("Addition (+)", () => {
       it("should return undefined for boolean + boolean", () => {
-        expect(evaluate('true + false', {})).toBeUndefined();
-        expect(evaluate('true + true', {})).toBeUndefined();
-        expect(evaluate('false + false', {})).toBeUndefined();
+        expect(evaluate("true + false", {})).toBeUndefined();
+        expect(evaluate("true + true", {})).toBeUndefined();
+        expect(evaluate("false + false", {})).toBeUndefined();
       });
 
       it("should return undefined for boolean + number", () => {
-        expect(evaluate('true + 5', {})).toBeUndefined();
-        expect(evaluate('false + 5', {})).toBeUndefined();
+        expect(evaluate("true + 5", {})).toBeUndefined();
+        expect(evaluate("false + 5", {})).toBeUndefined();
       });
 
       it("should return undefined for number + boolean", () => {
-        expect(evaluate('5 + true', {})).toBeUndefined();
-        expect(evaluate('5 + false', {})).toBeUndefined();
+        expect(evaluate("5 + true", {})).toBeUndefined();
+        expect(evaluate("5 + false", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('5 + 3', {})).toBe(8);
-        expect(evaluate('0 + 0', {})).toBe(0);
+        expect(evaluate("5 + 3", {})).toBe(8);
+        expect(evaluate("0 + 0", {})).toBe(0);
       });
     });
 
     describe("Subtraction (-)", () => {
       it("should return undefined for boolean - boolean", () => {
-        expect(evaluate('true - false', {})).toBeUndefined();
-        expect(evaluate('true - true', {})).toBeUndefined();
-        expect(evaluate('false - false', {})).toBeUndefined();
+        expect(evaluate("true - false", {})).toBeUndefined();
+        expect(evaluate("true - true", {})).toBeUndefined();
+        expect(evaluate("false - false", {})).toBeUndefined();
       });
 
       it("should return undefined for boolean - number", () => {
-        expect(evaluate('true - 5', {})).toBeUndefined();
-        expect(evaluate('false - 5', {})).toBeUndefined();
+        expect(evaluate("true - 5", {})).toBeUndefined();
+        expect(evaluate("false - 5", {})).toBeUndefined();
       });
 
       it("should return undefined for number - boolean", () => {
-        expect(evaluate('5 - true', {})).toBeUndefined();
-        expect(evaluate('5 - false', {})).toBeUndefined();
+        expect(evaluate("5 - true", {})).toBeUndefined();
+        expect(evaluate("5 - false", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('10 - 4', {})).toBe(6);
-        expect(evaluate('5 - 5', {})).toBe(0);
+        expect(evaluate("10 - 4", {})).toBe(6);
+        expect(evaluate("5 - 5", {})).toBe(0);
       });
     });
 
     describe("Multiplication (*)", () => {
       it("should return undefined for boolean * boolean", () => {
-        expect(evaluate('true * false', {})).toBeUndefined();
-        expect(evaluate('true * true', {})).toBeUndefined();
-        expect(evaluate('false * false', {})).toBeUndefined();
+        expect(evaluate("true * false", {})).toBeUndefined();
+        expect(evaluate("true * true", {})).toBeUndefined();
+        expect(evaluate("false * false", {})).toBeUndefined();
       });
 
       it("should return undefined for boolean * number", () => {
-        expect(evaluate('true * 5', {})).toBeUndefined();
-        expect(evaluate('false * 5', {})).toBeUndefined();
+        expect(evaluate("true * 5", {})).toBeUndefined();
+        expect(evaluate("false * 5", {})).toBeUndefined();
       });
 
       it("should return undefined for number * boolean", () => {
-        expect(evaluate('5 * true', {})).toBeUndefined();
-        expect(evaluate('5 * false', {})).toBeUndefined();
+        expect(evaluate("5 * true", {})).toBeUndefined();
+        expect(evaluate("5 * false", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('5 * 3', {})).toBe(15);
-        expect(evaluate('0 * 100', {})).toBe(0);
+        expect(evaluate("5 * 3", {})).toBe(15);
+        expect(evaluate("0 * 100", {})).toBe(0);
       });
     });
 
     describe("Division (/)", () => {
       it("should return undefined for boolean / boolean", () => {
-        expect(evaluate('true / false', {})).toBeUndefined();
-        expect(evaluate('true / true', {})).toBeUndefined();
-        expect(evaluate('false / false', {})).toBeUndefined();
+        expect(evaluate("true / false", {})).toBeUndefined();
+        expect(evaluate("true / true", {})).toBeUndefined();
+        expect(evaluate("false / false", {})).toBeUndefined();
       });
 
       it("should return undefined for boolean / number", () => {
-        expect(evaluate('true / 5', {})).toBeUndefined();
-        expect(evaluate('false / 5', {})).toBeUndefined();
+        expect(evaluate("true / 5", {})).toBeUndefined();
+        expect(evaluate("false / 5", {})).toBeUndefined();
       });
 
       it("should return undefined for number / boolean", () => {
-        expect(evaluate('5 / true', {})).toBeUndefined();
-        expect(evaluate('5 / false', {})).toBeUndefined();
+        expect(evaluate("5 / true", {})).toBeUndefined();
+        expect(evaluate("5 / false", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('10 / 2', {})).toBe(5);
-        expect(evaluate('7 / 2', {})).toBe(3.5);
+        expect(evaluate("10 / 2", {})).toBe(5);
+        expect(evaluate("7 / 2", {})).toBe(3.5);
       });
     });
 
     describe("Modulo (%)", () => {
       it("should return undefined for boolean % boolean", () => {
-        expect(evaluate('true % false', {})).toBeUndefined();
-        expect(evaluate('true % true', {})).toBeUndefined();
-        expect(evaluate('false % false', {})).toBeUndefined();
+        expect(evaluate("true % false", {})).toBeUndefined();
+        expect(evaluate("true % true", {})).toBeUndefined();
+        expect(evaluate("false % false", {})).toBeUndefined();
       });
 
       it("should return undefined for boolean % number", () => {
-        expect(evaluate('true % 5', {})).toBeUndefined();
-        expect(evaluate('false % 5', {})).toBeUndefined();
+        expect(evaluate("true % 5", {})).toBeUndefined();
+        expect(evaluate("false % 5", {})).toBeUndefined();
       });
 
       it("should return undefined for number % boolean", () => {
-        expect(evaluate('5 % true', {})).toBeUndefined();
-        expect(evaluate('5 % false', {})).toBeUndefined();
+        expect(evaluate("5 % true", {})).toBeUndefined();
+        expect(evaluate("5 % false", {})).toBeUndefined();
       });
 
       it("should work with valid numbers (regression test)", () => {
-        expect(evaluate('10 % 3', {})).toBe(1);
-        expect(evaluate('7 % 2', {})).toBe(1);
+        expect(evaluate("10 % 3", {})).toBe(1);
+        expect(evaluate("7 % 2", {})).toBe(1);
       });
     });
   });
@@ -2146,33 +2298,33 @@ describe("Complex Expression Evaluation", () => {
     describe("Addition (+)", () => {
       it("should concatenate empty array + number", () => {
         // Empty array becomes empty string, then concatenated
-        expect(evaluate('[] + 5', {})).toBe("5");
-        expect(evaluate('[] + 0', {})).toBe("0");
+        expect(evaluate("[] + 5", {})).toBe("5");
+        expect(evaluate("[] + 0", {})).toBe("0");
       });
 
       it("should concatenate number + empty array", () => {
-        expect(evaluate('5 + []', {})).toBe("5");
-        expect(evaluate('0 + []', {})).toBe("0");
+        expect(evaluate("5 + []", {})).toBe("5");
+        expect(evaluate("0 + []", {})).toBe("0");
       });
 
       it("should concatenate non-empty array + number", () => {
         // [1, 2] becomes "1,2" then concatenated with "3"
-        expect(evaluate('[1, 2] + 3', {})).toBe("1,23");
-        expect(evaluate('[10] + 5', {})).toBe("105");
+        expect(evaluate("[1, 2] + 3", {})).toBe("1,23");
+        expect(evaluate("[10] + 5", {})).toBe("105");
       });
 
       it("should concatenate number + non-empty array", () => {
-        expect(evaluate('3 + [1, 2]', {})).toBe("31,2");
-        expect(evaluate('5 + [10]', {})).toBe("510");
+        expect(evaluate("3 + [1, 2]", {})).toBe("31,2");
+        expect(evaluate("5 + [10]", {})).toBe("510");
       });
 
       it("should concatenate array + array", () => {
         // Both arrays become empty strings
-        expect(evaluate('[] + []', {})).toBe("");
+        expect(evaluate("[] + []", {})).toBe("");
         // Single element arrays have no comma: "1" + "2" = "12"
-        expect(evaluate('[1] + [2]', {})).toBe("12");
+        expect(evaluate("[1] + [2]", {})).toBe("12");
         // Multi-element arrays: "1,2" + "3,4" = "1,23,4"
-        expect(evaluate('[1, 2] + [3, 4]', {})).toBe("1,23,4");
+        expect(evaluate("[1, 2] + [3, 4]", {})).toBe("1,23,4");
       });
 
       it("should concatenate array + string", () => {
@@ -2186,8 +2338,8 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should concatenate array + null (null becomes empty string)", () => {
-        expect(evaluate('[] + null', { null: null })).toBe("");
-        expect(evaluate('[1] + null', { null: null })).toBe("1");
+        expect(evaluate("[] + null", { null: null })).toBe("");
+        expect(evaluate("[1] + null", { null: null })).toBe("1");
       });
     });
   });
@@ -2197,7 +2349,7 @@ describe("Complex Expression Evaluation", () => {
 
     beforeEach(() => {
       clearExpressionCache();
-      consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -2206,112 +2358,112 @@ describe("Complex Expression Evaluation", () => {
 
     describe("Array Arithmetic Warnings", () => {
       it("should warn for array subtraction", () => {
-        evaluate('[] - 5', {});
+        evaluate("[] - 5", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands')
+          expect.stringContaining("Invalid operands"),
         );
       });
 
       it("should show correct type information for array", () => {
-        evaluate('[] - 5', {});
+        evaluate("[] - 5", {});
 
         // typeof [] is 'object'
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=object')
+          expect.stringContaining("left=object"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('right=number')
+          expect.stringContaining("right=number"),
         );
       });
 
       it("should warn for array multiplication", () => {
-        evaluate('[1] * 2', {});
+        evaluate("[1] * 2", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
       });
 
       it("should warn for array division", () => {
-        evaluate('[] / 2', {});
+        evaluate("[] / 2", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands for /')
+          expect.stringContaining("Invalid operands for /"),
         );
       });
 
       it("should warn for array modulo", () => {
-        evaluate('[1] % 3', {});
+        evaluate("[1] % 3", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands for %')
+          expect.stringContaining("Invalid operands for %"),
         );
       });
     });
 
     describe("Boolean Arithmetic Warnings", () => {
       it("should warn for boolean addition", () => {
-        evaluate('true + false', {});
+        evaluate("true + false", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
       });
 
       it("should show correct type information for boolean", () => {
-        evaluate('true + 5', {});
+        evaluate("true + 5", {});
 
         // typeof true is 'boolean'
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=boolean')
+          expect.stringContaining("left=boolean"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('right=number')
+          expect.stringContaining("right=number"),
         );
       });
 
       it("should warn for boolean subtraction", () => {
-        evaluate('false - 5', {});
+        evaluate("false - 5", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands')
+          expect.stringContaining("Invalid operands"),
         );
       });
 
       it("should warn for boolean multiplication", () => {
-        evaluate('true * 2', {});
+        evaluate("true * 2", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
       });
 
       it("should warn for boolean division", () => {
-        evaluate('false / 2', {});
+        evaluate("false / 2", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
       });
 
       it("should warn for boolean modulo", () => {
-        evaluate('true % 2', {});
+        evaluate("true % 2", {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands')
+          expect.stringContaining("Invalid operands"),
         );
       });
     });
@@ -2321,10 +2473,10 @@ describe("Complex Expression Evaluation", () => {
         evaluate('"hello" - 5', {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
       });
 
@@ -2333,7 +2485,7 @@ describe("Complex Expression Evaluation", () => {
 
         // typeof "text" is 'string'
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('left=string')
+          expect.stringContaining("left=string"),
         );
       });
 
@@ -2341,7 +2493,7 @@ describe("Complex Expression Evaluation", () => {
         evaluate('"hello" * 2', {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Invalid operands')
+          expect.stringContaining("Invalid operands"),
         );
       });
 
@@ -2349,7 +2501,7 @@ describe("Complex Expression Evaluation", () => {
         evaluate('"x" / 2', {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[Formality Expression]')
+          expect.stringContaining("[Formality Expression]"),
         );
       });
 
@@ -2357,7 +2509,7 @@ describe("Complex Expression Evaluation", () => {
         evaluate('"y" % 2', {});
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Type error')
+          expect.stringContaining("Type error"),
         );
       });
     });
@@ -2382,20 +2534,20 @@ describe("Complex Expression Evaluation", () => {
       });
 
       it("should not warn for array + number concatenation", () => {
-        evaluate('[] + 5', {});
+        evaluate("[] + 5", {});
 
         expect(consoleSpy).not.toHaveBeenCalled();
       });
 
       it("should not warn for number + array concatenation", () => {
-        evaluate('5 + []', {});
+        evaluate("5 + []", {});
 
         expect(consoleSpy).not.toHaveBeenCalled();
       });
 
       it("should not warn for array + array concatenation", () => {
-        evaluate('[] + []', {});
-        evaluate('[1] + [2]', {});
+        evaluate("[] + []", {});
+        evaluate("[1] + [2]", {});
 
         expect(consoleSpy).not.toHaveBeenCalled();
       });
@@ -2420,13 +2572,13 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should not warn for array arithmetic in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      evaluate('[] - 5', {});
-      evaluate('[1] * 2', {});
-      evaluate('[] / 2', {});
-      evaluate('[1] % 3', {});
+      evaluate("[] - 5", {});
+      evaluate("[1] * 2", {});
+      evaluate("[] / 2", {});
+      evaluate("[1] % 3", {});
 
       expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -2434,14 +2586,14 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should not warn for boolean arithmetic in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-      evaluate('true + false', {});
-      evaluate('true - 5', {});
-      evaluate('false * 2', {});
-      evaluate('true / 2', {});
-      evaluate('false % 2', {});
+      evaluate("true + false", {});
+      evaluate("true - 5", {});
+      evaluate("false * 2", {});
+      evaluate("true / 2", {});
+      evaluate("false % 2", {});
 
       expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -2449,8 +2601,8 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should not warn for string arithmetic in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       evaluate('"hello" - 5', {});
       evaluate('"text" * 2', {});
@@ -2463,31 +2615,31 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should still return undefined in production for mixed types", () => {
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
 
-      expect(evaluate('[] - 5', {})).toBeUndefined();
-      expect(evaluate('[1] * 2', {})).toBeUndefined();
-      expect(evaluate('true + false', {})).toBeUndefined();
-      expect(evaluate('true - 5', {})).toBeUndefined();
+      expect(evaluate("[] - 5", {})).toBeUndefined();
+      expect(evaluate("[1] * 2", {})).toBeUndefined();
+      expect(evaluate("true + false", {})).toBeUndefined();
+      expect(evaluate("true - 5", {})).toBeUndefined();
       expect(evaluate('"hello" - 5', {})).toBeUndefined();
       expect(evaluate('"text" * 2', {})).toBeUndefined();
     });
 
     it("should still concatenate in production", () => {
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
 
       expect(evaluate('"hello" + 5', {})).toBe("hello5");
       expect(evaluate('5 + "world"', {})).toBe("5world");
-      expect(evaluate('[] + 5', {})).toBe("5");
-      expect(evaluate('[1,2] + 3', {})).toBe("1,23");
+      expect(evaluate("[] + 5", {})).toBe("5");
+      expect(evaluate("[1,2] + 3", {})).toBe("1,23");
     });
 
     it("should not warn for concatenation in production", () => {
-      process.env.NODE_ENV = 'production';
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      process.env.NODE_ENV = "production";
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       evaluate('"hello" + 5', {});
-      evaluate('[] + 5', {});
+      evaluate("[] + 5", {});
       evaluate('"a" + "b"', {});
 
       expect(consoleSpy).not.toHaveBeenCalled();
@@ -2496,13 +2648,13 @@ describe("Complex Expression Evaluation", () => {
     });
 
     it("should work with valid numbers in production mode (regression test)", () => {
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = "production";
 
-      expect(evaluate('5 + 3', {})).toBe(8);
-      expect(evaluate('10 - 4', {})).toBe(6);
-      expect(evaluate('5 * 3', {})).toBe(15);
-      expect(evaluate('10 / 2', {})).toBe(5);
-      expect(evaluate('10 % 3', {})).toBe(1);
+      expect(evaluate("5 + 3", {})).toBe(8);
+      expect(evaluate("10 - 4", {})).toBe(6);
+      expect(evaluate("5 * 3", {})).toBe(15);
+      expect(evaluate("10 / 2", {})).toBe(5);
+      expect(evaluate("10 % 3", {})).toBe(1);
     });
   });
 });

@@ -742,7 +742,8 @@ describe("Field", () => {
         <FormalityProvider inputs={testInputs}>
           <Form config={config} record={{ otherField: "match" }}>
             <Field name="otherField" />
-            <Field name="field" /> {/* No JSX prop, no config disabled, condition controls */}
+            <Field name="field" />{" "}
+            {/* No JSX prop, no config disabled, condition controls */}
           </Form>
         </FormalityProvider>,
       );
@@ -768,7 +769,8 @@ describe("Field", () => {
         <FormalityProvider inputs={testInputs}>
           <Form config={config} record={{ otherField: "match" }}>
             <Field name="otherField" />
-            <Field name="field" /> {/* No JSX prop, no config disabled, condition controls */}
+            <Field name="field" />{" "}
+            {/* No JSX prop, no config disabled, condition controls */}
           </Form>
         </FormalityProvider>,
       );
@@ -838,9 +840,7 @@ describe("Field", () => {
         otherField: { type: "textField" },
         field: {
           type: "textField",
-          conditions: [
-            { when: "otherField", is: "disable", disabled: true },
-          ],
+          conditions: [{ when: "otherField", is: "disable", disabled: true }],
         },
       };
 
@@ -925,15 +925,11 @@ describe("Field", () => {
         trigger: { type: "textField" },
         source: {
           type: "textField",
-          conditions: [
-            { when: "trigger", is: "disable", disabled: true },
-          ],
+          conditions: [{ when: "trigger", is: "disable", disabled: true }],
         },
         target: {
           type: "textField",
-          conditions: [
-            { when: "source", isDisabled: true, disabled: true },
-          ],
+          conditions: [{ when: "source", isDisabled: true, disabled: true }],
         },
       };
 
@@ -972,15 +968,11 @@ describe("Field", () => {
       const config: FormFieldsConfig = {
         fieldA: {
           type: "textField",
-          conditions: [
-            { when: "fieldB", isDisabled: true, disabled: true },
-          ],
+          conditions: [{ when: "fieldB", isDisabled: true, disabled: true }],
         },
         fieldB: {
           type: "textField",
-          conditions: [
-            { when: "fieldA", isDisabled: true, disabled: true },
-          ],
+          conditions: [{ when: "fieldA", isDisabled: true, disabled: true }],
         },
       };
 

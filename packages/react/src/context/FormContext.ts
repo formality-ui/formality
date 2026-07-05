@@ -90,7 +90,11 @@ export interface FormContextValue<
    * @param value - New value
    * @param inputConfig - Optional input configuration for this field type
    */
-  changeField: (name: string, value: unknown, inputConfig?: InputConfig) => void;
+  changeField: (
+    name: string,
+    value: unknown,
+    inputConfig?: InputConfig,
+  ) => void;
 
   /**
    * Set a field's validating state

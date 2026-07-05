@@ -77,12 +77,12 @@ const createInspectableContext = () => {
     if (process.env.NODE_ENV !== "production") {
       if (subscriptionExists) {
         console.warn(
-          `[Formality Subscription] "${subscriber}" removed from watching "${target}"`
+          `[Formality Subscription] "${subscriber}" removed from watching "${target}"`,
         );
       } else {
         console.warn(
           `[Formality Subscription] WARNING: Double-cleanup attempt - ` +
-          `"${subscriber}" was not watching "${target}"`
+            `"${subscriber}" was not watching "${target}"`,
         );
       }
     }
@@ -165,8 +165,14 @@ describe("useSubscriptions", () => {
       );
 
       expect(mockContext.addSubscription).toHaveBeenCalledTimes(2);
-      expect(mockContext.addSubscription).toHaveBeenCalledWith("field2", "field1");
-      expect(mockContext.addSubscription).toHaveBeenCalledWith("field3", "field1");
+      expect(mockContext.addSubscription).toHaveBeenCalledWith(
+        "field2",
+        "field1",
+      );
+      expect(mockContext.addSubscription).toHaveBeenCalledWith(
+        "field3",
+        "field1",
+      );
     });
 
     it("should not add subscriptions when subscriptions array is empty", () => {
@@ -192,7 +198,10 @@ describe("useSubscriptions", () => {
 
       // Initial mount: field1 subscribes to field2
       expect(mockContext.addSubscription).toHaveBeenCalledTimes(1);
-      expect(mockContext.addSubscription).toHaveBeenCalledWith("field2", "field1");
+      expect(mockContext.addSubscription).toHaveBeenCalledWith(
+        "field2",
+        "field1",
+      );
 
       // Clear calls to check cleanup separately
       mockContext.addSubscription.mockClear();
@@ -202,13 +211,22 @@ describe("useSubscriptions", () => {
       rerender({ subscriptions: ["field3"] });
 
       // field1 subscribes to field3
-      expect(mockContext.addSubscription).toHaveBeenCalledWith("field3", "field1");
+      expect(mockContext.addSubscription).toHaveBeenCalledWith(
+        "field3",
+        "field1",
+      );
 
       // Cleanup from first effect run should only remove field2 subscription
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field2", "field1");
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field2",
+        "field1",
+      );
 
       // field3 should still be subscribed (not cleaned up by previous cleanup)
-      expect(mockContext.removeSubscription).not.toHaveBeenCalledWith("field3", "field1");
+      expect(mockContext.removeSubscription).not.toHaveBeenCalledWith(
+        "field3",
+        "field1",
+      );
     });
 
     it("should handle rapid subscription changes without memory leaks", async () => {
@@ -235,10 +253,22 @@ describe("useSubscriptions", () => {
       unmount();
 
       // Each cleanup should only remove its own run's subscriptions
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field2", "field1");
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field3", "field1");
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field4", "field1");
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field5", "field1");
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field2",
+        "field1",
+      );
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field3",
+        "field1",
+      );
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field4",
+        "field1",
+      );
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field5",
+        "field1",
+      );
 
       // We have 4 removes (field2, field3, field4, field5)
       // And 3 adds (field3, field4, field5) after clearing the initial call
@@ -258,9 +288,21 @@ describe("useSubscriptions", () => {
       );
 
       // Subscriptions added in order: field2, field3, field4
-      expect(mockContext.addSubscription).toHaveBeenNthCalledWith(1, "field2", "field1");
-      expect(mockContext.addSubscription).toHaveBeenNthCalledWith(2, "field3", "field1");
-      expect(mockContext.addSubscription).toHaveBeenNthCalledWith(3, "field4", "field1");
+      expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+        1,
+        "field2",
+        "field1",
+      );
+      expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+        2,
+        "field3",
+        "field1",
+      );
+      expect(mockContext.addSubscription).toHaveBeenNthCalledWith(
+        3,
+        "field4",
+        "field1",
+      );
 
       // Clear calls
       mockContext.removeSubscription.mockClear();
@@ -269,17 +311,35 @@ describe("useSubscriptions", () => {
       unmount();
 
       // LIFO cleanup: field4, field3, field2 (reverse order)
-      expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(1, "field4", "field1");
-      expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(2, "field3", "field1");
-      expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(3, "field2", "field1");
+      expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+        1,
+        "field4",
+        "field1",
+      );
+      expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+        2,
+        "field3",
+        "field1",
+      );
+      expect(mockContext.removeSubscription).toHaveBeenNthCalledWith(
+        3,
+        "field2",
+        "field1",
+      );
     });
   });
 
   describe("React 18 Strict Mode", () => {
     it("should handle React 18 Strict Mode double-invocation", () => {
-      const strictModeWrapper = ({ children }: { children: React.ReactNode }) => (
+      const strictModeWrapper = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
         <StrictMode>
-          <FormContext.Provider value={mockContext}>{children}</FormContext.Provider>
+          <FormContext.Provider value={mockContext}>
+            {children}
+          </FormContext.Provider>
         </StrictMode>
       );
 
@@ -291,8 +351,14 @@ describe("useSubscriptions", () => {
       // In StrictMode, effect runs twice (mount → unmount → mount)
       // But per-effect tracking prevents over-cleanup
       // Final state should have subscriptions from the last mount
-      expect(mockContext.addSubscription).toHaveBeenCalledWith("field2", "field1");
-      expect(mockContext.addSubscription).toHaveBeenCalledWith("field3", "field1");
+      expect(mockContext.addSubscription).toHaveBeenCalledWith(
+        "field2",
+        "field1",
+      );
+      expect(mockContext.addSubscription).toHaveBeenCalledWith(
+        "field3",
+        "field1",
+      );
 
       // Clear calls to track final cleanup
       mockContext.addSubscription.mockClear();
@@ -301,14 +367,26 @@ describe("useSubscriptions", () => {
       unmount();
 
       // All subscriptions should be cleaned up
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field2", "field1");
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field3", "field1");
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field2",
+        "field1",
+      );
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field3",
+        "field1",
+      );
     });
 
     it("should not cause errors with StrictMode and subscription changes", () => {
-      const strictModeWrapper = ({ children }: { children: React.ReactNode }) => (
+      const strictModeWrapper = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => (
         <StrictMode>
-          <FormContext.Provider value={mockContext}>{children}</FormContext.Provider>
+          <FormContext.Provider value={mockContext}>
+            {children}
+          </FormContext.Provider>
         </StrictMode>
       );
 
@@ -328,7 +406,10 @@ describe("useSubscriptions", () => {
       rerender({ subscriptions: ["field3"] });
 
       // Should not cause errors or over-cleanup
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field2", "field1");
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field2",
+        "field1",
+      );
 
       // Clear calls to track final cleanup
       mockContext.addSubscription.mockClear();
@@ -337,7 +418,10 @@ describe("useSubscriptions", () => {
       unmount();
 
       // Final cleanup should work correctly
-      expect(mockContext.removeSubscription).toHaveBeenCalledWith("field3", "field1");
+      expect(mockContext.removeSubscription).toHaveBeenCalledWith(
+        "field3",
+        "field1",
+      );
     });
   });
 
@@ -349,10 +433,9 @@ describe("useSubscriptions", () => {
       const mapSetSpy = vi.spyOn(Map.prototype, "set");
 
       const subscriptionsArray = ["field2", "field3"];
-      renderHook(
-        () => useSubscriptions("field1", subscriptionsArray),
-        { wrapper },
-      );
+      renderHook(() => useSubscriptions("field1", subscriptionsArray), {
+        wrapper,
+      });
 
       // Map.set should have been called to store subscriptions
       expect(mapSetSpy).toHaveBeenCalled();
@@ -366,7 +449,7 @@ describe("useSubscriptions", () => {
 
   describe("development logging", () => {
     beforeEach(() => {
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -376,23 +459,25 @@ describe("useSubscriptions", () => {
     it("should log subscription additions in development", () => {
       const wrapper = createWrapper(mockContext);
 
-      renderHook(() => useSubscriptions('fieldA', ['fieldB']), { wrapper });
+      renderHook(() => useSubscriptions("fieldA", ["fieldB"]), { wrapper });
 
       expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"'
+        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"',
       );
     });
 
     it("should log multiple subscription additions in development", () => {
       const wrapper = createWrapper(mockContext);
 
-      renderHook(() => useSubscriptions('fieldA', ['fieldB', 'fieldC']), { wrapper });
+      renderHook(() => useSubscriptions("fieldA", ["fieldB", "fieldC"]), {
+        wrapper,
+      });
 
       expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"'
+        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"',
       );
       expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldC"'
+        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldC"',
       );
     });
 
@@ -400,7 +485,7 @@ describe("useSubscriptions", () => {
       const wrapper = createWrapper(mockContext);
 
       const { unmount } = renderHook(
-        () => useSubscriptions('fieldA', ['fieldB', 'fieldC']),
+        () => useSubscriptions("fieldA", ["fieldB", "fieldC"]),
         { wrapper },
       );
 
@@ -410,7 +495,7 @@ describe("useSubscriptions", () => {
       unmount();
 
       expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" cleaning up [fieldB, fieldC]'
+        '[Formality Subscription] Run 1: "fieldA" cleaning up [fieldB, fieldC]',
       );
     });
 
@@ -418,10 +503,10 @@ describe("useSubscriptions", () => {
       const wrapper = createWrapper(mockContext);
 
       const { rerender } = renderHook(
-        ({ subscriptions }) => useSubscriptions('fieldA', subscriptions),
+        ({ subscriptions }) => useSubscriptions("fieldA", subscriptions),
         {
           wrapper,
-          initialProps: { subscriptions: ['fieldB'] as string[] },
+          initialProps: { subscriptions: ["fieldB"] as string[] },
         },
       );
 
@@ -429,17 +514,17 @@ describe("useSubscriptions", () => {
       vi.mocked(console.warn).mockClear();
 
       // Rerender to trigger a new effect run
-      rerender({ subscriptions: ['fieldC'] });
+      rerender({ subscriptions: ["fieldC"] });
 
       expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 2: "fieldA" subscribing to "fieldC"'
+        '[Formality Subscription] Run 2: "fieldA" subscribing to "fieldC"',
       );
     });
   });
 
   describe("double-cleanup detection", () => {
     beforeEach(() => {
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -468,7 +553,7 @@ describe("useSubscriptions", () => {
 
       const { unmount } = renderHook(
         () => useSubscriptions("field1", ["field2", "field3"]),
-        { wrapper }
+        { wrapper },
       );
 
       // Verify subscriptions were added
@@ -492,12 +577,12 @@ describe("useSubscriptions", () => {
       // Mount multiple fields
       const { unmount: unmount1 } = renderHook(
         () => useSubscriptions("field1", ["field3"]),
-        { wrapper }
+        { wrapper },
       );
 
       const { unmount: unmount2 } = renderHook(
         () => useSubscriptions("field2", ["field3"]),
-        { wrapper }
+        { wrapper },
       );
 
       // Verify both fields are watching field3
@@ -521,7 +606,10 @@ describe("useSubscriptions", () => {
       const wrapper = createWrapper(createMockContext());
 
       // Use WeakMap to track component instances
-      const trackedInstances = new WeakMap<object, { subscriptions: string[] }>();
+      const trackedInstances = new WeakMap<
+        object,
+        { subscriptions: string[] }
+      >();
 
       let componentRef: object | null = null;
 
@@ -536,14 +624,17 @@ describe("useSubscriptions", () => {
 
           useSubscriptions("field1", ["field2", "field3"]);
         },
-        { wrapper }
+        { wrapper },
       );
 
       // Verify instance was tracked
       expect(componentRef).not.toBeNull();
       if (componentRef) {
         expect(trackedInstances.has(componentRef)).toBe(true);
-        expect(trackedInstances.get(componentRef)?.subscriptions).toEqual(["field2", "field3"]);
+        expect(trackedInstances.get(componentRef)?.subscriptions).toEqual([
+          "field2",
+          "field3",
+        ]);
       }
 
       // Store reference before unmount
@@ -574,12 +665,12 @@ describe("useSubscriptions", () => {
       // field2 watches field3
       const { unmount: unmount1 } = renderHook(
         () => useSubscriptions("field1", ["field2"]),
-        { wrapper }
+        { wrapper },
       );
 
       const { unmount: unmount2 } = renderHook(
         () => useSubscriptions("field2", ["field3"]),
-        { wrapper }
+        { wrapper },
       );
 
       // Verify nested subscriptions
@@ -611,7 +702,7 @@ describe("useSubscriptions", () => {
       for (let i = 0; i < 5; i++) {
         const { unmount } = renderHook(
           () => useSubscriptions(`field${i}`, [`target${i}`]),
-          { wrapper }
+          { wrapper },
         );
         unmountFunctions.push(unmount);
       }
@@ -619,11 +710,13 @@ describe("useSubscriptions", () => {
       // Verify all subscriptions exist
       let state = inspectableContext.getInspectableState();
       for (let i = 0; i < 5; i++) {
-        expect(state.invertedSubscriptions.get(`target${i}`)).toContain(`field${i}`);
+        expect(state.invertedSubscriptions.get(`target${i}`)).toContain(
+          `field${i}`,
+        );
       }
 
       // Unmount all fields
-      unmountFunctions.forEach(fn => fn());
+      unmountFunctions.forEach((fn) => fn());
 
       // Verify all subscriptions are cleaned up
       state = inspectableContext.getInspectableState();
@@ -636,7 +729,7 @@ describe("useSubscriptions", () => {
 
   describe("no memory leak warnings", () => {
     beforeEach(() => {
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -648,7 +741,7 @@ describe("useSubscriptions", () => {
 
       const { unmount } = renderHook(
         () => useSubscriptions("field1", ["field2", "field3"]),
-        { wrapper }
+        { wrapper },
       );
 
       // Clear existing logs
@@ -662,10 +755,11 @@ describe("useSubscriptions", () => {
 
       // Expected: "[Formality Subscription] Run X: "field1" cleaning up [field2, field3]"
       // No unexpected warnings about memory leaks or orphaned subscriptions
-      const memoryLeakWarnings = warnCalls.filter(call =>
-        call[0]?.includes('memory leak') ||
-        call[0]?.includes('orphaned') ||
-        call[0]?.includes('WARNING')
+      const memoryLeakWarnings = warnCalls.filter(
+        (call) =>
+          call[0]?.includes("memory leak") ||
+          call[0]?.includes("orphaned") ||
+          call[0]?.includes("WARNING"),
       );
 
       expect(memoryLeakWarnings).toHaveLength(0);
@@ -679,7 +773,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["field2"] as string[] },
-        }
+        },
       );
 
       // Rapid changes
@@ -695,9 +789,9 @@ describe("useSubscriptions", () => {
 
       // Verify no memory leak warnings
       const warnCalls = vi.mocked(console.warn).mock.calls;
-      const memoryLeakWarnings = warnCalls.filter(call =>
-        call[0]?.includes('memory leak') ||
-        call[0]?.includes('orphaned')
+      const memoryLeakWarnings = warnCalls.filter(
+        (call) =>
+          call[0]?.includes("memory leak") || call[0]?.includes("orphaned"),
       );
 
       expect(memoryLeakWarnings).toHaveLength(0);
@@ -732,7 +826,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["field2"] },
-        }
+        },
       );
 
       // Initial subscription
@@ -762,7 +856,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["field2"] },
-        }
+        },
       );
 
       // Perform rapid changes
@@ -798,7 +892,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["fieldA", "fieldB"] },
-        }
+        },
       );
 
       // Rapid changes to different subscription sets
@@ -809,18 +903,30 @@ describe("useSubscriptions", () => {
       // Verify final state matches last prop
       const state = inspectableContext.getInspectableState();
       expect(state.invertedSubscriptions.get("fieldG")).toContain("field1");
-      expect(state.invertedSubscriptions.get("fieldA")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("fieldB")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("fieldC")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("fieldD")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("fieldE")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("fieldF")?.has("field1") ?? false).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("fieldA")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("fieldB")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("fieldC")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("fieldD")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("fieldE")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("fieldF")?.has("field1") ?? false,
+      ).toBe(false);
     });
   });
 
   describe("rapid changes - memory leak detection", () => {
     beforeEach(() => {
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -829,8 +935,8 @@ describe("useSubscriptions", () => {
 
     it("should not leak memory with 10+ rapid changes (performance.memory)", () => {
       // Skip if performance.memory not available (Chrome/Edge only)
-      if (typeof performance === 'undefined' || !('memory' in performance)) {
-        console.warn('performance.memory not available - skipping memory test');
+      if (typeof performance === "undefined" || !("memory" in performance)) {
+        console.warn("performance.memory not available - skipping memory test");
         return;
       }
 
@@ -848,7 +954,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["field2"] },
-        }
+        },
       );
 
       // Perform many rapid changes
@@ -877,7 +983,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["field2"] },
-        }
+        },
       );
 
       // Clear existing logs
@@ -890,10 +996,11 @@ describe("useSubscriptions", () => {
 
       // Check for memory leak warnings
       const warnCalls = vi.mocked(console.warn).mock.calls;
-      const memoryLeakWarnings = warnCalls.filter(call =>
-        call[0]?.includes('memory leak') ||
-        call[0]?.includes('orphaned') ||
-        (call[0]?.includes('WARNING') && call[0]?.includes('Double-cleanup'))
+      const memoryLeakWarnings = warnCalls.filter(
+        (call) =>
+          call[0]?.includes("memory leak") ||
+          call[0]?.includes("orphaned") ||
+          (call[0]?.includes("WARNING") && call[0]?.includes("Double-cleanup")),
       );
 
       // Development logging is expected (e.g., "Run X: cleaning up")
@@ -927,7 +1034,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["field2"] },
-        }
+        },
       );
 
       // Stress test with 100 rapid changes
@@ -943,10 +1050,11 @@ describe("useSubscriptions", () => {
 
       // Verify no memory leak warnings
       const warnCalls = vi.mocked(console.warn).mock.calls;
-      const memoryLeakWarnings = warnCalls.filter(call =>
-        call[0]?.includes('memory leak') ||
-        call[0]?.includes('orphaned') ||
-        (call[0]?.includes('WARNING') && call[0]?.includes('Double-cleanup'))
+      const memoryLeakWarnings = warnCalls.filter(
+        (call) =>
+          call[0]?.includes("memory leak") ||
+          call[0]?.includes("orphaned") ||
+          (call[0]?.includes("WARNING") && call[0]?.includes("Double-cleanup")),
       );
       expect(memoryLeakWarnings).toHaveLength(0);
     });
@@ -962,7 +1070,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { subscriptions: ["field2"] },
-        }
+        },
       );
 
       // Loop-based changes
@@ -974,7 +1082,7 @@ describe("useSubscriptions", () => {
         ["field10"],
       ];
 
-      subscriptionsList.forEach(subs => {
+      subscriptionsList.forEach((subs) => {
         rerender({ subscriptions: subs });
       });
 
@@ -983,11 +1091,21 @@ describe("useSubscriptions", () => {
       expect(state.invertedSubscriptions.get("field10")).toContain("field1");
 
       // Previous fields should not have field1
-      expect(state.invertedSubscriptions.get("field2")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("field3")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("field4")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("field5")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("field6")?.has("field1") ?? false).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("field2")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("field3")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("field4")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("field5")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("field6")?.has("field1") ?? false,
+      ).toBe(false);
     });
 
     it("should handle rapid field name changes", () => {
@@ -999,7 +1117,7 @@ describe("useSubscriptions", () => {
         {
           wrapper,
           initialProps: { fieldName: "field1" },
-        }
+        },
       );
 
       // Rapid field name changes
@@ -1009,11 +1127,15 @@ describe("useSubscriptions", () => {
 
       // Verify only last field is subscribed
       const state = inspectableContext.getInspectableState();
-      expect(state.invertedSubscriptions.get("targetField")).toContain("field11");
+      expect(state.invertedSubscriptions.get("targetField")).toContain(
+        "field11",
+      );
 
       // Previous fields should not be subscribed
       for (let i = 1; i < 11; i++) {
-        expect(state.invertedSubscriptions.get("targetField")).not.toContain(`field${i}`);
+        expect(state.invertedSubscriptions.get("targetField")).not.toContain(
+          `field${i}`,
+        );
       }
     });
 
@@ -1022,14 +1144,15 @@ describe("useSubscriptions", () => {
       const wrapper = createWrapper(inspectableContext);
 
       const { rerender } = renderHook(
-        ({ fieldName, subscriptions }) => useSubscriptions(fieldName, subscriptions),
+        ({ fieldName, subscriptions }) =>
+          useSubscriptions(fieldName, subscriptions),
         {
           wrapper,
           initialProps: {
             fieldName: "field1",
-            subscriptions: ["target1"]
+            subscriptions: ["target1"],
           },
-        }
+        },
       );
 
       // Mixed changes
@@ -1043,9 +1166,15 @@ describe("useSubscriptions", () => {
       expect(state.invertedSubscriptions.get("target3")).toContain("field3");
 
       // Previous subscriptions should be cleaned up
-      expect(state.invertedSubscriptions.get("target1")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("target2")?.has("field1") ?? false).toBe(false);
-      expect(state.invertedSubscriptions.get("target2")?.has("field2") ?? false).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("target1")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("target2")?.has("field1") ?? false,
+      ).toBe(false);
+      expect(
+        state.invertedSubscriptions.get("target2")?.has("field2") ?? false,
+      ).toBe(false);
     });
   });
 });
