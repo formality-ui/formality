@@ -41,10 +41,25 @@ export type SelectFunction<TReturn = unknown> = (
  *
  * This defines how a particular input type (e.g., textField, switch, autocomplete)
  * behaves across all forms.
+ *
+ * Framework agnosticism: `component` and `template` are intentionally `unknown`
+ * here (core cannot import a UI framework). React consumers should use the
+ * `ReactInputConfig<TValue>` overlay exported from `@formality-ui/react`, which
+ * narrows both to `ComponentType<...>`.
+ *
+ * `TValue` (default `unknown`) links `defaultValue`, `parser`, and `formatter`
+ * to a single value type. It defaults to `unknown` because the framework-agnostic
+ * core cannot know the value type of every UI component; React consumers can
+ * parameterize it via `ReactInputConfig<TValue>` (e.g.
+ * `ReactInputConfig<string>` for a text field). Today only the overlay exposes
+ * this parameterization; end-to-end per-input value inference is a future
+ * enhancement.
+ *
+ * @template TValue - The form value type this input produces/consumes.
  */
 export interface InputConfig<TValue = unknown> {
-  /** The React component to render */
-  component: unknown; // ComponentType - typed as unknown for framework agnosticism
+  /** The component to render (typed `unknown` for framework agnosticism; React consumers see `ComponentType<any>` via `ReactInputConfig`) */
+  component: unknown;
 
   /** Default value for this input type (e.g., '' for text, false for switch) */
   defaultValue: TValue;
@@ -70,8 +85,8 @@ export interface InputConfig<TValue = unknown> {
   /** Type-level validation (runs after field-level validator) */
   validator?: ValidatorSpec;
 
-  /** Template component wrapper for consistent styling */
-  template?: unknown; // ComponentType
+  /** Template component wrapper for consistent styling (typed `unknown` for framework agnosticism; React consumers see `ComponentType<InputTemplateProps>` via `ReactInputConfig`) */
+  template?: unknown;
 
   /** Default props for this input type */
   props?: Record<string, unknown>;
@@ -82,6 +97,12 @@ export interface InputConfig<TValue = unknown> {
  *
  * This defines field-level behavior including conditions, validation,
  * and dynamic props.
+ *
+ * Framework agnosticism: `rules` is intentionally `Record<string, unknown>` here
+ * (core cannot import react-hook-form). React consumers should use the
+ * `ReactFieldConfig` overlay exported from `@formality-ui/react`, which narrows
+ * `rules` to react-hook-form's `RegisterOptions` for full autocomplete and
+ * checking (required, min, max, pattern, validate, valueAsNumber, …).
  */
 export interface FieldConfig {
   /** Input type key (resolves to InputConfig) */
@@ -105,7 +126,7 @@ export interface FieldConfig {
   /** Key to use when reading initial value from record (defaults to field name) */
   recordKey?: string;
 
-  /** React Hook Form RegisterOptions (required, min, max, pattern, etc.) */
+  /** Register options forwarded to the framework's field register call (typed loose for framework agnosticism; React consumers see react-hook-form's `RegisterOptions` via `ReactFieldConfig`) */
   rules?: Record<string, unknown>;
 
   /** Field-level validation (runs before type-level validator) */
@@ -135,8 +156,13 @@ export interface FieldConfig {
 
 /**
  * FormFieldsConfig - Map of field names to their configurations
+ *
+ * Generic over the field-name union so a typed `<Form<TFieldValues>>` can reject
+ * unknown config keys. Defaults to `string`, which is identical to the previous
+ * non-generic `Record<string, FieldConfig>` (backwards compatible).
  */
-export type FormFieldsConfig = Record<string, FieldConfig>;
+export type FormFieldsConfig<TName extends string = string> =
+  Record<TName, FieldConfig>;
 
 /**
  * GroupConfig - Configuration for a FieldGroup
@@ -185,6 +211,11 @@ export interface FormConfig {
  * FormalityProviderConfig - Global provider configuration
  *
  * Sets up input types, transformers, validators, and global defaults.
+ *
+ * Framework agnosticism: `defaultInputTemplate` and `inputTemplates` are
+ * intentionally `unknown` here (core cannot import a UI framework). React's
+ * `FormalityProviderProps` and `ConfigContextValue` overlay
+ * `ComponentType<InputTemplateProps>` on top of these loose fields.
  */
 export interface FormalityProviderConfig {
   /** Input type definitions */
@@ -220,6 +251,10 @@ export interface FormalityProviderConfig {
 
 /**
  * InputTemplateProps - Props passed to input template components
+ *
+ * Framework agnosticism: `Field` is intentionally `unknown` here. React overlays
+ * this same-named type in `@formality-ui/react` with `Field: ComponentType<any>`
+ * and RHF-typed `fieldState`/`formState`; React consumers import that overlay.
  */
 export interface InputTemplateProps {
   /** The input component to render */

@@ -3,7 +3,6 @@
 
 import { useMemo, type ReactNode, type ComponentType } from "react";
 import type {
-  InputConfig,
   ValidatorsConfig,
   ErrorMessagesConfig,
   SelectValue,
@@ -13,6 +12,7 @@ import {
   type ConfigContextValue,
 } from "../context/ConfigContext";
 import type { InputTemplateProps } from "../types";
+import type { ReactInputConfig } from "../overlays";
 
 /**
  * FormalityProviderProps - Props for the FormalityProvider component
@@ -37,8 +37,12 @@ export interface FormalityProviderProps {
    *   switch: { component: Switch, defaultValue: false },
    * }}
    * ```
+   *
+   * `component` is type-checked as a real React component (a non-component
+   * value such as `42` or `"textField"` is a compile error). See
+   * `ReactInputConfig` for the precise shape.
    */
-  inputs: Record<string, InputConfig>;
+  inputs: Record<string, ReactInputConfig>;
 
   /**
    * Named formatters for value → display transformation

@@ -85,3 +85,12 @@ export type {
   WatcherSetterFn,
   DebouncedFunction,
 } from "./types";
+
+// ============================================================================
+// React Type Overlays (precise React/RHF types layered over core's loose types)
+// ============================================================================
+export type {
+  ReactInputConfig,
+  ReactFieldConfig,
+  ReactFormFieldsConfig,
+} from "./overlays";

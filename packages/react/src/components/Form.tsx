@@ -35,6 +35,7 @@ import { GroupContext } from "../context/GroupContext";
 import { useConfigContext } from "../context/ConfigContext";
 import { makeProxyState } from "../utils/makeProxyState";
 import type { WatcherSetterFn, DebouncedFunction } from "../types";
+import type { ReactFormFieldsConfig } from "../overlays";
 
 /**
  * Form component props
@@ -44,7 +45,7 @@ export interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   children: ReactNode | ((api: FormRenderAPI<TFieldValues>) => ReactNode);
 
   /** Field configurations */
-  config: FormFieldsConfig;
+  config: ReactFormFieldsConfig<TFieldValues>;
 
   /** Form-level configuration (title, groups, input overrides) */
   formConfig?: FormConfig;

@@ -3,12 +3,12 @@
 
 import { createContext, useContext, type ComponentType } from "react";
 import type {
-  InputConfig,
   ValidatorsConfig,
   ErrorMessagesConfig,
   SelectValue,
 } from "@formality-ui/core";
 import type { InputTemplateProps } from "../types";
+import type { ReactInputConfig } from "../overlays";
 
 /**
  * ConfigContextValue - Global configuration provided by FormalityProvider
@@ -18,7 +18,7 @@ import type { InputTemplateProps } from "../types";
  */
 export interface ConfigContextValue {
   /** Input type definitions (e.g., textField, switch, autocomplete) */
-  inputs: Record<string, InputConfig>;
+  inputs: Record<string, ReactInputConfig>;
 
   /** Named formatters for value → display transformation */
   formatters: Record<string, (value: unknown) => unknown>;
