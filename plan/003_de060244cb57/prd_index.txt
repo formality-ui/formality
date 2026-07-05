@@ -1,0 +1,218 @@
+h1.0 Formality v1.0 - Complete Specification
+ h2.0 Comprehensive Framework Documentation
+ h2.1 TABLE OF CONTENTS
+ h2.2 1. Architecture Overview
+  h3.0 1.1 Core Principles
+  h3.1 1.2 Data Flow Summary
+  h3.2 1.3 Package Architecture
+   h4.0 1.3.1 Package Structure
+   h4.1 1.3.2 What Belongs in @formality-ui/core
+   h4.2 1.3.3 What Belongs in @formality-ui/react
+   h4.3 1.3.4 Framework Adapter Contracts
+   h4.4 1.3.5 Current Implementation Status
+   h4.5 1.3.6 Import Rules
+   h4.6 1.3.7 Testing Strategy
+ h2.3 2. Performance Architecture
+  h3.3 2.1 The Proxy State Pattern
+   h4.7 2.1.1 The Problem
+   h4.8 2.1.2 The Solution
+   h4.9 2.1.3 Where to Apply
+   h4.10 2.1.4 Performance Impact
+   h4.11 2.1.5 Implementation Requirements
+  h3.4 2.2 Subscription Optimization
+  h3.5 2.3 Memoization Strategy
+ h2.4 3. Type System
+  h3.6 3.1 Select Object Type (CRITICAL)
+  h3.7 3.2 Core Configuration Types
+   h4.12 3.2.1 React Overlay Types (in @formality-ui/react)
+  h3.8 3.4 Form Configuration
+  h3.9 3.5 Form State
+ h2.5 4. Context System
+  h3.10 4.1 FormContext
+  h3.11 4.2 ConfigContext
+  h3.12 4.3 GroupContext
+ h2.6 5. Expression Engine
+  h3.13 4.1 Path Resolution
+   h4.13 4.1.1 Qualified Path Prefixes
+   h4.14 4.1.2 Unqualified Path Transformation
+   h4.15 4.1.3 Resolution Algorithm
+   h4.16 4.1.4 Implementation Strategy: Dual Context Mapping
+   h4.17 4.1.5 Field State Proxy for Metadata Access
+  h3.14 4.2 Expression Evaluation
+   h4.18 4.2.1 Supported Expressions
+   h4.19 4.2.2 Evaluation Context
+  h3.15 4.3 Descriptor Evaluation
+   h4.20 4.3.1 Object Descriptors
+   h4.21 4.3.2 String Descriptors
+   h4.22 4.3.3 Inference (Field Dependencies)
+ h2.7 6. Component Specifications
+  h3.16 5.1 FormalityProvider
+  h3.17 5.2 Form Component
+   h4.23 5.2.1 Title Resolution
+   h4.24 5.2.2 Initialization Phase
+   h4.25 5.2.2 Subscription Management
+   h4.26 5.2.3 Change Detection
+   h4.27 5.2.4 Unused Fields Tracking
+   h4.28 5.2.5 Submission Flow
+  h3.18 5.3 Field Component
+   h4.29 5.3.1 Initialization Phase
+   h4.30 5.3.2 Props Resolution Pipeline
+   h4.31 5.3.3 Conditions Evaluation
+   h4.32 5.3.4 Disabled State Resolution
+   h4.33 5.3.5 Value Transformation
+   h4.34 5.3.6 Change Handler
+   h4.35 5.3.7 Validation Integration
+   h4.36 5.3.8 Template Rendering
+  h3.19 5.4 FieldGroup Component
+   h4.37 5.4.1 Behavior
+  h3.20 5.5 UnusedFields Component
+ h2.8 7. Field Configuration System
+  h3.21 6.1 Configuration Merging
+  h3.22 6.2 Type Resolution
+  h3.23 6.3 InputConfig Properties
+   h4.38 6.3.1 component (Required)
+   h4.39 6.3.2 defaultValue (Required)
+   h4.40 6.3.3 debounce (Optional)
+   h4.41 6.3.4 inputFieldProp (Optional)
+   h4.42 6.3.5 valueField (Optional)
+   h4.43 6.3.6 getSubmitField (Optional)
+   h4.44 6.3.7 parser (Optional)
+   h4.45 6.3.8 formatter (Optional)
+   h4.46 6.3.9 validator (Optional)
+   h4.47 6.3.10 template (Optional)
+ h2.9 8. Conditions System
+  h3.24 7.1 Condition Matching
+   h4.48 7.1.1 setValue Application Mechanism
+  h3.25 7.2 when vs selectWhen
+  h3.26 7.3 Condition Examples
+  h3.27 7.4 Function-Based Conditions
+  h3.28 7.6 Visible vs Disabled
+  h3.29 7.7 Condition Action Independence
+   h4.49 7.7.1 Independence Rules
+   h4.50 7.7.2 Default Value Resolution
+   h4.51 7.7.3 Common Mistake: Confusing disabled with hidden
+ h2.10 9. Subscription System
+  h3.30 8.1 Subscription Types
+  h3.31 8.2 Subscription Sources
+  h3.32 8.3 Subscription Lifecycle
+  h3.33 8.4 Mount Order Resolution
+  h3.34 8.5 Validation Blocking
+ h2.11 10. Validation System
+  h3.35 9.1 Validation Layers
+  h3.36 9.2 Validator Specification Formats
+  h3.37 9.3 Validator Return Values
+  h3.38 9.4 Error Message Resolution
+  h3.39 9.5 Validation State Tracking
+  h3.40 9.6 Async Validator Example
+ h2.12 11. Value Transformation Pipeline
+  h3.41 10.1 Parse Pipeline (Input → Form Value)
+  h3.42 10.2 Format Pipeline (Form Value → Display)
+  h3.43 10.3 Submit Pipeline (Form Value → API)
+  h3.44 10.4 Complete Example
+  h3.45 10.5 Formatter Precision Configuration
+  h3.46 10.6 Number Precision Preservation
+  h3.47 10.7 Parser/Formatter Contract
+ h2.13 12. Auto-Save System
+  h3.48 11.1 Behavior
+  h3.49 11.2 Implementation
+  h3.50 11.3 Debounce Behavior
+ h2.14 13. FieldGroup Mechanics
+  h3.51 12.1 Purpose
+  h3.52 12.2 Behavior Details
+  h3.53 12.3 Nesting Mechanics
+  h3.54 12.4 subscribesTo Property
+  h3.55 12.5 useInferredInputs Hook
+  h3.56 12.6 useConditions Hook
+  h3.57 12.7 Complete Example
+ h2.15 14. Initial Value Resolution
+  h3.58 13.1 Sources of Initial Values
+  h3.59 13.2 Record Value Extraction
+  h3.60 13.3 Initial Value Pipeline
+  h3.61 13.4 Record Field Name Mapping
+  h3.62 13.5 Complex Type Initial Value Resolution
+   h4.52 Option A: Pre-resolved Records (RECOMMENDED)
+   h4.53 Option B: Field-level Resolver Function
+   h4.54 Option C: Component-level Resolution (CURRENT BEHAVIOR)
+  h3.63 13.6 Record Path Resolution
+ h2.16 15. Field Ordering
+  h3.64 14.1 Ordering Mechanisms
+   h4.55 14.1.1 Explicit JSX Order (Primary)
+   h4.56 14.1.2 Config-based Order (for UnusedFields)
+  h3.65 14.2 UnusedFields Ordering Implementation
+  h3.66 14.3 Mixed Ordering (Explicit + Config)
+  h3.67 14.4 Order Gaps and Conventions
+ h2.17 16. Label Resolution Pipeline
+  h3.68 15.1 The Label Problem
+  h3.69 15.2 Label Sources (Priority Order)
+  h3.70 15.3 Label Auto-Generation (humanizeLabel)
+  h3.71 15.4 Label Resolution Implementation
+  h3.72 15.5 Special Label Formatting
+  h3.73 15.6 Label vs Name in Props
+ h2.18 17. Props Evaluation Pipeline
+  h3.74 16.1 Evaluation Contexts
+  h3.75 14.2 selectProps Integration with useOptions
+  h3.76 14.3 Component Contract for useOptions
+  h3.77 14.4 selectProps Re-evaluation
+ h2.19 18. Complete Data Flow
+  h3.78 17.1 Initialization Flow
+  h3.79 17.2 Change Flow
+  h3.80 17.3 Validation Flow
+  h3.81 17.4 Submit Flow
+  h3.82 17.5 FieldGroup Flow
+ h2.20 19. Edge Cases and Behaviors
+  h3.83 18.1 Mounting Race Conditions
+  h3.84 18.2 Circular Dependencies
+  h3.85 18.3 Condition Set Value vs User Input
+  h3.86 18.4 Empty vs Null vs Undefined
+  h3.87 18.5 Formatter Display vs Submit Value
+  h3.88 18.6 Debounce Edge Cases
+  h3.89 18.7 Record vs Form Values
+  h3.90 18.8 ValueField on Submit Only
+  h3.91 18.9 UnusedFields Registration Loop
+  h3.92 18.10 FieldGroup Visible vs Display
+  h3.93 18.11 Nested FieldGroup State Merging
+  h3.94 18.12 FieldGroup subscribesTo vs Inferred
+ h2.21 20. Field ref delivery via forwardRef
+  h3.95 20.1 Requirement (the change)
+  h3.96 20.2 Pass-through verification (mergeFieldProps)
+  h3.97 20.3 Template path requirement
+  h3.98 20.4 Backward compatibility & migration (DECISION — sign-off required)
+  h3.99 20.5 Acceptance criteria
+  h3.100 20.6 Testing requirements
+  h3.101 20.7 Documentation update
+ h2.22 Appendix A: Complete Type Reference
+ h2.23 Appendix B: Implementation Checklist
+  h3.102 Test Coverage Gate (MANDATORY — see §1.3.7)
+  h3.103 Performance Architecture (CRITICAL)
+  h3.104 Configuration System
+  h3.105 Form Component
+  h3.106 Field Component
+  h3.107 FieldGroup Component
+  h3.108 Expression Engine
+  h3.109 Subscription System
+  h3.110 Validation System
+  h3.111 Value Transformation
+  h3.112 Conditions System
+  h3.113 Additional Components
+  h3.114 Hooks
+  h3.115 Edge Cases
+ h2.24 Appendix C: Type-Safety Hardening — Implementation Plan
+  h3.116 C.1 Mission
+  h3.117 C.2 Critical Architectural Constraint (read twice)
+  h3.118 C.2.1 Repo Orientation (do this first)
+  h3.119 C.3 Non-Negotiable Constraints
+  h3.120 C.4 Work Items
+   h4.57 T1.1 — Type InputConfig.component as a React component (REACT overlay)
+   h4.58 T1.2 — Type FieldConfig.rules as RegisterOptions (REACT overlay)
+   h4.59 T1.3 — Fix template fields (align core + finish the react overlay) (CORE cleanup + REACT)
+   h4.60 T2.1 — Tie Form<TFieldValues> config + Field name to the field-values type (REACT, with a generic param in CORE)
+   h4.61 T2.2 — Make input type strings checkable (opt-in) (REACT, adds one helper)
+   h4.62 T3.1 — Export the "injected props" type so consumers stop reinventing it (REACT)
+   h4.63 T3.2 — Document or wire up InputConfig<TValue> (CORE docs; optional REACT)
+  h3.121 C.5 Suggested Order
+  h3.122 C.6 Per-Item Verification Checklist (apply to every item)
+  h3.123 C.7 Cross-Validation Against the Downstream Consumer (recommended before opening the PR)
+  h3.124 C.8 Definition of Done / PR Description Should Include
+  h3.125 C.9 Verified Current Signatures (reference baseline)
+---
+code:177 para:356 list:91 table:12 quote:13

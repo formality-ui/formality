@@ -1,0 +1,114 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Field ref delivery via `forwardRef`",
+      "status": "Ready",
+      "description": "Make `<Field>` deliver React Hook Form's `field.ref` (`RefCallBack`) as a regular, top-level, enumerable prop named `forwardRef` instead of via React's reserved special `ref` key, so the runtime matches the already-shipped `FormalityFieldComponentProps` type contract (@formality-ui/react 0.1.0). React-layer only; no @formality-ui/core change. Deliver forwardRef-exclusively (do NOT also spread the special `ref` key — PRD §20.4 decision). Includes the §20.6 acceptance tests, the test-harness migration, the §20.7 doc rewrite, and a changeset-level doc sweep. Coverage gate (§1.3.7 ≥90%) must stay green.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Runtime delivery + contract docs + verification",
+          "status": "Planned",
+          "description": "Land the one-line runtime change (coreProps.ref → coreProps.forwardRef), confirm core pass-through (no change), rewrite the now-stale 'Runtime caveat' docs on the FormalityFieldComponentProps symbol, migrate the affected TestInput/TestSwitch harness, and add the §20.6 acceptance tests (plain-component delivery, no React 18 ref warning, focus-on-error, React.forwardRef migration regression). Concludes with a Mode-B changeset-level doc sweep of the root/React README feature listings.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Implement `forwardRef` runtime delivery + sync contract docs",
+              "status": "Planned",
+              "description": "R1 (the runtime change) + R2 (forwardRef-exclusive decision confirmed) + R4 (Mode-A doc-with-work). Change Field.tsx's coreProps to deliver field.ref under the `forwardRef` key; confirm mergeFieldProps passes it through unchanged; rewrite the FormalityFieldComponentProps JSDoc and the matching README 'Runtime caveat' paragraph to state forwardRef is delivered at runtime.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Deliver field.ref as top-level `forwardRef` prop in Field.tsx; confirm merge pass-through",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": [
+                    "h2.21",
+                    "h3.95",
+                    "h3.96",
+                    "h3.98",
+                    "h4.30",
+                    "h4.36"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Verified in plan/003_de060244cb57/architecture/field_ref_change_site.md. The change is a SINGLE line at packages/react/src/components/Field.tsx:464 inside the `<Controller render={({ field, ... }) => { ... }}>` block, in the `coreProps` object (Field.tsx:456–466), the 9th/final argument to mergeFieldProps. Change `ref: field.ref,` → `forwardRef: field.ref,` (preserve the existing 12-space indentation). `field.ref` is referenced EXACTLY once in Field.tsx (line 464) — there is no second delivery path and no `ref` destructured out of `field`, so no other edit is needed for delivery. The internal cast at Field.tsx:469–470 (`inputConfig.component as React.ComponentType<FormalityFieldComponentProps>`) already anticipates `forwardRef` — do NOT touch it.\n2. INPUT: `field` (RHF Controller render-prop arg) from the existing Controller render block. `FormalityFieldComponentProps` type (packages/react/src/overlays.ts:179–188) already declares `forwardRef?: RefCallBack` — the type is already correct; this subtask re-types nothing.\n3. LOGIC: Implement PRD §20.1. Change ONLY the coreProps key name from `ref` to `forwardRef`. Do NOT also keep `ref: field.ref` (PRD §20.4 decision: forwardRef-exclusive; dual-delivery is REJECTED because spreading the special `ref` key onto a plain function component re-triggers the React 18 'Function components cannot be given refs' warning — see rhf_ref_and_focus_behavior.md §2). Then VERIFY pass-through per PRD §20.2 by reading packages/core/src/config/merge.ts: mergeStaticProps (lines 155–167) and mergeFieldProps (lines 180–215) are plain `Object.assign` ordered spreads with NO key allow-listing/filtering, and coreProps is applied LAST (line 213) so it wins outright — therefore `forwardRef` passes through unchanged. If (and only if) a refactor has since introduced key filtering, `forwardRef` MUST remain allowed (it is a coreProps key, not a stray consumer prop); otherwise NO core edit is required. Also verify the two render paths still carry `forwardRef` to the component: no-template branch `<Component {...finalProps} />` (Field.tsx:490, direct spread) and template branch `fieldProps={finalProps}` (Field.tsx:485, named prop — templates must forward it themselves; no built-in default template exists in this repo). Mocking: none — this is a pure React-layer wiring change.\n4. OUTPUT: A Field component that delivers RHF's RefCallBack as a top-level enumerable `forwardRef` prop on the rendered component (and inside `fieldProps` for templates), with the reserved `ref` key no longer emitted. Consumed by P1.M1.T1.S2 (docs), P1.M1.T2.S1 (tests), and P1.M1.T3.S1 (doc sweep). Implicit TDD: write a minimal failing test asserting a plain function component rendered through `<Field>` receives a non-undefined `forwardRef` (it fails before this change, passes after) before considering the subtask done; the full §20.6 acceptance cluster is added in P1.M1.T2.S1.\n5. DOCS: none for THIS subtask — the contract docs (overlays.ts JSDoc + react README caveat) are handled by P1.M1.T1.S2 (Mode A, declared there). This subtask touches only Field.tsx (runtime)."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Rewrite `FormalityFieldComponentProps` JSDoc + sync README 'Runtime caveat' (Mode A)",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "prd_selectors": [
+                    "h2.21",
+                    "h3.95",
+                    "h3.98",
+                    "h3.101",
+                    "h4.36"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Verified in plan/003_de060244cb57/architecture/docs_to_update.md. Two files document the SAME symbol (FormalityFieldComponentProps) whose runtime contract P1.M1.T1.S1 just changed; both carry a now-false 'Runtime caveat (important).' paragraph that must be rewritten. NOTE the wording ASYMMETRY — any find/replace MUST be file-specific, not one global pattern.\n   (a) packages/react/src/overlays.ts: the JSDoc block spans lines 139–178; the type body 179–188 (already correct, DO NOT edit the type). Target the 'Runtime caveat (important).' paragraph at lines 167–174: REMOVE the wording 'Making Field deliver it as a top-level `forwardRef` key for bare components is a FUTURE runtime task (out of scope for this type-only change).' (lines 171–173). STATE instead that `forwardRef` is now delivered at runtime as a top-level prop by `<Field>` (no `React.forwardRef` wrap required for plain function components). KEEP the 'Destructure before forwarding.' guidance (lines 150–160) and the MUI v9 `slotProps={{ input: { ref: forwardRef } }}` note (lines 162–165) per PRD §20.7. ALSO revisit the back-reference at line 148 ('...codifies ahead of the runtime wiring (see \"Runtime caveat\" below).') so it no longer claims the type is 'ahead of' the runtime — the runtime now matches.\n   (b) packages/react/README.md: target the README's copy of the caveat at lines 609–615 (wording differs: 'bare function component', 'future runtime task;' with semicolon). REMOVE the 'future runtime task' wording (lines 612–613). STATE forwardRef is delivered at runtime as a top-level prop. KEEP the wrap/ref-as-prop guidance (609–612 head) and the 'stop hand-rolling `WithFormality`' closer (614–615). The section header at line 558 and the Before/After type docs (558–595) and 'Destructure'/'Wiring' guidance (596–607) are KEPT as-is.\n2. INPUT: The completed runtime change from P1.M1.T1.S1 (coreProps now delivers `forwardRef`). The existing JSDoc/README prose to be edited (verbatim quotes in docs_to_update.md).\n3. LOGIC: Implement PRD §20.7. Edit only the two documented prose regions above. Do NOT re-type FormalityFieldComponentProps (already correct). Do NOT touch the type bodies. Do NOT change `state`/`formState` injection docs (out of scope per §20.7). Mocking: none — doc-only edit.\n4. OUTPUT: overlays.ts and packages/react/README.md whose FormalityFieldComponentProps contract docs match the now-runtime-backed behavior, with the stale 'future runtime task' caveat removed. Consumed by P1.M1.T3.S1 (Mode-B sweep, which confirms the feature listings — distinct from this per-symbol prose edit).\n5. DOCS: [Mode A — this IS the docs work] Per PRD §20.7: rewrite overlays.ts FormalityFieldComponentProps JSDoc + sync the identical 'Runtime caveat' paragraph in packages/react/README.md. Rides with the implementation (P1.M1.T1.S1); do not create a separate docs subtask beyond this one."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Verify runtime ref delivery behavior + migrate test harness",
+              "status": "Planned",
+              "description": "R3 (the §20.6 acceptance tests) + R2 (harness migration). Migrate the affected TestInput/TestSwitch components in Field.test.tsx so the harness stays representative after the forwardRef-exclusive change, then add the §20.6 behavioral tests: plain (non-React.forwardRef) component receiving forwardRef through Field; no React 18 'Function components cannot be given refs' warning; focus-on-error reaching the input wired via forwardRef; React.forwardRef migration regression (consume props.forwardRef).",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Migrate TestInput/TestSwitch to consume `forwardRef`; add §20.6 acceptance tests",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "prd_selectors": [
+                    "h2.21",
+                    "h3.95",
+                    "h3.98",
+                    "h3.99",
+                    "h3.100",
+                    "h4.6",
+                    "h4.36"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Verified in plan/003_de060244cb57/architecture/test_harness_and_coverage.md and rhf_ref_and_focus_behavior.md. Two migration + one extension:\n   (a) packages/react/src/__tests__/Field.test.tsx: `TestInput` (lines 27–42) and `TestSwitch` (lines 55–67) are `React.forwardRef<HTMLInputElement, ...>`-wrapped and read `ref` via the SECOND arg (`<input ref={ref} />`). After P1.M1.T1.S1 they no longer receive the special `ref` key, so the inner input silently loses RHF ref wiring. Confirmed NO existing test asserts focus-on-error or inspects the ref (repo-wide grep), so the change does NOT currently fail tests — but the harness becomes unrepresentative and MUST be migrated per PRD §20.4: EITHER option A (keep the React.forwardRef wrap AND also spread `forwardRef={ref}`) OR option B (drop the wrap, consume `props.forwardRef`). Pick ONE consistently for both TestInput and TestSwitch; document the choice in a comment. Keep `displayName`.\n   (b) packages/react/src/__tests__/FormalityFieldComponentProps.test.tsx: `SmokeField` (lines 15–41) is already a plain function component destructuring `forwardRef` and wiring `ref={forwardRef as ...}` — it is forward-compatible, NO edit needed. BUT it is rendered directly (`render(<SmokeField ...>)`), NOT through `<Field>`, so it does NOT verify Field's runtime delivery. The §20.6 acceptance tests must add a NEW plain component rendered THROUGH the real `<FormalityProvider>/<Form>/<Field>` stack.\n2. INPUT: The migrated/forwardRef-delivering Field from P1.M1.T1.S1. The existing test mounting pattern: `render(<FormalityProvider inputs={testInputs}><Form config={...}><Field name=\"...\" /></Form></FormalityProvider>)` via @testing-library/react (reuse the `testInputs` registry at Field.test.tsx:72–82).\n3. LOGIC: Implement PRD §20.6. Add acceptance tests covering PRD §20.5 (all in scope for the §1.3.7 ≥90% coverage gate — ADD tests, do NOT relax the threshold):\n   - PLAIN-COMPONENT DELIVERY: render a plain (non-React.forwardRef) function component typed `ComponentType<FormalityFieldComponentProps<MyProps>>` that destructures `forwardRef` and attaches it to a DOM `<input>` (`ref={forwardRef}`); assert the ref callback is invoked / the input DOM node is registered with RHF (non-undefined) — e.g. register the field, submit, and assert the input is in the document and focusable, or capture the RefCallBack via a spy and assert it was called with the node.\n   - NO REACT 18 REF WARNING: spy on `console.error` (and/or `console.warn`) before render; assert the substring 'Function components cannot be given refs' is NEVER emitted for the forwardRef-prop path. (Optional control: confirm the old special-`ref`-key path WOULD warn, to document the contrast.) Restore the spy in afterEach.\n   - FOCUS-ON-ERROR: mount a Field with a failing rule (e.g. required) + a plain forwardRef-wired input; submit an invalid form (default `shouldFocusError: true`); assert `expect(await screen.findByTestId(...)).toHaveFocus()` or `document.activeElement === input`. Per rhf_ref_and_focus_behavior.md §4, jsdom sets `document.activeElement` on `.focus()` and the ref MUST target a focusable `<input>`. Use `userEvent.click(submit)` or `fireEvent.submit(form)` then `await waitFor(...)`.\n   - REACT.FORWARDREF MIGRATION REGRESSION: a `React.forwardRef`-wrapped component that consumes `props.forwardRef` (option A or B from §20.4) still focuses correctly on error — assert `toHaveFocus()` after an invalid submit. (This is the TestInput/TestSwitch shape after migration, so this test can reuse them, OR add a dedicated component.)\n   Use the real <Form>+<Field> harness. Reuse existing test infrastructure; do not stub the Controller. Mocking: none beyond the console spy (real RHF + jsdom DOM).\n4. OUTPUT: A green §20.6 acceptance suite proving the forwardRef-exclusive runtime delivery satisfies PRD §20.5, plus a migrated TestInput/TestSwitch harness that stays representative. `pnpm test:coverage` must remain ≥90% on all four metrics (statements/branches/functions/lines). Consumed by P1.M1.T3.S1 (Mode-B sweep confirmation).\n5. DOCS: none — no user-facing/config/API surface change introduced by the tests themselves; the contract docs were handled in P1.M1.T1.S2. If the chosen TestInput/TestSwitch migration option (A vs B) is non-obvious, add a one-line code comment explaining it (inline comment, not a doc file)."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T3",
+              "title": "Sync changeset-level documentation (Mode B)",
+              "status": "Planned",
+              "description": "Final cross-cutting doc sweep. Verify the changeset-level (overview/feature-listing) documentation that spans the whole delta still accurately describes FormalityFieldComponentProps now that its forwardRef contract is runtime-backed. This is distinct from the per-symbol prose edit in P1.M1.T1.S2 (Mode A): it covers feature blurbs / capability lists in the READMEs that summarize the type as shipped. Runs last, after all implementing subtasks.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T3.S1",
+                  "title": "Verify root README + React README feature listings for `FormalityFieldComponentProps`",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T1.S1", "P1.M1.T1.S2", "P1.M1.T2.S1"],
+                  "prd_selectors": [
+                    "h2.21",
+                    "h3.95",
+                    "h3.101"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Verified in plan/003_de060244cb57/architecture/docs_to_update.md §3. The root README.md does NOT carry the 'Runtime caveat' prose (that was handled in P1.M1.T1.S2). It has only a FEATURE BULLET at README.md:584: '- **`FormalityFieldComponentProps<P>`** — the shipped injected-props type, replacing the hand-rolled lossy `WithFormality<P>`.' That bullet remains factually accurate (the type was shipped in 0.1.0 by T3.1; only its runtime backing changed in this delta). The packages/react/README.md feature listing / 'Field component props' section header (line 558) similarly summarizes the type as shipped. The delta author argued Mode B does not apply; this sweep exists per SOW §5 to let the implementing agent make the final call on whether any overview wording now implies the forwardRef is not-yet-runtime-backed.\n2. INPUT: The completed, runtime-backed forwardRef delivery (P1.M1.T1.S1), the updated per-symbol contract docs (P1.M1.T1.S2), and the green §20.6 acceptance suite (P1.M1.T2.S1).\n3. LOGIC: Re-read the changeset-level overview docs that mention FormalityFieldComponentProps / forwardRef as a shipped capability: README.md (root) line 584 feature bullet; packages/react/README.md feature/import listings (e.g. the import list at line 440 and the section at 558). Confirm none of them imply the forwardRef contract is type-only / not-yet-runtime-backed or 'coming soon'. If any overview wording is now stale or misleading, update it to state the forwardRef contract is delivered at runtime by `<Field>`. If all overview wording is already accurate, make NO edit and record that decision in the PR description. Do NOT duplicate the per-symbol prose work already done in P1.M1.T1.S2. Mocking: none — doc review/edit.\n4. OUTPUT: A confirmed-accurate (or lightly edited) changeset-level overview of FormalityFieldComponentProps across README.md (root) and packages/react/README.md, with no stale 'type-only' / 'future' framing remaining anywhere consumer-facing. This is the catch-all that prevents a coherent delta from shipping with a stale README.\n5. DOCS: [Mode B — this IS the changeset-level docs work] Sweep README.md (root) §type-safety feature listing and packages/react/README.md FormalityFieldComponentProps overview/feature listings. Dependencies: every implementing subtask (P1.M1.T1.S1, P1.M1.T1.S2, P1.M1.T2.S1) so it runs last. Per-symbol contract prose was Mode A in P1.M1.T1.S2; this task covers ONLY the overview/capability-summary framing."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
