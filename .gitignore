@@ -1,6 +1,7 @@
 # Build artifacts
 dist/
 build/
+.tsbuildcache/
 *.tsbuildinfo
 
 # Dependencies

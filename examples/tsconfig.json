@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": ".",
+    "outDir": "../.tsbuildcache/examples",
+    "jsx": "react-jsx"
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "references": [{ "path": "../packages/core" }, { "path": "../packages/react" }]
+}

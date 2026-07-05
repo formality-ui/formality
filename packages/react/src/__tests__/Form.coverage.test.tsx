@@ -89,31 +89,19 @@ const inputsWithAutocomplete: Record<string, InputConfig> = {
 // Context-capturing consumer. Stashes the FormContext onto a ref so tests can
 // invoke the public debouncedSubmit / submitImmediate / addSubscription /
 // registerWatcherSetter APIs directly.
-function ContextCapture({
-  captureRef,
-}: {
-  captureRef: MutableRefObject<any>;
-}) {
+function ContextCapture({ captureRef }: { captureRef: MutableRefObject<any> }) {
   captureRef.current = useFormContext();
   return null;
 }
 
 // Captures formConfig for assertions about mergedInputs.
-function ConfigCapture({
-  captureRef,
-}: {
-  captureRef: MutableRefObject<any>;
-}) {
+function ConfigCapture({ captureRef }: { captureRef: MutableRefObject<any> }) {
   captureRef.current = useFormContext().formConfig;
   return null;
 }
 
 // Captures the RHF methods so tests can read formState.errors.
-function MethodsCapture({
-  captureRef,
-}: {
-  captureRef: MutableRefObject<any>;
-}) {
+function MethodsCapture({ captureRef }: { captureRef: MutableRefObject<any> }) {
   captureRef.current = useFormContext().methods;
   return null;
 }
@@ -289,9 +277,7 @@ describe("Form coverage (P1.M2.T1.S2) — selectTitle / getFormState", () => {
 
 describe("Form coverage (P1.M2.T1.S2) — mergedInputs function form", () => {
   it("should invoke formConfig.inputs when it is a function (covers line 147)", () => {
-    const inputsFn = vi.fn(
-      () => ({ textField: { debounce: 500 } }),
-    );
+    const inputsFn = vi.fn(() => ({ textField: { debounce: 500 } }));
     const ref: MutableRefObject<any> = { current: null };
 
     render(
@@ -689,7 +675,9 @@ describe("Form coverage (P1.M2.T1.S2) — removeSubscription dev-warns", () => {
     ref.current.addSubscription("a", "b");
     ref.current.removeSubscription("a", "b");
     expect(
-      warnSpy.mock.calls.some((c) => /removed from watching/.test(String(c[0]))),
+      warnSpy.mock.calls.some((c) =>
+        /removed from watching/.test(String(c[0])),
+      ),
     ).toBe(true);
 
     // Remove again → "Double-cleanup attempt" arm.

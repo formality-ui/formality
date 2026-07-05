@@ -195,53 +195,26 @@ const exactMatchConfig: FormFieldsConfig = {
   cardNumber: {
     type: "textField",
     label: "Card Number",
+    // Show only when payment method is exactly "Credit Card".
+    // Fields are visible by default, so express this as a hide-rule
+    // that fires for any other value. (Note: `is` short-circuits matcher
+    // evaluation, so combining `is` with `truthy` on one condition does
+    // NOT work — use a `selectWhen` expression for the inequality.)
     conditions: [
-      {
-        when: "paymentMethod",
-        is: "Credit Card", // Only show when exactly 'Credit Card'
-        visible: true,
-      },
-      {
-        when: "paymentMethod",
-        is: "Credit Card",
-        truthy: false, // When NOT 'Credit Card', hide
-        visible: false,
-      },
+      { selectWhen: 'paymentMethod !== "Credit Card"', visible: false },
     ],
   },
   bankAccount: {
     type: "textField",
     label: "Bank Account Number",
     conditions: [
-      {
-        when: "paymentMethod",
-        is: "Bank Transfer",
-        visible: true,
-      },
-      {
-        when: "paymentMethod",
-        is: "Bank Transfer",
-        truthy: false,
-        visible: false,
-      },
+      { selectWhen: 'paymentMethod !== "Bank Transfer"', visible: false },
     ],
   },
   paypalEmail: {
     type: "textField",
     label: "PayPal Email",
-    conditions: [
-      {
-        when: "paymentMethod",
-        is: "PayPal",
-        visible: true,
-      },
-      {
-        when: "paymentMethod",
-        is: "PayPal",
-        truthy: false,
-        visible: false,
-      },
-    ],
+    conditions: [{ selectWhen: 'paymentMethod !== "PayPal"', visible: false }],
   },
 };
 

@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --build",
+    "typecheck:examples": "tsc -p examples/tsconfig.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
     "clean": "pnpm -r exec rm -rf dist",

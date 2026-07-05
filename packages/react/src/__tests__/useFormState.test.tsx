@@ -110,10 +110,9 @@ describe("useFormState", () => {
         { a: "A", b: "B" },
         { a: { type: "textField" }, b: { type: "textField" } },
       );
-      const { result } = renderHook(
-        () => useFormState({ name: ["a", "b"] }),
-        { wrapper },
-      );
+      const { result } = renderHook(() => useFormState({ name: ["a", "b"] }), {
+        wrapper,
+      });
 
       expect(Object.keys(result.current.fields).sort()).toEqual(["a", "b"]);
       // Multi-name path: useWatch returns [valA, valB] and length !== 1, so the
@@ -154,10 +153,7 @@ describe("useFormState", () => {
       });
 
       const state = result.current;
-      const recordDescriptor = Object.getOwnPropertyDescriptor(
-        state,
-        "record",
-      );
+      const recordDescriptor = Object.getOwnPropertyDescriptor(state, "record");
 
       // Getter contract (mirrors makeProxyState.test.ts assertions)
       expect(recordDescriptor?.get).toBeTypeOf("function");

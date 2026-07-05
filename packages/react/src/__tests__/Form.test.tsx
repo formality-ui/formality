@@ -208,6 +208,86 @@ describe("Form", () => {
     });
   });
 
+  // Regression for validation Issue #6: the render-API handleSubmit must run
+  // form-level validate + transformValuesForSubmit on the manual-submit path,
+  // not only on auto-save.
+  describe("manual submit pipeline (render-API handleSubmit)", () => {
+    const inputsWithAutocomplete: Record<string, InputConfig> = {
+      ...testInputs,
+      autocomplete: {
+        component: TestInput,
+        defaultValue: null,
+        valueField: "id",
+        getSubmitField: (k: string) => `${k}Id`,
+      },
+    };
+
+    it("applies transformValuesForSubmit on manual submit", async () => {
+      const user = userEvent.setup();
+      const received = vi.fn();
+
+      render(
+        <FormalityProvider inputs={inputsWithAutocomplete}>
+          <Form
+            config={{ client: { type: "autocomplete" } }}
+            record={{ client: { id: "42", name: "Acme" } }}
+            onSubmit={received}
+          >
+            {({ handleSubmit }) => (
+              <form onSubmit={handleSubmit(received)}>
+                <button type="submit" data-testid="submit">
+                  Submit
+                </button>
+              </form>
+            )}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await user.click(screen.getByTestId("submit"));
+
+      await waitFor(() => {
+        expect(received).toHaveBeenCalledTimes(1);
+      });
+      expect(received).toHaveBeenCalledWith(
+        expect.objectContaining({ clientId: "42" }),
+      );
+    });
+
+    it("runs form-level validate on manual submit and blocks on error", async () => {
+      const user = userEvent.setup();
+      const received = vi.fn();
+      const validate = vi.fn().mockReturnValue({ name: "required" });
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{ name: { type: "textField" } }}
+            record={{ name: "" }}
+            validate={validate}
+            onSubmit={received}
+          >
+            {({ handleSubmit }) => (
+              <form onSubmit={handleSubmit(received)}>
+                <button type="submit" data-testid="submit">
+                  Submit
+                </button>
+              </form>
+            )}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await user.click(screen.getByTestId("submit"));
+
+      await waitFor(() => {
+        expect(validate).toHaveBeenCalledTimes(1);
+      });
+      // Blocked because validate returned an error.
+      expect(received).not.toHaveBeenCalled();
+    });
+  });
+
   it("should expose methods via render API", () => {
     render(
       <FormalityProvider inputs={testInputs}>

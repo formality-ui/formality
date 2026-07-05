@@ -63,7 +63,12 @@ const config = {
   },
   cardNumber: {
     type: "textField",
-    conditions: [{ when: "paymentMethod", is: "Credit Card", visible: true }],
+    // Show only when payment method is "Credit Card".
+    // By default fields are visible, so we express this as a
+    // hide-rule that fires for any other value.
+    conditions: [
+      { selectWhen: 'paymentMethod !== "Credit Card"', visible: false },
+    ],
   },
   quantity: { type: "number" },
   unitPrice: { type: "number" },
@@ -101,9 +106,10 @@ Formality does not replace your form library. It uses React Hook Form internally
 
 ```tsx
 <Form config={config} onSubmit={onSubmit}>
-  {({ methods }) => (
-    <form onSubmit={methods.handleSubmit(onSubmit)}>
-      {/* methods is the full UseFormReturn from RHF */}
+  {({ methods, handleSubmit }) => (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* `handleSubmit` runs form-level validate + transformValuesForSubmit. */}
+      {/* `methods` is the full UseFormReturn from RHF (escape hatch).        */}
       <Field name="email" />
       <button type="submit" disabled={!methods.formState.isValid}>
         Submit
@@ -112,6 +118,11 @@ Formality does not replace your form library. It uses React Hook Form internally
   )}
 </Form>
 ```
+
+The render API's `handleSubmit` routes submission through Formality's
+pipeline (form-level `validate` + `transformValuesForSubmit`). Use
+`methods.handleSubmit` directly only if you want to bypass those transforms
+and call RHF verbatim.
 
 If Formality doesn't handle something, use RHF directly. The escape hatch is always available.
 
@@ -322,6 +333,15 @@ conditions: [
 - `disabled`: OR logic — disabled if **any** condition sets it
 - `visible`: AND logic — hidden if **any** condition sets `false`
 - `set`/`selectSet`: last matching condition wins
+
+> **Showing a field only when a value matches** — fields are visible by
+default, and unmatched conditions don't affect visibility. So a lone
+>`{ when, is: X, visible: true }` does **nothing** (the field stays visible
+> for every value). To show a field *only* for a specific value, express it
+> as a hide-rule for every other value, e.g.
+>`{ selectWhen: 'paymentMethod !== "Credit Card"', visible: false }`.
+> Note also that `is` short-circuits matcher evaluation — `truthy` is never
+> consulted once `is` is present.
 
 ---
 
@@ -640,7 +660,7 @@ Evaluate dynamic expressions against form state:
 | ------------------------------------- | ---------------------------------- |
 | [Examples](./examples)                | Comprehensive runnable examples    |
 | [Developer Docs (PRD.md)](./PRD.md)   | Complete technical specification   |
-| [Development Guide](./DEVELOPMENT.md) | Contributing and development setup |
+| [Development Guide](#development) | Contributing and development setup |
 
 ---
 

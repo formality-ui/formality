@@ -81,6 +81,19 @@ export interface FormRenderAPI<TFieldValues extends FieldValues = FieldValues> {
   /** React Hook Form methods */
   methods: UseFormReturn<TFieldValues>;
 
+  /**
+   * Submit handler that runs the full Formality submission pipeline.
+   *
+   * Use this in place of `methods.handleSubmit` to ensure form-level
+   * `validate` and `transformValuesForSubmit` (valueField extraction +
+   * getSubmitField rename) are applied before `onSubmit` receives the values.
+   * `methods.handleSubmit` remains available as a raw RHF escape hatch but
+   * bypasses those transforms.
+   */
+  handleSubmit: (
+    onSubmit: (values: Partial<TFieldValues>) => void | Promise<void>,
+  ) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+
   /** Resolved form title (static or evaluated) */
   resolvedTitle?: string;
 }
@@ -399,8 +412,22 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
   // === SUBMISSION ===
 
+  /**
+   * Run the full submission pipeline (validate + transform) on already-collected
+   * values, then invoke the supplied submit handler.
+   *
+   * Used by both auto-save and manual submit. When `overrideOnSubmit` is
+   * provided (the manual-submit render-API path), it is called instead of the
+   * `<Form onSubmit>` prop so a consumer using `methods.handleSubmit(handler)`
+   * receives the transformed values.
+   */
   const handleSubmit = useCallback(
-    async (values: TFieldValues) => {
+    async (
+      values: TFieldValues,
+      overrideOnSubmit?: (
+        values: Partial<TFieldValues>,
+      ) => void | Promise<void>,
+    ) => {
       // Check if any field is validating
       for (const [, isValidating] of validatingFields.current) {
         if (isValidating) return;
@@ -424,9 +451,28 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         mergedInputs,
       );
 
-      await onSubmit?.(submitValues);
+      const sink = overrideOnSubmit ?? onSubmit;
+      await sink?.(submitValues);
     },
     [validate, methods, onSubmit, config, mergedInputs],
+  );
+
+  /**
+   * Render-API submit handler.
+   *
+   * Wraps React Hook Form's `methods.handleSubmit` so that the documented
+   * submission pipeline (form-level `validate` + `transformValuesForSubmit`)
+   * runs on the manual-submit path too — not just auto-save. RHF performs its
+   * own field validation first; if it passes, values are routed through
+   * `handleSubmit` (validate + transform) before reaching `userOnSubmit`.
+   */
+  const handleRenderSubmit = useCallback(
+    (userOnSubmit: (values: Partial<TFieldValues>) => void | Promise<void>) => {
+      return methods.handleSubmit(async (values) => {
+        await handleSubmit(values as TFieldValues, userOnSubmit);
+      });
+    },
+    [methods, handleSubmit],
   );
 
   // Debounced submit for auto-save
@@ -698,6 +744,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
                 unusedFields,
                 formState: methods.formState,
                 methods: methods as any,
+                handleSubmit: handleRenderSubmit,
                 resolvedTitle,
               })
             : children}
