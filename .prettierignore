@@ -1,0 +1,18 @@
+# Build output
+**/dist/
+**/.tsbuildcache/
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Test coverage
+coverage/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Planning / validation artifacts (not shipped source)
+plan/
+validate.sh
+validation_report.md
