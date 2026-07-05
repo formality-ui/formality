@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import type { ValidationResult, ValidatorSpec } from "../../types";
 import {
   runValidator,
   runValidatorSync,
@@ -97,6 +98,44 @@ describe("Validation", () => {
     it("should handle missing named validator gracefully", async () => {
       expect(await runValidator("nonExistent", "value", {}, {})).toBe(true);
     });
+
+    // Region A — runSingleValidator catch block (validate.ts:29-35), both ternary arms
+    it("should treat a throwing validator as a validation failure (Error)", async () => {
+      const throwing = () => {
+        throw new Error("boom");
+      };
+      await expect(runValidator(throwing, "x", {})).resolves.toEqual({
+        type: "validation_error",
+        message: "boom",
+      });
+    });
+
+    it("should treat a throwing validator as a validation failure (non-Error)", async () => {
+      const throwing = () => {
+        throw "string error";
+      };
+      await expect(runValidator(throwing, "x", {})).resolves.toEqual({
+        type: "validation_error",
+        message: "Validation error",
+      });
+    });
+
+    // Region B — !namedValidators arm (validate.ts:111-116); OMIT the 4th arg
+    it("should pass with a warning when a named validator is requested but no validators provided", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      await expect(runValidator("required", "x", {})).resolves.toBe(true);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("no validators provided"),
+      );
+      warnSpy.mockRestore();
+    });
+
+    // Region C — unknown spec type (validate.ts:135)
+    it("should pass for an unknown validator spec type", async () => {
+      await expect(
+        runValidator(42 as unknown as ValidatorSpec, "x", {}),
+      ).resolves.toBe(true);
+    });
   });
 
   describe("runValidatorSync", () => {
@@ -104,6 +143,58 @@ describe("Validation", () => {
       const validator = (value: unknown) => value === "valid" || "Invalid";
       expect(runValidatorSync(validator, "valid", {})).toBe(true);
       expect(runValidatorSync(validator, "wrong", {})).toBe("Invalid");
+    });
+
+    // Region D — array branch (validate.ts:154-161)
+    it("should run an array of sync validators (all pass)", () => {
+      const validators = {
+        a: (v: unknown) => Boolean(v) || "A",
+        b: () => true,
+      };
+      expect(runValidatorSync(["a", "b"], "v", {}, validators)).toBe(true);
+    });
+
+    it("should short-circuit sync arrays on first failure", () => {
+      let secondCalled = false;
+      expect(
+        runValidatorSync(
+          [
+            () => "nope",
+            () => {
+              secondCalled = true;
+              return true;
+            },
+          ],
+          "v",
+          {},
+        ),
+      ).toBe("nope");
+      expect(secondCalled).toBe(false);
+    });
+
+    // Region E — string branch (validate.ts:165-178)
+    it("should run a named sync validator", () => {
+      const validators = {
+        notEmpty: (v: unknown) => Boolean(v) || "Required",
+      };
+      expect(runValidatorSync("notEmpty", "v", {}, validators)).toBe(true);
+      expect(runValidatorSync("notEmpty", "", {}, validators)).toBe("Required");
+    });
+
+    it("should pass when a named sync validator is requested but no validators provided", () => {
+      // Omit the 4th arg so namedValidators is undefined
+      expect(runValidatorSync("notEmpty", "v", {})).toBe(true);
+    });
+
+    it("should pass when a named sync validator is not found", () => {
+      expect(runValidatorSync("missing", "v", {}, {})).toBe(true);
+    });
+
+    // Region F — unknown spec type (validate.ts:187)
+    it("should pass for an unknown sync validator spec type", () => {
+      expect(runValidatorSync(42 as unknown as ValidatorSpec, "x", {})).toBe(
+        true,
+      );
     });
   });
 
@@ -199,6 +290,12 @@ describe("Validation", () => {
         expect(validator("abcde", {})).toBe(true);
         expect(validator("abc", {})).toBe(true);
       });
+
+      // Region G — skip non-string (validate.ts:276-278)
+      it("should skip non-strings", () => {
+        expect(validator(123, {})).toBe(true);
+        expect(validator(null, {})).toBe(true);
+      });
     });
 
     describe("pattern", () => {
@@ -209,6 +306,22 @@ describe("Validation", () => {
         expect(emailPattern("invalid", {})).toEqual({
           type: "pattern",
           message: "Invalid email",
+        });
+      });
+
+      // Region H1 — skip non-string (validate.ts:298-300)
+      it("should skip non-strings", () => {
+        const validator = pattern(/\d/);
+        expect(validator(123, {})).toBe(true);
+        expect(validator(null, {})).toBe(true);
+      });
+
+      // Region H2 — default message fallback (validate.ts:304)
+      it("should use a default message when none is provided", () => {
+        const validator = pattern(/^[A-Z]/);
+        expect(validator("lower", {})).toEqual({
+          type: "pattern",
+          message: "Invalid format",
         });
       });
     });
@@ -247,6 +360,31 @@ describe("Validation", () => {
           ),
         ).toBe("Is required");
       });
+
+      // Region I-c — type-fallback on lookup miss (messages.ts:57-59)
+      it("should fall back to a formatted type message when the type has no entry", () => {
+        expect(resolveErrorMessage({ type: "customThing" }, {})).toBe(
+          "Custom thing",
+        );
+      });
+
+      // Region I-d — object with no type (messages.ts:61)
+      it("should return the generic message for an object result with no type", () => {
+        expect(resolveErrorMessage({}, {})).toBe("Invalid value");
+        expect(
+          resolveErrorMessage({ message: undefined } as unknown as {
+            type: string;
+            message?: string;
+          }),
+        ).toBe("Invalid value");
+      });
+
+      // Region J — non-object primitive final fallback (messages.ts:64)
+      it("should return the generic message for an unhandled primitive", () => {
+        expect(resolveErrorMessage(42 as unknown as ValidationResult)).toBe(
+          "Invalid value",
+        );
+      });
     });
 
     describe("formatTypeAsMessage", () => {
@@ -284,6 +422,18 @@ describe("Validation", () => {
         expect(getErrorType(false)).toBe("invalid");
         expect(getErrorType("Error")).toBe("validate");
         expect(getErrorType({ type: "required" })).toBe("required");
+      });
+
+      // Region K1 — object without type, `||` falsy arm (messages.ts:145)
+      it("should return 'validate' for an object result with no type", () => {
+        expect(getErrorType({})).toBe("validate");
+      });
+
+      // Region K2 — primitive final fallback (messages.ts:148-149)
+      it("should return 'validate' for an unhandled primitive", () => {
+        expect(getErrorType(42 as unknown as ValidationResult)).toBe(
+          "validate",
+        );
       });
     });
 
