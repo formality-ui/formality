@@ -484,7 +484,7 @@ const CustomTemplate = memo(
   }: InputTemplateProps) => (
     <div className={`custom-template ${fieldState.error ? "has-error" : ""}`}>
       <div className="template-header">
-        <span className="field-name">{fieldProps.name}</span>
+        <span className="field-name">{String(fieldProps.name ?? "")}</span>
         {fieldState.isDirty && <span className="dirty-badge">Modified</span>}
       </div>
 

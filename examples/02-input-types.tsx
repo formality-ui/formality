@@ -19,6 +19,7 @@ import {
   FormalityProvider,
   Form,
   Field,
+  defineInputs,
   type ReactInputConfig,
 } from "@formality-ui/react";
 
@@ -74,29 +75,32 @@ interface Option {
   code?: string;
 }
 
-const autocomplete: ReactInputConfig<Option | null> = {
-  component: memo(({ value, onChange, options, label, disabled }) => (
-    <div className="field">
-      <label>{label}</label>
-      <select
-        value={value?.id ?? ""}
-        onChange={(e) => {
-          const selected = options?.find(
-            (o: Option) => o.id === Number(e.target.value),
-          );
-          onChange(selected ?? null);
-        }}
-        disabled={disabled}
-      >
-        <option value="">Select...</option>
-        {options?.map((opt: Option) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.name} {opt.code && `(${opt.code})`}
-          </option>
-        ))}
-      </select>
-    </div>
-  )),
+const autocomplete: ReactInputConfig = {
+  component: memo(({ value, onChange, options, label, disabled }) => {
+    const opt = value as Option | null;
+    return (
+      <div className="field">
+        <label>{label}</label>
+        <select
+          value={opt?.id ?? ""}
+          onChange={(e) => {
+            const selected = options?.find(
+              (o: Option) => o.id === Number(e.target.value),
+            );
+            onChange(selected ?? null);
+          }}
+          disabled={disabled}
+        >
+          <option value="">Select...</option>
+          {options?.map((o: Option) => (
+            <option key={o.id} value={o.id}>
+              {o.name} {o.code && `(${o.code})`}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }),
   defaultValue: null,
   // Extract the 'id' property when submitting
   valueField: "id",
@@ -159,7 +163,7 @@ const currency: ReactInputConfig = {
     return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(value);
+    }).format(Number(value));
   },
 };
 
@@ -228,7 +232,7 @@ const validatedTextField: ReactInputConfig = {
 // Combined Provider Configuration
 // =============================================================================
 
-const inputs: Record<string, ReactInputConfig> = {
+const inputs = defineInputs({
   textField,
   switch: switchInput,
   autocomplete,
@@ -236,7 +240,7 @@ const inputs: Record<string, ReactInputConfig> = {
   currency,
   textArea,
   validatedTextField,
-};
+});
 
 // Named parsers and formatters (referenced by string in input configs)
 const parsers = {

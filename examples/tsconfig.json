@@ -7,5 +7,8 @@
     "jsx": "react-jsx"
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "references": [{ "path": "../packages/core" }, { "path": "../packages/react" }]
+  "references": [
+    { "path": "../packages/core" },
+    { "path": "../packages/react" }
+  ]
 }

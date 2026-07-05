@@ -11,5 +11,6 @@ only ran on the auto-save path; consumers using `methods.handleSubmit` (the
 documented primary submit pattern) silently bypassed validation and value
 transforms. Also fixes the README flagship visibility example, the inverted
 condition patterns in `examples/03-conditions.tsx`, a dead `DEVELOPMENT.md`
-link, prettier formatting drift in two test files, and adds workspace-based
-type-checking for `examples/`.
+link, prettier formatting drift in two test files, makes the `examples/`
+directory type-clean under strict TypeScript, and gates
+`pnpm typecheck:examples` in CI to prevent regressions.

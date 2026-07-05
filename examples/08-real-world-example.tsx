@@ -22,7 +22,6 @@ import {
   type ReactInputConfig,
   type ReactFormFieldsConfig,
   type FormConfig,
-  type ValidatorsConfig,
   type ErrorMessagesConfig,
 } from "@formality-ui/react";
 
@@ -269,8 +268,8 @@ const formatters = {
 // Validators
 // =============================================================================
 
-const validators: ValidatorsConfig = {
-  required: (value) => {
+const validators = {
+  required: (value: unknown) => {
     if (
       value === undefined ||
       value === null ||
@@ -281,13 +280,13 @@ const validators: ValidatorsConfig = {
     }
     return true;
   },
-  positiveNumber: (value) => {
+  positiveNumber: (value: unknown) => {
     if (value != null && Number(value) <= 0) {
       return { type: "positiveNumber" };
     }
     return true;
   },
-  maxMargin: (value) => {
+  maxMargin: (value: unknown) => {
     if (value != null && Number(value) > 100) {
       return { type: "maxMargin" };
     }

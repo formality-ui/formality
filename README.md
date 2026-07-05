@@ -335,11 +335,11 @@ conditions: [
 - `set`/`selectSet`: last matching condition wins
 
 > **Showing a field only when a value matches** — fields are visible by
-default, and unmatched conditions don't affect visibility. So a lone
->`{ when, is: X, visible: true }` does **nothing** (the field stays visible
-> for every value). To show a field *only* for a specific value, express it
+> default, and unmatched conditions don't affect visibility. So a lone
+> `{ when, is: X, visible: true }` does **nothing** (the field stays visible
+> for every value). To show a field _only_ for a specific value, express it
 > as a hide-rule for every other value, e.g.
->`{ selectWhen: 'paymentMethod !== "Credit Card"', visible: false }`.
+> `{ selectWhen: 'paymentMethod !== "Credit Card"', visible: false }`.
 > Note also that `is` short-circuits matcher evaluation — `truthy` is never
 > consulted once `is` is present.
 
@@ -656,11 +656,11 @@ Evaluate dynamic expressions against form state:
 
 ## Documentation
 
-| Resource                              | Description                        |
-| ------------------------------------- | ---------------------------------- |
-| [Examples](./examples)                | Comprehensive runnable examples    |
-| [Developer Docs (PRD.md)](./PRD.md)   | Complete technical specification   |
-| [Development Guide](#development) | Contributing and development setup |
+| Resource                            | Description                        |
+| ----------------------------------- | ---------------------------------- |
+| [Examples](./examples)              | Comprehensive runnable examples    |
+| [Developer Docs (PRD.md)](./PRD.md) | Complete technical specification   |
+| [Development Guide](#development)   | Contributing and development setup |
 
 ---
 
