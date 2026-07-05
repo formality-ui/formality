@@ -1,6 +1,6 @@
 {
   "name": "@formality-ui/vue",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "publishConfig": {
     "access": "public"
