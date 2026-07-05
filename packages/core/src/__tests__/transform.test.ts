@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   parse,
   format,
@@ -42,6 +42,25 @@ describe("Transform Pipeline", () => {
       };
       expect(parse("value", badParser)).toBe("value");
     });
+
+    // --- Coverage backfill (PRD §5.3.5 / §10) ---
+    // T1: a NAMED parser that THROWS is caught → warn → return raw value
+    it("should handle a named parser that throws", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(
+        parse("value", "boom", {
+          boom: () => {
+            throw new Error("x");
+          },
+        }),
+      ).toBe("value");
+      warnSpy.mockRestore();
+    });
+
+    // T2: defensive final `return value` (non-string/non-function spec)
+    it("should return the value for a non-string/non-function parser spec", () => {
+      expect(parse("value", 42 as any)).toBe("value");
+    });
   });
 
   describe("format", () => {
@@ -68,6 +87,32 @@ describe("Transform Pipeline", () => {
         throw new Error("Formatter error");
       };
       expect(format("value", badFormatter)).toBe("value");
+    });
+
+    // --- Coverage backfill (PRD §5.3.5 / §10) ---
+    // T3: a NAMED formatter that is NOT found → warn → return value
+    it("should handle missing named formatter gracefully", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(format("value", "nonExistent", {})).toBe("value");
+      warnSpy.mockRestore();
+    });
+
+    // T4: a NAMED formatter that THROWS is caught → warn → return value
+    it("should handle a named formatter that throws", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(
+        format("value", "boom", {
+          boom: () => {
+            throw new Error("x");
+          },
+        }),
+      ).toBe("value");
+      warnSpy.mockRestore();
+    });
+
+    // T5: defensive final `return value` (non-string/non-function formatter spec)
+    it("should return the value for a non-string/non-function formatter spec", () => {
+      expect(format("value", 42 as any)).toBe("value");
     });
   });
 
@@ -189,6 +234,27 @@ describe("Transform Pipeline", () => {
       expect(formatters.percent(42.5)).toBe("42.50");
       expect(formatters.integer(42.9)).toBe("43");
       expect(formatters.string(42)).toBe("42");
+    });
+
+    // --- Coverage backfill (PRD §5.3.5) ---
+    // T6: default string parser nullish `?? ""` arm
+    it("default string parser coerces null/undefined to empty string", () => {
+      const parsers = createDefaultParsers();
+      expect(parsers.string(null)).toBe("");
+      expect(parsers.string(undefined)).toBe("");
+    });
+
+    // T7: default integer formatter non-number / NaN early-return arm
+    it("default integer formatter returns empty for non-numbers", () => {
+      const formatters = createDefaultFormatters();
+      expect(formatters.integer(NaN)).toBe("");
+      expect(formatters.integer("x" as any)).toBe("");
+    });
+
+    // T8: default string formatter nullish `?? ""` arm
+    it("default string formatter coerces null/undefined to empty string", () => {
+      const formatters = createDefaultFormatters();
+      expect(formatters.string(null)).toBe("");
     });
   });
 });

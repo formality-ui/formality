@@ -95,6 +95,19 @@ describe("Config Module", () => {
 
       expect(merged.textField.debounce).toBe(600);
     });
+
+    // --- Coverage backfill (PRD §6.1) ---
+    // C2: new-key arm (object-form form inputs introducing a NEW type)
+    it("should add a new input type introduced by form inputs", () => {
+      const merged = mergeInputConfigs(providerInputs, {
+        custom: { component: "Custom", defaultValue: "" },
+      } as any);
+
+      expect(merged.custom).toEqual({
+        component: "Custom",
+        defaultValue: "",
+      });
+    });
   });
 
   describe("resolveInputConfig", () => {
@@ -188,6 +201,82 @@ describe("Config Module", () => {
       });
 
       expect(merged.disabled).toBe(false);
+    });
+  });
+
+  // --- Coverage backfill (PRD §6.1) ---
+  // C1: createConfigContext full shape (was 0% function coverage)
+  describe("createConfigContext", () => {
+    it("merges provider and form config into a context", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {
+          textField: { component: "T", defaultValue: "" },
+        } as any,
+        formatters: { f: () => "x" },
+        defaultFieldProps: { size: "small" },
+        selectDefaultFieldProps: { label: "props.name" },
+      };
+
+      const ctx = createConfigContext(provider, {
+        defaultFieldProps: { margin: "dense" },
+        selectDefaultFieldProps: { placeholder: "p" },
+      } as any);
+
+      expect(ctx.defaultFieldProps).toEqual({
+        size: "small",
+        margin: "dense",
+      });
+      // Form-level selectDefaultFieldProps takes precedence over provider's
+      expect(ctx.selectDefaultFieldProps).toEqual({ placeholder: "p" });
+      expect(ctx.formatters.f("y")).toBe("x");
+      // Missing optional collections default to {}
+      expect(ctx.parsers).toEqual({});
+      expect(ctx.validators).toEqual({});
+      expect(ctx.errorMessages).toEqual({});
+      expect(ctx.inputs.textField).toBeDefined();
+    });
+
+    it("merges form inputs into provider inputs", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {
+          textField: { component: "T", defaultValue: "" },
+        } as any,
+      };
+
+      const ctx = createConfigContext(provider, {
+        inputs: { custom: { component: "C", defaultValue: "" } },
+      } as any);
+
+      expect(ctx.inputs.textField).toBeDefined();
+      expect(ctx.inputs.custom).toBeDefined();
+    });
+
+    it("falls back to provider selectDefaultFieldProps when form omits it", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {} as any,
+        selectDefaultFieldProps: { label: "props.name" },
+      };
+
+      const ctx = createConfigContext(provider);
+
+      expect(ctx.selectDefaultFieldProps).toEqual({ label: "props.name" });
+      // Both defaultFieldProps layers omitted → {}
+      expect(ctx.defaultFieldProps).toEqual({});
+    });
+
+    it("uses empty defaults when provider omits optional collections", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {} as any,
+      };
+
+      const ctx = createConfigContext(provider);
+
+      expect(ctx.formatters).toEqual({});
+      expect(ctx.parsers).toEqual({});
+      expect(ctx.validators).toEqual({});
+      expect(ctx.errorMessages).toEqual({});
+      expect(ctx.defaultFieldProps).toEqual({});
+      expect(ctx.selectDefaultFieldProps).toBeUndefined();
     });
   });
 

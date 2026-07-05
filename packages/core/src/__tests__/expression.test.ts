@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   evaluate,
   evaluateDescriptor,
@@ -108,6 +108,58 @@ describe("Expression Engine", () => {
       // Just verifying it doesn't throw
       expect(true).toBe(true);
     });
+
+    // --- Coverage backfill (PRD §4.2.1) ---
+    // E1: `+` string-concat path, left-nullish arm (`?? ""`)
+    it("concatenates with a nullish left operand in the + string path", () => {
+      expect(evaluate("missing + 'x'", {})).toBe("x");
+    });
+
+    // E2: numeric + overflow to Infinity → warn + undefined
+    it("returns undefined when numeric + overflows to Infinity", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(evaluate("1e308 + 1e308", {})).toBeUndefined();
+      warnSpy.mockRestore();
+    });
+
+    // E3: loose inequality (!=) operator arm
+    it("supports loose inequality (!=)", () => {
+      expect(evaluate("1 != 2", {})).toBe(true);
+      // loose: 1 == '1' → 1 != '1' is false
+      expect(evaluate("1 != '1'", {})).toBe(false);
+    });
+
+    // E4: Compound node (comma-separated expressions) returns the last
+    it("evaluates comma-separated (Compound) expressions, returning the last", () => {
+      expect(evaluate("1, 2, 3", {})).toBe(3);
+    });
+
+    // E2b: arithmetic (-,*,/,%) with a null/undefined operand → warn + undefined
+    it("returns undefined for arithmetic ops on nullish operands", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(evaluate("missing - 1", {})).toBeUndefined();
+      expect(evaluate("1 * missing", {})).toBeUndefined();
+      warnSpy.mockRestore();
+    });
+
+    // E2c: arithmetic overflow on * → Infinity → warn + undefined
+    it("returns undefined when arithmetic * overflows to Infinity", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(evaluate("1e155 * 1e155", {})).toBeUndefined();
+      warnSpy.mockRestore();
+    });
+
+    // E2d: division / modulo by zero → warn + undefined
+    it("returns undefined for division and modulo by zero", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      expect(evaluate("5 / 0", {})).toBeUndefined();
+      expect(evaluate("5 % 0", {})).toBeUndefined();
+      warnSpy.mockRestore();
+    });
+
+    // NOTE: E5–E8 (L224/L267/L309/L346) are DEFENSIVE/DEAD default throws
+    // (unreachable for real expression strings; current jsep emits logical
+    // operators as BinaryExpression). Intentionally not covered.
   });
 
   describe("evaluateDescriptor", () => {
@@ -294,6 +346,28 @@ describe("Expression Engine", () => {
           "client",
         ]);
       });
+
+      // --- Coverage backfill (PRD §4.3.3) ---
+      // I1: identifier inside a string literal is skipped (inString continue)
+      it("skips identifiers that appear inside string literals", () => {
+        expect(inferFieldsFromExpression('"foo bar"')).toEqual([]);
+      });
+
+      // I2: single-quote enter/exit arms of the string-state machine
+      it("handles single-quoted string literals", () => {
+        expect(inferFieldsFromExpression("'a' + b")).toEqual(["b"]);
+        // double quotes already covered elsewhere; add explicit assertion
+        expect(inferFieldsFromExpression('signed ? "x" : "y"')).toEqual([
+          "signed",
+        ]);
+      });
+
+      // I3: escape sequence inside a string literal sets escapeNext + skips
+      it("handles escaped characters inside string literals", () => {
+        // Runtime expression: "a\"b" + c  (a backslash escapes the inner quote).
+        // In a TS single-quoted literal, \\ → one backslash, " is literal.
+        expect(inferFieldsFromExpression('"a\\"b" + c')).toEqual(["c"]);
+      });
     });
 
     describe("inferFieldsFromDescriptor", () => {
@@ -326,6 +400,14 @@ describe("Expression Engine", () => {
             params: ["client", { nested: "signed" }],
           }),
         ).toEqual(["client", "signed"]);
+      });
+
+      // --- Coverage backfill (PRD §4.3.3) ---
+      // I4: primitive fall-through `return []`
+      it("returns empty for primitive descriptors", () => {
+        expect(inferFieldsFromDescriptor(42)).toEqual([]);
+        expect(inferFieldsFromDescriptor(null)).toEqual([]);
+        expect(inferFieldsFromDescriptor(true)).toEqual([]);
       });
     });
   });

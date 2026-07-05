@@ -5,8 +5,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Form } from "../components/Form";
 import { Field } from "../components/Field";
+import { FieldGroup } from "../components/FieldGroup";
 import { FormalityProvider } from "../components/FormalityProvider";
-import type { InputConfig, FormFieldsConfig } from "@formality-ui/core";
+import type {
+  InputConfig,
+  FormFieldsConfig,
+  FormConfig,
+} from "@formality-ui/core";
 
 // Test input component with all common props
 interface TestInputProps {
@@ -1505,6 +1510,321 @@ describe("Field", () => {
 
       // Should render as checkbox (switch type) not text input
       expect(screen.getByTestId("toggle")).toHaveAttribute("type", "checkbox");
+    });
+  });
+
+  // =====================================================================
+  // Coverage backfill (PRP P1.M2.T1.S4) — regions F1–F11
+  // =====================================================================
+
+  describe("config-less fields and type defaults (F1/F2)", () => {
+    // F1: field whose name is NOT in config → config[name] ?? {}
+    it("renders a field absent from config using the textField default", () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={{}}>
+            <Field name="orphan" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("orphan")).toBeInTheDocument();
+    });
+
+    // F2: typeProp arm AND default "textField" arm
+    it("honours an explicit type prop (typeProp arm)", () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={{ sw: {} }}>
+            <Field name="sw" type="switch" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("sw")).toHaveAttribute("type", "checkbox");
+    });
+
+    it("defaults to textField when config has no type and no prop", () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={{ noType: {} }}>
+            <Field name="noType" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Defaults to textField type → renders the TestInput component
+      expect(screen.getByTestId("noType")).toBeInTheDocument();
+      expect(screen.getByTestId("noType").tagName).toBe("INPUT");
+    });
+  });
+
+  describe("form-level inputs overrides (F3/F4)", () => {
+    // F3: formConfig.inputs passed as a FUNCTION
+    it("accepts a function-form inputs config", () => {
+      const formConfig: FormConfig = {
+        inputs: () => ({ textField: { debounce: 500 } as any }),
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{ name: { type: "textField" } }}
+            formConfig={formConfig}
+          >
+            <Field name="name" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("name")).toBeInTheDocument();
+    });
+
+    // F4: form inputs OVERRIDE an existing type AND ADD a new type
+    it("adds a brand-new input type via form inputs (new-key arm)", () => {
+      const formConfig: FormConfig = {
+        inputs: {
+          custom: { component: TestInput, defaultValue: "" },
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={{ c: { type: "custom" } }} formConfig={formConfig}>
+            <Field name="c" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("c")).toBeInTheDocument();
+    });
+  });
+
+  describe("unknown-type fallback (F5)", () => {
+    // F5: resolveInputConfig returns undefined → input fallback object
+    it("renders the input fallback for an unknown type", () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={{ x: { type: "totallyUnknown" } }}>
+            <Field name="x" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Fallback component is a bare <input> (component: "input")
+      expect(screen.getByTestId("x")).toBeInTheDocument();
+    });
+
+    // F5b: hit the `?? {component:"input", defaultValue:""}` fallback arm
+    // (resolveInputConfig returns undefined when neither the type nor the
+    //  textField default exists in the merged inputs)
+    it("uses the bare input fallback when no input config resolves", () => {
+      const switchOnly: Record<string, InputConfig> = {
+        switch: { component: TestSwitch, defaultValue: false },
+      };
+
+      render(
+        <FormalityProvider inputs={switchOnly}>
+          <Form config={{ x: { type: "totallyUnknown" } }}>
+            <Field name="x" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Renders the fallback <input> without crashing (no data-testid on bare input)
+      const fallbackInput = document.querySelector('input[name="x"]');
+      expect(fallbackInput).toBeInTheDocument();
+      expect(fallbackInput?.tagName).toBe("INPUT");
+    });
+  });
+
+  describe("set conditions (F6/F7)", () => {
+    // F6: field-level set condition applies when trigger matches
+    it("applies a field-level set condition when the trigger matches", async () => {
+      const config: FormFieldsConfig = {
+        trigger: { type: "textField" },
+        target: {
+          type: "textField",
+          conditions: [{ when: "trigger", is: "go", set: "forced" }],
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config}>
+            <Field name="trigger" />
+            <Field name="target" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const user = userEvent.setup();
+      await user.type(screen.getByTestId("trigger"), "go");
+
+      await waitFor(() => {
+        expect(screen.getByTestId("target")).toHaveValue("forced");
+      });
+    });
+
+    // F7: group-level set condition propagates to child fields
+    it("applies a group-level set condition to child fields", async () => {
+      const config: FormFieldsConfig = {
+        trigger: { type: "textField" },
+        child: { type: "textField" },
+      };
+
+      const formConfig: FormConfig = {
+        groups: {
+          grp: {
+            conditions: [{ when: "trigger", is: "go", set: "groupForced" }],
+          },
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} formConfig={formConfig}>
+            <Field name="trigger" />
+            <FieldGroup name="grp">
+              <Field name="child" />
+            </FieldGroup>
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const user = userEvent.setup();
+      await user.type(screen.getByTestId("trigger"), "go");
+
+      await waitFor(() => {
+        expect(screen.getByTestId("child")).toHaveValue("groupForced");
+      });
+    });
+  });
+
+  describe("FieldGroup disabled propagation (F8)", () => {
+    // F8: a Field rendered inside a disabled FieldGroup is disabled
+    it("disables a field inside a disabled FieldGroup", () => {
+      const config: FormFieldsConfig = {
+        name: { type: "textField" },
+      };
+
+      const formConfig: FormConfig = {
+        groups: {
+          grp: {
+            conditions: [{ when: "name", truthy: true, disabled: true }],
+          },
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config} formConfig={formConfig} record={{ name: "x" }}>
+            <Field name="name" shouldRegister={false} />
+            <FieldGroup name="grp">
+              <Field name="name" />
+            </FieldGroup>
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getAllByTestId("name")[1]).toBeDisabled();
+    });
+  });
+
+  describe("type-level validator (F10)", () => {
+    // F10: inputConfig.validator (type-level) failing path
+    it("runs the type-level (inputConfig) validator", async () => {
+      const inputs: Record<string, InputConfig> = {
+        ...testInputs,
+        requiredText: {
+          component: TestInput,
+          defaultValue: "",
+          validator: (v: unknown) => (v === "" ? "type-level required" : true),
+        },
+      };
+
+      render(
+        <FormalityProvider inputs={inputs}>
+          <Form config={{ name: { type: "requiredText" } }}>
+            <Field name="name" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const user = userEvent.setup();
+      // Type then clear to leave it empty + dirty, then blur to validate
+      await user.click(screen.getByTestId("name"));
+      await user.type(screen.getByTestId("name"), "x");
+      await user.clear(screen.getByTestId("name"));
+      await user.tab();
+
+      await waitFor(() => {
+        expect(screen.getByTestId("name-error")).toHaveTextContent(
+          "type-level required",
+        );
+      });
+    });
+  });
+
+  describe("template rendering and render props (F11)", () => {
+    // F11a: render through an input template (inputTemplates[type])
+    it("renders through an input template", () => {
+      const Wrapper = ({ Field, fieldProps }: any) => (
+        <div data-testid="tpl-wrap">
+          <Field {...fieldProps} />
+        </div>
+      );
+
+      render(
+        <FormalityProvider
+          inputs={testInputs}
+          inputTemplates={{ textField: Wrapper }}
+        >
+          <Form config={{ name: { type: "textField" } }}>
+            <Field name="name" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("tpl-wrap")).toBeInTheDocument();
+      expect(screen.getByTestId("name")).toBeInTheDocument();
+    });
+
+    // F11b: render through defaultInputTemplate
+    it("renders through the default input template", () => {
+      const DefaultWrapper = ({ Field, fieldProps }: any) => (
+        <div data-testid="default-tpl">
+          <Field {...fieldProps} />
+        </div>
+      );
+
+      render(
+        <FormalityProvider
+          inputs={testInputs}
+          defaultInputTemplate={DefaultWrapper}
+        >
+          <Form config={{ name: { type: "textField" } }}>
+            <Field name="name" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("default-tpl")).toBeInTheDocument();
+    });
+
+    // F11c: render-prop children branch (typeof children === "function")
+    it("supports a render-prop child", () => {
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={{ name: { type: "textField" } }}>
+            <Field name="name">
+              {() => <div data-testid="rp">render-prop</div>}
+            </Field>
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("rp")).toBeInTheDocument();
     });
   });
 });
