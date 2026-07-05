@@ -1,5 +1,6 @@
 // @formality-ui/react - useSubscriptions Hook Tests
-import React, { StrictMode } from "react";
+import type React from "react";
+import { StrictMode } from "react";
 import { renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useSubscriptions } from "../hooks/useSubscriptions";

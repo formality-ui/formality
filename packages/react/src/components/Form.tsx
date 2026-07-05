@@ -593,10 +593,6 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     };
   }, [executeAutoSave, debounceMs]);
 
-  const debouncedSubmit = useCallback(() => {
-    debouncedSubmitRef.current?.();
-  }, []);
-
   const submitImmediate = useCallback(() => {
     // For form-level debounce: false, flush() will execute immediately
     // For field-level debounce: false override, we need to execute directly

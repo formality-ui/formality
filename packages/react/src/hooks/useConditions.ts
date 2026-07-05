@@ -8,7 +8,7 @@ import {
   type ConditionResult,
   type FieldStateInput,
 } from "@formality-ui/core";
-import type { ConditionDescriptor } from "@formality-ui/core";
+import type { ConditionDescriptor, FormFieldsConfig } from "@formality-ui/core";
 import { useFormContext } from "../context/FormContext";
 import { useInferredInputs } from "./useInferredInputs";
 
@@ -23,8 +23,7 @@ interface UseConditionsOptions {
   props?: Record<string, unknown>;
 
   /** Optional: All field configs for computing disabled states in fieldStates */
-  /** Maps field name to its conditions array */
-  allFieldsConfig?: Record<string, { conditions?: ConditionDescriptor[] }>;
+  allFieldsConfig?: FormFieldsConfig;
 }
 
 /**

@@ -18,7 +18,6 @@ type BinaryExpression = jsep.BinaryExpression;
 type LogicalExpression = jsep.BinaryExpression;
 type UnaryExpression = jsep.UnaryExpression;
 type ConditionalExpression = jsep.ConditionalExpression;
-type CallExpression = jsep.CallExpression;
 type ArrayExpression = jsep.ArrayExpression;
 type Compound = jsep.Compound;
 

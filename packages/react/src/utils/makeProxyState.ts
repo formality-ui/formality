@@ -70,7 +70,6 @@ export function makeDeepProxyState<T extends object>(source: T): T {
 
   for (const key in source) {
     if (Object.prototype.hasOwnProperty.call(source, key)) {
-      const value = source[key];
       Object.defineProperty(result, key, {
         get: () => {
           const currentValue = source[key];

@@ -1,7 +1,8 @@
 // @formality-ui/react - 8-Layer Prop Priority Order Tests
 // Comprehensive test coverage for the 8-layer prop priority system
 
-import React, { forwardRef } from "react";
+import type React from "react";
+import { forwardRef } from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

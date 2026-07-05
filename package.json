@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --build",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
     "format": "prettier --write .",
     "clean": "pnpm -r exec rm -rf dist",
     "changeset": "changeset",
@@ -22,9 +22,13 @@
     "@types/node": "^20.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9",
+    "eslint-plugin-react": "^7",
+    "eslint-plugin-react-hooks": "^6",
     "prettier": "^3.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.5.0",
+    "typescript-eslint": "^8",
     "vitest": "^2.0.0"
   }
 }
