@@ -4,6 +4,10 @@
   "type": "module",
   "packageManager": "pnpm@8.15.0",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formality-ui/formality.git"
+  },
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
@@ -16,8 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "pnpm -r exec rm -rf dist",
-    "changeset": "changeset",
-    "release": "pnpm build && pnpm changeset version && pnpm changeset publish"
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",

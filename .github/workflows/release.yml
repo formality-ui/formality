@@ -1,63 +1,60 @@
 name: Release
 
-# Publishes packages to npm automatically when changes land on main.
+# semantic-release analyzes Conventional Commits on every push to main and
+# publishes both @formality-ui/core and @formality-ui/react at a SHARED version.
+# Fully automatic: no Version Packages PR, no manual version bump. If the
+# commits since the last tag contain nothing releasable (only chore/docs/test/
+# etc.), semantic-release exits without publishing.
 #
-# Flow:
-#   1. You make a change + run `pnpm changeset` to describe it (a .changeset/*.md
-#      file gets committed alongside your code).
-#   2. You push to main. This workflow runs, the changesets/action sees the
-#      pending changeset, bumps versions, rewrites workspace deps, and opens a
-#      "Version Packages" pull request.
-#   3. You merge that PR. This workflow runs again: pnpm build runs, then
-#      `changeset publish` publishes any package whose version isn't on npm yet.
-#
-# npm forbids republishing an existing version, so only packages whose version
-# actually changed will publish.
+# Auth: a granular NPM_TOKEN (GitHub secret) is used -- pnpm publish cannot do
+# the OIDC "trusted publisher" exchange, so id-token:write is deliberately
+# omitted (it would trip @semantic-release/npm's OIDC path and discard the
+# token -> ENEEDAUTH).
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # push the release commit/tag + create the GitHub release
 
 concurrency: release-${{ github.ref }}
 
-permissions:
-  contents: write # open the Version Packages PR + commit version bumps
-  pull-requests: write # create/update the Version Packages PR
-  id-token: write # npm provenance (optional but recommended)
-
 jobs:
   release:
-    name: Version & Publish
+    name: Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history is required so semantic-release can read prior tags
+          # and compute the commits since the last release.
+          fetch-depth: 0
 
       - name: Setup pnpm
+        # Version is read from the `packageManager` field in package.json.
         uses: pnpm/action-setup@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Build before publish — only the publishable packages. svelte/vue are
-      # private WIP and excluded so a broken build there can't block release.
-      - name: Build core + react
-        run: pnpm --filter @formality-ui/core --filter @formality-ui/react build
+      - name: Typecheck
+        run: pnpm typecheck
 
-      - name: Changesets (version PR or publish)
-        uses: changesets/action@v1
-        with:
-          # `changeset publish` runs `pnpm publish` per public package.
-          publish: pnpm changeset publish
-          version: pnpm changeset version
-          title: Version Packages
-          commit: Version Packages
+      - name: Test
+        run: pnpm test
+
+      - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release
