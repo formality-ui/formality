@@ -548,6 +548,27 @@ const inputs = {
 
 ---
 
+## Type Safety
+
+Formality ships precise React / react-hook-form types so configuration mistakes
+are caught at compile time. The capabilities below are all opt-in or
+backwards-compatible — existing code keeps compiling unchanged.
+
+- **Checked `Form` config keys** — `<Form<TFieldValues>>` rejects unknown `config`
+  keys (typos like `ofice`). Default `<Form>` still accepts any string key.
+- **Checked `Field` names (opt-in)** — narrow `FieldProps<TName>` to get `name`
+  checking. Checking engages only when narrowed; it is **not** automatic from
+  `<Form<TFieldValues>>` (React generics don't thread into children).
+- **`defineInputs` / `InputType` (opt-in)** — derive a union of your input-type
+  keys for `keyof` checking on `Field` `type` / `FieldConfig.type`.
+- **`FormalityFieldComponentProps<P>`** — the shipped injected-props type,
+  replacing the hand-rolled lossy `WithFormality<P>`.
+
+For full type signatures and copy-paste examples, see the
+[React package README](./packages/react/README.md#type-safety).
+
+---
+
 ## Architecture
 
 ```
@@ -655,12 +676,13 @@ formality/
 
 ### Scripts
 
-| Script           | Description             |
-| ---------------- | ----------------------- |
-| `pnpm build`     | Build all packages      |
-| `pnpm test`      | Run all tests           |
-| `pnpm typecheck` | Type check all packages |
-| `pnpm lint`      | Lint all packages       |
+| Script               | Description                          |
+| -------------------- | ------------------------------------ |
+| `pnpm build`         | Build all packages                   |
+| `pnpm test`          | Run all tests                        |
+| `pnpm test:coverage` | Run tests with the 90% coverage gate |
+| `pnpm typecheck`     | Type check all packages              |
+| `pnpm lint`          | Lint all packages                    |
 
 ---
 
@@ -689,11 +711,25 @@ Contributions are welcome! Please read our contributing guidelines before submit
 ### Testing
 
 ```bash
-pnpm test
+pnpm test                          # run all tests
+pnpm test:coverage                 # run tests + enforce the 90% coverage gate
 pnpm test --filter=@formality-ui/core
 pnpm test --filter=@formality-ui/react
-pnpm test -- --coverage
 ```
+
+Coverage is enforced at **≥ 90%** across statements, branches, functions, **and**
+lines — the run exits non-zero (fails CI) if any drops below (v8 provider). The
+gate applies repo-wide to all shipped code (`packages/core/**`,
+`packages/react/**`). The following are excluded from the measurement:
+
+| Excluded path        | Reason                                  |
+| -------------------- | --------------------------------------- |
+| `examples/**`        | Demo apps; not shipped                  |
+| `packages/svelte/**` | Stubbed adapter (no implementation yet) |
+| `packages/vue/**`    | Stubbed adapter (no implementation yet) |
+| `**/dist/**`         | Build output                            |
+
+See [PRD §1.3.7 — Testing Strategy](./PRD.md) for the full specification.
 
 ---
 
