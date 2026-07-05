@@ -23,6 +23,10 @@ Thumbs.db
 *.swo
 *~
 
+# Agent harness / tooling artifacts (local)
+.pi/
+.pi-subagents/
+
 # Test coverage
 coverage/
 

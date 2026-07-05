@@ -68,8 +68,34 @@ export interface ReactFieldConfig<V extends FieldValues = FieldValues>
  * Map of field name → {@link ReactFieldConfig}. Used by `<Form>`'s `config`
  * prop (via {@link ReactFormFieldsConfig}) so React consumers get RHF-typed
  * `rules` on every field.
+ *
+ * The keys are narrowed to `Extract<keyof V, string>`. When `V` is left at
+ * its default (`FieldValues`) any string key is accepted — byte-for-byte
+ * identical to before. When `V` is narrowed to a concrete field-values type
+ * (e.g. via `<Form<ClientValues>>`), unknown `config` keys become a
+ * **compile error**, catching typos like `ofice` at compile time (PRD §C.4 /
+ * T2.1).
+ *
+ * @example
+ * ```tsx
+ * import type { ReactFormFieldsConfig } from "@formality-ui/react";
+ * import type { FieldValues } from "react-hook-form";
+ *
+ * // Default — any string key accepted (non-breaking).
+ * const a: ReactFormFieldsConfig<FieldValues> = { anything: { type: "text" } };
+ *
+ * // Narrowed — only known field names accepted.
+ * type ClientValues = { name: string; email: string };
+ * const b: ReactFormFieldsConfig<ClientValues> = {
+ *   name: { type: "text" },
+ *   email: { type: "text" },
+ * };
+ *
+ * // @ts-expect-error — typo `ofice` is rejected.
+ * const c: ReactFormFieldsConfig<ClientValues> = { ofice: { type: "text" } };
+ * ```
  */
 export type ReactFormFieldsConfig<V extends FieldValues = FieldValues> = Record<
-  string,
+  Extract<keyof V, string>,
   ReactFieldConfig<V>
 >;
