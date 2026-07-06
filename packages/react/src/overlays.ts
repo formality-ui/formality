@@ -142,10 +142,10 @@ export function defineInputs<T extends Record<string, ReactInputConfig>>(
  * `<Field>` renders your input component via React Hook Form's `<Controller>`.
  * At runtime Formality merges a `coreProps` bundle onto the component (name,
  * value, onChange, onBlur, and — as a React-special key — `ref`). The three
- * members below are the **intended injected-props contract**: `formState`
- * today reaches templates and render-prop children; `state` (subscribed field
- * state) and a top-level `forwardRef` key are part of the contract this type
- * codifies ahead of the runtime wiring (see "Runtime caveat" below).
+ * members below are the **injected-props contract**: `formState` reaches
+ * templates and render-prop children; `state` (subscribed field state) and a
+ * top-level `forwardRef` key are delivered at runtime by `<Field>` (see
+ * "Runtime delivery" below).
  *
  * **Destructure before forwarding.** Component authors MUST destructure
  * `state`, `formState`, and `forwardRef` OUT of props before spreading the
@@ -164,14 +164,14 @@ export function defineInputs<T extends Record<string, ReactInputConfig>>(
  * For MUI v9 components that no longer accept a top-level `inputRef`, wire it
  * via slots: `slotProps={{ input: { ref: forwardRef } }}` (PRD §5.3.8).
  *
- * **Runtime caveat (important).** Today `Field` delivers the RHF ref via the
- * React-special `ref` key (not a top-level `forwardRef` prop). To receive it
- * as `forwardRef` on a plain function component WITHOUT a `React.forwardRef`
- * wrap, either (a) wrap your component with `React.forwardRef`, or (b) target
- * React 19's ref-as-prop. Making Field deliver it as a top-level `forwardRef`
- * key for bare components is a FUTURE runtime task (out of scope for this
- * type-only change). The type ships the intended contract now so consumers
- * stop hand-rolling a lossy `WithFormality<P>`.
+ * **Runtime delivery (important).** `<Field>` delivers RHF's ref as a regular,
+ * top-level, enumerable prop named `forwardRef` — no `React.forwardRef` wrap
+ * is required for a plain function component that destructures `forwardRef`
+ * and wires it to the inner input (`ref={forwardRef}`). Consumers migrating
+ * off the old React-special `ref` key: a `React.forwardRef`-wrapped component
+ * should consume `props.forwardRef` (PRD §20.4), and under React 19
+ * ref-as-prop use `forwardRef` directly. The type ships the intended contract
+ * so consumers stop hand-rolling a lossy `WithFormality<P>`.
  *
  * @template P - the field component's own props (e.g. TextFieldProps). Defaults
  *   to `unknown` so existing `ComponentType<any>` casts remain valid.

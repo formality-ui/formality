@@ -606,13 +606,14 @@ plain `<input>` use `ref={forwardRef}`. For **MUI v9** components (e.g.
 slotProps={{ input: { ref: forwardRef } }}
 ```
 
-**Runtime caveat (important).** Today `Field` delivers the RHF ref via the
-React-special `ref` key, **not** a top-level `forwardRef` prop. To receive it
-as `forwardRef` on a bare function component, either wrap your component with
-`React.forwardRef`, or target React 19's ref-as-prop. Making `Field` deliver a
-top-level `forwardRef` key for bare components is a future runtime task; the
-type ships the **intended contract now** so consumers can stop hand-rolling
-`WithFormality`.
+**Runtime delivery (important).** `<Field>` delivers the RHF ref as a regular,
+top-level `forwardRef` prop — no `React.forwardRef` wrap is required for a
+plain function component that destructures `forwardRef` and wires it to the
+inner input (`ref={forwardRef}`). Consumers migrating off the old
+React-special `ref` key: a `React.forwardRef`-wrapped component should consume
+`props.forwardRef` (PRD §20.4), and under React 19 ref-as-prop use `forwardRef`
+directly. The type ships the **intended contract** so consumers can stop
+hand-rolling `WithFormality`.
 
 ## Utilities
 

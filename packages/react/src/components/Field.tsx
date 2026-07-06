@@ -461,7 +461,7 @@ export function Field<TName extends string = string>({
             [inputConfig.inputFieldProp ?? "value"]: formattedValue,
             onChange: handleChange(field.onChange),
             onBlur: field.onBlur,
-            ref: field.ref,
+            forwardRef: field.ref,
           },
         });
 
