@@ -40,15 +40,25 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  (
-    { value, onChange, onBlur, disabled, label, error, name, ...props },
-    ref,
-  ) => (
+const TestInput = forwardRef<
+  HTMLInputElement,
+  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(
+  ({
+    value,
+    onChange,
+    onBlur,
+    disabled,
+    label,
+    error,
+    name,
+    forwardRef,
+    ...props
+  }) => (
     <div>
       {label && <label data-testid={`${name}-label`}>{label}</label>}
       <input
-        ref={ref}
+        ref={forwardRef}
         data-testid={name}
         value={value ?? ""}
         onChange={(e) => onChange?.(e.target.value)}
@@ -62,20 +72,21 @@ const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
 );
 TestInput.displayName = "TestInput";
 
-const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
-  ({ value, onChange, onBlur, disabled, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      type="checkbox"
-      data-testid={name}
-      checked={value ?? false}
-      onChange={(e) => onChange?.(e.target.checked)}
-      onBlur={onBlur}
-      disabled={disabled}
-      {...props}
-    />
-  ),
-);
+const TestSwitch = forwardRef<
+  HTMLInputElement,
+  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, onBlur, disabled, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    type="checkbox"
+    data-testid={name}
+    checked={value ?? false}
+    onChange={(e) => onChange?.(e.target.checked)}
+    onBlur={onBlur}
+    disabled={disabled}
+    {...props}
+  />
+));
 TestSwitch.displayName = "TestSwitch";
 
 const baseInputs: Record<string, InputConfig> = {
@@ -634,24 +645,25 @@ describe("Render Performance", () => {
     [key: string]: unknown;
   }
 
-  const TrackingInput = forwardRef<HTMLInputElement, TrackingInputProps>(
-    ({ value, onChange, onBlur, name, ...props }, ref) => {
-      const renderCount = useRef(0);
-      renderCount.current++;
-      console.log(`[Input Render] ${name}: #${renderCount.current}`);
+  const TrackingInput = forwardRef<
+    HTMLInputElement,
+    TrackingInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+  >(({ value, onChange, onBlur, name, forwardRef, ...props }) => {
+    const renderCount = useRef(0);
+    renderCount.current++;
+    console.log(`[Input Render] ${name}: #${renderCount.current}`);
 
-      return (
-        <input
-          ref={ref}
-          data-testid={name}
-          value={value ?? ""}
-          onChange={(e) => onChange?.(e.target.value)}
-          onBlur={onBlur}
-          {...props}
-        />
-      );
-    },
-  );
+    return (
+      <input
+        ref={forwardRef}
+        data-testid={name}
+        value={value ?? ""}
+        onChange={(e) => onChange?.(e.target.value)}
+        onBlur={onBlur}
+        {...props}
+      />
+    );
+  });
   TrackingInput.displayName = "TrackingInput";
 
   const trackingInputs: Record<string, InputConfig> = {
@@ -705,21 +717,22 @@ describe("Render Performance", () => {
       [key: string]: unknown;
     }
 
-    const SpyInput = forwardRef<HTMLInputElement, SpyInputProps>(
-      ({ value, onChange, onBlur, name, ...props }, ref) => {
-        renderSpy(name);
-        return (
-          <input
-            ref={ref}
-            data-testid={name}
-            value={value ?? ""}
-            onChange={(e) => onChange?.(e.target.value)}
-            onBlur={onBlur}
-            {...props}
-          />
-        );
-      },
-    );
+    const SpyInput = forwardRef<
+      HTMLInputElement,
+      SpyInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+    >(({ value, onChange, onBlur, name, forwardRef, ...props }) => {
+      renderSpy(name);
+      return (
+        <input
+          ref={forwardRef}
+          data-testid={name}
+          value={value ?? ""}
+          onChange={(e) => onChange?.(e.target.value)}
+          onBlur={onBlur}
+          {...props}
+        />
+      );
+    });
     SpyInput.displayName = "SpyInput";
 
     const spyInputs = {
@@ -836,21 +849,22 @@ describe("Render Function Children Pattern (ROOT CAUSE TEST)", () => {
       [key: string]: unknown;
     }
 
-    const SpyInput = forwardRef<HTMLInputElement, SpyInputProps>(
-      ({ value, onChange, onBlur, name, ...props }, ref) => {
-        renderSpy(name);
-        return (
-          <input
-            ref={ref}
-            data-testid={name}
-            value={value ?? ""}
-            onChange={(e) => onChange?.(e.target.value)}
-            onBlur={onBlur}
-            {...props}
-          />
-        );
-      },
-    );
+    const SpyInput = forwardRef<
+      HTMLInputElement,
+      SpyInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+    >(({ value, onChange, onBlur, name, forwardRef, ...props }) => {
+      renderSpy(name);
+      return (
+        <input
+          ref={forwardRef}
+          data-testid={name}
+          value={value ?? ""}
+          onChange={(e) => onChange?.(e.target.value)}
+          onBlur={onBlur}
+          {...props}
+        />
+      );
+    });
     SpyInput.displayName = "SpyInput";
 
     const spyInputs = {

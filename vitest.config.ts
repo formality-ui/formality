@@ -22,6 +22,13 @@ export default defineConfig({
         // vitest's default `dist/**` is root-anchored; this also catches nested
         // package build output (e.g. packages/*/dist/**).
         "**/dist/**",
+        // Release automation — not shipped source, not imported by any package.
+        // Deviates from PRD §1.3.7's literal exclude list (which omits
+        // `scripts/`), but `scripts/release.mjs` is a one-off semantic-release
+        // driver with no unit tests; counting it against the 90% gate would be
+        // noise. Type-only modules (`**/src/types/**`, injected props types)
+        // are already correctly reported as 0% by design.
+        "scripts/**",
       ],
       // Hard gate — CI fails (exit 1) if any of these drop below 90%. PRD §1.3.7.
       thresholds: {

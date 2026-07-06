@@ -2,7 +2,8 @@
 // Tests for coordinated validation during auto-save
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import React, { forwardRef } from "react";
+import type React from "react";
+import { forwardRef } from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Form } from "../components/Form";
@@ -31,17 +32,18 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  ({ value, onChange, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      data-testid={name}
-      value={value ?? ""}
-      onChange={(e) => onChange?.(e.target.value)}
-      {...props}
-    />
-  ),
-);
+const TestInput = forwardRef<
+  HTMLInputElement,
+  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    data-testid={name}
+    value={value ?? ""}
+    onChange={(e) => onChange?.(e.target.value)}
+    {...props}
+  />
+));
 TestInput.displayName = "TestInput";
 
 interface TestSwitchProps {
@@ -51,18 +53,19 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
-  ({ value, onChange, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      type="checkbox"
-      data-testid={name}
-      checked={value ?? false}
-      onChange={(e) => onChange?.(e.target.checked)}
-      {...props}
-    />
-  ),
-);
+const TestSwitch = forwardRef<
+  HTMLInputElement,
+  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    type="checkbox"
+    data-testid={name}
+    checked={value ?? false}
+    onChange={(e) => onChange?.(e.target.checked)}
+    {...props}
+  />
+));
 TestSwitch.displayName = "TestSwitch";
 
 // Test inputs config

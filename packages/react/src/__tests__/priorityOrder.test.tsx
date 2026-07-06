@@ -36,33 +36,34 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  (
-    {
-      value,
-      onChange,
-      disabled,
-      label,
-      error,
-      name,
-      placeholder,
-      className,
-      size,
-      variant,
-      required,
-      readOnly,
-      autoComplete,
-      style,
-      "data-size": dataSize,
-      "data-variant": dataVariant,
-      ...props
-    },
-    ref,
-  ) => (
+const TestInput = forwardRef<
+  HTMLInputElement,
+  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(
+  ({
+    value,
+    onChange,
+    disabled,
+    label,
+    error,
+    name,
+    placeholder,
+    className,
+    size,
+    variant,
+    required,
+    readOnly,
+    autoComplete,
+    style,
+    "data-size": dataSize,
+    "data-variant": dataVariant,
+    forwardRef,
+    ...props
+  }) => (
     <div>
       {label && <label data-testid={`${name}-label`}>{label}</label>}
       <input
-        ref={ref}
+        ref={forwardRef}
         data-testid={name}
         data-size={dataSize ?? size}
         data-variant={dataVariant ?? variant}
@@ -93,19 +94,20 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
-  ({ value, onChange, disabled, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      type="checkbox"
-      data-testid={name}
-      checked={value ?? false}
-      onChange={(e) => onChange?.(e.target.checked)}
-      disabled={disabled}
-      {...props}
-    />
-  ),
-);
+const TestSwitch = forwardRef<
+  HTMLInputElement,
+  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    type="checkbox"
+    data-testid={name}
+    checked={value ?? false}
+    onChange={(e) => onChange?.(e.target.checked)}
+    disabled={disabled}
+    {...props}
+  />
+));
 
 TestSwitch.displayName = "TestSwitch";
 

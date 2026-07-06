@@ -55,21 +55,22 @@ interface PlainInputProps {
 // contract) and wires it to the inner `<input>`. This is the §20.5
 // acceptance shape for a downstream consumer:
 //   const TextField = ({ forwardRef, ...rest }) => <input ref={forwardRef} ... />;
-const PlainInput: ComponentType<FormalityFieldComponentProps<PlainInputProps>> =
-  ({ forwardRef, label, ...rest }) => (
-    <input
-      aria-label={label ?? "plain-input"}
-      data-testid="plain-input"
-      ref={forwardRef as Ref<HTMLInputElement>}
-      {...(rest as Record<string, unknown>)}
-    />
-  );
+const PlainInput: ComponentType<
+  FormalityFieldComponentProps<PlainInputProps>
+> = ({ forwardRef, label, ...rest }) => (
+  <input
+    aria-label={label ?? "plain-input"}
+    data-testid="plain-input"
+    ref={forwardRef as Ref<HTMLInputElement>}
+    {...(rest as Record<string, unknown>)}
+  />
+);
 
 // A React.forwardRef-wrapped component that consumes `forwardRef` from props
 // (PRD §20.4 option A — the post-migration TestInput/TestSwitch shape). The
 // wrap is retained for shape compatibility; the inner input wires the
 // `forwardRef` prop. Used by the REACT.FORWARDREF MIGRATION REGRESSION test.
-const ForwardRefMigratedInput = (reactForwardRef<
+const ForwardRefMigratedInput = reactForwardRef<
   HTMLInputElement,
   FormalityFieldComponentProps<PlainInputProps> & {
     forwardRef?: Ref<HTMLInputElement>;
@@ -89,9 +90,7 @@ const ForwardRefMigratedInput = (reactForwardRef<
       {...(props as Record<string, unknown>)}
     />
   );
-}) as unknown as ComponentType<
-  FormalityFieldComponentProps<PlainInputProps>
->);
+}) as unknown as ComponentType<FormalityFieldComponentProps<PlainInputProps>>;
 ForwardRefMigratedInput.displayName = "ForwardRefMigratedInput";
 
 // ---------------------------------------------------------------------------
@@ -183,9 +182,7 @@ describe("Field — §20.6 forwardRef acceptance (PRD §20.5)", () => {
   //    Under the forwardRef-prop path, React 18 must NOT emit
   //    "Function components cannot be given refs".
   it("does not emit the React 18 'Function components cannot be given refs' warning", () => {
-    const errorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     mountForm({ inputs: plainInputs, fieldType: "plainText" });

@@ -32,13 +32,20 @@ function run(command) {
 }
 
 if (cmd === "prepare") {
-  if (!version) throw new Error('prepare requires a version argument (e.g. "prepare 0.1.0")');
+  if (!version)
+    throw new Error(
+      'prepare requires a version argument (e.g. "prepare 0.1.0")',
+    );
   for (const dir of PACKAGES) setVersion(dir, version);
   run("pnpm --filter @formality-ui/core --filter @formality-ui/react build");
 } else if (cmd === "publish") {
   // core first (react depends on it), then react.
-  run("pnpm --filter @formality-ui/core publish --no-git-checks --access public");
-  run("pnpm --filter @formality-ui/react publish --no-git-checks --access public");
+  run(
+    "pnpm --filter @formality-ui/core publish --no-git-checks --access public",
+  );
+  run(
+    "pnpm --filter @formality-ui/react publish --no-git-checks --access public",
+  );
 } else {
   throw new Error(`Unknown command: ${cmd}. Expected "prepare" or "publish".`);
 }

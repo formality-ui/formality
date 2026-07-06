@@ -21,11 +21,13 @@ const TestInput = ({
   disabled,
   label,
   error,
+  forwardRef,
   ...props
 }: any) => (
   <div data-testid={`field-wrapper-${props.name}`}>
     {label && <label htmlFor={props.name}>{label}</label>}
     <input
+      ref={forwardRef}
       id={props.name}
       data-testid={props.name}
       value={value ?? ""}
@@ -42,10 +44,18 @@ const TestInput = ({
   </div>
 );
 
-const TestSwitch = ({ value, onChange, disabled, label, ...props }: any) => (
+const TestSwitch = ({
+  value,
+  onChange,
+  disabled,
+  label,
+  forwardRef,
+  ...props
+}: any) => (
   <div data-testid={`field-wrapper-${props.name}`}>
     {label && <label htmlFor={props.name}>{label}</label>}
     <input
+      ref={forwardRef}
       id={props.name}
       type="checkbox"
       data-testid={props.name}
@@ -62,9 +72,11 @@ const TestSelect = ({
   onChange,
   disabled,
   options = [],
+  forwardRef,
   ...props
 }: any) => (
   <select
+    ref={forwardRef}
     data-testid={props.name}
     value={value ?? ""}
     onChange={(e) => onChange(e.target.value)}

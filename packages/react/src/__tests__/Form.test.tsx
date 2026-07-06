@@ -1,5 +1,6 @@
 // @formality-ui/react - Form Component Tests
-import React, { forwardRef } from "react";
+import type React from "react";
+import { forwardRef } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -17,18 +18,19 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  ({ value, onChange, disabled, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      data-testid={name}
-      value={value ?? ""}
-      onChange={(e) => onChange?.(e.target.value)}
-      disabled={disabled}
-      {...props}
-    />
-  ),
-);
+const TestInput = forwardRef<
+  HTMLInputElement,
+  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    data-testid={name}
+    value={value ?? ""}
+    onChange={(e) => onChange?.(e.target.value)}
+    disabled={disabled}
+    {...props}
+  />
+));
 
 TestInput.displayName = "TestInput";
 
@@ -41,19 +43,20 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
-  ({ value, onChange, disabled, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      type="checkbox"
-      data-testid={name}
-      checked={value ?? false}
-      onChange={(e) => onChange?.(e.target.checked)}
-      disabled={disabled}
-      {...props}
-    />
-  ),
-);
+const TestSwitch = forwardRef<
+  HTMLInputElement,
+  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    type="checkbox"
+    data-testid={name}
+    checked={value ?? false}
+    onChange={(e) => onChange?.(e.target.checked)}
+    disabled={disabled}
+    {...props}
+  />
+));
 
 TestSwitch.displayName = "TestSwitch";
 

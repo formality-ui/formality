@@ -7,7 +7,9 @@ import {
   useEffect,
   useState,
   useRef,
+  createElement,
   type ReactNode,
+  type Ref,
 } from "react";
 import {
   Controller,
@@ -469,6 +471,23 @@ export function Field<TName extends string = string>({
         const Component =
           inputConfig.component as React.ComponentType<FormalityFieldComponentProps>;
 
+        // Host-component fallback (PRD §20.4 narrow exception).
+        //
+        // When `inputConfig.component` is a string host tag (the degenerate
+        // `component: "input"` fallback used when an input type is unknown /
+        // misconfigured), React only intercepts its SPECIAL `ref` key — NOT the
+        // `forwardRef` prop that §20.1/§20.4 deliver for real components. If we
+        // spread `finalProps` unchanged onto a host element, RHF's ref callback
+        // (delivered as `forwardRef`) is never attached → focus-on-error breaks,
+        // and `forwardRef` leaks to the DOM as a spurious `forwardref` attribute.
+        //
+        // To keep that fallback path functional we translate `forwardRef` back
+        // into the special `ref` key (and drop the `forwardRef` prop) ONLY for
+        // host-element rendering. Component rendering stays strictly
+        // `forwardRef`-exclusive per §20.4 — this branch never runs for real
+        // consumer components (which are functions/objects, not strings).
+        const isHostComponent = typeof inputConfig.component === "string";
+
         // Render through template if present
         const template =
           inputConfig.template ??
@@ -479,16 +498,32 @@ export function Field<TName extends string = string>({
           | React.ComponentType<any>
           | undefined;
 
-        const renderedField = TemplateComponent ? (
-          <TemplateComponent
-            Field={Component}
-            fieldProps={finalProps}
-            fieldState={fieldState}
-            formState={formState}
-          />
-        ) : (
-          <Component {...finalProps} />
-        );
+        let renderedField: React.ReactElement;
+        if (TemplateComponent) {
+          renderedField = (
+            <TemplateComponent
+              Field={Component}
+              fieldProps={finalProps}
+              fieldState={fieldState}
+              formState={formState}
+            />
+          );
+        } else if (isHostComponent) {
+          // Host-element path: translate `forwardRef` back into React's special
+          // `ref` key (see block comment above) so the bare fallback input still
+          // wires RHF's ref callback and supports focus-on-error. Cast to a
+          // host tag — `isHostComponent` guarantees `inputConfig.component` is a
+          // string here, and React's JSX for intrinsic elements accepts `ref`.
+          const { forwardRef: hostRef, ...restHostProps } =
+            finalProps as Record<string, unknown>;
+          renderedField = createElement(inputConfig.component as string, {
+            ...restHostProps,
+            ref: hostRef as Ref<HTMLElement>,
+          });
+        } else {
+          // Component path: forwardRef-exclusive per PRD §20.4.
+          renderedField = <Component {...finalProps} />;
+        }
 
         // Render children if function
         if (typeof children === "function") {

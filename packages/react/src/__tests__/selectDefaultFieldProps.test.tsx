@@ -1,7 +1,8 @@
 // @formality-ui/react - selectDefaultFieldProps Provider-Level Tests
 // Tests for provider-level selectDefaultFieldProps evaluation in usePropsEvaluation
 
-import React, { forwardRef } from "react";
+import type React from "react";
+import { forwardRef } from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -29,27 +30,28 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  (
-    {
-      value,
-      onChange,
-      disabled,
-      label,
-      error,
-      name,
-      placeholder,
-      className,
-      size,
-      variant,
-      ...props
-    },
-    ref,
-  ) => (
+const TestInput = forwardRef<
+  HTMLInputElement,
+  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(
+  ({
+    value,
+    onChange,
+    disabled,
+    label,
+    error,
+    name,
+    placeholder,
+    className,
+    size,
+    variant,
+    forwardRef,
+    ...props
+  }) => (
     <div>
       {label && <label data-testid={`${name}-label`}>{label}</label>}
       <input
-        ref={ref}
+        ref={forwardRef}
         data-testid={name}
         value={value ?? ""}
         onChange={(e) => onChange?.(e.target.value)}
@@ -76,19 +78,20 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
-  ({ value, onChange, disabled, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      type="checkbox"
-      data-testid={name}
-      checked={value ?? false}
-      onChange={(e) => onChange?.(e.target.checked)}
-      disabled={disabled}
-      {...props}
-    />
-  ),
-);
+const TestSwitch = forwardRef<
+  HTMLInputElement,
+  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    type="checkbox"
+    data-testid={name}
+    checked={value ?? false}
+    onChange={(e) => onChange?.(e.target.checked)}
+    disabled={disabled}
+    {...props}
+  />
+));
 
 TestSwitch.displayName = "TestSwitch";
 

@@ -1648,6 +1648,73 @@ describe("Field", () => {
       expect(fallbackInput).toBeInTheDocument();
       expect(fallbackInput?.tagName).toBe("INPUT");
     });
+
+    // F5c: the host-element fallback must NOT leak `forwardRef` to the DOM.
+    // Before the fix, the §20.1 `forwardRef`-exclusive delivery was spread
+    // onto the bare `<input>`, producing a spurious `forwardref` DOM attribute
+    // (and the React "does not recognize the 'forwardRef' prop" warning).
+    // Field.tsx now translates `forwardRef` back into React's special `ref` key
+    // for host-element rendering (narrow §20.4 exception).
+    it("does not leak forwardRef onto the fallback host element", () => {
+      const switchOnly: Record<string, InputConfig> = {
+        switch: { component: TestSwitch, defaultValue: false },
+      };
+
+      render(
+        <FormalityProvider inputs={switchOnly}>
+          <Form config={{ x: { type: "totallyUnknown" } }}>
+            <Field name="x" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const fallbackInput = document.querySelector(
+        'input[name="x"]',
+      ) as HTMLInputElement;
+      expect(fallbackInput).toBeInTheDocument();
+      // The leaked attribute would appear as `forwardref` (React lowercases
+      // unknown props). It must be absent.
+      expect(fallbackInput.getAttribute("forwardref")).toBeNull();
+      expect(fallbackInput.hasAttribute("forwardref")).toBe(false);
+    });
+
+    // F5d: focus-on-error must still work through the host-element fallback.
+    // Before the fix, `forwardRef` (RHF's RefCallBack) was delivered but never
+    // attached to the DOM node, so RHF could not focus the field on a failed
+    // submit. The host-element ref translation restores focus-on-error.
+    it("focuses the fallback input on a failed required submit", async () => {
+      const switchOnly: Record<string, InputConfig> = {
+        switch: { component: TestSwitch, defaultValue: false },
+      };
+
+      render(
+        <FormalityProvider inputs={switchOnly}>
+          <Form
+            config={{
+              x: { type: "totallyUnknown", rules: { required: true } },
+            }}
+            onSubmit={vi.fn()}
+          >
+            {({ methods }) => (
+              <form onSubmit={methods.handleSubmit(() => {})}>
+                <Field name="x" />
+                <button type="submit" data-testid="submit">
+                  submit
+                </button>
+              </form>
+            )}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("submit"));
+
+      const fallbackInput = document.querySelector(
+        'input[name="x"]',
+      ) as HTMLInputElement;
+      await waitFor(() => expect(fallbackInput).toHaveFocus());
+    });
   });
 
   describe("set conditions (F6/F7)", () => {
