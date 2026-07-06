@@ -4,14 +4,14 @@
       "type": "Phase",
       "id": "P1",
       "title": "Field ref delivery via `forwardRef`",
-      "status": "Ready",
+      "status": "Complete",
       "description": "Make `<Field>` deliver React Hook Form's `field.ref` (`RefCallBack`) as a regular, top-level, enumerable prop named `forwardRef` instead of via React's reserved special `ref` key, so the runtime matches the already-shipped `FormalityFieldComponentProps` type contract (@formality-ui/react 0.1.0). React-layer only; no @formality-ui/core change. Deliver forwardRef-exclusively (do NOT also spread the special `ref` key — PRD §20.4 decision). Includes the §20.6 acceptance tests, the test-harness migration, the §20.7 doc rewrite, and a changeset-level doc sweep. Coverage gate (§1.3.7 ≥90%) must stay green.",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Runtime delivery + contract docs + verification",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Land the one-line runtime change (coreProps.ref → coreProps.forwardRef), confirm core pass-through (no change), rewrite the now-stale 'Runtime caveat' docs on the FormalityFieldComponentProps symbol, migrate the affected TestInput/TestSwitch harness, and add the §20.6 acceptance tests (plain-component delivery, no React 18 ref warning, focus-on-error, React.forwardRef migration regression). Concludes with a Mode-B changeset-level doc sweep of the root/React README feature listings.",
           "tasks": [
             {
@@ -91,14 +91,14 @@
               "type": "Task",
               "id": "P1.M1.T3",
               "title": "Sync changeset-level documentation (Mode B)",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Final cross-cutting doc sweep. Verify the changeset-level (overview/feature-listing) documentation that spans the whole delta still accurately describes FormalityFieldComponentProps now that its forwardRef contract is runtime-backed. This is distinct from the per-symbol prose edit in P1.M1.T1.S2 (Mode A): it covers feature blurbs / capability lists in the READMEs that summarize the type as shipped. Runs last, after all implementing subtasks.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T3.S1",
                   "title": "Verify root README + React README feature listings for `FormalityFieldComponentProps`",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S1",
