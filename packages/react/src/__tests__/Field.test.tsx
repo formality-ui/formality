@@ -1,6 +1,8 @@
 // @formality-ui/react - Field Component Tests
-import React, { forwardRef } from "react";
-import { describe, it, expect, vi } from "vitest";
+import type React from "react";
+import type { ComponentType } from "react";
+import { forwardRef } from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Form } from "../components/Form";
@@ -12,6 +14,7 @@ import type {
   FormFieldsConfig,
   FormConfig,
 } from "@formality-ui/core";
+import type { FormalityFieldComponentProps } from "../overlays";
 
 // Test input component with all common props
 interface TestInputProps {
@@ -24,22 +27,27 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<HTMLInputElement, TestInputProps>(
-  ({ value, onChange, disabled, label, error, name, ...props }, ref) => (
-    <div>
-      {label && <label data-testid={`${name}-label`}>{label}</label>}
-      <input
-        ref={ref}
-        data-testid={name}
-        value={value ?? ""}
-        onChange={(e) => onChange?.(e.target.value)}
-        disabled={disabled}
-        {...props}
-      />
-      {error && <span data-testid={`${name}-error`}>{error}</span>}
-    </div>
-  ),
-);
+// PRD §20.4 option A — Formality delivers the RHF ref as the top-level
+// `forwardRef` prop (not React's special `ref` key), so consume it from props.
+// The React.forwardRef wrap is retained for shape compatibility; the inner
+// input wires the `forwardRef` prop.
+const TestInput = forwardRef<
+  HTMLInputElement,
+  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, disabled, label, error, name, forwardRef, ...props }) => (
+  <div>
+    {label && <label data-testid={`${name}-label`}>{label}</label>}
+    <input
+      ref={forwardRef}
+      data-testid={name}
+      value={value ?? ""}
+      onChange={(e) => onChange?.(e.target.value)}
+      disabled={disabled}
+      {...props}
+    />
+    {error && <span data-testid={`${name}-error`}>{error}</span>}
+  </div>
+));
 
 TestInput.displayName = "TestInput";
 
@@ -52,19 +60,23 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<HTMLInputElement, TestSwitchProps>(
-  ({ value, onChange, disabled, name, ...props }, ref) => (
-    <input
-      ref={ref}
-      type="checkbox"
-      data-testid={name}
-      checked={value ?? false}
-      onChange={(e) => onChange?.(e.target.checked)}
-      disabled={disabled}
-      {...props}
-    />
-  ),
-);
+// PRD §20.4 option A — consume `forwardRef` from props (same option as
+// TestInput for consistency); the React.forwardRef wrap is retained for shape
+// compatibility.
+const TestSwitch = forwardRef<
+  HTMLInputElement,
+  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
+>(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+  <input
+    ref={forwardRef}
+    type="checkbox"
+    data-testid={name}
+    checked={value ?? false}
+    onChange={(e) => onChange?.(e.target.checked)}
+    disabled={disabled}
+    {...props}
+  />
+));
 
 TestSwitch.displayName = "TestSwitch";
 
@@ -1826,5 +1838,74 @@ describe("Field", () => {
 
       expect(screen.getByTestId("rp")).toBeInTheDocument();
     });
+  });
+});
+
+// =====================================================================
+// PRD §20.1 / §20.5 — forwardRef delivery proof (P1.M1.T1.S1)
+//
+// Minimal proof that `<Field>` delivers React Hook Form's `field.ref`
+// (`RefCallBack`) as a regular, top-level, enumerable `forwardRef` prop on
+// the rendered component — NOT via React's special reserved `ref` key.
+//
+// This is the runtime counterpart to the `FormalityFieldComponentProps`
+// type contract (`forwardRef?: RefCallBack`) that already ships in
+// @formality-ui/react 0.1.0.
+//
+// The full §20.6 acceptance cluster (no-warning, focus-on-error,
+// React.forwardRef migration regression) lives in
+// `FieldForwardRef.acceptance.test.tsx` (P1.M1.T2.S1). This test is the
+// single, focused proof required by P1.M1.T1.S1: a PLAIN (non-
+// React.forwardRef) function component receives a non-undefined `forwardRef`.
+// =====================================================================
+describe("Field — forwardRef delivery (PRD §20.1 / §20.5)", () => {
+  // A PLAIN function component (NOT wrapped in React.forwardRef) typed by
+  // the FormalityFieldComponentProps contract. It captures `forwardRef`
+  // into a module-level variable so the test can assert on it directly.
+  let capturedForwardRef: unknown;
+
+  beforeEach(() => {
+    capturedForwardRef = undefined;
+  });
+
+  const PlainInput: ComponentType<
+    FormalityFieldComponentProps<{ label?: string }>
+  > = ({ forwardRef, ...rest }) => {
+    capturedForwardRef = forwardRef;
+    return (
+      <input
+        data-testid="plain-forwardref-input"
+        ref={forwardRef as React.Ref<HTMLInputElement>}
+        {...(rest as Record<string, unknown>)}
+      />
+    );
+  };
+
+  const plainInputs: Record<string, InputConfig> = {
+    plainText: {
+      component: PlainInput,
+      defaultValue: "",
+    },
+  };
+
+  it("delivers a non-undefined forwardRef to a plain function component", () => {
+    render(
+      <FormalityProvider inputs={plainInputs}>
+        <Form config={{ x: { type: "plainText" } }}>
+          <Field name="x" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    // The input rendered (sanity: the Controller path wired the component).
+    expect(screen.getByTestId("plain-forwardref-input")).toBeInTheDocument();
+
+    // THE proof: forwardRef was delivered as a regular prop (not swallowed
+    // by React's special `ref` key handling for plain function components).
+    expect(capturedForwardRef).toBeDefined();
+    // RHF's field.ref is a RefCallBack — a function `(instance) => void`,
+    // NOT a Ref object. Asserting the function shape guards against a
+    // regression that delivers a stale Ref or undefined.
+    expect(typeof capturedForwardRef).toBe("function");
   });
 });
