@@ -1,3 +1,15 @@
+# [0.2.0](https://github.com/formality-ui/formality/compare/v0.1.0...v0.2.0) (2026-07-06)
+
+
+### Bug Fixes
+
+* translate forwardRef to ref for host-element fallback ([09a6464](https://github.com/formality-ui/formality/commit/09a64642f846b507e128a49fd9ac28dac2c23002))
+
+
+### Features
+
+* deliver RHF ref as top-level forwardRef prop in Field ([512023c](https://github.com/formality-ui/formality/commit/512023c058c81601e2ad68633a803d468aa6c48c))
+
 # [0.1.0](https://github.com/formality-ui/formality/compare/v0.0.1...v0.1.0) (2026-07-05)
 
 
