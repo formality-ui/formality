@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/formality-ui/formality/compare/v0.2.0...v0.2.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* stabilize inferred-subscription memo to prevent re-render loop ([6555291](https://github.com/formality-ui/formality/commit/6555291152a9fdc0b239869d9ec404afedd4e478))
+
 # [0.2.0](https://github.com/formality-ui/formality/compare/v0.1.0...v0.2.0) (2026-07-06)
 
 
