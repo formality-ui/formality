@@ -685,12 +685,36 @@ This prevents the form from iterating through all fields to find subscribers on 
 2. **Resolved conditions** - Memoize based on condition dependencies
 3. **Merged props** - Memoize based on config and evaluated selectProps
 4. **Field state objects** - Memoize based on watched field names
+5. **Inferred subscriptions (CRITICAL)** - The array returned by `useInferredInputs` feeds `Field.allSubscriptions`, which is itself a dependency of `useSubscriptions`'s effect. It MUST be referentially stable across renders when the inferred set has not changed. Memoize on a content signature, NOT on the raw input array identities.
 
 ```typescript
 // Example: Field selectProps evaluation
 const evaluatedSelectProps = useMemo(() => {
   return evaluateDescriptor(fieldConfig.selectProps, fieldContext);
 }, [watchedValues, fieldConfig.selectProps]); // Re-evaluate only when dependencies change
+```
+
+```typescript
+// Example: inferred subscriptions (referential stability is mandatory)
+//
+// Callers routinely pass `undefined` for conditions/subscribesTo (and sometimes
+// inline arrays in JSX). If the memo keyed on the raw array identities, those
+// inputs would be a new reference every render, the memo would bust every
+// render, and the returned array would be a new reference every render. That
+// reference instability propagates into `Field.allSubscriptions` and then into
+// `useSubscriptions`'s effect (see §8.3) → setState-in-effect storm → React's
+// "Maximum update depth exceeded".
+const signature = JSON.stringify({
+  selectProps,
+  formDefaultFieldProps,
+  providerDefaultFieldProps,
+  conditions,
+  subscribesTo,
+});
+const inferredSubscriptions = useMemo(
+  () => [...new Set([...(subscribesTo ?? []), ...inferFromAll(...)])],
+  [signature],
+);
 ```
 
 ---
@@ -2934,20 +2958,29 @@ A field automatically subscribes to other fields based on:
 ### 8.3 Subscription Lifecycle
 
 ```typescript
-// Field B mounting
+// Field B: the subscription effect depends on the RESOLVED subscription set.
+// `subscriptions` is `Field.allSubscriptions` — derived from `useInferredInputs`.
+//
+// CRITICAL: `subscriptions` MUST be referentially stable when the set has not
+// changed. The effect calls addSubscription/removeSubscription, which invoke
+// the target field's setWatchers (a setState) INSIDE this effect. If
+// `subscriptions` is a new array reference on every render, the effect tears
+// down + re-runs on every render, producing a setState-in-effect storm that
+// surfaces as React's "Maximum update depth exceeded". The stability contract
+// is enforced upstream in useInferredInputs (see §2.3, point 5).
 useEffect(() => {
-  // Subscribe to all targets
-  ["fieldA", "fieldC"].forEach((target) => {
-    addSubscription(target, "fieldB");
+  // Subscribe to all targets (current run only — tracked via runIdRef)
+  subscriptions.forEach((target) => {
+    addSubscription(target, fieldName);
   });
 
   return () => {
-    // Unsubscribe on unmount
-    ["fieldA", "fieldC"].forEach((target) => {
-      removeSubscription(target, "fieldB");
+    // LIFO unsubscribe for THIS run's subscriptions only
+    [...subscriptions].reverse().forEach((target) => {
+      removeSubscription(target, fieldName);
     });
   };
-}, ["fieldB"]);
+}, [fieldName, subscriptions, addSubscription, removeSubscription]);
 
 // Field A mounting
 useEffect(() => {
@@ -2958,6 +2991,9 @@ useEffect(() => {
   };
 }, ["fieldA"]);
 ```
+
+**Known issue (fixed): subscription churn / "Maximum update depth exceeded".**
+A regression in `useInferredInputs` defaulted `conditions = []` / `subscribesTo = []`, placing a *fresh* array in the `useMemo` deps on every call. The returned array therefore changed identity every render, which (via `allSubscriptions`) re-ran `useSubscriptions`'s effect every render for every field. Consumers saw a flood of `[Formality Subscription] Run N` warnings and, with render-sensitive inputs (e.g. MUI Autocomplete), React's "Maximum update depth exceeded" on every keystroke. Fix: memoize on a content signature (§2.3, point 5). Regression tests: `useInferredInputs.test.tsx` (referential stability) and `Field.subscriptionStability.test.tsx` (no per-keystroke churn when typing into a watched field).
 
 ### 8.4 Mount Order Resolution
 
