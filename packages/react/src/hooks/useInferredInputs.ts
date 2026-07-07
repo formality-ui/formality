@@ -54,12 +54,35 @@ export function useInferredInputs(options: UseInferredInputsOptions): string[] {
     selectProps,
     formDefaultFieldProps,
     providerDefaultFieldProps,
-    conditions = [],
-    subscribesTo = [],
+    conditions,
+    subscribesTo,
   } = options;
 
+  // Stable content signature.
+  //
+  // These inputs arrive from config objects that are usually reference-stable,
+  // but callers also pass `undefined` (formerly defaulted to a *fresh* `[]` on
+  // every call) and sometimes inline arrays. Keying the memo on a serialized
+  // signature — instead of the raw array identities — keeps the returned array
+  // reference stable across renders when nothing actually changed.
+  //
+  // Without this, the returned array is a new reference every render, which
+  // propagates: `Field.allSubscriptions` memo busts every render, and
+  // `useSubscriptions`'s effect (which lists `subscriptions` in its deps) tears
+  // down + re-runs on every render — calling `addSubscription`/
+  // `removeSubscription`, which `setWatchers` (a setState) inside an effect.
+  // That setState-in-effect storm is what surfaces as React's
+  // "Maximum update depth exceeded".
+  const signature = JSON.stringify({
+    selectProps,
+    formDefaultFieldProps,
+    providerDefaultFieldProps,
+    conditions,
+    subscribesTo,
+  });
+
   return useMemo(() => {
-    const inferred: string[] = [...subscribesTo];
+    const inferred: string[] = [...(subscribesTo ?? [])];
 
     // Infer from providerDefaultFieldProps expression/descriptor
     if (providerDefaultFieldProps) {
@@ -77,17 +100,12 @@ export function useInferredInputs(options: UseInferredInputsOptions): string[] {
     }
 
     // Infer from conditions (when fields, selectWhen expressions)
-    if (conditions.length > 0) {
+    if (conditions && conditions.length > 0) {
       inferred.push(...inferFieldsFromConditions(conditions));
     }
 
     // Return unique field names
     return [...new Set(inferred)];
-  }, [
-    providerDefaultFieldProps,
-    formDefaultFieldProps,
-    selectProps,
-    conditions,
-    subscribesTo,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
 }
