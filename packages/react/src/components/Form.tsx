@@ -656,14 +656,9 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     // the timer (and canceling any pending save) when executeAutoSave's
     // identity changes. The cache therefore stays valid for the field's
     // lifetime — no teardown/rebuild needed.
-    const debouncedFn = debounce(() => {
+    const fn = wrapDebounced(() => {
       executeAutoSaveRef.current?.();
     }, ms);
-
-    // Attach lodash-style methods (matches debouncedSubmit shape)
-    const fn = Object.assign(debouncedFn, {
-      pending: () => false, // lodash debounce tracks pending internally
-    }) as DebouncedFunction;
 
     fieldDebouncersRef.current.set(ms, fn);
     return fn;
@@ -706,15 +701,10 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       ) as DebouncedFunction;
     }
 
-    // Normal debounce behavior
-    const debouncedFn = debounce(() => {
+    // Normal debounce behavior — wrapDebounced gives a correct pending().
+    return wrapDebounced(() => {
       executeAutoSaveRef.current?.();
     }, debounceMs);
-
-    // Attach lodash-style methods
-    return Object.assign(debouncedFn, {
-      pending: () => false, // lodash debounce handles this internally
-    }) as DebouncedFunction;
   }, [debounceMs]);
 
   // Assign during render (not in an effect) so the ref is populated on the
@@ -730,11 +720,29 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   }, [debouncedSubmit]);
 
   const submitImmediate = useCallback(() => {
-    // Flush the Form-level debounced submit: immediate for debounce: false,
-    // or fires any pending debounced save right away. The ref is always
-    // populated (assigned during render above), so the previous first-render
-    // fallback is no longer needed.
-    debouncedSubmitRef.current?.flush();
+    // Flush every pending auto-save immediately — both the per-field numeric
+    // debounce timers (autosave Issue 1) and the Form-level debounce.
+    //
+    // Pending changes accumulate in a single shared set
+    // (`pendingChangedFields`), so one `executeAutoSave` captures them all.
+    // We therefore (a) detect any pending timer, (b) cancel every idle timer
+    // so its trailing callback can't fire a second, version-bumping
+    // invocation that would abort this flush (see executionVersionRef in
+    // executeAutoSave), and (c) run the save pipeline exactly once.
+    const anyPending =
+      debouncedSubmitRef.current?.pending() === true ||
+      [...fieldDebouncersRef.current.values()].some((fn) => fn.pending());
+    if (!anyPending) return; // nothing scheduled — avoid a spurious empty save
+
+    // Cancel the idle timers (no-op when not pending, and a no-op for the
+    // immediate adapter) so their later callbacks don't race this manual flush.
+    debouncedSubmitRef.current?.cancel();
+    fieldDebouncersRef.current.forEach((fn) => fn.cancel());
+
+    // Drain the shared pending-changes set in a single save. `executeAutoSave`
+    // reads the latest values via `methods.getValues()`, so a canceled in-flight
+    // save (if any) is superseded without data loss.
+    executeAutoSaveRef.current?.();
   }, []);
 
   // === UNUSED FIELDS ===
@@ -837,6 +845,43 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       </FormContext.Provider>
     </FormProvider>
   );
+}
+
+/**
+ * Wrap a lodash debounced auto-save callback so it satisfies the
+ * `DebouncedFunction` contract — including a CORRECT `pending()`.
+ *
+ * `lodash-es`'s `debounce` returns a function with `cancel` / `flush` but NO
+ * `pending()` (the project's earlier comments assumed lodash tracked it
+ * internally — it does not). We therefore track the pending state explicitly:
+ *   - a scheduling call sets it,
+ *   - the trailing invocation (after `wait`ms), `flush`, and `cancel` clear it.
+ *
+ * See autosave Issue 3 (`pending()` always returned false).
+ */
+function wrapDebounced(callback: () => void, ms: number): DebouncedFunction {
+  let isPending = false;
+  const debounced = debounce(() => {
+    isPending = false;
+    callback();
+  }, ms);
+  return Object.assign(
+    () => {
+      isPending = true;
+      debounced();
+    },
+    {
+      cancel: () => {
+        isPending = false;
+        debounced.cancel();
+      },
+      flush: () => {
+        isPending = false;
+        debounced.flush();
+      },
+      pending: () => isPending,
+    },
+  ) as DebouncedFunction;
 }
 
 /**
