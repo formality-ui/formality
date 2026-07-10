@@ -59,7 +59,15 @@ export interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   /** Enable auto-save on field changes */
   autoSave?: boolean;
 
-  /** Debounce milliseconds for auto-save. false = immediate submission, number = delay in milliseconds (default: 1000) */
+  /**
+   * Form-level auto-save debounce, used as the fallback for any field whose
+   * `InputConfig.debounce` is unset.
+   * - `false` — submit immediately (no debounce timer).
+   * - `number` — delay auto-save by this many milliseconds (default: 1000).
+   *
+   * A field can override its own cadence via `InputConfig.debounce`
+   * (`false` for immediate, or a number for a per-field delay).
+   */
   debounce?: number | false;
 
   /** Form-level validation */
@@ -209,6 +217,16 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   // executionVersion is incremented when a new auto-save starts, used to abort if new changes come in
   const executionVersionRef = useRef(0);
 
+  // Per-field numeric debounce cache: interval (ms) → memoized debounced
+  // auto-save fn. Fields that share the same numeric `InputConfig.debounce`
+  // coalesce into a single timer (mirroring the single-timer behavior of the
+  // Form-level debounce); fields with different numeric debounces each get
+  // their own timer and fire on their own cadence.
+  const fieldDebouncersRef = useRef(new Map<number, DebouncedFunction>());
+  // Ref so `changeField` can reach the latest factory without being rebuilt
+  // (and churning its context consumers) on every `executeAutoSave` change.
+  const getOrCreateDebouncedRef = useRef<(ms: number) => DebouncedFunction>();
+
   // === REGISTRY OPERATIONS ===
 
   const registerField = useCallback((name: string) => {
@@ -350,13 +368,22 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
           pendingAffectedFields.current.add(field);
         }
 
-        // Trigger auto-save (immediate or debounced based on inputConfig)
-        if (inputConfig?.debounce === false) {
-          // Immediate submission: bypass debounce entirely
-          // This is for field-level debounce: false override
+        // Resolve the auto-save cadence for this field:
+        //   inputConfig.debounce === false      → submit immediately (no timer)
+        //   inputConfig.debounce === <number>   → per-field debounced timer at that ms
+        //   inputConfig.debounce === undefined  → fall back to the Form-level debounce
+        //     (debouncedSubmitRef already encodes debounceMs, including its false → immediate case)
+        const fieldDebounce = inputConfig?.debounce;
+        if (fieldDebounce === false) {
+          // Immediate submission: bypass debounce entirely (field-level override)
           executeAutoSaveRef.current?.();
+        } else if (typeof fieldDebounce === "number") {
+          // Per-field numeric debounce: schedule at the field's own interval.
+          // Previously this branch was dead config — any number fell through to
+          // the single Form-level debounce. See autosave Issue 1.
+          getOrCreateDebouncedRef.current?.(fieldDebounce)();
         } else {
-          // Normal debounced submission
+          // No field-level override → Form-level debounced submission
           debouncedSubmitRef.current?.();
         }
       }
@@ -591,19 +618,68 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    // Check if form is valid (may have other errors from other fields)
-    const formState = methods.formState;
-    if (Object.keys(formState.errors).length > 0) {
-      return;
-    }
-
-    // All validations passed, submit
+    // All relevant validations passed.
+    //
+    // NOTE: we intentionally do NOT bail on whole-form errors here. The checks
+    // above already validate exactly the fields this save can touch (changed
+    // fields via onChange + affected fields via trigger()). Rejecting on *any*
+    // unrelated field's error would silently drop a valid edit — e.g. editing
+    // `notes` while an unrelated required `email` is empty — so the user's
+    // change would sit unsaved with no feedback. Whole-form validity is still
+    // enforced on a full manual submit. See autosave Issue 2.
     const values = methods.getValues();
     await handleSubmit(values as TFieldValues);
   }, [methods, handleSubmit, waitForFieldValidation]);
 
   // Keep the ref in sync with the latest executeAutoSave function
   executeAutoSaveRef.current = executeAutoSave;
+
+  /**
+   * Get (or lazily create) a debounced auto-save function for a specific
+   * interval, used to honor per-field numeric `InputConfig.debounce` values.
+   *
+   * The cache is keyed by interval so fields sharing the same numeric
+   * debounce coalesce into a single timer (mirroring the single-timer
+   * behavior of the Form-level debounce); fields with different numeric
+   * debounces each get their own timer and fire on their own cadence.
+   *
+   * This governs *auto-save timing only*. The field value is still committed
+   * to React Hook Form on every change (see Field.handleChange); a numeric
+   * debounce does NOT throttle value commits / re-renders.
+   */
+  const getOrCreateDebounced = useCallback(
+    (ms: number): DebouncedFunction => {
+      const cached = fieldDebouncersRef.current.get(ms);
+      if (cached) return cached;
+
+      const debouncedFn = debounce(() => {
+        executeAutoSave();
+      }, ms);
+
+      // Attach lodash-style methods (matches debouncedSubmitRef shape)
+      const fn = Object.assign(debouncedFn, {
+        pending: () => false, // lodash debounce tracks pending internally
+      }) as DebouncedFunction;
+
+      fieldDebouncersRef.current.set(ms, fn);
+      return fn;
+    },
+    [executeAutoSave],
+  );
+
+  // Keep the factory ref in sync so `changeField` (defined above) always
+  // invokes the latest factory without being rebuilt — and without rebuilding
+  // its context consumers — on every `executeAutoSave` identity change.
+  getOrCreateDebouncedRef.current = getOrCreateDebounced;
+
+  // Cancel + clear all per-field debouncers when `executeAutoSave` changes
+  // (so stale closures don't fire) and on unmount.
+  useEffect(() => {
+    return () => {
+      fieldDebouncersRef.current.forEach((fn) => fn.cancel());
+      fieldDebouncersRef.current.clear();
+    };
+  }, [getOrCreateDebounced]);
 
   useEffect(() => {
     // When debounce is false, use immediate execution (no debouncing)

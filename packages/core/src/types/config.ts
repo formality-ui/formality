@@ -64,7 +64,20 @@ export interface InputConfig<TValue = unknown> {
   /** Default value for this input type (e.g., '' for text, false for switch) */
   defaultValue: TValue;
 
-  /** Debounce milliseconds for validation/auto-save. false = immediate, number = delay */
+  /**
+   * Auto-save debounce for fields of this input type.
+   *
+   * - `false` — submit immediately on change (no debounce timer). Use for
+   *   toggles/switches/selects where every change is a discrete commit.
+   * - `number` — delay auto-save by this many milliseconds after the last
+   *   change to a field of this type. Fields that share the same numeric
+   *   debounce coalesce into a single timer; fields with different numeric
+   *   debounces fire on their own cadence. When unset, the field falls back
+   *   to the Form-level `debounce` prop (default 1000ms).
+   *
+   * This governs *auto-save timing only*. The field value is still committed
+   * to the form state on every change (it does not throttle re-renders).
+   */
   debounce?: number | false;
 
   /** Prop name for passing value to component (default: 'value') */

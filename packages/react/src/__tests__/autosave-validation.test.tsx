@@ -415,6 +415,130 @@ describe("AutoSave Validation Coordination", () => {
     });
   });
 
+  describe("Unrelated Invalid Field (Issue 2)", () => {
+    // Regression for BUG_REPORT.md Issue 2: executeAutoSave used to bail if ANY
+    // field in the form had an error, so one invalid field silently blocked
+    // auto-save of unrelated, perfectly-valid edits. The per-changed-field +
+    // affected-field checks already gate the save on exactly the fields that
+    // matter, so the whole-form guard was both redundant and over-broad.
+
+    it("should auto-save a valid field even when an unrelated field is invalid", async () => {
+      // fieldA is required + empty (invalid). fieldB is unconstrained (valid).
+      // Editing fieldB must still submit, despite fieldA's error.
+      const requiredValidator = async (value: unknown) =>
+        value ? true : "required";
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              email: { type: "textField", validator: requiredValidator },
+              notes: { type: "textField" },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={300}
+          >
+            {({ formState }) => (
+              <>
+                {/* Reading formState.errors here activates RHF's formState
+                    proxy subscription, so the unrelated `email` error is
+                    actually tracked — which is what made the old whole-form
+                    guard trip (see BUG_REPORT.md Issue 2). */}
+                <span data-testid="error-count">
+                  {Object.keys(formState.errors).length}
+                </span>
+                <Field name="email" />
+                <Field name="notes" />
+              </>
+            )}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      // Establish the unrelated error: type into email, then clear it so it is
+      // empty and fails the required validator. This drives the error into RHF
+      // formState via onChange validation.
+      const email = screen.getByTestId("email");
+      await act(async () => {
+        await userEvent.type(email, "x", { delay: null });
+        await userEvent.clear(email);
+      });
+
+      // Let email's own auto-save attempt resolve (it must abort — email is
+      // invalid) and its validation land in formState.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+      // email is invalid → its auto-save correctly does NOT fire.
+      expect(submitHandler).not.toHaveBeenCalled();
+      // And the unrelated error is genuinely tracked in formState.errors.
+      expect(screen.getByTestId("error-count")).toHaveTextContent("1");
+
+      // Now edit the unrelated, valid `notes` field.
+      const notes = screen.getByTestId("notes");
+      await act(async () => {
+        await userEvent.type(notes, "hello", { delay: null });
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+
+      // CRITICAL: notes' auto-save MUST fire even though email is still invalid.
+      // Under the old whole-form-errors guard this returned silently → no save.
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ notes: "hello", email: "" }),
+      );
+    });
+
+    it("should still NOT auto-save when the CHANGED field itself is invalid", async () => {
+      // Safety check for the Issue 2 fix: removing the whole-form guard must not
+      // also remove the per-changed-field guard. An invalid change is still blocked.
+      const requiredValidator = async (value: unknown) =>
+        value ? true : "required";
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField", validator: requiredValidator },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={300}
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+      await act(async () => {
+        await userEvent.type(fieldA, "x", { delay: null });
+        await userEvent.clear(fieldA); // ends up empty → invalid
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+
+      // The changed field is invalid → still no auto-save (per-field guard holds).
+      expect(submitHandler).not.toHaveBeenCalled();
+    });
+  });
+
   describe("Immediate Submission (debounce: false)", () => {
     it("should call submitHandler immediately when inputConfig.debounce is false", async () => {
       render(
