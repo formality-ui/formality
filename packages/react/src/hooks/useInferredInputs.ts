@@ -106,6 +106,5 @@ export function useInferredInputs(options: UseInferredInputsOptions): string[] {
 
     // Return unique field names
     return [...new Set(inferred)];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature]);
 }

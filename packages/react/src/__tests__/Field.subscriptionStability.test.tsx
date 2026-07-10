@@ -101,7 +101,8 @@ describe("Field subscription stability across value changes", () => {
     // Mutate the watched field's value several times.
     await user.type(screen.getByTestId("ein"), "12-3456789");
 
-    const churn = warns.filter((m) => SUBSCRIPTION_LOG.test(m)).length - baseline;
+    const churn =
+      warns.filter((m) => SUBSCRIPTION_LOG.test(m)).length - baseline;
 
     // 1. No "Maximum update depth exceeded" anywhere.
     const maxDepthHits =

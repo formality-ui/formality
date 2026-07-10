@@ -647,30 +647,27 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
    * to React Hook Form on every change (see Field.handleChange); a numeric
    * debounce does NOT throttle value commits / re-renders.
    */
-  const getOrCreateDebounced = useCallback(
-    (ms: number): DebouncedFunction => {
-      const cached = fieldDebouncersRef.current.get(ms);
-      if (cached) return cached;
+  const getOrCreateDebounced = useCallback((ms: number): DebouncedFunction => {
+    const cached = fieldDebouncersRef.current.get(ms);
+    if (cached) return cached;
 
-      // Forward through executeAutoSaveRef so each cached debounced fn is
-      // stable: it always invokes the latest executeAutoSave without rebuilding
-      // the timer (and canceling any pending save) when executeAutoSave's
-      // identity changes. The cache therefore stays valid for the field's
-      // lifetime — no teardown/rebuild needed.
-      const debouncedFn = debounce(() => {
-        executeAutoSaveRef.current?.();
-      }, ms);
+    // Forward through executeAutoSaveRef so each cached debounced fn is
+    // stable: it always invokes the latest executeAutoSave without rebuilding
+    // the timer (and canceling any pending save) when executeAutoSave's
+    // identity changes. The cache therefore stays valid for the field's
+    // lifetime — no teardown/rebuild needed.
+    const debouncedFn = debounce(() => {
+      executeAutoSaveRef.current?.();
+    }, ms);
 
-      // Attach lodash-style methods (matches debouncedSubmit shape)
-      const fn = Object.assign(debouncedFn, {
-        pending: () => false, // lodash debounce tracks pending internally
-      }) as DebouncedFunction;
+    // Attach lodash-style methods (matches debouncedSubmit shape)
+    const fn = Object.assign(debouncedFn, {
+      pending: () => false, // lodash debounce tracks pending internally
+    }) as DebouncedFunction;
 
-      fieldDebouncersRef.current.set(ms, fn);
-      return fn;
-    },
-    [],
-  );
+    fieldDebouncersRef.current.set(ms, fn);
+    return fn;
+  }, []);
 
   // Keep the factory ref in sync so `changeField` (defined above) always
   // invokes the latest factory. Stable identity (no executeAutoSave dep), so

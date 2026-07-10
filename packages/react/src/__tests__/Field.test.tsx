@@ -483,6 +483,197 @@ describe("Field", () => {
     });
   });
 
+  // Regression tests for `disabled` flowing through props-merge layers.
+  //
+  // Previously the `isDisabled` resolver always produced a boolean and emitted
+  // it as `coreProps.disabled`, which `mergeFieldProps` applies LAST —
+  // unconditionally clobbering any `disabled` set via selectProps /
+  // selectDefaultFieldProps / defaultFieldProps / inputConfig.props /
+  // fieldConfig.props. These layers are documented (README + examples 05/07)
+  // to be able to disable a field. See validation report FINDING 1.
+  describe("disabled via props-merge layers", () => {
+    it("selectProps.disabled='true' disables the field", () => {
+      const config: FormFieldsConfig = {
+        field: { type: "textField", selectProps: { disabled: "true" } },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config}>
+            <Field name="field" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("selectProps.disabled expression disables + re-enables reactively", async () => {
+      const config: FormFieldsConfig = {
+        country: { type: "textField" },
+        state: { type: "textField", selectProps: { disabled: "!country" } },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config}>
+            <Field name="country" />
+            <Field name="state" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Disabled while country is empty
+      expect(screen.getByTestId("state")).toBeDisabled();
+
+      const user = userEvent.setup();
+      await user.type(screen.getByTestId("country"), "US");
+
+      // Re-enabled once country is truthy
+      await waitFor(() => {
+        expect(screen.getByTestId("state")).not.toBeDisabled();
+      });
+    });
+
+    it("form selectDefaultFieldProps.disabled disables the field", () => {
+      const config: FormFieldsConfig = {
+        enableAll: { type: "switch" },
+        field: { type: "textField" },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={config}
+            formConfig={{
+              selectDefaultFieldProps: { disabled: "!enableAll" },
+            }}
+          >
+            <Field name="enableAll" />
+            <Field name="field" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // enableAll=false → field is disabled
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("provider selectDefaultFieldProps.disabled disables the field", () => {
+      const config: FormFieldsConfig = {
+        enableAll: { type: "switch" },
+        field: { type: "textField" },
+      };
+
+      render(
+        <FormalityProvider
+          inputs={testInputs}
+          selectDefaultFieldProps={{ disabled: "!enableAll" }}
+        >
+          <Form config={config}>
+            <Field name="enableAll" />
+            <Field name="field" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("static form defaultFieldProps.disabled disables the field", () => {
+      const config: FormFieldsConfig = {
+        field: { type: "textField" },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={config}
+            formConfig={{ defaultFieldProps: { disabled: true } }}
+          >
+            <Field name="field" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("static provider defaultFieldProps.disabled disables the field", () => {
+      const config: FormFieldsConfig = {
+        field: { type: "textField" },
+      };
+
+      render(
+        <FormalityProvider
+          inputs={testInputs}
+          defaultFieldProps={{ disabled: true }}
+        >
+          <Form config={config}>
+            <Field name="field" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("inputConfig.props.disabled disables the field", () => {
+      const localInputs: Record<string, InputConfig> = {
+        textField: {
+          component: TestInput,
+          defaultValue: "",
+          props: { disabled: true },
+        },
+      };
+      const config: FormFieldsConfig = {
+        field: { type: "textField" },
+      };
+
+      render(
+        <FormalityProvider inputs={localInputs}>
+          <Form config={config}>
+            <Field name="field" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("fieldConfig.props.disabled disables the field", () => {
+      const config: FormFieldsConfig = {
+        field: { type: "textField", props: { disabled: true } },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config}>
+            <Field name="field" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("field")).toBeDisabled();
+    });
+
+    it("JSX disabled prop overrides selectProps.disabled", () => {
+      const config: FormFieldsConfig = {
+        field: { type: "textField", selectProps: { disabled: "true" } },
+      };
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form config={config}>
+            <Field name="field" disabled={false} />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      expect(screen.getByTestId("field")).not.toBeDisabled();
+    });
+  });
+
   describe("JSX disabled prop highest priority - ALL sources active", () => {
     it("should disable field when JSX={true} overrides config={false} + conditions={false}", () => {
       // Test that JSX disabled={true} overrides ALL other sources with disabled={false}
@@ -927,7 +1118,7 @@ describe("Field", () => {
       expect(screen.getByTestId("target")).toBeDisabled();
     });
 
-    it.skip("should reference isDisabled matcher from other field", () => {
+    it("should reference isDisabled matcher from other field", () => {
       // KNOWN LIMITATION: isDisabled matcher requires two-pass evaluation with allFieldsConfig
       // Field.tsx now passes allFieldsConfig to useConditions, which enables two-pass evaluation
       // However, when multiple fields reference each other's isDisabled, it creates
@@ -1021,7 +1212,7 @@ describe("Field", () => {
     });
 
     describe("two-field isDisabled conditions", () => {
-      it.skip("should disable result when both source fields are disabled", () => {
+      it("should disable result when both source fields are disabled", () => {
         // KNOWN LIMITATION: Top-level isDisabled with object when requires disabled states
         // to be propagated through fieldStates in condition evaluation.
         //
@@ -1066,7 +1257,7 @@ describe("Field", () => {
         expect(screen.getByTestId("result")).toBeDisabled();
       });
 
-      it.skip("should not disable result when only one source field is disabled", () => {
+      it("should not disable result when only one source field is disabled", () => {
         // KNOWN LIMITATION: Same as above - config-level disabled not propagated to fieldStates
         const config: FormFieldsConfig = {
           field1: { type: "textField", disabled: true },
@@ -1100,7 +1291,7 @@ describe("Field", () => {
         expect(screen.getByTestId("result")).not.toBeDisabled();
       });
 
-      it.skip("should re-evaluate when source field disabled states change", async () => {
+      it("should re-evaluate when source field disabled states change", async () => {
         // KNOWN LIMITATION: Same as above - JSX prop disabled not propagated to fieldStates
         const config: FormFieldsConfig = {
           field1: { type: "textField" },
@@ -1148,7 +1339,7 @@ describe("Field", () => {
         });
       });
 
-      it.skip("should work with field state matchers in object when", () => {
+      it("should work with field state matchers in object when", () => {
         // KNOWN LIMITATION: Same as above - config-level disabled not propagated to fieldStates
         const config: FormFieldsConfig = {
           field1: { type: "textField", disabled: true },
