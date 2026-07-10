@@ -3449,17 +3449,62 @@ When `autoSave={true}`:
 1. Any field change triggers a debounced submit
 2. Debounce duration from field's `inputConfig.debounce`
 3. If field has `debounce: false`, submit immediately
-4. Only submits if form is valid
+4. Only submits if the changed field and its affected (dependent) fields are valid
+   - Validity is scoped to what this save can touch: the changed field (validated
+     by RHF's `onChange` mode) plus any fields that depend on it (via `conditions`,
+     re-validated on demand). An unrelated invalid field does NOT block a valid
+     edit — e.g. editing `notes` while an unrelated required `email` is empty
+     still saves `notes`. Whole-form validity is still enforced on a full
+     manual submit.
 
 ### 11.2 Implementation
 
 ```typescript
-// In Form component
+// In Form component — the debounced submit fires the scoped auto-save.
 const debouncedSubmit = useDebouncedFn(() => {
-  if (methods.formState.isValid) {
-    methods.handleSubmit(onSubmit)();
-  }
+  executeAutoSave();
 }, debounce || 1000);
+
+// Per-field debounce: a numeric InputConfig.debounce schedules at the field's
+// own interval. The implementation memoizes one debounced fn per interval so
+// fields that share a debounce coalesce into a single timer (see §11.3).
+const debouncedFnsByMs = {}; // ms -> debounced fn
+function getOrCreateDebounced(ms: number) {
+  return (debouncedFnsByMs[ms] ??= useDebouncedFn(() => executeAutoSave(), ms));
+}
+
+// Fields edited since the last save. Auto-save validates only these (and their
+// dependents), NOT the whole form, so an unrelated invalid field never blocks
+// a valid edit.
+const pendingChangedFields = new Set<string>();
+
+// Scoped auto-save: validate only what this save can touch, then submit.
+async function executeAutoSave() {
+  const changedFields = [...pendingChangedFields];
+  pendingChangedFields.clear();
+  if (changedFields.length === 0) return;
+
+  const affectedFields = getAffectedFields(changedFields); // dependents via conditions
+
+  // Gate 1: a changed field with an onChange error blocks the save.
+  for (const name of changedFields) {
+    if (methods.getFieldState(name).error) return;
+  }
+
+  // Gate 2: re-validate dependent (affected) fields; if any fails, block.
+  if (affectedFields.length > 0) {
+    const ok = await methods.trigger(affectedFields);
+    if (!ok) return;
+  }
+
+  // NOTE: no whole-form validity check here — the two gates above already
+  // cover exactly the fields this save can touch. (The full implementation
+  // also tracks an execution version to abort stale saves when new changes
+  // arrive mid-validation.)
+
+  const values = methods.getValues();
+  await onSubmit(transformValuesForSubmit(values));
+}
 
 // In changeField
 function changeField(name: string, value: unknown) {
@@ -3467,13 +3512,17 @@ function changeField(name: string, value: unknown) {
   const inputConfig = inputs[fieldConfig?.type];
 
   if (autoSave) {
-    if (inputConfig.debounce === false) {
+    pendingChangedFields.add(name);
+
+    const debounce = inputConfig.debounce; // false | number | undefined
+    if (debounce === false) {
       // No debounce - submit immediately
-      if (methods.formState.isValid) {
-        methods.handleSubmit(onSubmit)();
-      }
+      executeAutoSave();
+    } else if (typeof debounce === "number") {
+      // Per-field debounce at the field's own interval (§6.3.3)
+      getOrCreateDebounced(debounce)();
     } else {
-      // Debounced submit
+      // No field-level setting - fall back to the Form-level debounce
       debouncedSubmit();
     }
   }
@@ -3504,6 +3553,17 @@ function changeField(name: string, value: unknown) {
   <Field name="name" />           {/* Uses 2000ms */}
   <Field name="signed" />         {/* Uses false - immediate */}
 </Form>
+
+// Example 4: Multiple numeric debounces coalesce by interval
+{
+  textField: { debounce: 4000 },
+  decimal:   { debounce: 2000 },
+}
+// Edits to two textField fields share one 4000ms timer; edits to two decimal
+// fields share one 2000ms timer. Pending changes accumulate across ALL fields,
+// so the faster timer submits the whole pending batch, and a slower timer that
+// fires with nothing new pending is a no-op. A field with no debounce falls
+// back to the Form-level `debounce` prop.
 ```
 
 ---
