@@ -905,10 +905,6 @@ describe("AutoSave Validation Coordination", () => {
     // immediately while other fields use the form-level debounce.
     // This is crucial for forms containing both text fields (debounced)
     // and switches/toggles (immediate submission).
-    //
-    // NOTE: The current implementation only supports debounce: false for
-    // immediate submission. Field-level numeric debounce values (like
-    // debounce: 1000) are NOT supported and fall back to form-level debounce.
 
     beforeEach(() => {
       // Use the same setup from existing tests

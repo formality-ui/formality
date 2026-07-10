@@ -299,21 +299,73 @@ export function Field<TName extends string = string>({
     }
   }, [effectiveSetValue.hasCondition, effectiveSetValue.value, name]);
 
-  // === DISABLED/VISIBLE RESOLUTION ===
+  // === PROPS EVALUATION ===
+  //
+  // Evaluated before disabled/visible resolution so that the props-merge
+  // layers (selectProps / selectDefaultFieldProps) can contribute `disabled`.
+  const { providerSelectProps, formSelectProps, fieldSelectProps } =
+    usePropsEvaluation({
+      selectProps: fieldConfig.selectProps,
+      formDefaultFieldProps: formConfig.selectDefaultFieldProps,
+      providerDefaultFieldProps: providerConfig.selectDefaultFieldProps,
+      subscribesTo: fieldConfig.subscribesTo,
+      fieldName: name,
+    });
 
+  // === DISABLED/VISIBLE RESOLUTION ===
+  //
+  // `disabled` is resolved here (rather than flowing solely through the
+  // props-merge pipeline) because it participates in the condition system's
+  // two-pass evaluation (other fields can match on this field's `isDisabled`).
+  // The resolved boolean is emitted as `coreProps.disabled`.
+  //
+  // To keep the documented props-merge layers (`selectProps`,
+  // `selectDefaultFieldProps`, `defaultFieldProps`, `inputConfig.props`,
+  // `fieldConfig.props`) able to disable a field — which they could not when
+  // an always-emitted boolean `coreProps.disabled` clobbered them — the
+  // resolution order consults those layers as a final fallback before
+  // defaulting to `false`. The layers are consulted in `mergeFieldProps`
+  // priority order (highest first), so a higher-priority layer wins.
+  // See PRD §5.3.2 merge pipeline.
   const isDisabled = useMemo(() => {
-    // Resolution order: prop > config > condition > group > false
+    // Resolution order: prop > config > condition > group > props-merge > false
     if (disabledProp !== undefined) return disabledProp;
     if (fieldConfig.disabled !== undefined) return fieldConfig.disabled;
     if (conditionResult.hasDisabledCondition)
       return conditionResult.disabled ?? false;
     if (groupContext.state.isDisabled) return true;
+
+    // Props-merge layers (evaluated dynamic props + static props), consulted
+    // in `mergeFieldProps` priority order (highest first). Each layer may set
+    // `disabled` via an evaluated expression (e.g. `selectProps: { disabled:
+    // "!country" }`) or statically (e.g. `defaultFieldProps: { disabled: true }`).
+    const propsLayers = [
+      fieldSelectProps, // layer 2: field-level selectProps
+      formSelectProps, // layer 5: form-level selectDefaultFieldProps
+      providerSelectProps, // layer 7: provider-level selectDefaultFieldProps
+      inputConfig.props, // layer 4: input config props
+      fieldConfig.props, // layer 3: field config props
+      formConfig.defaultFieldProps, // layer 6: form-level defaultFieldProps
+      providerConfig.defaultFieldProps, // layer 8: provider-level defaultFieldProps
+    ];
+    for (const layer of propsLayers) {
+      const layerDisabled = layer?.disabled;
+      if (layerDisabled !== undefined) return Boolean(layerDisabled);
+    }
+
     return false;
   }, [
     disabledProp,
     fieldConfig.disabled,
+    fieldConfig.props,
     conditionResult,
     groupContext.state.isDisabled,
+    fieldSelectProps,
+    formSelectProps,
+    providerSelectProps,
+    inputConfig.props,
+    formConfig.defaultFieldProps,
+    providerConfig.defaultFieldProps,
   ]);
 
   const isVisible = useMemo(() => {
@@ -330,17 +382,6 @@ export function Field<TName extends string = string>({
     conditionResult,
     groupContext.state.isVisible,
   ]);
-
-  // === PROPS EVALUATION ===
-
-  const { providerSelectProps, formSelectProps, fieldSelectProps } =
-    usePropsEvaluation({
-      selectProps: fieldConfig.selectProps,
-      formDefaultFieldProps: formConfig.selectDefaultFieldProps,
-      providerDefaultFieldProps: providerConfig.selectDefaultFieldProps,
-      subscribesTo: fieldConfig.subscribesTo,
-      fieldName: name,
-    });
 
   // Resolve label
   const label = useMemo(() => {
