@@ -319,7 +319,7 @@ export function MixedDebounceExample() {
 // =============================================================================
 // Example 4: Auto-Save with Validation
 // =============================================================================
-// Auto-save only triggers when form is valid
+// Auto-save validates only the changed field (and its dependents) before saving
 
 const validatedAutoSaveConfig: ReactFormFieldsConfig = {
   email: {
@@ -367,7 +367,10 @@ export function ValidatedAutoSaveExample() {
         {({ methods }) => (
           <div>
             <h3>Auto-Save with Validation</h3>
-            <p>Form only saves when all fields are valid</p>
+            <p>
+              Auto-save saves a change once the edited field (and its
+              dependents) validate; an unrelated invalid field won't block it.
+            </p>
 
             <div className="status-badge" data-status={status}>
               {status === "idle" && "Ready"}
@@ -379,7 +382,8 @@ export function ValidatedAutoSaveExample() {
             <Field name="age" />
 
             <div className="validation-status">
-              Form valid: {methods.formState.isValid ? "Yes" : "No"}
+              Manual-submit ready (all fields valid):{" "}
+              {methods.formState.isValid ? "Yes" : "No"}
             </div>
           </div>
         )}

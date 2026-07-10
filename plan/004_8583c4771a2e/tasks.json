@@ -4,14 +4,14 @@
       "type": "Phase",
       "id": "P1",
       "title": "Scoped Auto-Save Validation & Per-Field Debounce Coalescing: Verify & Align",
-      "status": "Ready",
+      "status": "Complete",
       "description": "The updated PRD §12 specifies two auto-save behavior changes — (a) a scoped validity gate (changed field + dependent/affected fields only; an unrelated invalid field no longer blocks a valid edit; whole-form validity still enforced on full manual submit) and (b) per-field numeric debounce that coalesces by interval (shared ms → shared timer; faster timer submits the pending batch; slower timer no-ops; no-debounce falls back to the Form-level debounce prop). Both are already implemented and tested in Form.tsx and the autosave-*.test.tsx suites. This phase does NOT re-implement them. It (1) audits the shipped code/tests against the now-updated PRD to confirm there is no drift and the coverage gate stays green, and (2) sweeps user-facing docs to ensure none still describe the legacy whole-form-validity auto-save gate. Out of scope: any change to the auto-save runtime logic, any non-§12 PRD section, the forwardRef work completed in session 003.",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Confirm shipped behavior matches updated PRD §12; align docs",
-          "status": "Ready",
+          "status": "Complete",
           "description": "One audit + doc-alignment milestone: (T1) verify the shipped executeAutoSave / getOrCreateDebounced / changeField and the four autosave test files cover every requirement in PRD §11.1–§11.3, with pnpm test:coverage green at ≥90% (§1.3.7); then (T2) the Mode-B documentation sweep to retire any stale whole-form-validity framing.",
           "tasks": [
             {
@@ -63,14 +63,14 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Sync changeset-level documentation (Mode B)",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Cross-cutting doc sweep (Mode B) confirming no user-facing doc still implies auto-save blocks submission on whole-form validity. The doc audit (architecture/doc-staleness-audit.md) found exactly one stale item: examples/06-auto-save.tsx Example 4 (lines 322, 370, 382) still describes the OLD whole-form-validity gate. Fix those lines to describe the scoped gate. Confirm the READMEs and Form.tsx JSDoc are already accurate (current evidence says they are). Do NOT duplicate per-symbol prose work — this delta touched no symbol-level contract docs. Depends on T1 so the audit runs first.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Fix stale whole-form-validity claims in examples/06-auto-save.tsx Example 4; confirm READMEs and JSDoc are already aligned",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",
