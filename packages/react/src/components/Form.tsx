@@ -652,11 +652,16 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       const cached = fieldDebouncersRef.current.get(ms);
       if (cached) return cached;
 
+      // Forward through executeAutoSaveRef so each cached debounced fn is
+      // stable: it always invokes the latest executeAutoSave without rebuilding
+      // the timer (and canceling any pending save) when executeAutoSave's
+      // identity changes. The cache therefore stays valid for the field's
+      // lifetime — no teardown/rebuild needed.
       const debouncedFn = debounce(() => {
-        executeAutoSave();
+        executeAutoSaveRef.current?.();
       }, ms);
 
-      // Attach lodash-style methods (matches debouncedSubmitRef shape)
+      // Attach lodash-style methods (matches debouncedSubmit shape)
       const fn = Object.assign(debouncedFn, {
         pending: () => false, // lodash debounce tracks pending internally
       }) as DebouncedFunction;
@@ -664,16 +669,16 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       fieldDebouncersRef.current.set(ms, fn);
       return fn;
     },
-    [executeAutoSave],
+    [],
   );
 
   // Keep the factory ref in sync so `changeField` (defined above) always
-  // invokes the latest factory without being rebuilt — and without rebuilding
-  // its context consumers — on every `executeAutoSave` identity change.
+  // invokes the latest factory. Stable identity (no executeAutoSave dep), so
+  // `changeField` and its context consumers are not churned.
   getOrCreateDebouncedRef.current = getOrCreateDebounced;
 
-  // Cancel + clear all per-field debouncers when `executeAutoSave` changes
-  // (so stale closures don't fire) and on unmount.
+  // Cancel + clear all per-field debouncers on unmount. No rebuild is needed
+  // on executeAutoSave changes — the cached fns forward through the ref above.
   useEffect(() => {
     return () => {
       fieldDebouncersRef.current.forEach((fn) => fn.cancel());
@@ -681,53 +686,59 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     };
   }, [getOrCreateDebounced]);
 
-  useEffect(() => {
+  // Form-level debounced submit, built once per `debounceMs`. It forwards
+  // through executeAutoSaveRef so it (a) always invokes the latest
+  // executeAutoSave without rebuilding/canceling the timer on every
+  // executeAutoSave identity change, and (b) can be assigned during render —
+  // making it available on the very first render, consistent with
+  // executeAutoSaveRef / getOrCreateDebouncedRef. Previously this was wired
+  // up inside an effect, leaving a first-render window where the ref was
+  // undefined (the `?.()` no-ops). See autosave Issue 3.
+  const debouncedSubmit = useMemo<DebouncedFunction>(() => {
     // When debounce is false, use immediate execution (no debouncing)
     if (debounceMs === false) {
-      const immediateFn = Object.assign(
+      return Object.assign(
         () => {
-          executeAutoSave();
+          executeAutoSaveRef.current?.();
         },
         {
           cancel: () => {}, // No-op for immediate function
-          flush: () => executeAutoSave(), // Execute immediately on flush
+          flush: () => executeAutoSaveRef.current?.(), // Execute immediately on flush
           pending: () => false, // Never pending when immediate
         },
       ) as DebouncedFunction;
-
-      debouncedSubmitRef.current = immediateFn;
-
-      return () => {
-        // No cleanup needed for immediate function
-      };
     }
 
     // Normal debounce behavior
     const debouncedFn = debounce(() => {
-      executeAutoSave();
+      executeAutoSaveRef.current?.();
     }, debounceMs);
 
     // Attach lodash-style methods
-    const fn = Object.assign(debouncedFn, {
+    return Object.assign(debouncedFn, {
       pending: () => false, // lodash debounce handles this internally
     }) as DebouncedFunction;
+  }, [debounceMs]);
 
-    debouncedSubmitRef.current = fn;
+  // Assign during render (not in an effect) so the ref is populated on the
+  // first render and never undefined.
+  debouncedSubmitRef.current = debouncedSubmit;
 
+  // Cancel the lodash timer when the interval changes or on unmount. (For the
+  // immediate adapter, cancel() is a no-op.)
+  useEffect(() => {
     return () => {
-      debouncedFn.cancel();
+      debouncedSubmit.cancel();
     };
-  }, [executeAutoSave, debounceMs]);
+  }, [debouncedSubmit]);
 
   const submitImmediate = useCallback(() => {
-    // For form-level debounce: false, flush() will execute immediately
-    // For field-level debounce: false override, we need to execute directly
-    if (debouncedSubmitRef.current?.flush) {
-      debouncedSubmitRef.current.flush();
-    } else {
-      executeAutoSave();
-    }
-  }, [executeAutoSave]);
+    // Flush the Form-level debounced submit: immediate for debounce: false,
+    // or fires any pending debounced save right away. The ref is always
+    // populated (assigned during render above), so the previous first-render
+    // fallback is no longer needed.
+    debouncedSubmitRef.current?.flush();
+  }, []);
 
   // === UNUSED FIELDS ===
 
@@ -779,7 +790,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       setFieldValidating,
       getFormState,
       onSubmit,
-      debouncedSubmit: debouncedSubmitRef.current!,
+      debouncedSubmit,
       submitImmediate,
       unusedFields,
       methods: methods as any,
@@ -798,6 +809,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       setFieldValidating,
       getFormState,
       onSubmit,
+      debouncedSubmit,
       submitImmediate,
       unusedFields,
       methods,

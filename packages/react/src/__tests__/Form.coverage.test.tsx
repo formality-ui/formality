@@ -249,6 +249,51 @@ describe("Form coverage (P1.M2.T1.S2) — debounce adapter", () => {
 });
 
 // ============================================================================
+// Task: first-render debouncedSubmit availability (autosave Issue 3)
+// ============================================================================
+
+describe("Form coverage — first-render debouncedSubmit availability (Issue 3)", () => {
+  // Regression for autosave Issue 3: debouncedSubmitRef used to be assigned
+  // inside a useEffect, so on the very first render pass the context's
+  // `debouncedSubmit` was `undefined` until the effect ran (a window where the
+  // `?.()` auto-save triggers would no-op). It is now assigned during render,
+  // so it is available immediately. We capture the value synchronously in a
+  // child's render body (before effects flush) to observe first-render state.
+  it("should expose a fully-formed debouncedSubmit during the first render pass (before effects)", () => {
+    const seen: unknown[] = [];
+    function Capture() {
+      // Read during RENDER (not in an effect) and record every observed value.
+      // seen[0] is therefore the first-render-pass value, before any effect ran.
+      seen.push(useFormContext().debouncedSubmit);
+      return null;
+    }
+
+    render(
+      <FormalityProvider inputs={testInputs}>
+        <Form
+          config={{ name: { type: "textField" } }}
+          autoSave
+          debounce={500}
+          onSubmit={vi.fn()}
+        >
+          <Field name="name" />
+          <Capture />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    // The first render pass must already carry a fully-formed debounced submit.
+    // Under the old effect-time wiring, seen[0] was undefined here.
+    const firstRenderDebouncedSubmit = seen[0];
+    expect(firstRenderDebouncedSubmit).toBeDefined();
+    expect(typeof firstRenderDebouncedSubmit).toBe("function");
+    expect(typeof (firstRenderDebouncedSubmit as any).cancel).toBe("function");
+    expect(typeof (firstRenderDebouncedSubmit as any).flush).toBe("function");
+    expect(typeof (firstRenderDebouncedSubmit as any).pending).toBe("function");
+  });
+});
+
+// ============================================================================
 // Task 4: selectTitle → getFormState (364-397) + resolvedTitle branch (626-637)
 // ============================================================================
 
