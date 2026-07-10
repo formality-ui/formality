@@ -1,0 +1,95 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Scoped Auto-Save Validation & Per-Field Debounce Coalescing: Verify & Align",
+      "status": "Ready",
+      "description": "The updated PRD §12 specifies two auto-save behavior changes — (a) a scoped validity gate (changed field + dependent/affected fields only; an unrelated invalid field no longer blocks a valid edit; whole-form validity still enforced on full manual submit) and (b) per-field numeric debounce that coalesces by interval (shared ms → shared timer; faster timer submits the pending batch; slower timer no-ops; no-debounce falls back to the Form-level debounce prop). Both are already implemented and tested in Form.tsx and the autosave-*.test.tsx suites. This phase does NOT re-implement them. It (1) audits the shipped code/tests against the now-updated PRD to confirm there is no drift and the coverage gate stays green, and (2) sweeps user-facing docs to ensure none still describe the legacy whole-form-validity auto-save gate. Out of scope: any change to the auto-save runtime logic, any non-§12 PRD section, the forwardRef work completed in session 003.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Confirm shipped behavior matches updated PRD §12; align docs",
+          "status": "Planned",
+          "description": "One audit + doc-alignment milestone: (T1) verify the shipped executeAutoSave / getOrCreateDebounced / changeField and the four autosave test files cover every requirement in PRD §11.1–§11.3, with pnpm test:coverage green at ≥90% (§1.3.7); then (T2) the Mode-B documentation sweep to retire any stale whole-form-validity framing.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Audit shipped auto-save implementation & tests against updated PRD §11.1–§11.3",
+              "status": "Planned",
+              "description": "Gap audit (read-only unless a real gap is found). Walk PRD §11.1 point 4, §11.2 (scoped executeAutoSave, two gates, no-whole-form-check note, execution-version abort, pendingChangedFields, getAffectedFields, per-field-debounce changeField branches), and §11.3 Example 4 (coalescing) against packages/react/src/components/Form.tsx and the autosave-*.test.tsx suites. Confirm each specified behavior is both implemented and covered by a test. Run pnpm test:coverage and confirm all four coverage metrics stay ≥90% (PRD §1.3.7) with no regression. If — and only if — the audit finds a real gap between spec and shipped behavior, scope the minimal fix and note it; otherwise record the 'no drift, already ships' finding. Re-implementing already-passing behavior is explicitly out of scope.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Audit runtime implementation in Form.tsx against PRD §11.1–§11.3 scoped-gate and coalescing spec",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": [
+                    "h2.13",
+                    "h3.48",
+                    "h3.49",
+                    "h3.50",
+                    "h4.6",
+                    "h2.23",
+                    "h3.105"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The architecture audit (plan/004_8583c4771a2e/architecture/autosave-impl-audit.md) confirms ZERO DRIFT — all four specified behaviors are fully implemented at the line numbers listed below. This subtask verifies that finding is still current; it is read-only unless a real gap is discovered.\n2. INPUT: PRD §11.1 point 4 (scoped validity gate — 'Only submits if the changed field and its affected (dependent) fields are valid'), §11.2 (the executeAutoSave implementation code block with pendingChangedFields, getAffectedFields, Gate 1, Gate 2, no-whole-form-check note, execution-version abort), §11.3 Example 4 (coalescing-by-interval). The source file is packages/react/src/components/Form.tsx.\n3. LOGIC: Walk each specified behavior against the code and confirm a match:\n   - Scoped validity gate: executeAutoSave (~Form.tsx:549-648). Gate 1 = changed-field onChange error check (~585-591). Gate 2 = affected-field revalidation via methods.trigger (~594-616). Confirm there is NO whole-form validity check — look for the explicit comment block at ~620-629.\n   - pendingChangedFields: declared ~215, populated in changeField ~364, copied+cleared in executeAutoSave ~557-560.\n   - getAffectedFields(): transitive dependency traversal via invertedSubscriptions ~338-356.\n   - Execution-version abort: executionVersionRef declared ~218, incremented+captured ~551-552, re-checked after every await at ~579-583, ~598-600, ~612-616.\n   - getOrCreateDebounced(ms): per-interval memoized cache keyed by ms (~650-682), cache in fieldDebouncersRef Map (~225). Verify: fields sharing ms share one timer; faster timer submits whole pending batch (executeAutoSave copies both pending sets); slower timer no-ops (early-return when changedFields empty ~566-568).\n   - changeField 3-way branch on inputConfig.debounce (~372-389): false → immediate executeAutoSave (~376-378); number → getOrCreateDebounced(ms) (~382); undefined → form-level debouncedSubmit (~385-388).\n   If — and only if — a gap is found, scope the minimal code fix and note it. Otherwise record 'no drift, already ships'.\n4. OUTPUT: A confirmation record (markdown or PR comment) with a line-number citation for each behavior confirming it matches the spec, OR a gap report if a discrepancy is found. This output feeds T1.S2 (which checks the test side) and gates T2 (the doc sweep runs after the audit).\n5. DOCS: none — this is a read-only audit. If a gap is found requiring a code fix, any doc that fix touches rides with it per Mode A."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Audit test coverage of all spec scenarios + confirm coverage gate ≥90%",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": [
+                    "h2.13",
+                    "h3.48",
+                    "h3.49",
+                    "h3.50",
+                    "h2.2",
+                    "h3.2",
+                    "h4.6"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The architecture audit (plan/004_8583c4771a2e/architecture/autosave-test-audit.md) confirms all 43 tests pass across the 4 autosave test files, every spec scenario is covered, and the full-suite coverage is green at 97.25% statements / 95.7% branches / 98.16% functions / 97.25% lines. This subtask verifies that finding is still current.\n2. INPUT: PRD §11.1 point 4, §11.2, §11.3 Example 4 (the behaviors to verify test coverage for). PRD §1.3.7 (the ≥90% coverage gate spec). The four test files: packages/react/src/__tests__/autosave-validation.test.tsx (21 tests), autosave-field-debounce.test.tsx (10 tests), autosave-async-timing.test.tsx (4 tests), autosave-rapid-changes.test.tsx (8 tests).\n3. LOGIC: Confirm each spec'd scenario has a corresponding test by walking the describe/test names:\n   - Scoped validation (autosave-validation.test.tsx): 'Dependent Field Validation', 'Async Validation Waiting', 'Unrelated Invalid Field (Issue 2)' (asserts valid edit saves while unrelated required field is empty — the key regression test for the scoped gate), 'Validation Errors', 'Immediate Submission (debounce: false)'.\n   - Per-field debounce + coalescing (autosave-field-debounce.test.tsx): 'Per-field numeric debounce is honored', 'Coalescing semantics' (shared-interval coalesce; faster timer submits batch; slower timer no-ops), 'Mixed debounce: false + numeric', 'Form-level fallback preserved'.\n   - Execution-version / stale-save abort (autosave-async-timing.test.tsx + autosave-rapid-changes.test.tsx): 'Version Checkpoint', 'abort intermediate auto-save operations'.\n   Then run `npx vitest run --coverage` (or `pnpm test:coverage`) from the repo root and confirm all four metrics (statements, branches, functions, lines) are ≥90% with no regression. The coverage config is at vitest.config.ts with excludes for examples/**, packages/svelte/**, packages/vue/**, **/dist/**.\n4. OUTPUT: A confirmation record listing each spec scenario → its test name/file, plus the coverage numbers (all four metrics). This gates T2 (the doc sweep runs after the audit confirms green).\n5. DOCS: none — read-only audit. The coverage config (vitest.config.ts) is already correct per §1.3.7; no changes expected."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Sync changeset-level documentation (Mode B)",
+              "status": "Planned",
+              "description": "Cross-cutting doc sweep (Mode B) confirming no user-facing doc still implies auto-save blocks submission on whole-form validity. The doc audit (architecture/doc-staleness-audit.md) found exactly one stale item: examples/06-auto-save.tsx Example 4 (lines 322, 370, 382) still describes the OLD whole-form-validity gate. Fix those lines to describe the scoped gate. Confirm the READMEs and Form.tsx JSDoc are already accurate (current evidence says they are). Do NOT duplicate per-symbol prose work — this delta touched no symbol-level contract docs. Depends on T1 so the audit runs first.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Fix stale whole-form-validity claims in examples/06-auto-save.tsx Example 4; confirm READMEs and JSDoc are already aligned",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [
+                    "P1.M1.T1.S1",
+                    "P1.M1.T1.S2"
+                  ],
+                  "prd_selectors": [
+                    "h2.13",
+                    "h3.48",
+                    "h3.49",
+                    "h3.50",
+                    "h2.23"
+                  ],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The architecture audit (plan/004_8583c4771a2e/architecture/doc-staleness-audit.md) found exactly one stale user-facing item and confirmed the five explicitly-audited README/JSDoc locations are clean. The stale item is in examples/06-auto-save.tsx, which is linked from README.md line 720 as a user-facing example and is type-checked in CI.\n2. INPUT: The doc audit findings identifying three stale lines. The PRD §11.1 point 4 spec for the scoped validity gate ('Only submits if the changed field and its affected (dependent) fields are valid ... an unrelated invalid field does NOT block a valid edit'). The file examples/06-auto-save.tsx.\n3. LOGIC: Fix the three stale lines in examples/06-auto-save.tsx Example 4 ('Auto-Save with Validation'):\n   - Line 322 (comment): `// Auto-save only triggers when form is valid` → rewrite to describe the scoped gate, e.g. `// Auto-save validates only the changed field (and its dependents) before saving`.\n   - Line 370 (user-facing copy): `<p>Form only saves when all fields are valid</p>` → rewrite to describe the scoped gate, e.g. `<p>Auto-save saves a change once the edited field (and its dependents) validate; an unrelated invalid field won't block it</p>`.\n   - Line 382 (display): `Form valid: {methods.formState.isValid ? \"Yes\" : \"No\"}` → either remove the whole-form isValid display or reframe it as a manual-submit gate indicator rather than an auto-save gate.\n   Then sweep the other user-facing docs to confirm they are already aligned (make NO edit if they are — just record the decision):\n   - README.md §'Auto-Save' (~502): currently neutral, no validity-scope claim.\n   - README.md capability bullet (~643): 'validation awareness' — accurate under the NEW scoped behavior.\n   - packages/react/README.md §'Auto-Save' (~279) and prop tables (~121, 137): currently neutral.\n   - Form.tsx autoSave/debounce prop JSDoc (~57-71): currently accurate and scoped.\n   - CHANGELOG.md (~27-28): correctly describes the NEW behavior already.\n   After editing, run `npx vitest run` to confirm no example compilation/type-check regression (examples are type-checked but excluded from coverage per §1.3.7).\n4. OUTPUT: Updated examples/06-auto-save.tsx with corrected auto-save validity messaging in Example 4. A written confirmation that README.md, packages/react/README.md, Form.tsx JSDoc, and CHANGELOGs require no changes (or inline edits if the sweep unexpectedly finds a stale claim).\n5. DOCS: Mode B — this IS the changeset-level documentation sweep. The three lines in examples/06-auto-save.tsx are the only stale cross-cutting claims and are fixed here. No separate doc subtask is needed."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
