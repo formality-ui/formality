@@ -1,3 +1,11 @@
+## [0.2.2](https://github.com/formality-ui/formality/compare/v0.2.1...v0.2.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* honor per-field numeric debounce and remove whole-form error guard ([bbff475](https://github.com/formality-ui/formality/commit/bbff4754e6ba48b13e0cb91434d4c5e365863add))
+* wire debouncedSubmit during render, not in effect ([b69f3fa](https://github.com/formality-ui/formality/commit/b69f3fa4aab34c5710d04c15777adf36df5327bf))
+
 ## [0.2.1](https://github.com/formality-ui/formality/compare/v0.2.0...v0.2.1) (2026-07-07)
 
 
