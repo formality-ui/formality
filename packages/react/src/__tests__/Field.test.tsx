@@ -1,7 +1,6 @@
 // @formality-ui/react - Field Component Tests
 import type React from "react";
 import type { ComponentType } from "react";
-import { forwardRef } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -31,10 +30,18 @@ interface TestInputProps {
 // `forwardRef` prop (not React's special `ref` key), so consume it from props.
 // The React.forwardRef wrap is retained for shape compatibility; the inner
 // input wires the `forwardRef` prop.
-const TestInput = forwardRef<
-  HTMLInputElement,
-  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(({ value, onChange, disabled, label, error, name, forwardRef, ...props }) => (
+// §20 delivers `forwardRef` as a prop, so the React `forwardRef()` wrap is
+// unnecessary (and would warn about an unused ref param). Plain component:
+const TestInput = ({
+  value,
+  onChange,
+  disabled,
+  label,
+  error,
+  name,
+  forwardRef,
+  ...props
+}: TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
   <div>
     {label && <label data-testid={`${name}-label`}>{label}</label>}
     <input
@@ -47,7 +54,7 @@ const TestInput = forwardRef<
     />
     {error && <span data-testid={`${name}-error`}>{error}</span>}
   </div>
-));
+);
 
 TestInput.displayName = "TestInput";
 
@@ -63,10 +70,14 @@ interface TestSwitchProps {
 // PRD §20.4 option A — consume `forwardRef` from props (same option as
 // TestInput for consistency); the React.forwardRef wrap is retained for shape
 // compatibility.
-const TestSwitch = forwardRef<
-  HTMLInputElement,
-  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+const TestSwitch = ({
+  value,
+  onChange,
+  disabled,
+  name,
+  forwardRef,
+  ...props
+}: TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     type="checkbox"
@@ -76,7 +87,7 @@ const TestSwitch = forwardRef<
     disabled={disabled}
     {...props}
   />
-));
+);
 
 TestSwitch.displayName = "TestSwitch";
 

@@ -2,7 +2,6 @@
 // Tests for provider-level selectDefaultFieldProps evaluation in usePropsEvaluation
 
 import type React from "react";
-import { forwardRef } from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -30,41 +29,38 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<
-  HTMLInputElement,
-  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(
-  ({
-    value,
-    onChange,
-    disabled,
-    label,
-    error,
-    name,
-    placeholder,
-    className,
-    size,
-    variant,
-    forwardRef,
-    ...props
-  }) => (
-    <div>
-      {label && <label data-testid={`${name}-label`}>{label}</label>}
-      <input
-        ref={forwardRef}
-        data-testid={name}
-        value={value ?? ""}
-        onChange={(e) => onChange?.(e.target.value)}
-        disabled={disabled}
-        placeholder={placeholder}
-        className={className}
-        data-size={size}
-        data-variant={variant}
-        {...props}
-      />
-      {error && <span data-testid={`${name}-error`}>{error}</span>}
-    </div>
-  ),
+// §20 delivers `forwardRef` as a prop, so the React `forwardRef()` wrap is
+// unnecessary (and would warn about an unused ref param). Plain component:
+const TestInput = ({
+  value,
+  onChange,
+  disabled,
+  label,
+  error,
+  name,
+  placeholder,
+  className,
+  size,
+  variant,
+  forwardRef,
+  ...props
+}: TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
+  <div>
+    {label && <label data-testid={`${name}-label`}>{label}</label>}
+    <input
+      ref={forwardRef}
+      data-testid={name}
+      value={value ?? ""}
+      onChange={(e) => onChange?.(e.target.value)}
+      disabled={disabled}
+      placeholder={placeholder}
+      className={className}
+      data-size={size}
+      data-variant={variant}
+      {...props}
+    />
+    {error && <span data-testid={`${name}-error`}>{error}</span>}
+  </div>
 );
 
 TestInput.displayName = "TestInput";
@@ -78,10 +74,14 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<
-  HTMLInputElement,
-  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+const TestSwitch = ({
+  value,
+  onChange,
+  disabled,
+  name,
+  forwardRef,
+  ...props
+}: TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     type="checkbox"
@@ -91,7 +91,7 @@ const TestSwitch = forwardRef<
     disabled={disabled}
     {...props}
   />
-));
+);
 
 TestSwitch.displayName = "TestSwitch";
 

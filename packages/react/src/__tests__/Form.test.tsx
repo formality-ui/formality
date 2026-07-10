@@ -1,6 +1,5 @@
 // @formality-ui/react - Form Component Tests
 import type React from "react";
-import { forwardRef } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -9,19 +8,17 @@ import { FormalityProvider } from "../components/FormalityProvider";
 import { useFormContext } from "../context/FormContext";
 import type { InputConfig, FormFieldsConfig } from "@formality-ui/core";
 
-// Test input component
-interface TestInputProps {
-  value?: any;
-  onChange?: (value: any) => void;
-  disabled?: boolean;
-  name: string;
-  [key: string]: unknown;
-}
-
-const TestInput = forwardRef<
-  HTMLInputElement,
-  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+// Test input component. §20 delivers `forwardRef` as a prop, so the React
+// `forwardRef()` wrap is unnecessary (and would warn about an unused ref
+// param). Plain component:
+const TestInput = ({
+  value,
+  onChange,
+  disabled,
+  name,
+  forwardRef,
+  ...props
+}: TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     data-testid={name}
@@ -30,7 +27,7 @@ const TestInput = forwardRef<
     disabled={disabled}
     {...props}
   />
-));
+);
 
 TestInput.displayName = "TestInput";
 
@@ -43,10 +40,14 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<
-  HTMLInputElement,
-  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+const TestSwitch = ({
+  value,
+  onChange,
+  disabled,
+  name,
+  forwardRef,
+  ...props
+}: TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     type="checkbox"
@@ -56,7 +57,7 @@ const TestSwitch = forwardRef<
     disabled={disabled}
     {...props}
   />
-));
+);
 
 TestSwitch.displayName = "TestSwitch";
 

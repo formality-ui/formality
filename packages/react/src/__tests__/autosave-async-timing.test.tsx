@@ -3,7 +3,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type React from "react";
-import { forwardRef } from "react";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Form } from "../components/Form";
@@ -35,10 +34,15 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<
-  HTMLInputElement,
-  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(({ value, onChange, name, forwardRef, ...props }) => (
+// §20 delivers `forwardRef` as a prop, so the React `forwardRef()` wrap is
+// unnecessary (and would warn about an unused ref param). Plain component:
+const TestInput = ({
+  value,
+  onChange,
+  name,
+  forwardRef,
+  ...props
+}: TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     data-testid={name}
@@ -47,7 +51,7 @@ const TestInput = forwardRef<
     onChange={(e) => onChange?.(e.target.value)}
     {...props}
   />
-));
+);
 TestInput.displayName = "TestInput";
 
 // Test inputs config

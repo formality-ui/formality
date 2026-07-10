@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React, { forwardRef, useRef } from "react";
+import React, { useRef } from "react";
 import { Form } from "../components/Form";
 import { Field } from "../components/Field";
 import { FieldGroup } from "../components/FieldGroup";
@@ -40,42 +40,44 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<
-  HTMLInputElement,
-  TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(
-  ({
-    value,
-    onChange,
-    onBlur,
-    disabled,
-    label,
-    error,
-    name,
-    forwardRef,
-    ...props
-  }) => (
-    <div>
-      {label && <label data-testid={`${name}-label`}>{label}</label>}
-      <input
-        ref={forwardRef}
-        data-testid={name}
-        value={value ?? ""}
-        onChange={(e) => onChange?.(e.target.value)}
-        onBlur={onBlur}
-        disabled={disabled}
-        {...props}
-      />
-      {error && <span data-testid={`${name}-error`}>{error}</span>}
-    </div>
-  ),
+// §20 delivers `forwardRef` as a prop, so the React `forwardRef()` wrap is
+// unnecessary (and would warn about an unused ref param). Plain components:
+const TestInput = ({
+  value,
+  onChange,
+  onBlur,
+  disabled,
+  label,
+  error,
+  name,
+  forwardRef,
+  ...props
+}: TestInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
+  <div>
+    {label && <label data-testid={`${name}-label`}>{label}</label>}
+    <input
+      ref={forwardRef}
+      data-testid={name}
+      value={value ?? ""}
+      onChange={(e) => onChange?.(e.target.value)}
+      onBlur={onBlur}
+      disabled={disabled}
+      {...props}
+    />
+    {error && <span data-testid={`${name}-error`}>{error}</span>}
+  </div>
 );
 TestInput.displayName = "TestInput";
 
-const TestSwitch = forwardRef<
-  HTMLInputElement,
-  TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }
->(({ value, onChange, onBlur, disabled, name, forwardRef, ...props }) => (
+const TestSwitch = ({
+  value,
+  onChange,
+  onBlur,
+  disabled,
+  name,
+  forwardRef,
+  ...props
+}: TestSwitchProps & { forwardRef?: React.Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     type="checkbox"
@@ -86,7 +88,7 @@ const TestSwitch = forwardRef<
     disabled={disabled}
     {...props}
   />
-));
+);
 TestSwitch.displayName = "TestSwitch";
 
 const baseInputs: Record<string, InputConfig> = {
@@ -645,10 +647,14 @@ describe("Render Performance", () => {
     [key: string]: unknown;
   }
 
-  const TrackingInput = forwardRef<
-    HTMLInputElement,
-    TrackingInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
-  >(({ value, onChange, onBlur, name, forwardRef, ...props }) => {
+  const TrackingInput = ({
+    value,
+    onChange,
+    onBlur,
+    name,
+    forwardRef,
+    ...props
+  }: TrackingInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => {
     const renderCount = useRef(0);
     renderCount.current++;
     console.log(`[Input Render] ${name}: #${renderCount.current}`);
@@ -663,7 +669,7 @@ describe("Render Performance", () => {
         {...props}
       />
     );
-  });
+  };
   TrackingInput.displayName = "TrackingInput";
 
   const trackingInputs: Record<string, InputConfig> = {
@@ -717,10 +723,15 @@ describe("Render Performance", () => {
       [key: string]: unknown;
     }
 
-    const SpyInput = forwardRef<
-      HTMLInputElement,
-      SpyInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
-    >(({ value, onChange, onBlur, name, forwardRef, ...props }) => {
+    // §20 delivers `forwardRef` as a prop; no React `forwardRef()` wrap needed.
+    const SpyInput = ({
+      value,
+      onChange,
+      onBlur,
+      name,
+      forwardRef,
+      ...props
+    }: SpyInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => {
       renderSpy(name);
       return (
         <input
@@ -732,7 +743,7 @@ describe("Render Performance", () => {
           {...props}
         />
       );
-    });
+    };
     SpyInput.displayName = "SpyInput";
 
     const spyInputs = {
@@ -849,10 +860,15 @@ describe("Render Function Children Pattern (ROOT CAUSE TEST)", () => {
       [key: string]: unknown;
     }
 
-    const SpyInput = forwardRef<
-      HTMLInputElement,
-      SpyInputProps & { forwardRef?: React.Ref<HTMLInputElement> }
-    >(({ value, onChange, onBlur, name, forwardRef, ...props }) => {
+    // §20 delivers `forwardRef` as a prop; no React `forwardRef()` wrap needed.
+    const SpyInput = ({
+      value,
+      onChange,
+      onBlur,
+      name,
+      forwardRef,
+      ...props
+    }: SpyInputProps & { forwardRef?: React.Ref<HTMLInputElement> }) => {
       renderSpy(name);
       return (
         <input
@@ -864,7 +880,7 @@ describe("Render Function Children Pattern (ROOT CAUSE TEST)", () => {
           {...props}
         />
       );
-    });
+    };
     SpyInput.displayName = "SpyInput";
 
     const spyInputs = {

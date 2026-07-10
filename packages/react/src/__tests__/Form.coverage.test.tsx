@@ -11,7 +11,7 @@
 // cadence, userEvent.type with { delay: null }).
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { forwardRef, type MutableRefObject, type Ref } from "react";
+import { type MutableRefObject, type Ref } from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Form } from "../components/Form";
@@ -32,10 +32,16 @@ interface TestInputProps {
   [key: string]: unknown;
 }
 
-const TestInput = forwardRef<
-  HTMLInputElement,
-  TestInputProps & { forwardRef?: Ref<HTMLInputElement> }
->(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+// §20 delivers `forwardRef` as a prop, so the React `forwardRef()` wrap is
+// unnecessary (and would warn about an unused ref param). Plain components:
+const TestInput = ({
+  value,
+  onChange,
+  disabled,
+  name,
+  forwardRef,
+  ...props
+}: TestInputProps & { forwardRef?: Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     data-testid={name}
@@ -44,7 +50,7 @@ const TestInput = forwardRef<
     disabled={disabled}
     {...props}
   />
-));
+);
 TestInput.displayName = "TestInput";
 
 interface TestSwitchProps {
@@ -55,10 +61,14 @@ interface TestSwitchProps {
   [key: string]: unknown;
 }
 
-const TestSwitch = forwardRef<
-  HTMLInputElement,
-  TestSwitchProps & { forwardRef?: Ref<HTMLInputElement> }
->(({ value, onChange, disabled, name, forwardRef, ...props }) => (
+const TestSwitch = ({
+  value,
+  onChange,
+  disabled,
+  name,
+  forwardRef,
+  ...props
+}: TestSwitchProps & { forwardRef?: Ref<HTMLInputElement> }) => (
   <input
     ref={forwardRef}
     type="checkbox"
@@ -68,7 +78,7 @@ const TestSwitch = forwardRef<
     disabled={disabled}
     {...props}
   />
-));
+);
 TestSwitch.displayName = "TestSwitch";
 
 const testInputs: Record<string, InputConfig> = {
