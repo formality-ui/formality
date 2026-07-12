@@ -99,7 +99,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "Minor Issues — Debounce API Correctness & Test Hygiene",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Fix the two Minor-severity issues: (3) DebouncedFunction.pending() must reflect the real scheduled state instead of always returning false, and (4) forwardRef render-function warnings in the test suite must be eliminated by replacing unnecessary React.forwardRef() wraps with plain function components.",
           "tasks": [
             {
@@ -149,14 +149,14 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Eliminate forwardRef render-function warnings in the test suite (Issue 4)",
-              "status": "Ready",
+              "status": "Complete",
               "description": "The shared test input components used forwardRef<...>(({ value, onChange, name, forwardRef, ... }) => ...) and ignored the second 'ref' parameter, consuming forwardRef from props per the §20 pattern. This triggers React's 'forwardRef render functions accept exactly two parameters' warning. Fix by dropping the unnecessary forwardRef() wrap in test components (the §20 contract delivers forwardRef as a prop) or by accepting the ref parameter.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Replace forwardRef-wrapped test input components with plain function components",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 4'. The affected test files use shared TestInput/TestSwitch components wrapped in React.forwardRef() but consume forwardRef from props (per §20.4 option A) and ignore the second 'ref' parameter. This triggers: 'Warning: forwardRef render functions accept exactly two parameters: props and ref. Did you forget to use the ref parameter?' The fix: convert these test components from `const TestInput = forwardRef<T, P>(({ value, onChange, forwardRef, ... }) => ...)` to plain function components: `const TestInput = ({ value, onChange, forwardRef, ... }: P & { forwardRef?: React.Ref<T> }) => ...`. The §20 contract delivers the RHF ref as the `forwardRef` prop, so the React.forwardRef() wrap is unnecessary in tests. Files to check and fix: Field.test.tsx (TestInput, TestSwitch), autosave-validation.test.tsx, autosave-field-debounce.test.tsx, autosave-rapid-changes.test.tsx, autosave-async-timing.test.tsx, autosave-submit-immediate.test.tsx, Form.coverage.test.tsx. NOTE: Some test files legitimately use forwardRef<T>((props, ref) => ...) AND wire the ref — those are fine (FormalityProvider.test.tsx, useFormState.test.tsx, priorityOrder.simple.test.tsx, Field.subscriptionStability.test.tsx). Only fix components that IGNORE the ref parameter.\n2. INPUT: All test files in packages/react/src/__tests__/ that define input components.\n3. LOGIC: For each affected test file: (a) identify the TestInput/TestSwitch component, (b) if it uses React.forwardRef() and ignores the second ref parameter (consuming forwardRef from props instead), convert it to a plain function component with forwardRef as a typed prop, (c) ensure the component still wires ref={forwardRef} on the inner DOM element, (d) add a comment explaining §20.4 option A. (e) Run npx vitest run and verify NO 'forwardRef render functions accept exactly two parameters' warnings appear in stderr.\n4. OUTPUT: Zero forwardRef warnings in test output. All test input components that consume forwardRef from props are plain function components. All tests still pass.\n5. DOCS: none — no user-facing/config/API surface change. Test-only hygiene fix.",
@@ -188,7 +188,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Update packages/react/README.md with auto-save API accuracy",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",
