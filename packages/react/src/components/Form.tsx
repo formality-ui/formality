@@ -656,6 +656,10 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
     // the timer (and canceling any pending save) when executeAutoSave's
     // identity changes. The cache therefore stays valid for the field's
     // lifetime — no teardown/rebuild needed.
+    //
+    // Built via wrapDebounced so this per-field timer reports a correct
+    // pending() (autosave Issue 3) — the cache therefore also stays
+    // pending-accurate for its whole lifetime.
     const fn = wrapDebounced(() => {
       executeAutoSaveRef.current?.();
     }, ms);
