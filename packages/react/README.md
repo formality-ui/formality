@@ -135,7 +135,7 @@ Form container with React Hook Form integration.
 | `record` | `Record<string, any>` | Initial values |
 | `onSubmit` | `(values) => void` | Submit handler |
 | `autoSave` | `boolean` | Enable auto-save |
-| `debounce` | `number` | Debounce delay (ms) |
+| `debounce` | `number \| false` | Auto-save debounce delay (ms); `false` submits immediately (no timer). Defaults to `1000` |
 
 **Render API:**
 | Property | Type | Description |
@@ -293,6 +293,78 @@ Enable automatic form submission on changes:
 </Form>
 ```
 
+The Form-level `debounce` prop (`number | false`, default `1000`) sets the
+default cadence for every field. `false` submits immediately on every change;
+a number delays the save until that many milliseconds elapse without a change.
+
+### Per-field debounce overrides
+
+Each input type can override the auto-save cadence via
+`InputConfig.debounce: number | false | undefined`. When unset, the field falls
+back to the Form-level `debounce` prop.
+
+```tsx
+const inputs: Record<string, InputConfig> = {
+  // switch saves IMMEDIATELY on toggle (no timer):
+  switch: { component: Switch, defaultValue: false, debounce: false },
+  // textField waits 2s after typing stops:
+  textField: { component: TextField, defaultValue: "", debounce: 2000 },
+  // select waits 0.5s:
+  select: { component: Select, defaultValue: "", debounce: 500 },
+  // numberField is unset → falls back to the Form-level `debounce` prop:
+  numberField: { component: NumberField, defaultValue: 0 },
+};
+```
+
+The routing, transcribed from `Form.tsx` (`changeField`):
+
+| `InputConfig.debounce` | Behavior                                     |
+| ---------------------- | -------------------------------------------- |
+| `false`                | Submit immediately (no debounce timer).      |
+| `<number>`             | A per-field timer at that ms interval.       |
+| `undefined`            | Fall back to the Form-level `debounce` prop. |
+
+**Coalescing by interval.** Per-field numeric timers are keyed by their **ms
+interval**, not by field name. Fields that share the same numeric debounce
+coalesce into a **single** timer; all of their pending changes accumulate in a
+shared set and are captured together when that timer fires. Fields with
+different numeric debounces each get their own timer and fire on their own
+cadence.
+
+### Flushing pending saves: `submitImmediate()`
+
+`submitImmediate()` flushes any pending auto-save **immediately** — both the
+per-field numeric timers and the Form-level timer. It is a **no-op** when
+nothing is pending (no spurious empty save), cancels any trailing timers so
+they cannot race this flush, and runs the save pipeline **exactly once**.
+
+`submitImmediate` lives on the form's context value — access it via
+[`useFormContext()`](#useformcontext), **not** the `<Form>` render-prop API:
+
+```tsx
+function SaveNowButton() {
+  const { submitImmediate } = useFormContext();
+  return <button onClick={() => submitImmediate()}>Save Now</button>;
+}
+```
+
+### The debounced submit handle (`cancel` / `flush` / `pending`)
+
+`useFormContext()` also exposes `debouncedSubmit`, a `DebouncedFunction` with
+the standard debounced-handle contract:
+
+| Member              | Behavior                                        |
+| ------------------- | ----------------------------------------------- |
+| `debouncedSubmit()` | Schedule the debounced invocation.              |
+| `.cancel()`         | Cancel any pending invocation.                  |
+| `.flush()`          | Immediately execute any pending invocation.     |
+| `.pending()`        | `true` if an invocation is currently scheduled. |
+
+`.pending()` is **reliable** — it tracks the real scheduled state on both the
+Form-level and per-field debouncers (the earlier "always returns `false`" bug
+has been fixed). For most UI needs prefer `submitImmediate()`: it covers both
+timer sources and the cancel-race, so you do not have to manage them yourself.
+
 ## Hooks
 
 ### useFormContext
@@ -308,6 +380,14 @@ function CustomComponent() {
   // ...
 }
 ```
+
+Two auto-save handles are available on the context value (see
+[Auto-Save](#auto-save) for the full semantics):
+
+| Member            | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `submitImmediate` | Flush pending auto-save immediately (both timer sources).        |
+| `debouncedSubmit` | The `DebouncedFunction` handle (`cancel` / `flush` / `pending`). |
 
 ### useConditions
 
