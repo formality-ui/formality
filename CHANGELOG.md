@@ -1,3 +1,11 @@
+## [0.2.3](https://github.com/formality-ui/formality/compare/v0.2.2...v0.2.3) (2026-07-12)
+
+
+### Bug Fixes
+
+* honor disabled from props-merge layers ([f0c7bb3](https://github.com/formality-ui/formality/commit/f0c7bb3821e429c3123f742fde26a562f7f8afc7))
+* **react:** flush per-field debounce saves in submitImmediate; fix pending() ([0dca79a](https://github.com/formality-ui/formality/commit/0dca79a98b8008ecb445293d35d42fe2b6f90a48))
+
 ## [0.2.2](https://github.com/formality-ui/formality/compare/v0.2.1...v0.2.2) (2026-07-10)
 
 
