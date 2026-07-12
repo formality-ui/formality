@@ -6,6 +6,7 @@ import type {
   ValidationResult,
   ValidatorSpec,
   ValidatorFunction,
+  ValidatorFactory,
   ValidatorsConfig,
 } from "../types";
 
@@ -38,6 +39,18 @@ function runSingleValidator(
 /**
  * Resolve a named validator from the validators config
  *
+ * Supports both shapes allowed by {@link ValidatorsConfig}:
+ * - A direct {@link ValidatorFunction} (called with `value` + `formValues`).
+ * - A {@link ValidatorFactory} (`(...args) => ValidatorFunction`) — e.g.
+ *   `validators.minLength`. When referenced **by name** (e.g.
+ *   `validator: "minLength"`), PRD §10.2 documents calling the factory with
+ *   no arguments to obtain the inner validator.
+ *
+ * Detection: a factory, invoked with no arguments, returns a function; a
+ * plain validator returns a `ValidationResult` (`true | false | string |
+ * undefined | object`). We probe with `undefined, {}` (matching the
+ * `ValidatorFunction(value, formValues)` arity) and check the return type.
+ *
  * @param name - Validator name
  * @param validators - Named validators config
  * @returns The validator function or undefined if not found
@@ -49,10 +62,24 @@ function resolveNamedValidator(
   const validator = validators[name];
 
   if (typeof validator === "function") {
-    // Check if it's a factory (takes args and returns a function)
-    // We detect this by checking if calling with no args returns a function
-    // For simple validators, they return ValidationResult directly
-    // This is a best-effort heuristic
+    // Distinguish a factory from a plain validator. A factory invoked with
+    // the validator call signature returns another function; a plain
+    // validator returns a ValidationResult primitive/object.
+    //
+    // Wrap in try/catch: a plain validator that assumes a non-undefined value
+    // (e.g. `value.length`) would throw when probed with `undefined`, which
+    // we interpret as "not a factory".
+    let probe: unknown;
+    try {
+      probe = validator(undefined, {});
+    } catch {
+      return validator as ValidatorFunction;
+    }
+    if (typeof probe === "function") {
+      // It's a factory referenced by name — materialize the inner validator
+      // by calling the factory with no arguments (PRD §10.2 by-name path).
+      return (validator as ValidatorFactory)() as ValidatorFunction;
+    }
     return validator as ValidatorFunction;
   }
 

@@ -3098,7 +3098,7 @@ validator: ['required', validators.minLength(5)]
 | ----------------------------------- | ------- | -------------------------------- |
 | `true`                              | Valid   | None                             |
 | `undefined`                         | Valid   | None                             |
-| `false`                             | Invalid | "Invalid"                        |
+| `false`                             | Invalid | "Invalid value"                  |
 | `string`                            | Invalid | Use string directly              |
 | `{ type: string }`                  | Invalid | Look up in `errorMessages[type]` |
 | `{ type: string, message: string }` | Invalid | Use provided message             |
@@ -3117,7 +3117,7 @@ function resolveErrorMessage(
 
   // Invalid without specific message
   if (result === false) {
-    return "Invalid";
+    return "Invalid value";
   }
 
   // String message
@@ -3132,7 +3132,7 @@ function resolveErrorMessage(
   }
 
   // Fallback
-  return "Invalid";
+  return "Invalid value";
 }
 ```
 
@@ -4273,7 +4273,7 @@ When no explicit label is provided, generate one from the field name:
  * humanizeLabel("minGrossMarginPercent") → "Min Gross Margin Percent"
  * humanizeLabel("CCIP/CCOP") → "CCIP/CCOP"
  * humanizeLabel("firstName") → "First Name"
- * humanizeLabel("HTMLParser") → "HTML Parser"
+ * humanizeLabel("HTMLParser") → "Html Parser"
  */
 function humanizeLabel(fieldName: string): string {
   // Handle special characters (preserve as-is)

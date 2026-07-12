@@ -142,10 +142,12 @@ export function defineInputs<T extends Record<string, ReactInputConfig>>(
  * `<Field>` renders your input component via React Hook Form's `<Controller>`.
  * At runtime Formality merges a `coreProps` bundle onto the component (name,
  * value, onChange, onBlur, and — as a React-special key — `ref`). The three
- * members below are the **injected-props contract**: `formState` reaches
- * templates and render-prop children; `state` (subscribed field state) and a
- * top-level `forwardRef` key are delivered at runtime by `<Field>` (see
- * "Runtime delivery" below).
+ * members below are the **injected-props contract**: `formState` always
+ * reaches templates and render-prop children, and reaches plain components
+ * that have opted into Formality state via `provideState` /
+ * `passSubscriptions`; `state` (subscribed field state) and a top-level
+ * `forwardRef` key are delivered at runtime by `<Field>` (see "Runtime
+ * delivery" below).
  *
  * **Destructure before forwarding.** Component authors MUST destructure
  * `state`, `formState`, and `forwardRef` OUT of props before spreading the

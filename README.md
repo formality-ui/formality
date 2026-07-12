@@ -343,6 +343,14 @@ conditions: [
 > Note also that `is` short-circuits matcher evaluation — `truthy` is never
 > consulted once `is` is present.
 
+> **⚠️ `isDisabled` limitation (React adapter)** — cross-field `isDisabled`
+> matching is currently non-functional in the React adapter because the
+> disabled-state map is intentionally excluded from reactive subscriptions
+> to avoid circular re-render loops. See
+> [`packages/react/KNOWN_ISSUES.md`](packages/react/KNOWN_ISSUES.md) for
+> details and workarounds (value-based conditions, an explicit `disabled`
+> prop, or `selectProps: { disabled: '...' }`).
+
 ---
 
 ## Derived Values (`set` and `selectSet`)

@@ -13,6 +13,7 @@ import {
 } from "react";
 import {
   Controller,
+  useWatch,
   type ControllerFieldState,
   type UseFormStateReturn,
   type FieldValues,
@@ -35,7 +36,8 @@ import { useConditions } from "../hooks/useConditions";
 import { usePropsEvaluation } from "../hooks/usePropsEvaluation";
 import { useInferredInputs } from "../hooks/useInferredInputs";
 import { useSubscriptions } from "../hooks/useSubscriptions";
-import type { WatcherSetterFn } from "../types";
+import { makeProxyState } from "../utils/makeProxyState";
+import type { CustomFieldState, WatcherSetterFn } from "../types";
 
 /**
  * Field component props.
@@ -388,6 +390,63 @@ export function Field<TName extends string = string>({
     return resolveLabel(name, fieldConfig, fieldSelectProps, restProps);
   }, [name, fieldConfig, fieldSelectProps, restProps]);
 
+  // === STATE INJECTION (provideState / passSubscriptions) ===
+  //
+  // FieldConfig.provideState injects the OWN field's state (value, isTouched,
+  // isDirty, invalid, error) under the configured prop name (default 'state').
+  // FieldConfig.passSubscriptions injects the SUBSCRIBED fields' states under
+  // a prop name (default 'state', override via passSubscriptionsAs). Both are
+  // documented in PRD §3.2 / §5.3 / Appendix A and exercised by
+  // examples/07-advanced-features.tsx.
+  //
+  // `provideState` reads from the Controller's fieldState (available in the
+  // render callback below); `passSubscriptions` watches the inferred
+  // subscriptions here so the component re-renders when they change.
+  const passSubscriptionsEnabled = fieldConfig.passSubscriptions === true;
+  const provideStateEnabled = fieldConfig.provideState === true;
+
+  // Watch subscribed field values for passSubscriptions (only when enabled to
+  // avoid unnecessary subscriptions).
+  const subscribedWatchNames = useMemo(
+    () =>
+      passSubscriptionsEnabled && allSubscriptions.length > 0
+        ? allSubscriptions
+        : [],
+    [passSubscriptionsEnabled, allSubscriptions],
+  );
+  const subscribedValues = useWatch({
+    control: methods.control,
+    name: subscribedWatchNames.length > 0 ? (subscribedWatchNames as any) : [],
+  });
+
+  // Build the subscribed-state map (Record<name, CustomFieldState>).
+  const subscribedState = useMemo(() => {
+    if (!passSubscriptionsEnabled || subscribedWatchNames.length === 0) {
+      return undefined;
+    }
+    const result: Record<string, CustomFieldState> = {};
+    const values: unknown[] = Array.isArray(subscribedValues)
+      ? subscribedValues
+      : [subscribedValues];
+    subscribedWatchNames.forEach((fieldName, i) => {
+      const fs = methods.getFieldState(fieldName as any);
+      result[fieldName] = makeProxyState({
+        value: values[i],
+        isTouched: fs.isTouched,
+        isDirty: fs.isDirty,
+        isValidating: fs.isValidating,
+        error: fs.error as CustomFieldState["error"],
+        invalid: fs.invalid,
+      });
+    });
+    return result;
+  }, [
+    passSubscriptionsEnabled,
+    subscribedWatchNames,
+    subscribedValues,
+    methods,
+  ]);
+
   // === VALIDATION ===
 
   const validationRules = useMemo(() => {
@@ -486,6 +545,45 @@ export function Field<TName extends string = string>({
           providerConfig.formatters,
         );
 
+        // === STATE INJECTION (provideState / passSubscriptions) ===
+        //
+        // Inject field/subscribed state under the configured prop name. This
+        // is delivered through `coreProps` so it reaches the plain-component,
+        // template, and render-prop paths uniformly (PRD §3.2 / §5.3).
+        //
+        // `formState` (PRD §C.4 / T3.1) is delivered to the plain-component
+        // path ONLY when the component has opted into Formality state via
+        // `provideState` or `passSubscriptions`. This satisfies the
+        // FormalityFieldComponentProps contract (where the component author has
+        // already agreed to destructure Formality-injected props) while
+        // avoiding leaking `formState` onto the DOM for ordinary components
+        // that spread props onto a host element. Templates and render-prop
+        // children always receive `formState` (below).
+        const stateInjection: Record<string, unknown> = {};
+        if (provideStateEnabled) {
+          stateInjection[providerConfig.defaultSubscriptionPropName] =
+            makeProxyState({
+              value: field.value,
+              isTouched: fieldState.isTouched,
+              isDirty: fieldState.isDirty,
+              isValidating: fieldState.isValidating,
+              error: fieldState.error as CustomFieldState["error"],
+              invalid: fieldState.invalid,
+            });
+        }
+        if (passSubscriptionsEnabled && subscribedState) {
+          const subsPropName =
+            fieldConfig.passSubscriptionsAs ??
+            providerConfig.defaultSubscriptionPropName;
+          stateInjection[subsPropName] = subscribedState;
+        }
+        // Issue 6: deliver formState to plain components that have opted into
+        // Formality state injection, so the FormalityFieldComponentProps type
+        // contract holds for those components (PRD §C.4 / T3.1).
+        if (provideStateEnabled || passSubscriptionsEnabled) {
+          stateInjection.formState = formState;
+        }
+
         // Merge props (8 layers)
         const finalProps = mergeFieldProps({
           providerDefaultFieldProps: providerConfig.defaultFieldProps,
@@ -505,6 +603,7 @@ export function Field<TName extends string = string>({
             onChange: handleChange(field.onChange),
             onBlur: field.onBlur,
             forwardRef: field.ref,
+            ...stateInjection,
           },
         });
 
@@ -552,14 +651,31 @@ export function Field<TName extends string = string>({
         } else if (isHostComponent) {
           // Host-element path: translate `forwardRef` back into React's special
           // `ref` key (see block comment above) so the bare fallback input still
-          // wires RHF's ref callback and supports focus-on-error. Cast to a
-          // host tag — `isHostComponent` guarantees `inputConfig.component` is a
+          // wires RHF's ref callback and supports focus-on-error. Also strip
+          // the Formality-injected non-DOM props (formState, state, and the
+          // configured subscriptions prop name) so they don't leak to the DOM
+          // as spurious attributes — mirrors the forwardRef handling. Cast to a
+          // host tag; `isHostComponent` guarantees `inputConfig.component` is a
           // string here, and React's JSX for intrinsic elements accepts `ref`.
-          const { forwardRef: hostRef, ...restHostProps } =
-            finalProps as Record<string, unknown>;
+          const subsPropName =
+            fieldConfig.passSubscriptionsAs ??
+            providerConfig.defaultSubscriptionPropName;
+          const strippedHostProps: Record<string, unknown> = {};
+          const nonDomKeys = new Set([
+            "forwardRef",
+            "formState",
+            "state",
+            subsPropName,
+          ]);
+          for (const [key, value] of Object.entries(finalProps)) {
+            if (!nonDomKeys.has(key)) {
+              strippedHostProps[key] = value;
+            }
+          }
           renderedField = createElement(inputConfig.component as string, {
-            ...restHostProps,
-            ref: hostRef as Ref<HTMLElement>,
+            ...strippedHostProps,
+            ref: (finalProps as Record<string, unknown>)
+              .forwardRef as Ref<HTMLElement>,
           });
         } else {
           // Component path: forwardRef-exclusive per PRD §20.4.

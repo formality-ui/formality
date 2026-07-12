@@ -167,6 +167,82 @@ describe("Conditions", () => {
       ).toBe(42);
     });
 
+    it("should invoke function-based selectWhen (PRD §7.4 / §8.4)", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          selectWhen: ({ fields }) =>
+            (fields.client?.value as { tier?: string } | undefined)?.tier ===
+            "premium",
+          disabled: true,
+        },
+      ];
+
+      // premium client → disabled
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { client: { tier: "premium" } },
+        }).disabled,
+      ).toBe(true);
+
+      // non-premium client → not disabled
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: { client: { tier: "free" } },
+        }).disabled,
+      ).toBeUndefined();
+    });
+
+    it("should invoke function-based selectSet (PRD §7.4 / §8.4)", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          selectWhen: "firstName || lastName",
+          selectSet: ({ fields }) => {
+            const first = (fields.firstName?.value as string) ?? "";
+            const last = (fields.lastName?.value as string) ?? "";
+            return `${first} ${last}`.trim();
+          },
+        },
+      ];
+
+      // Function returns a derived value (NOT the function object itself)
+      const result = evaluateConditions({
+        conditions,
+        fieldValues: { firstName: "Ada", lastName: "Lovelace" },
+      });
+
+      expect(result.hasSetCondition).toBe(true);
+      expect(typeof result.setValue).toBe("string");
+      expect(result.setValue).toBe("Ada Lovelace");
+    });
+
+    it("should pass record into function-based selectWhen", () => {
+      const conditions: ConditionDescriptor[] = [
+        {
+          selectWhen: ({ record }) =>
+            (record as { isAdmin?: boolean }).isAdmin === true,
+          visible: true,
+        },
+      ];
+
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: {},
+          record: { isAdmin: true },
+        }).visible,
+      ).toBe(true);
+
+      expect(
+        evaluateConditions({
+          conditions,
+          fieldValues: {},
+          record: { isAdmin: false },
+        }).visible,
+      ).toBeUndefined();
+    });
+
     it("should handle is matcher", () => {
       const conditions: ConditionDescriptor[] = [
         { when: "status", is: "active", visible: true },

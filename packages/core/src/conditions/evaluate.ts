@@ -7,6 +7,7 @@ import type {
   ConditionResult,
   FieldMatcher,
 } from "../types";
+import type { FormState, FieldState, FieldError } from "../types";
 import { evaluate, evaluateDescriptor } from "../expression/evaluate";
 import {
   buildEvaluationContext,
@@ -45,6 +46,48 @@ export interface EvaluateConditionsInput {
 
   /** Additional props for expression context */
   props?: Record<string, unknown>;
+}
+
+/**
+ * Build a minimal FormState for invoking function-based conditions/select values.
+ *
+ * Function-based `selectWhen`/`selectSet`/`selectProps` callbacks (PRD §7.4 /
+ * §8.4) receive a {@link FormState}. Core's condition evaluator only has raw
+ * `fieldValues` and optional `fieldStates`, so this helper assembles a
+ * FormState-shaped object that exposes `fields.<name>.{value,isTouched,...}`
+ * and `record` — enough for the documented function contracts. Framework
+ * adapters do not need to re-implement this.
+ */
+function buildFormStateFromInput(
+  fieldValues: Record<string, unknown>,
+  fieldStates?: Record<string, FieldStateInput>,
+  record?: Record<string, unknown>,
+): FormState {
+  const fields: Record<string, FieldState> = {};
+  for (const [name, value] of Object.entries(fieldValues)) {
+    const state = fieldStates?.[name];
+    fields[name] = {
+      value,
+      isTouched: state?.isTouched ?? false,
+      isDirty: state?.isDirty ?? false,
+      isValidating: state?.isValidating ?? false,
+      error: state?.error as FieldError | undefined,
+      invalid: state?.invalid ?? false,
+      disabled: state?.disabled,
+    };
+  }
+  return {
+    fields,
+    record: record ?? {},
+    errors: {},
+    defaultValues: {},
+    touchedFields: {},
+    dirtyFields: {},
+    isDirty: false,
+    isTouched: false,
+    isValid: true,
+    isSubmitting: false,
+  };
 }
 
 /**
@@ -223,9 +266,17 @@ function evaluateConditionMatch(
     if (typeof condition.selectWhen === "string") {
       triggerValue = evaluate(condition.selectWhen, context);
     } else if (typeof condition.selectWhen === "function") {
-      // Functions are evaluated by the framework adapter
-      // Core returns the function as-is for the adapter to call
-      return false; // Framework adapter handles this case
+      // Function-based conditions (PRD §7.4 / §8.4). Core has all the state
+      // it needs (fieldValues, fieldStates, record, props) to build a
+      // FormState and invoke the function directly, so framework adapters do
+      // not need to special-case this path. `context` already carries the
+      // record built by buildEvaluationContext.
+      const ctxRecord =
+        (context.record as Record<string, unknown> | undefined) ?? undefined;
+      triggerValue = condition.selectWhen(
+        buildFormStateFromInput(fieldValues, fieldStates, ctxRecord),
+        undefined,
+      );
     } else {
       // Object/array descriptor
       triggerValue = evaluateDescriptor(condition.selectWhen, context);
@@ -365,9 +416,13 @@ export function evaluateConditions(
         // Unwrap proxy to get raw value for setting
         setValue = unwrapFieldProxy(evaluate(condition.selectSet, context));
       } else if (typeof condition.selectSet === "function") {
-        // Function must be handled by framework adapter
-        // Store the function for the adapter to call
-        setValue = condition.selectSet;
+        // Function-based conditions (PRD §7.4 / §8.4). Invoke directly with a
+        // FormState built from the available field state so framework
+        // adapters can apply the resulting value as-is.
+        setValue = condition.selectSet(
+          buildFormStateFromInput(fieldValues, fieldStates, record),
+          undefined,
+        );
       } else {
         // Unwrap proxy to get raw value for setting
         setValue = unwrapFieldProxy(
