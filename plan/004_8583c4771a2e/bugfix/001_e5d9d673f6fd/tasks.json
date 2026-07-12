@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Major Issues — Auto-Save Flush Correctness & Repository Hygiene",
-          "status": "Planned",
+          "status": "Ready",
           "description": "Fix the two Major-severity issues: (1) submitImmediate must flush per-field debounce timers, not just the Form-level debouncer; (2) committed main must be green with no diagnostic scratch files, and the isDisabled React limitation must be tracked as a known issue rather than only in skip comments.",
           "tasks": [
             {
@@ -58,14 +58,14 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Restore green CI — remove diagnostic probes and track isDisabled limitation (Issue 2)",
-              "status": "Planned",
+              "status": "Ready",
               "description": "The committed main branch HEAD (8e3fd4c) contained 4 failing isDisabled tests and 2 diagnostic scratch files (_tmp_isdisabled_probe*.test.tsx). The minimum hygiene fix: remove the probe files, skip the failing tests with KNOWN LIMITATION comments explaining why the isDisabled React adapter limitation exists, and track the limitation as a known issue in a project-level document (not just in skip comments). The root cause is documented in useFieldDisabledState.ts:126-145 where fieldStates is intentionally built WITHOUT the disabled property to avoid circular dependencies.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Remove diagnostic probe files and skip failing isDisabled tests with documentation",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 2'. Two probe files exist at HEAD 8e3fd4c: packages/react/src/__tests__/_tmp_isdisabled_probe.test.tsx and _tmp_isdisabled_probe2.test.tsx. These are exploratory PROBE: test files that must not be in version control. Additionally, Field.test.tsx at HEAD 8e3fd4c has 5 active isDisabled tests, 4 of which fail. The failing tests are in describe blocks 'Conditions disabled priority' and 'two-field isDisabled conditions'. The root cause: useFieldDisabledState.ts:126-145 builds fieldStates WITHOUT the 'disabled' property (comment: 'CRITICAL: Do NOT add disabled to fieldStates (creates circular dependency)'). The core evaluate.ts:84-87 checks fieldState?.disabled for the isDisabled matcher, which is always undefined in the React adapter. The 5 affected tests should be changed to it.skip(...) with KNOWN LIMITATION comments explaining: (1) the isDisabled field-state condition matcher is implemented in core but doesn't work in the React adapter, (2) config-level/JSX-prop disabled states are not propagated into fieldStates, (3) adding disabled to fieldStates creates circular re-render dependencies.\n2. INPUT: Field.test.tsx with the isDisabled test sections (around lines 945-1400). The probe files _tmp_isdisabled_probe*.test.tsx.\n3. LOGIC: (a) Delete _tmp_isdisabled_probe.test.tsx and _tmp_isdisabled_probe2.test.tsx (git rm). (b) Change the 5 failing isDisabled tests from it(...) to it.skip(...) with multi-line KNOWN LIMITATION comments documenting: why the test fails, the root cause (disabled not in fieldStates), the circular dependency risk if it were added, and that this is a known React-adapter limitation tracked in the known issues doc. (c) Run npx vitest run to confirm all remaining tests pass with 0 failures (only intentional skips).\n4. OUTPUT: Test suite is green (0 failed). The 5 isDisabled tests are it.skip with explanatory comments. No probe files exist in the repo. Git status is clean.\n5. DOCS: [Mode A] The KNOWN LIMITATION comments in Field.test.tsx serve as inline documentation. Additionally, the limitation must be tracked in a project-level known-issues document (see P1.M1.T2.S2). This rides WITH the work.",
@@ -79,7 +79,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
                   "title": "Track the isDisabled React-adapter limitation as a known issue in project documentation",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S1"
@@ -113,7 +113,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Implement explicit pending() tracking in wrapDebounced helper",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1"
