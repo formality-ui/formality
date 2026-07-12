@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Bug Fix — Auto-Save Integration & Repository Hygiene",
-      "status": "Researching",
+      "status": "Complete",
       "description": "End-to-end fix of four issues found during P1 auto-save validation: (1) submitImmediate does not flush per-field numeric debounce saves (Major), (2) committed main HEAD has red test suite + diagnostic probe files (Major), (3) DebouncedFunction.pending() always returns false (Minor), (4) forwardRef render-function warnings in test suite (Minor). The fixes span the debounce adapter code in Form.tsx, the React test suite, and repository hygiene. Architecture findings are stored in plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md.",
       "milestones": [
         {
@@ -174,14 +174,14 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "Changeset-Level Documentation Sync",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Sweep all changeset-level documentation (README, CHANGELOG, known-issues) to ensure they accurately reflect the auto-save bug fixes. This is the Mode-B catch-all that prevents a coherent delta from shipping with stale docs.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Sync changeset-level documentation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update README.md and CHANGELOG to reflect the auto-save fixes: submitImmediate now flushes per-field debounce, pending() reports correct state, and the isDisabled limitation is tracked. Review examples/06-auto-save.tsx for any stale claims.",
               "subtasks": [
                 {
@@ -209,7 +209,7 @@
                   "type": "Subtask",
                   "id": "P1.M3.T1.S2",
                   "title": "Update packages/react/CHANGELOG.md with fix summary",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",
