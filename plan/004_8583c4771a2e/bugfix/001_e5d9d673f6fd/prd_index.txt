@@ -1,0 +1,12 @@
+h1.0 Bug Fix Requirements
+ h2.0 Overview
+ h2.1 Critical Issues (Must Fix)
+ h2.2 Major Issues (Should Fix)
+  h3.0 Issue 1: submitImmediate() does not flush pending per-field numeric debounce saves
+  h3.1 Issue 2: Committed main HEAD (8e3fd4c) has a red test suite + committed diagnostic scratch files
+ h2.3 Minor Issues (Nice to Fix)
+  h3.2 Issue 3: DebouncedFunction.pending() always returns false for both Form-level and per-field debouncers
+  h3.3 Issue 4: forwardRef render-function warnings in the test suite
+ h2.4 Testing Summary
+---
+code:4 para:28 list:10 table:1

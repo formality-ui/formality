@@ -1,0 +1,175 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Bug Fix — Auto-Save Integration & Repository Hygiene",
+      "status": "Researching",
+      "description": "End-to-end fix of four issues found during P1 auto-save validation: (1) submitImmediate does not flush per-field numeric debounce saves (Major), (2) committed main HEAD has red test suite + diagnostic probe files (Major), (3) DebouncedFunction.pending() always returns false (Minor), (4) forwardRef render-function warnings in test suite (Minor). The fixes span the debounce adapter code in Form.tsx, the React test suite, and repository hygiene. Architecture findings are stored in plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Major Issues — Auto-Save Flush Correctness & Repository Hygiene",
+          "status": "Planned",
+          "description": "Fix the two Major-severity issues: (1) submitImmediate must flush per-field debounce timers, not just the Form-level debouncer; (2) committed main must be green with no diagnostic scratch files, and the isDisabled React limitation must be tracked as a known issue rather than only in skip comments.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Fix submitImmediate to flush per-field debounce timers (Issue 1)",
+              "status": "Planned",
+              "description": "submitImmediate() is the public FormContext API to 'Execute pending debounced submit immediately'. After per-field numeric debounce was added, 'pending debounced submit' includes per-field timers in fieldDebouncersRef. A consumer who edits a per-field-debounced field and calls submitImmediate() must have that save flushed. The fix must flush BOTH form-level and per-field timers as a single coalesced save, avoiding the execution-version-abort race where a trailing timer fires after the flush and bumps executionVersionRef, aborting the flushed save.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Implement per-field debouncer flush in submitImmediate",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.0", "h2.2", "h3.0"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 1' and 'Auto-Save Architecture'. The submitImmediate function is at Form.tsx:722. fieldDebouncersRef is at Form.tsx:225 (Map<number, DebouncedFunction>). pendingChangedFields is at Form.tsx:215 (Set<string>). The PRD's suggested fix (naive forEach flush) is INSUFFICIENT because flushing two timers naively would run executeAutoSave twice — the empty second invocation bumps executionVersionRef and aborts the real first one (dropped save). The correct approach: (a) detect any pending timer via debouncedSubmitRef.current?.pending() || [...fieldDebouncersRef.current.values()].some(fn => fn.pending()), (b) cancel ALL timers (debouncedSubmitRef.current?.cancel() + fieldDebouncersRef.current.forEach(fn => fn.cancel())) so trailing callbacks can't race the flush, (c) run executeAutoSave exactly once via executeAutoSaveRef.current?.(). If no timer is pending, return early (no-op) to avoid a spurious empty save.\n2. INPUT: The current submitImmediate at Form.tsx:722-743. The DebouncedFunction interface from types.ts:117-123 (provides cancel/flush/pending). The fieldDebouncersRef at Form.tsx:225. The executeAutoSaveRef ref. Note: this subtask depends on wrapDebounced (Issue 3 fix, P1.M2.T1.S1) being present for pending() to work correctly — BUT submitImmediate can use an alternative detection approach if pending() is still broken. The architecture-correct ordering is: implement wrapDebounced FIRST (P1.M2.T1.S1), then this subtask. However, since the current code already has both fixes, verify the existing implementation matches this contract.\n3. LOGIC: Modify submitImmediate in Form.tsx to: (1) check pending state across all debouncers, (2) early-return if nothing pending, (3) cancel all timers, (4) invoke executeAutoSave once. The PRD's repro table: Form-level debounce={3000} + 500ms elapsed → 1 submit after submitImmediate (works today). Per-field inputConfig={{ debounce: 3000 }} + 500ms elapsed → must now be 1 submit (was 0 before fix).\n4. OUTPUT: submitImmediate correctly flushes all pending auto-save timers (form-level + per-field) as a single coalesced save. No double-submit, no version-abort race, no spurious empty save when idle.\n5. DOCS: [Mode A] The submitImmediate function's inline comment in Form.tsx must explain WHY it cancels-then-invokes rather than naive flushing (to prevent the executionVersionRef race). No README change needed — submitImmediate's public contract ('Execute pending debounced submit immediately') is unchanged; this fix makes the implementation match the documented contract. This rides WITH the work, do not create a separate docs subtask."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Add regression tests for submitImmediate flush behavior",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "prd_selectors": ["h2.0", "h2.2", "h3.0", "h2.4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Testing Patterns' and 'Issue 1'. The test file is packages/react/src/__tests__/autosave-submit-immediate.test.tsx. It uses the ContextCapture pattern: a null-rendering component that stashes useFormContext() onto a ref for direct API invocation. All auto-save tests use vi.useFakeTimers({ shouldAdvanceTime: true }) in beforeEach and vi.useRealTimers() in afterEach. Test input components are PLAIN function components consuming forwardRef from props (NOT React.forwardRef() wrapped — see Issue 4). Use userEvent.type(field, 'x', { delay: null }) wrapped in act() for input, and vi.advanceTimersByTimeAsync(ms) wrapped in act() for timer advancement.\n2. INPUT: The fixed submitImmediate from P1.M1.T1.S1. The base test harness from autosave-submit-immediate.test.tsx (TestInput component, ContextCapture, FormalityProvider + Form + Field setup).\n3. LOGIC: Add a describe block 'AutoSave submitImmediate flushes per-field debounce (Issue 1)' with these exact test scenarios (mirroring the PRD repro table at h3.0):\n   (a) 'should flush a pending Form-level debounce save immediately' — Form debounce={3000}, type into fieldA, advance 500ms (no submit yet), call ctx.submitImmediate(), advance 0ms → assert 1 submit with { fieldA: 'x' }. (Baseline: form-level flush works.)\n   (b) 'should flush a pending per-field numeric debounce save immediately (Issue 1 repro)' — Form debounce={500}, Field inputConfig={{ debounce: 3000 }}, type into fieldA, advance 500ms (no submit yet — correct, field timer is 3000ms), call ctx.submitImmediate(), advance 0ms → assert 1 submit with { fieldA: 'x' }. Then advance 3000ms → assert STILL 1 submit (no double-fire from the canceled field timer).\n   (c) 'should flush both a Form-level and a per-field pending save as a single submit (no double, no drop)' — Form debounce={2000}, fieldA uses Form-level, fieldB has inputConfig={{ debounce: 3000 }}. Type into both within same tick, advance 500ms (no submit), call submitImmediate(), advance 0ms → assert exactly 1 submit with { fieldA: 'a', fieldB: 'b' }. Then advance 3500ms → assert STILL 1 submit.\n   (d) 'should be a no-op when nothing is pending (no spurious empty save)' — No edit yet, call submitImmediate(), advance 0ms → assert 0 submits.\n4. OUTPUT: All 4 tests pass. The test file autosave-submit-immediate.test.tsx contains the Issue 1 regression suite. Tests use the project's standard fake-timer + ContextCapture patterns.\n5. DOCS: none — no user-facing/config/API surface change. Test-only additions."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M1.T2",
+              "title": "Restore green CI — remove diagnostic probes and track isDisabled limitation (Issue 2)",
+              "status": "Planned",
+              "description": "The committed main branch HEAD (8e3fd4c) contained 4 failing isDisabled tests and 2 diagnostic scratch files (_tmp_isdisabled_probe*.test.tsx). The minimum hygiene fix: remove the probe files, skip the failing tests with KNOWN LIMITATION comments explaining why the isDisabled React adapter limitation exists, and track the limitation as a known issue in a project-level document (not just in skip comments). The root cause is documented in useFieldDisabledState.ts:126-145 where fieldStates is intentionally built WITHOUT the disabled property to avoid circular dependencies.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S1",
+                  "title": "Remove diagnostic probe files and skip failing isDisabled tests with documentation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.0", "h2.2", "h3.1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 2'. Two probe files exist at HEAD 8e3fd4c: packages/react/src/__tests__/_tmp_isdisabled_probe.test.tsx and _tmp_isdisabled_probe2.test.tsx. These are exploratory PROBE: test files that must not be in version control. Additionally, Field.test.tsx at HEAD 8e3fd4c has 5 active isDisabled tests, 4 of which fail. The failing tests are in describe blocks 'Conditions disabled priority' and 'two-field isDisabled conditions'. The root cause: useFieldDisabledState.ts:126-145 builds fieldStates WITHOUT the 'disabled' property (comment: 'CRITICAL: Do NOT add disabled to fieldStates (creates circular dependency)'). The core evaluate.ts:84-87 checks fieldState?.disabled for the isDisabled matcher, which is always undefined in the React adapter. The 5 affected tests should be changed to it.skip(...) with KNOWN LIMITATION comments explaining: (1) the isDisabled field-state condition matcher is implemented in core but doesn't work in the React adapter, (2) config-level/JSX-prop disabled states are not propagated into fieldStates, (3) adding disabled to fieldStates creates circular re-render dependencies.\n2. INPUT: Field.test.tsx with the isDisabled test sections (around lines 945-1400). The probe files _tmp_isdisabled_probe*.test.tsx.\n3. LOGIC: (a) Delete _tmp_isdisabled_probe.test.tsx and _tmp_isdisabled_probe2.test.tsx (git rm). (b) Change the 5 failing isDisabled tests from it(...) to it.skip(...) with multi-line KNOWN LIMITATION comments documenting: why the test fails, the root cause (disabled not in fieldStates), the circular dependency risk if it were added, and that this is a known React-adapter limitation tracked in the known issues doc. (c) Run npx vitest run to confirm all remaining tests pass with 0 failures (only intentional skips).\n4. OUTPUT: Test suite is green (0 failed). The 5 isDisabled tests are it.skip with explanatory comments. No probe files exist in the repo. Git status is clean.\n5. DOCS: [Mode A] The KNOWN LIMITATION comments in Field.test.tsx serve as inline documentation. Additionally, the limitation must be tracked in a project-level known-issues document (see P1.M1.T2.S2). This rides WITH the work."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T2.S2",
+                  "title": "Track the isDisabled React-adapter limitation as a known issue in project documentation",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T2.S1"],
+                  "prd_selectors": ["h2.0", "h2.2", "h3.1"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 2'. The PRD states: 'decide whether the isDisabled React limitation is tracked as a known issue elsewhere (not just in skip comments).' Currently the limitation is ONLY documented in it.skip comments in Field.test.tsx. The root cause is in useFieldDisabledState.ts:126-145 where fieldStates is built without 'disabled' to prevent circular re-render dependencies. The core packages/core/src/conditions/evaluate.ts:84-87 fully supports isDisabled, but the React adapter cannot propagate disabled state into fieldStates without creating infinite re-render loops (field A disabled state depends on field B disabled state which depends on field A...). The potential full fix (optional, not required for this task) would need a non-reactive disabled-state registry that breaks the circular dependency — but that is out of scope for this bugfix.\n2. INPUT: The skip comments from P1.M1.T2.S1 documenting the limitation.\n3. LOGIC: Create a KNOWN_ISSUES.md file (or add a section to the existing README) at packages/react/KNOWN_ISSUES.md documenting: (a) Title: 'isDisabled field-state condition matcher not functional in React adapter', (b) Symptom: conditions using { isDisabled: true } do not evaluate correctly because fieldStates intentionally omits the disabled property, (c) Root cause: useFieldDisabledState.ts builds fieldStates without disabled to prevent circular re-render dependencies, (d) Workaround: use value-based conditions ({ when: 'source', is: 'disable' }) or explicit disabled props instead of isDisabled, (e) Potential future fix: a non-reactive disabled-state registry, (f) Reference: Field.test.tsx skip comments for specific test cases.\n4. OUTPUT: A KNOWN_ISSUES.md file exists at packages/react/KNOWN_ISSUES.md with a clear, actionable description of the limitation. Developers and users can find it without reading test skip comments.\n5. DOCS: [Mode A] This subtask IS the documentation — creating KNOWN_ISSUES.md is the deliverable. Update packages/react/README.md to add a 'Known Issues' section linking to KNOWN_ISSUES.md if a README section is warranted."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "Minor Issues — Debounce API Correctness & Test Hygiene",
+          "status": "Planned",
+          "description": "Fix the two Minor-severity issues: (3) DebouncedFunction.pending() must reflect the real scheduled state instead of always returning false, and (4) forwardRef render-function warnings in the test suite must be eliminated by replacing unnecessary React.forwardRef() wraps with plain function components.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Fix DebouncedFunction.pending() to track real scheduled state (Issue 3)",
+              "status": "Planned",
+              "description": "Both the Form-level debounced submit and the per-field debounce cache hardcode pending: () => false, violating the DebouncedFunction contract. The lodash debounce fn's .pending() is shadowed by the wrapper's Object.assign. Fix by tracking pending state explicitly in a wrapDebounced helper that sets isPending=true on invocation and clears it on trailing fire/flush/cancel.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Implement explicit pending() tracking in wrapDebounced helper",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "prd_selectors": ["h2.0", "h2.3", "h3.2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 3' and external_deps.md § 'lodash-es debounce'. The DebouncedFunction interface is at types.ts:117-123. The issue: lodash's debounce DOES expose .pending(), but the project wraps the lodash fn via Object.assign(() => {...}, { cancel, flush, pending }) creating a NEW function object that does NOT share lodash's internal pending state. The fix: create a wrapDebounced(callback, ms) helper function in Form.tsx that: (a) tracks isPending as a closure variable, (b) sets isPending=true when the wrapper function is called, (c) sets isPending=false inside the lodash trailing invocation, inside cancel(), and inside flush(), (d) returns pending: () => isPending. This helper replaces the inline Object.assign in BOTH getOrCreateDebounced (Form.tsx:650) and debouncedSubmit (Form.tsx:689, the normal debounce path only — NOT the immediate adapter where debounce===false). The immediate adapter correctly keeps pending: () => false (an immediate function is never pending).\n2. INPUT: The DebouncedFunction interface from types.ts:117-123. The current getOrCreateDebounced at Form.tsx:650-668 and debouncedSubmit useMemo at Form.tsx:689-704. The lodash debounce import.\n3. LOGIC: (a) Define wrapDebounced(callback: () => void, ms: number): DebouncedFunction as a module-level function in Form.tsx. It creates a lodash debounce internally, wraps it with an isPending flag, and returns a DebouncedFunction with correct cancel/flush/pending. (b) Update getOrCreateDebounced to use wrapDebounced instead of inline Object.assign. (c) Update the debouncedSubmit useMemo's normal-debounce branch to use wrapDebounced. (d) Leave the immediate adapter (debounce===false) unchanged — its pending: () => false is correct. NOTE: this subtask MUST be done before or alongside P1.M1.T1.S1 because submitImmediate's pending-check depends on wrapDebounced's pending() being correct.\n4. OUTPUT: All DebouncedFunction instances (form-level + per-field) report accurate pending state. The immediate adapter correctly reports never-pending. The wrapDebounced helper is reusable and well-documented.\n5. DOCS: [Mode A] Add a JSDoc comment on wrapDebounced explaining: (1) why lodash's pending is shadowed by Object.assign, (2) the explicit isPending tracking approach, (3) reference to autosave Issue 3. Update the inline comments in getOrCreateDebounced and debouncedSubmit to reference wrapDebounced. This rides WITH the work."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S2",
+                  "title": "Add regression tests for DebouncedFunction.pending() state transitions",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P1.M2.T1.S1", "P1.M1.T1.S2"],
+                  "prd_selectors": ["h2.0", "h2.3", "h3.2", "h2.4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 3' and 'Testing Patterns'. The test file is packages/react/src/__tests__/autosave-submit-immediate.test.tsx — the SAME file as Issue 1 tests (P1.M1.T1.S2). The pending() tests access the public debouncedSubmit via ctx.debouncedSubmit (from FormContextValue). Tests use the same fake-timer + ContextCapture patterns.\n2. INPUT: The fixed wrapDebounced from P1.M2.T1.S1. The test file from P1.M1.T1.S2 (must exist first to avoid file creation conflicts).\n3. LOGIC: Add a describe block 'AutoSave DebouncedFunction.pending() reflects real state (Issue 3)' with these test scenarios:\n   (a) 'debouncedSubmit.pending() should be true while a Form-level save is scheduled and false after it fires' — render with debounce={500}, assert pending()===false initially, type into field, assert pending()===true, advance 600ms, assert pending()===false.\n   (b) 'debouncedSubmit.pending() should be false after cancel() clears a scheduled save' — type into field, assert pending()===true, call debounced.cancel(), assert pending()===false, advance 1000ms, assert submitHandler NOT called.\n   (c) 'debouncedSubmit.flush() should fire a pending numeric-debounce save immediately' — type into field with debounce={500}, assert pending()===true, call debounced.flush(), assert pending()===false, advance 0ms, assert 1 submit. Then advance 1000ms, assert STILL 1 submit (no double).\n   (d) 'the immediate (debounce: false) adapter is never pending' — render with debounce={false}, type into field, advance 0ms, assert pending()===false.\n4. OUTPUT: All 4 tests pass. The pending() regression suite lives alongside the Issue 1 tests in autosave-submit-immediate.test.tsx.\n5. DOCS: none — no user-facing/config/API surface change. Test-only additions."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Eliminate forwardRef render-function warnings in the test suite (Issue 4)",
+              "status": "Planned",
+              "description": "The shared test input components used forwardRef<...>(({ value, onChange, name, forwardRef, ... }) => ...) and ignored the second 'ref' parameter, consuming forwardRef from props per the §20 pattern. This triggers React's 'forwardRef render functions accept exactly two parameters' warning. Fix by dropping the unnecessary forwardRef() wrap in test components (the §20 contract delivers forwardRef as a prop) or by accepting the ref parameter.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Replace forwardRef-wrapped test input components with plain function components",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.0", "h2.3", "h3.3"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md § 'Issue 4'. The affected test files use shared TestInput/TestSwitch components wrapped in React.forwardRef() but consume forwardRef from props (per §20.4 option A) and ignore the second 'ref' parameter. This triggers: 'Warning: forwardRef render functions accept exactly two parameters: props and ref. Did you forget to use the ref parameter?' The fix: convert these test components from `const TestInput = forwardRef<T, P>(({ value, onChange, forwardRef, ... }) => ...)` to plain function components: `const TestInput = ({ value, onChange, forwardRef, ... }: P & { forwardRef?: React.Ref<T> }) => ...`. The §20 contract delivers the RHF ref as the `forwardRef` prop, so the React.forwardRef() wrap is unnecessary in tests. Files to check and fix: Field.test.tsx (TestInput, TestSwitch), autosave-validation.test.tsx, autosave-field-debounce.test.tsx, autosave-rapid-changes.test.tsx, autosave-async-timing.test.tsx, autosave-submit-immediate.test.tsx, Form.coverage.test.tsx. NOTE: Some test files legitimately use forwardRef<T>((props, ref) => ...) AND wire the ref — those are fine (FormalityProvider.test.tsx, useFormState.test.tsx, priorityOrder.simple.test.tsx, Field.subscriptionStability.test.tsx). Only fix components that IGNORE the ref parameter.\n2. INPUT: All test files in packages/react/src/__tests__/ that define input components.\n3. LOGIC: For each affected test file: (a) identify the TestInput/TestSwitch component, (b) if it uses React.forwardRef() and ignores the second ref parameter (consuming forwardRef from props instead), convert it to a plain function component with forwardRef as a typed prop, (c) ensure the component still wires ref={forwardRef} on the inner DOM element, (d) add a comment explaining §20.4 option A. (e) Run npx vitest run and verify NO 'forwardRef render functions accept exactly two parameters' warnings appear in stderr.\n4. OUTPUT: Zero forwardRef warnings in test output. All test input components that consume forwardRef from props are plain function components. All tests still pass.\n5. DOCS: none — no user-facing/config/API surface change. Test-only hygiene fix."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M3",
+          "title": "Changeset-Level Documentation Sync",
+          "status": "Planned",
+          "description": "Sweep all changeset-level documentation (README, CHANGELOG, known-issues) to ensure they accurately reflect the auto-save bug fixes. This is the Mode-B catch-all that prevents a coherent delta from shipping with stale docs.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M3.T1",
+              "title": "Sync changeset-level documentation",
+              "status": "Planned",
+              "description": "Update README.md and CHANGELOG to reflect the auto-save fixes: submitImmediate now flushes per-field debounce, pending() reports correct state, and the isDisabled limitation is tracked. Review examples/06-auto-save.tsx for any stale claims.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S1",
+                  "title": "Update packages/react/README.md with auto-save API accuracy",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1", "P1.M1.T1.S2", "P1.M1.T2.S1", "P1.M1.T2.S2", "P1.M2.T1.S1", "P1.M2.T1.S2", "P1.M2.T2.S1"],
+                  "prd_selectors": ["h2.0", "h2.4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md. The README at packages/react/README.md documents the Form component props (line ~137: autoSave, debounce) and the render API (line ~306: submitImmediate). The current README does NOT document: (a) per-field debounce via inputConfig.debounce, (b) the submitImmediate method's flush semantics, (c) the DebouncedFunction.pending() method, (d) the known isDisabled limitation. The README's auto-save section (lines ~280-310) shows a basic example with autoSave and debounce={2000} but doesn't explain per-field overrides or submitImmediate. The CHANGELOG at packages/react/CHANGELOG.md currently only shows the initial 0.1.0 release.\n2. INPUT: All implemented fixes from P1.M1.T1, P1.M1.T2, P1.M2.T1, P1.M2.T2. The KNOWN_ISSUES.md from P1.M1.T2.S2.\n3. LOGIC: (a) In packages/react/README.md: add a note in the auto-save section about per-field debounce overrides (inputConfig.debounce: number | false | undefined), document submitImmediate in the render API table as 'Flush pending auto-save immediately', add a 'Known Issues' section linking to KNOWN_ISSUES.md for the isDisabled limitation. (b) Do NOT change the existing scoped-validation description in Example 4 — the PRD confirmed the doc sweep (P1.M1.T2 from the previous round) is correct. (c) Review examples/06-auto-save.tsx Example 4 to confirm it still accurately describes scoped validation — the PRD says it was already fixed.\n4. OUTPUT: README.md accurately documents the auto-save API surface including per-field debounce and submitImmediate. A Known Issues section links to KNOWN_ISSUES.md.\n5. DOCS: [Mode B] This IS the changeset-level documentation task. It sweeps README.md for the entire changeset."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S2",
+                  "title": "Update packages/react/CHANGELOG.md with fix summary",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S1", "P1.M1.T2.S1", "P1.M2.T1.S1", "P1.M2.T2.S1"],
+                  "prd_selectors": ["h2.0", "h2.4"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: See plan/004_8583c4771a2e/bugfix/001_e5d9d673f6fd/architecture/system_context.md. The CHANGELOG at packages/react/CHANGELOG.md currently shows only the initial 0.1.0 release with no patch entries. It uses the Changesets format (### Patch Changes / ### Minor Changes with commit hashes).\n2. INPUT: All implemented fixes from P1.M1.T1, P1.M1.T2, P1.M2.T1, P1.M2.T2.\n3. LOGIC: Add a patch entry to packages/react/CHANGELOG.md summarizing the four fixes: (1) submitImmediate now flushes per-field numeric debounce saves (previously dropped silently), (2) DebouncedFunction.pending() now reports accurate scheduled state, (3) removed diagnostic probe files and documented isDisabled React-adapter limitation, (4) eliminated forwardRef render-function warnings in test suite. Use the Changesets changelog format with brief descriptions. Reference the issue numbers from the PRD.\n4. OUTPUT: CHANGELOG.md has a new patch entry documenting all four fixes.\n5. DOCS: [Mode B] This IS the changeset-level documentation task. It updates CHANGELOG.md for the entire changeset."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
