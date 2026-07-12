@@ -106,7 +106,7 @@
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Fix DebouncedFunction.pending() to track real scheduled state (Issue 3)",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Both the Form-level debounced submit and the per-field debounce cache hardcode pending: () => false, violating the DebouncedFunction contract. The lodash debounce fn's .pending() is shadowed by the wrapper's Object.assign. Fix by tracking pending state explicitly in a wrapDebounced helper that sets isPending=true on invocation and clears it on trailing fire/flush/cancel.",
               "subtasks": [
                 {
@@ -129,7 +129,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S2",
                   "title": "Add regression tests for DebouncedFunction.pending() state transitions",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 2,
                   "dependencies": [
                     "P1.M2.T1.S1",
