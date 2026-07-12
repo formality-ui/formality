@@ -655,6 +655,15 @@ All other code — `packages/core/**`, `packages/react/**`, and any future
 adapter with a real implementation — is in scope and must clear 90%. See
 `vitest.config.ts` for the exact configuration.
 
+## Known Issues
+
+- **`isDisabled` condition matcher (React adapter)** — conditions using the
+  `isDisabled` field-state matcher do not currently evaluate correctly in the
+  React adapter because the `fieldStates` map intentionally omits the
+  `disabled` property (to avoid circular re-render dependencies). See
+  [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md) for the symptom, root cause, and a
+  value-based workaround.
+
 ## License
 
 MIT

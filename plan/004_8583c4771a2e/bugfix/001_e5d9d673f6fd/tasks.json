@@ -11,7 +11,7 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Major Issues — Auto-Save Flush Correctness & Repository Hygiene",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Fix the two Major-severity issues: (1) submitImmediate must flush per-field debounce timers, not just the Form-level debouncer; (2) committed main must be green with no diagnostic scratch files, and the isDisabled React limitation must be tracked as a known issue rather than only in skip comments.",
           "tasks": [
             {
@@ -58,7 +58,7 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Restore green CI — remove diagnostic probes and track isDisabled limitation (Issue 2)",
-              "status": "Ready",
+              "status": "Complete",
               "description": "The committed main branch HEAD (8e3fd4c) contained 4 failing isDisabled tests and 2 diagnostic scratch files (_tmp_isdisabled_probe*.test.tsx). The minimum hygiene fix: remove the probe files, skip the failing tests with KNOWN LIMITATION comments explaining why the isDisabled React adapter limitation exists, and track the limitation as a known issue in a project-level document (not just in skip comments). The root cause is documented in useFieldDisabledState.ts:126-145 where fieldStates is intentionally built WITHOUT the disabled property to avoid circular dependencies.",
               "subtasks": [
                 {
@@ -79,7 +79,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T2.S2",
                   "title": "Track the isDisabled React-adapter limitation as a known issue in project documentation",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T2.S1"
@@ -113,7 +113,7 @@
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Implement explicit pending() tracking in wrapDebounced helper",
-                  "status": "Researching",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1"
