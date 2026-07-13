@@ -160,14 +160,14 @@
       "type": "Phase",
       "id": "P2",
       "title": "React Package v1.0 Spec Compliance",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Bring @formality-ui/react to full module-contract compliance with PRD §1.3.3 (hook table) and §20.7 (overlay docs). The react package is fully functional (all features implemented, 1003 tests), but has two structural/hygiene gaps: the useField hook (PRD §1.3.3) is implemented inline in Field.tsx rather than as a separate hook, and useFieldDisabledState is orphaned dead code.",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Hook Architecture Reconciliation",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Extract the useField hook from Field.tsx (PRD §1.3.3 requires it as a distinct module) and remove the orphaned useFieldDisabledState hook.",
           "tasks": [
             {
@@ -240,14 +240,14 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Remove orphaned useFieldDisabledState hook",
-              "status": "Ready",
+              "status": "Complete",
               "description": "packages/react/src/hooks/useFieldDisabledState.ts (197 lines) and its test file are dead code — neither exported from index.ts nor used by Field.tsx. Field resolves disabled state inline via useConditions. Remove the dead code to prevent drift.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Remove useFieldDisabledState.ts and its test file",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T1.S3"
@@ -266,21 +266,21 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Overlay & JSDoc Cleanup",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Fix the stale wording in overlays.ts that still references React's special 'ref' key instead of the forwardRef delivery pattern established by §20.",
           "tasks": [
             {
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Fix stale ref/forwardRef wording in overlays.ts",
-              "status": "Planned",
+              "status": "Researching",
               "description": "packages/react/src/overlays.ts lines ~143-145 still describe the coreProps ref member as 'a React-special key — ref'. After §20, Field delivers forwardRef as a regular top-level prop. Update the descriptive paragraph.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Update overlays.ts descriptive paragraph for forwardRef",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T1.S3"

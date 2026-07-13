@@ -42,7 +42,6 @@ const testInputs: Record<string, InputConfig> = {
 };
 
 // Create wrapper with record and config for testing the hook inside <Form>.
-// Reuses the closure pattern from useFieldDisabledState.test.tsx.
 const createWrapper = (
   record: Record<string, unknown> = {},
   config: FormFieldsConfig = {},
