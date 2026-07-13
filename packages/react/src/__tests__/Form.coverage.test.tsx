@@ -635,7 +635,8 @@ describe("Form coverage (P1.M2.T1.S2) — watcher subscription queue", () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    // addSubscription emits a dev-warn on every call; silence it.
+    // Silence any stray warnings defensively (subscription logging was
+    // removed; this spy is kept as a guard).
     warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
@@ -690,10 +691,10 @@ describe("Form coverage (P1.M2.T1.S2) — watcher subscription queue", () => {
 });
 
 // ============================================================================
-// Task 10: removeSubscription dev-warns (covers 256-260)
+// Task 10: removeSubscription is silent (subscription diagnostic logging removed)
 // ============================================================================
 
-describe("Form coverage (P1.M2.T1.S2) — removeSubscription dev-warns", () => {
+describe("Form coverage (P1.M2.T1.S2) — removeSubscription is silent", () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -706,7 +707,7 @@ describe("Form coverage (P1.M2.T1.S2) — removeSubscription dev-warns", () => {
     vi.useRealTimers();
   });
 
-  it("should warn on exists-then-remove and on double-cleanup (covers 256-260)", async () => {
+  it("add/remove/double-remove produce ZERO console output", async () => {
     const ref: MutableRefObject<any> = { current: null };
 
     render(
@@ -728,19 +729,12 @@ describe("Form coverage (P1.M2.T1.S2) — removeSubscription dev-warns", () => {
 
     warnSpy.mockClear();
 
-    // Add then remove → "removed from watching" arm.
+    // Exercise the removeSubscription code path: add, remove, then remove
+    // again (the former "double-cleanup" arm). None of this may log.
     ref.current.addSubscription("a", "b");
     ref.current.removeSubscription("a", "b");
-    expect(
-      warnSpy.mock.calls.some((c) =>
-        /removed from watching/.test(String(c[0])),
-      ),
-    ).toBe(true);
-
-    // Remove again → "Double-cleanup attempt" arm.
     ref.current.removeSubscription("a", "b");
-    expect(
-      warnSpy.mock.calls.some((c) => /Double-cleanup/.test(String(c[0]))),
-    ).toBe(true);
+
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

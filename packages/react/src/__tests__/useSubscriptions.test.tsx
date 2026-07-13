@@ -67,25 +67,8 @@ const createInspectableContext = () => {
   });
 
   const mockRemoveSubscription = vi.fn((target: string, subscriber: string) => {
-    const subscribers = invertedSubscriptions.get(target);
-    const subscriptionExists = subscribers?.has(subscriber) ?? false;
-
-    // Perform removal
+    // Perform removal (mirrors Form.tsx: silent, no diagnostic logging).
     invertedSubscriptions.get(target)?.delete(subscriber);
-
-    // Log removal or warn about double-cleanup (development only)
-    if (process.env.NODE_ENV !== "production") {
-      if (subscriptionExists) {
-        console.warn(
-          `[Formality Subscription] "${subscriber}" removed from watching "${target}"`,
-        );
-      } else {
-        console.warn(
-          `[Formality Subscription] WARNING: Double-cleanup attempt - ` +
-            `"${subscriber}" was not watching "${target}"`,
-        );
-      }
-    }
 
     // Update watcher setter
     const setter = watcherSetters.get(target);
@@ -447,62 +430,21 @@ describe("useSubscriptions", () => {
     });
   });
 
-  describe("development logging", () => {
-    beforeEach(() => {
-      vi.spyOn(console, "warn").mockImplementation(() => {});
-    });
-
+  describe("console output", () => {
+    // PRD requirement: the hook MUST be silent. Subscription diagnostic
+    // logging was removed entirely; this guards against regressions.
     afterEach(() => {
       vi.restoreAllMocks();
     });
 
-    it("should log subscription additions in development", () => {
+    it("produces ZERO console output on mount, rerender, and unmount", () => {
       const wrapper = createWrapper(mockContext);
 
-      renderHook(() => useSubscriptions("fieldA", ["fieldB"]), { wrapper });
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-      expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"',
-      );
-    });
-
-    it("should log multiple subscription additions in development", () => {
-      const wrapper = createWrapper(mockContext);
-
-      renderHook(() => useSubscriptions("fieldA", ["fieldB", "fieldC"]), {
-        wrapper,
-      });
-
-      expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldB"',
-      );
-      expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" subscribing to "fieldC"',
-      );
-    });
-
-    it("should log cleanup operations in development", () => {
-      const wrapper = createWrapper(mockContext);
-
-      const { unmount } = renderHook(
-        () => useSubscriptions("fieldA", ["fieldB", "fieldC"]),
-        { wrapper },
-      );
-
-      // Clear the subscription logs
-      vi.mocked(console.warn).mockClear();
-
-      unmount();
-
-      expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 1: "fieldA" cleaning up [fieldB, fieldC]',
-      );
-    });
-
-    it("should include run ID in logs for correlation", () => {
-      const wrapper = createWrapper(mockContext);
-
-      const { rerender } = renderHook(
+      const { rerender, unmount } = renderHook(
         ({ subscriptions }) => useSubscriptions("fieldA", subscriptions),
         {
           wrapper,
@@ -510,39 +452,12 @@ describe("useSubscriptions", () => {
         },
       );
 
-      // Clear the initial subscription log
-      vi.mocked(console.warn).mockClear();
-
-      // Rerender to trigger a new effect run
       rerender({ subscriptions: ["fieldC"] });
+      unmount();
 
-      expect(console.warn).toHaveBeenCalledWith(
-        '[Formality Subscription] Run 2: "fieldA" subscribing to "fieldC"',
-      );
-    });
-  });
-
-  describe("double-cleanup detection", () => {
-    beforeEach(() => {
-      vi.spyOn(console, "warn").mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    it("should warn about double-cleanup attempts", () => {
-      // Note: This test verifies the double-cleanup detection at the Form level
-      // The useSubscriptions hook itself doesn't directly trigger double-cleanup
-      // because calling unmount() twice doesn't re-invoke the cleanup function
-      // This test documents that the detection is in place at the Form level
-
-      // The double-cleanup detection is implemented in Form.tsx's removeSubscription
-      // It will warn when attempting to remove a subscription that doesn't exist
-      // This can happen in edge cases with complex subscription patterns
-
-      // For this test, we verify that console.warn is being spied on correctly
-      expect(console.warn).toBeDefined();
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(logSpy).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
     });
   });
 

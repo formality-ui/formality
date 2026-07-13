@@ -71,6 +71,11 @@ This document provides complete, unambiguous specifications for every aspect of 
 └─────────────────────────────────────────────────────┘
 ```
 
+**Zero console noise:** Formality writes **nothing** to the host
+application's console during normal form operation (rendering, subscribing,
+validating, parsing, formatting). The subscription system in particular is
+completely silent — see the silence contract in §5.2.2.
+
 ### 1.2 Data Flow Summary
 
 ```
@@ -1672,6 +1677,15 @@ children({
    ```
 
 #### 5.2.2 Subscription Management
+
+**Silence contract:** Subscription registration, cleanup, and the inverted
+index produce **zero console output**. Earlier revisions emitted a
+`[Formality Subscription]` `console.warn` per add/remove (guarded only by
+`process.env.NODE_ENV`), which flooded the console on every form open. That
+diagnostic logging — including the double-cleanup warning — has been removed
+entirely; there is no flag to re-enable it. (Genuine misconfiguration warnings
+elsewhere — e.g. a named validator/parser/formatter not found — remain; see
+§5.3.5 / §10 / §5.4.1.)
 
 **Adding a subscription** (when Field B subscribes to Field A):
 

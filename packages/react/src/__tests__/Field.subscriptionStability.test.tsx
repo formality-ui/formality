@@ -59,7 +59,6 @@ const config = {
   },
 } as const;
 
-const SUBSCRIPTION_LOG = /\[Formality Subscription\]/;
 const MAX_DEPTH = /maximum update depth/i;
 
 describe("Field subscription stability across value changes", () => {
@@ -67,16 +66,24 @@ describe("Field subscription stability across value changes", () => {
     vi.restoreAllMocks();
   });
 
-  it("typing into a watched field does not churn subscriptions or hit max update depth", async () => {
+  it("typing into a watched field stays stable and emits ZERO Formality console output", async () => {
     const user = userEvent.setup();
 
+    // The subscription diagnostic logging that previously let us count churn
+    // was removed (PRD: Formality is silent by default). We instead guard the
+    // original regression directly: no max-update-depth loop, and no Formality
+    // console output of any kind while typing into a watched field.
     const warns: string[] = [];
     const errs: string[] = [];
+    const logs: string[] = [];
     vi.spyOn(console, "warn").mockImplementation((...a: unknown[]) => {
       warns.push(a.map(String).join(" "));
     });
     vi.spyOn(console, "error").mockImplementation((...a: unknown[]) => {
       errs.push(a.map(String).join(" "));
+    });
+    vi.spyOn(console, "log").mockImplementation((...a: unknown[]) => {
+      logs.push(a.map(String).join(" "));
     });
 
     render(
@@ -88,32 +95,28 @@ describe("Field subscription stability across value changes", () => {
       </FormalityProvider>,
     );
 
-    // Let the mount-time registration cascade (Field registers → Form state →
-    // context recompute) and its effects fully settle before we start
-    // measuring. We measure only churn caused by value changes.
+    // Let the mount-time registration cascade settle before measuring.
     await act(async () => {
       await new Promise((r) => setTimeout(r, 20));
     });
 
-    const baseline = warns.filter((m) => SUBSCRIPTION_LOG.test(m)).length;
-    expect(baseline).toBeGreaterThan(0); // sanity: mount registered a watcher
-
     // Mutate the watched field's value several times.
     await user.type(screen.getByTestId("ein"), "12-3456789");
 
-    const churn =
-      warns.filter((m) => SUBSCRIPTION_LOG.test(m)).length - baseline;
+    // The watched field's value updated and the condition still evaluates.
+    expect((screen.getByTestId("ein") as HTMLInputElement).value).toBe(
+      "12-3456789",
+    );
 
-    // 1. No "Maximum update depth exceeded" anywhere.
+    // 1. No "Maximum update depth exceeded" anywhere (the original regression).
     const maxDepthHits =
       errs.filter((m) => MAX_DEPTH.test(m)).length +
       warns.filter((m) => MAX_DEPTH.test(m)).length;
     expect(maxDepthHits).toBe(0);
 
-    // 2. Changing a value is not a subscription change: the subscription
-    //    effect must not re-run on subsequent keystrokes. With the fix this is
-    //    0; before the fix every keystroke re-ran the effect for every field
-    //    (dozens of warnings for a few keystrokes).
-    expect(churn).toBe(0);
+    // 2. PRD requirement: Formality must be silent. No warn/log output while
+    //    mounting and typing through a watched field.
+    expect(warns).toHaveLength(0);
+    expect(logs).toHaveLength(0);
   });
 });
