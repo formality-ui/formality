@@ -62,7 +62,7 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "API Surface Compliance",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Add the PRD §1.3.2 headline named exports that are currently absent: validate(value, rules, validators, formValues) and mergeConfigs(provider, form, field). These are thin wrappers over the existing granular functions (runValidator/composeValidators and resolveInputConfig/mergeFieldProps respectively).",
           "tasks": [
             {
@@ -96,14 +96,14 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Add mergeConfigs() named export to config/merge.ts",
-              "status": "Ready",
+              "status": "Complete",
               "description": "PRD §1.3.2 lists mergeConfigs(provider, form, field) as the headline export of the config/merge module. Currently core exports deepMerge, mergeInputConfigs, resolveInputConfig, mergeFieldProps instead. Add a mergeConfigs() wrapper.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Implement mergeConfigs() wrapper over existing merge functions",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G3, no function named 'mergeConfigs' exists. The config/merge module (packages/core/src/config/merge.ts) exports: deepMerge (generic deep merge), mergeInputConfigs (merges provider/form/field InputConfig overrides), resolveInputConfig (resolves the final InputConfig for a field type), mergeStaticProps (ordered spread merge of 8+ prop layers), mergeFieldProps (the full 8-layer merge used by Field component, PRD §5.3.2/§6.1). createConfigContext builds a ConfigContextValue. PRD §6.1 defines the 8-layer priority order.\n2. INPUT: The existing functions in config/merge.ts and the types from types/config.ts: InputConfig, FieldConfig, FormalityProviderConfig, FormConfig.\n3. LOGIC: Implement mergeConfigs(provider: FormalityProviderConfig, form: FormConfig, field?: FieldConfig): { inputConfig: InputConfig; fieldConfig: FieldConfig } — a high-level wrapper that: (a) merges input type configs via resolveInputConfig using provider.inputs and form.inputs, (b) merges field-level config via mergeFieldProps layers (provider defaultFieldProps → form defaultFieldProps → field config.props). This is a convenience wrapper for the common 3-source merge; the granular functions remain available for advanced use. Export from config/index.ts and root index.ts. Mock: none — pure functions.\n4. OUTPUT: mergeConfigs() exported from @formality-ui/core. New unit tests in config.test.ts covering: provider-only, provider+form, provider+form+field, override priority. Existing tests unaffected.\n5. DOCS: [Mode A] Add JSDoc to mergeConfigs() explaining it is the PRD §1.3.2 headline export and how it relates to resolveInputConfig/mergeFieldProps. New public API export.",
@@ -124,21 +124,21 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "API Signature Documentation",
-          "status": "Planned",
+          "status": "Ready",
           "description": "Document the accepted API signature deviations (G4, G5) where the current implementation is a richer superset of the PRD's simplified signatures. No code changes — documentation only.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Document accepted core API signature deviations",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Add clarifying JSDoc to evaluateConditions, resolveInitialValue, and resolveLabel explaining their actual signatures (which are richer supersets of the PRD's simplified representations) and why the deviations are accepted.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Add deviation documentation to affected core functions",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G4-G5: (a) evaluateConditions(input: EvaluateConditionsInput) takes a single object arg, while PRD §1.3.2 table text says (conditions, state) — but the PRD's own §1.3.2 example code already uses the object-arg form. (b) resolveInitialValue(fieldName, fieldConfig?, inputConfig?, record?, defaultValues?) differs from PRD's (record, config, inputConfig). (c) resolveLabel(fieldName, fieldConfig?, evaluatedSelectProps?, componentProps?) differs from PRD's (config, fieldName). These are richer supersets consumed internally by the react adapter, not by end users.\n2. INPUT: The current function signatures in packages/core/src/conditions/evaluate.ts (evaluateConditions), packages/core/src/config/defaults.ts (resolveInitialValue), packages/core/src/labels/resolve.ts (resolveLabel).\n3. LOGIC: No code logic changes. Add/update JSDoc comments on these three functions explaining: (a) the actual signature, (b) that it is a superset of the PRD simplified form, (c) why the deviation exists (internal API used by react adapter; richer params needed for the priority chain / object-arg pattern). For evaluateConditions specifically, note that the PRD §1.3.2 table text is simplified but the §1.3.2 example code uses the same EvaluateConditionsInput pattern.\n4. OUTPUT: Updated JSDoc on three functions. No behavioral change. All tests still pass.\n5. DOCS: [Mode A] This IS the documentation work — the JSDoc updates are the deliverable.",
@@ -181,7 +181,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Design useField hook interface and type contract",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G6, the useField hook functionality is in Field.tsx lines ~430-702 (Controller render block). This includes: parse/format pipeline (PRD §5.3.5), change handler (§5.3.6), validation integration (§5.3.7), forwardRef delivery (§20.1 at line 605), and template rendering (§5.3.8). The hook uses: Controller and useWatch from react-hook-form; parse/format/runValidator/resolveErrorMessage/mergeFieldProps from core; useFormContext/useConfigContext/useGroupContext for context; useConditions/usePropsEvaluation/useInferredInputs/useSubscriptions for hooks. PRD §1.3.3 says useField uses transform/pipeline and validation/validate.\n2. INPUT: The existing Field.tsx component (702 lines). The hooks it currently composes: useConditions (condition evaluation), usePropsEvaluation (selectProps evaluation), useInferredInputs (dependency inference), useSubscriptions (subscription management). The context hooks: useFormContext, useConfigContext, useGroupContext.\n3. LOGIC: Design the useField hook's input/output contract WITHOUT extracting yet. Define a UseFieldParams interface (name, type, disabled prop, hidden, shouldRegister, rest props, children) and a UseFieldReturn interface (fieldState: ControllerFieldState, renderedField: ReactNode, fieldProps: Record<string, unknown>, watchers: Record<string, boolean>, formState: UseFormStateReturn). Create the file packages/react/src/hooks/useField.ts with just the type definitions and a stub. This is a DESIGN step — the extraction happens in S2. Mock: RHF Controller (the real Controller is used, but we design the hook so it's testable in isolation).\n4. OUTPUT: packages/react/src/hooks/useField.ts with UseFieldParams and UseFieldReturn types defined, exported from the file. No behavioral change yet.\n5. DOCS: [Mode A] Add JSDoc to the useField types explaining they implement PRD §1.3.3's useField module contract.",

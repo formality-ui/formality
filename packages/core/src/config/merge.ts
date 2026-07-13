@@ -256,3 +256,64 @@ export function createConfigContext(
       providerConfig.selectDefaultFieldProps,
   };
 }
+
+/**
+ * Merge provider + form + (optional) field configs into a resolved pair.
+ *
+ * PRD §1.3.2 headline export for the `config/merge` module. This is a
+ * CONVENIENCE WRAPPER for the common 3-source static merge; it composes the
+ * granular functions and delegates all semantics to them:
+ *
+ *  - `inputConfig` = `resolveInputConfig(resolveFieldType(undefined, field),
+ *                    mergeInputConfigs(provider.inputs, form?.inputs))`.
+ *    The field's type is derived from `field?.type` (default "textField").
+ *  - `fieldConfig.props` = `mergeStaticProps(provider.defaultFieldProps,
+ *                    form?.defaultFieldProps, field?.props)` (provider → form →
+ *                    field; later wins). The field's own config (type, label,
+ *                    disabled, …) is preserved via spread.
+ *
+ * STATIC ONLY. This function does NOT evaluate `selectProps` or
+ * `selectDefaultFieldProps` — those dynamic layers require a `FormState`
+ * (expression evaluation) that a pure merge function cannot supply. For the
+ * full evaluated 8-layer pipeline (PRD §5.3.2 / §6.1), use {@link mergeFieldProps}
+ * from within an adapter that has form state.
+ *
+ * The granular functions ({@link mergeInputConfigs}, {@link resolveInputConfig},
+ * {@link mergeStaticProps}, {@link mergeFieldProps}) remain exported for
+ * advanced use.
+ *
+ * @param provider - Provider config (inputs REQUIRED).
+ * @param form     - Optional form config. When omitted, only provider inputs/
+ *                   defaultFieldProps apply (matches {@link createConfigContext}).
+ * @param field    - Optional field config. Its `type` selects the inputConfig;
+ *                   its `props` are the highest-priority static prop layer.
+ * @returns `{ inputConfig, fieldConfig }`. `inputConfig` is `undefined` when the
+ *          resolved type is not registered and no "textField" default exists.
+ */
+export function mergeConfigs(
+  provider: FormalityProviderConfig,
+  form?: FormConfig,
+  field?: FieldConfig,
+): { inputConfig: InputConfig | undefined; fieldConfig: FieldConfig } {
+  // (a) Resolve the InputConfig for the field's type.
+  //     mergeInputConfigs merges provider.inputs + form.inputs (handles fn form),
+  //     resolveFieldType derives the type from the field config (default textField),
+  //     resolveInputConfig picks inputs[type] ?? inputs["textField"].
+  const mergedInputs = mergeInputConfigs(provider.inputs, form?.inputs);
+  const type = resolveFieldType(undefined, field, "textField");
+  const inputConfig = resolveInputConfig(type, mergedInputs);
+
+  // (b) Merge the 3 STATIC field-config prop layers (provider → form → field).
+  //     Dynamic layers (selectProps / selectDefaultFieldProps) require a FormState
+  //     and are NOT merged here — use mergeFieldProps for the full pipeline.
+  const fieldConfig: FieldConfig = {
+    ...field,
+    props: mergeStaticProps(
+      provider.defaultFieldProps,
+      form?.defaultFieldProps,
+      field?.props,
+    ),
+  };
+
+  return { inputConfig, fieldConfig };
+}

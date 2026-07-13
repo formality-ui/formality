@@ -6,6 +6,7 @@ import {
   resolveFieldType,
   mergeStaticProps,
   mergeFieldProps,
+  mergeConfigs,
   createConfigContext,
   resolveInitialValue,
   resolveAllInitialValues,
@@ -16,6 +17,7 @@ import {
 import type {
   InputConfig,
   FieldConfig,
+  FormConfig,
   FormalityProviderConfig,
 } from "../index";
 
@@ -201,6 +203,113 @@ describe("Config Module", () => {
       });
 
       expect(merged.disabled).toBe(false);
+    });
+  });
+
+  // --- PRD §1.3.2 headline export: mergeConfigs() ---
+  // Thin composition wrapper over mergeInputConfigs / resolveFieldType /
+  // resolveInputConfig / mergeStaticProps. Static-only (no FormState).
+  describe("mergeConfigs", () => {
+    it("resolves an inputConfig from provider inputs (provider-only)", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {
+          textField: { component: null, defaultValue: "" } as InputConfig,
+        },
+      };
+
+      const { inputConfig } = mergeConfigs(provider);
+
+      // No form override → identity to the registered textField input.
+      expect(inputConfig).toBe(provider.inputs.textField);
+    });
+
+    it("merges form.inputs overrides over provider.inputs (provider+form)", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {
+          textField: { component: null, defaultValue: "" } as InputConfig,
+        },
+      };
+      const form: FormConfig = {
+        inputs: { textField: { defaultValue: "default" } },
+      };
+
+      const { inputConfig } = mergeConfigs(provider, form);
+
+      expect(inputConfig?.defaultValue).toBe("default");
+      // component preserved from provider (not overridden by form).
+      expect(inputConfig?.component).toBeNull();
+    });
+
+    it("resolves the inputConfig for the field's type (provider+form+field)", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {
+          textField: { component: null, defaultValue: "" } as InputConfig,
+          switch: { component: null, defaultValue: false } as InputConfig,
+        },
+      };
+      const field: FieldConfig = { type: "switch" };
+
+      const { inputConfig } = mergeConfigs(provider, undefined, field);
+
+      // resolveFieldType(undefined, field) === "switch" → resolveInputConfig picks it.
+      expect(inputConfig).toBe(provider.inputs.switch);
+    });
+
+    it("falls back to textField when field.type is unregistered", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {
+          textField: { component: null, defaultValue: "" } as InputConfig,
+        },
+      };
+      const field: FieldConfig = { type: "nope" };
+
+      const { inputConfig } = mergeConfigs(provider, undefined, field);
+
+      // resolveInputConfig(type="nope", ...) → inputs["nope"] ?? inputs["textField"].
+      expect(inputConfig).toBe(provider.inputs.textField);
+    });
+
+    it("merges static field-config props in priority order (override priority)", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: { textField: { component: null, defaultValue: "" } as InputConfig },
+        defaultFieldProps: { disabled: true, label: "P" },
+      };
+      const form: FormConfig = {
+        defaultFieldProps: { disabled: false }, // form beats provider
+      };
+      const field: FieldConfig = {
+        props: { label: "F" }, // field beats both
+      };
+
+      const { fieldConfig } = mergeConfigs(provider, form, field);
+
+      // disabled: form's false wins over provider's true; label: field's "F" wins.
+      expect(fieldConfig.props).toEqual({ disabled: false, label: "F" });
+    });
+
+    it("preserves the field's own config fields (type, label, ...)", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: { textField: { component: null, defaultValue: "" } as InputConfig },
+      };
+      const field: FieldConfig = { type: "switch", label: "On" };
+
+      const { fieldConfig } = mergeConfigs(provider, undefined, field);
+
+      // Spread preserves the field's own config; only .props is the merged result.
+      expect(fieldConfig.type).toBe("switch");
+      expect(fieldConfig.label).toBe("On");
+    });
+
+    it("returns undefined inputConfig when the type is unregistered and no textField default", () => {
+      const provider: FormalityProviderConfig = {
+        inputs: {
+          other: { component: null, defaultValue: "" } as InputConfig,
+        },
+      };
+      // No field.type and no textField registered → resolveInputConfig returns undefined.
+      const { inputConfig } = mergeConfigs(provider);
+
+      expect(inputConfig).toBeUndefined();
     });
   });
 

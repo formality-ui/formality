@@ -1,6 +1,7 @@
 // @formality-ui/core - Config Module Barrel Export
 
 export {
+  mergeConfigs,
   deepMerge,
   mergeInputConfigs,
   resolveInputConfig,

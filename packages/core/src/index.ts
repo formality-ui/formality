@@ -116,6 +116,7 @@ export {
 // Configuration
 // ============================================================================
 export {
+  mergeConfigs,
   deepMerge,
   mergeInputConfigs,
   resolveInputConfig,
