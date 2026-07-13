@@ -1540,6 +1540,21 @@ interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   record?: Partial<TFieldValues>;
   autoSave?: boolean;
   debounce?: number;
+  /**
+   * React Hook Form validation trigger mode, forwarded to `useForm({ mode })`.
+   * One of `'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all'`.
+   * Defaults to `'onChange'`.
+   *
+   * Consumers SHOULD be able to choose their own validation timing (e.g.
+   * `'onBlur'` to validate when a field loses focus). It is honored as-is when
+   * `autoSave` is off.
+   *
+   * CONSTRAINT (§12): when `autoSave` is enabled, the auto-save validity
+   * gates assume changed fields are validated on change, so a non-`'onChange'`
+   * `mode` is COERCED back to `'onChange'` (with a warning in non-production
+   * builds). See §5.2.2 and §11.1 #5.
+   */
+  mode?: 'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all';
   validate?: (
     values: Partial<TFieldValues>,
   ) => ValidationErrors | Promise<ValidationErrors>;
@@ -1632,8 +1647,26 @@ children({
 3. **Initialize React Hook Form**
 
    ```typescript
+   // Resolve the validation mode. The consumer's `mode` prop (default
+   // 'onChange') is honored as-is — EXCEPT when `autoSave` is on: auto-save's
+   // gates assume changed fields are validated on change (§12), so a
+   // non-'onChange' mode is coerced back to 'onChange' with a dev warning.
+   const resolvedMode =
+     autoSave && mode !== 'onChange' ? 'onChange' : (mode ?? 'onChange');
+   if (
+     process.env.NODE_ENV !== 'production' &&
+     autoSave &&
+     mode !== undefined &&
+     mode !== 'onChange'
+   ) {
+     console.warn(
+       `[Formality] mode "${mode}" is incompatible with autoSave and has ` +
+         `been coerced to "onChange" (see PRD §12).`,
+     );
+   }
+
    const methods = useForm({
-     mode: "onChange",
+     mode: resolvedMode,
      defaultValues,
      values: record, // Initial values from record prop
    });
@@ -3456,6 +3489,13 @@ When `autoSave={true}`:
      edit — e.g. editing `notes` while an unrelated required `email` is empty
      still saves `notes`. Whole-form validity is still enforced on a full
      manual submit.
+5. **Requires `mode: 'onChange'` (§5.2 `mode` prop).** Auto-save's validity
+   gates (Gate 1 below) assume a changed field has already been validated by
+   the time the debounced save fires, which only holds under RHF `mode:
+   'onChange'`. Therefore enabling `autoSave` COERCES a non-`'onChange'` `mode`
+   back to `'onChange'` (with a warning in non-production builds). With
+   `autoSave` off the consumer's `mode` is honored unchanged — e.g. `'onBlur'`
+   to validate each field when it loses focus.
 
 ### 11.2 Implementation
 
@@ -3487,6 +3527,11 @@ async function executeAutoSave() {
   const affectedFields = getAffectedFields(changedFields); // dependents via conditions
 
   // Gate 1: a changed field with an onChange error blocks the save.
+  // CORRECTNESS PRECONDITION: this reads a changed field's already-computed
+  // error, which only exists because §5.2 `mode` is 'onChange' while autoSave
+  // is on (the Form component coerces non-'onChange' modes — see §11.1 #5).
+  // Under any other mode a changed field may not be validated yet here, which
+  // is exactly why autoSave forces 'onChange'.
   for (const name of changedFields) {
     if (methods.getFieldState(name).error) return;
   }
@@ -5274,6 +5319,7 @@ interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   record?: Partial<TFieldValues>;
   autoSave?: boolean;
   debounce?: number;
+  mode?: 'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all'; // forwarded to useForm; coerced to 'onChange' when autoSave is on (§5.2, §12)
   validate?: (
     values: Partial<TFieldValues>,
   ) => ValidationErrors | Promise<ValidationErrors>;
