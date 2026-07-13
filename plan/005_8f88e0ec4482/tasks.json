@@ -181,7 +181,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S1",
                   "title": "Design useField hook interface and type contract",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G6, the useField hook functionality is in Field.tsx lines ~430-702 (Controller render block). This includes: parse/format pipeline (PRD §5.3.5), change handler (§5.3.6), validation integration (§5.3.7), forwardRef delivery (§20.1 at line 605), and template rendering (§5.3.8). The hook uses: Controller and useWatch from react-hook-form; parse/format/runValidator/resolveErrorMessage/mergeFieldProps from core; useFormContext/useConfigContext/useGroupContext for context; useConditions/usePropsEvaluation/useInferredInputs/useSubscriptions for hooks. PRD §1.3.3 says useField uses transform/pipeline and validation/validate.\n2. INPUT: The existing Field.tsx component (702 lines). The hooks it currently composes: useConditions (condition evaluation), usePropsEvaluation (selectProps evaluation), useInferredInputs (dependency inference), useSubscriptions (subscription management). The context hooks: useFormContext, useConfigContext, useGroupContext.\n3. LOGIC: Design the useField hook's input/output contract WITHOUT extracting yet. Define a UseFieldParams interface (name, type, disabled prop, hidden, shouldRegister, rest props, children) and a UseFieldReturn interface (fieldState: ControllerFieldState, renderedField: ReactNode, fieldProps: Record<string, unknown>, watchers: Record<string, boolean>, formState: UseFormStateReturn). Create the file packages/react/src/hooks/useField.ts with just the type definitions and a stub. This is a DESIGN step — the extraction happens in S2. Mock: RHF Controller (the real Controller is used, but we design the hook so it's testable in isolation).\n4. OUTPUT: packages/react/src/hooks/useField.ts with UseFieldParams and UseFieldReturn types defined, exported from the file. No behavioral change yet.\n5. DOCS: [Mode A] Add JSDoc to the useField types explaining they implement PRD §1.3.3's useField module contract.",
@@ -200,7 +200,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S2",
                   "title": "Extract Controller integration logic into useField hook",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 2,
                   "dependencies": [
                     "P2.M1.T1.S1"
