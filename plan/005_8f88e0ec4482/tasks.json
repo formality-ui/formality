@@ -1,0 +1,352 @@
+{
+  "backlog": [
+    {
+      "type": "Phase",
+      "id": "P1",
+      "title": "Core Package v1.0 Spec Compliance",
+      "status": "Planned",
+      "description": "Bring @formality-ui/core to full structural and API-surface compliance with PRD §1.3.1 (package structure) and §1.3.2 (module → key-export table). The core package is ~98% complete and framework-independent; the remaining work is reconciling structural deviations (ordering module location) and adding PRD-named headline exports (validate, mergeConfigs) that are currently implemented under different names.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P1.M1",
+          "title": "Module Structure Alignment",
+          "status": "Planned",
+          "description": "Resolve the config/ordering.ts structural deviation. PRD §1.3.1 specifies config/ordering.ts as a distinct module, but ordering functions currently live in labels/resolve.ts. Move them to the PRD-specified location while preserving backwards-compatible barrel re-exports.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M1.T1",
+              "title": "Create config/ordering.ts module and relocate ordering functions",
+              "status": "Planned",
+              "description": "Move sortFieldsByOrder, getUnusedFields, and getOrderedUnusedFields from labels/resolve.ts into a new config/ordering.ts module, update barrel exports, and verify backwards compatibility.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S1",
+                  "title": "Create config/ordering.ts and move ordering functions",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.2", "h3.2", "h4.0", "h2.16", "h3.64", "h4.56", "h3.65"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per plan/005_8f88e0ec4482/architecture/gap_analysis.md gap G1, the ordering functions sortFieldsByOrder, getUnusedFields, and getOrderedUnusedFields currently live in packages/core/src/labels/resolve.ts (lines ~180-213). PRD §1.3.1 specifies they should be in config/ordering.ts. They are exported from labels/index.ts and the root index.ts barrel under 'Labels & Ordering'. The sole consumer is packages/react/src/components/UnusedFields.tsx which imports from the root @formality-ui/core barrel.\n2. INPUT: The existing functions in packages/core/src/labels/resolve.ts — sortFieldsByOrder(fieldNames: string[], fieldConfigs: Record<string, FieldConfig>): string[] (line ~180), getUnusedFields(declaredFieldNames: string[], config: Record<string, unknown>): string[] (line ~198), getOrderedUnusedFields(declaredFieldNames: string[], config: FormFieldsConfig): string[] (line ~213). These use the FieldConfig.order property (PRD §15.14.1.2).\n3. LOGIC: Create packages/core/src/config/ordering.ts. Move the three ordering function implementations (including their imports of FieldConfig/FormFieldsConfig types) from labels/resolve.ts to config/ordering.ts. In labels/resolve.ts, replace the implementations with re-exports from '../config/ordering' to maintain backwards compatibility for any code importing from labels/. Add ordering exports to packages/core/src/config/index.ts barrel. The root index.ts already exports them — verify the re-export chain still resolves (index.ts → labels/index.ts → labels/resolve.ts re-export → config/ordering.ts). Mock: none needed — pure functions with no external deps.\n4. OUTPUT: config/ordering.ts exports sortFieldsByOrder, getUnusedFields, getOrderedUnusedFields. config/index.ts barrel includes them. labels/index.ts re-exports them (backwards compat). All existing tests (labels.test.ts) and consumers (UnusedFields.tsx) still pass.\n5. DOCS: [Mode A] Update JSDoc on the moved functions to reference config/ordering.ts as canonical location. No user-facing/config/API surface change (same exports from root barrel) — the module path is internal."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P1.M1.T1.S2",
+                  "title": "Verify backwards compatibility and full test suite",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P1.M1.T1.S1"],
+                  "prd_selectors": ["h2.2", "h4.6"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: After P1.M1.T1.S1 relocates ordering functions, all imports must still resolve. The root barrel packages/core/src/index.ts exports these under 'Labels & Ordering'. The react package's UnusedFields.tsx imports sortFieldsByOrder from '@formality-ui/core'. The core's framework-independence test (packages/core/src/__tests__/framework-independence.test.ts, 14 tests) must still pass.\n2. INPUT: The relocated functions from P1.M1.T1.S1 in config/ordering.ts and the updated barrel exports.\n3. LOGIC: Run 'pnpm --filter @formality-ui/core build' then 'pnpm --filter @formality-ui/core test' to verify core tests pass (especially labels.test.ts and framework-independence.test.ts). Run 'pnpm --filter @formality-ui/react build && pnpm --filter @formality-ui/react test' to verify the react package (consumer of these functions) still passes. Run 'pnpm typecheck' to verify project references resolve. If any import breaks, fix the re-export chain in labels/index.ts.\n4. OUTPUT: Green test suite (1003+ tests), green typecheck, green builds. No behavioral change.\n5. DOCS: none — no user-facing/config/API surface change."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M2",
+          "title": "API Surface Compliance",
+          "status": "Planned",
+          "description": "Add the PRD §1.3.2 headline named exports that are currently absent: validate(value, rules, validators, formValues) and mergeConfigs(provider, form, field). These are thin wrappers over the existing granular functions (runValidator/composeValidators and resolveInputConfig/mergeFieldProps respectively).",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M2.T1",
+              "title": "Add validate() named export to validation/validate.ts",
+              "status": "Planned",
+              "description": "PRD §1.3.2 lists validate(value, rules, validators, formValues) as the headline export of the validation/validate module. Currently core exports runValidator, runValidatorSync, composeValidators instead. Add a validate() wrapper that composes these.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T1.S1",
+                  "title": "Implement validate() wrapper over existing validator functions",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.2", "h4.1", "h2.11", "h3.35", "h3.36", "h3.37", "h3.38"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G2, no function named 'validate' exists in core. The validation module (packages/core/src/validation/validate.ts) exports runValidator (runs a single ValidatorSpec against a value), runValidatorSync (synchronous variant), isValid, and composeValidators (runs an array of validators sequentially). PRD §10.9.2-9.3 specifies the ValidatorSpec type (string | ValidatorFunction | array) and ValidationResult return values (true/undefined = valid, false/string/object = invalid). The resolveErrorMessage function in validation/messages.ts resolves error messages from ValidationResult.\n2. INPUT: The existing functions in validation/validate.ts: runValidator(validator: ValidatorSpec, value: unknown, formValues?: Record<string, unknown>, validators?: ValidatorsConfig, errorMessages?: ErrorMessagesConfig) and composeValidators. Also the types from types/validation.ts: ValidatorSpec, ValidationResult, ValidatorsConfig, ErrorMessagesConfig.\n3. LOGIC: Implement validate(value: unknown, rules: ValidatorSpec, validators?: ValidatorsConfig, formValues?: Record<string, unknown>): Promise<ValidationResult | undefined> as a thin wrapper that delegates to runValidator/composeValidators. It should: (a) resolve named validators from the validators registry if rules is a string, (b) run the validator(s), (c) return the ValidationResult (the caller resolves error messages via resolveErrorMessage). Follow PRD §9.1 layer order: rules → field validator → type validator (but validate() covers the rules layer only; the field/type layers are handled by Field's Controller rules.validate). Export from validation/index.ts and the root index.ts barrel. Mock: none — pure functions.\n4. OUTPUT: validate() exported from @formality-ui/core. New unit tests in validation.test.ts covering: named validator, inline function, async validator, array of validators, valid/invalid return values. Existing 1003 tests unaffected.\n5. DOCS: [Mode A] Add JSDoc to validate() explaining it is the PRD §1.3.2 headline export and how it relates to runValidator/composeValidators. This is a new public API export."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P1.M2.T2",
+              "title": "Add mergeConfigs() named export to config/merge.ts",
+              "status": "Planned",
+              "description": "PRD §1.3.2 lists mergeConfigs(provider, form, field) as the headline export of the config/merge module. Currently core exports deepMerge, mergeInputConfigs, resolveInputConfig, mergeFieldProps instead. Add a mergeConfigs() wrapper.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M2.T2.S1",
+                  "title": "Implement mergeConfigs() wrapper over existing merge functions",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.2", "h4.1", "h2.8", "h3.21", "h2.18", "h4.30"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G3, no function named 'mergeConfigs' exists. The config/merge module (packages/core/src/config/merge.ts) exports: deepMerge (generic deep merge), mergeInputConfigs (merges provider/form/field InputConfig overrides), resolveInputConfig (resolves the final InputConfig for a field type), mergeStaticProps (ordered spread merge of 8+ prop layers), mergeFieldProps (the full 8-layer merge used by Field component, PRD §5.3.2/§6.1). createConfigContext builds a ConfigContextValue. PRD §6.1 defines the 8-layer priority order.\n2. INPUT: The existing functions in config/merge.ts and the types from types/config.ts: InputConfig, FieldConfig, FormalityProviderConfig, FormConfig.\n3. LOGIC: Implement mergeConfigs(provider: FormalityProviderConfig, form: FormConfig, field?: FieldConfig): { inputConfig: InputConfig; fieldConfig: FieldConfig } — a high-level wrapper that: (a) merges input type configs via resolveInputConfig using provider.inputs and form.inputs, (b) merges field-level config via mergeFieldProps layers (provider defaultFieldProps → form defaultFieldProps → field config.props). This is a convenience wrapper for the common 3-source merge; the granular functions remain available for advanced use. Export from config/index.ts and root index.ts. Mock: none — pure functions.\n4. OUTPUT: mergeConfigs() exported from @formality-ui/core. New unit tests in config.test.ts covering: provider-only, provider+form, provider+form+field, override priority. Existing tests unaffected.\n5. DOCS: [Mode A] Add JSDoc to mergeConfigs() explaining it is the PRD §1.3.2 headline export and how it relates to resolveInputConfig/mergeFieldProps. New public API export."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P1.M3",
+          "title": "API Signature Documentation",
+          "status": "Planned",
+          "description": "Document the accepted API signature deviations (G4, G5) where the current implementation is a richer superset of the PRD's simplified signatures. No code changes — documentation only.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P1.M3.T1",
+              "title": "Document accepted core API signature deviations",
+              "status": "Planned",
+              "description": "Add clarifying JSDoc to evaluateConditions, resolveInitialValue, and resolveLabel explaining their actual signatures (which are richer supersets of the PRD's simplified representations) and why the deviations are accepted.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P1.M3.T1.S1",
+                  "title": "Add deviation documentation to affected core functions",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.2", "h4.1", "h2.8", "h2.9", "h2.17"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G4-G5: (a) evaluateConditions(input: EvaluateConditionsInput) takes a single object arg, while PRD §1.3.2 table text says (conditions, state) — but the PRD's own §1.3.2 example code already uses the object-arg form. (b) resolveInitialValue(fieldName, fieldConfig?, inputConfig?, record?, defaultValues?) differs from PRD's (record, config, inputConfig). (c) resolveLabel(fieldName, fieldConfig?, evaluatedSelectProps?, componentProps?) differs from PRD's (config, fieldName). These are richer supersets consumed internally by the react adapter, not by end users.\n2. INPUT: The current function signatures in packages/core/src/conditions/evaluate.ts (evaluateConditions), packages/core/src/config/defaults.ts (resolveInitialValue), packages/core/src/labels/resolve.ts (resolveLabel).\n3. LOGIC: No code logic changes. Add/update JSDoc comments on these three functions explaining: (a) the actual signature, (b) that it is a superset of the PRD simplified form, (c) why the deviation exists (internal API used by react adapter; richer params needed for the priority chain / object-arg pattern). For evaluateConditions specifically, note that the PRD §1.3.2 table text is simplified but the §1.3.2 example code uses the same EvaluateConditionsInput pattern.\n4. OUTPUT: Updated JSDoc on three functions. No behavioral change. All tests still pass.\n5. DOCS: [Mode A] This IS the documentation work — the JSDoc updates are the deliverable."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P2",
+      "title": "React Package v1.0 Spec Compliance",
+      "status": "Planned",
+      "description": "Bring @formality-ui/react to full module-contract compliance with PRD §1.3.3 (hook table) and §20.7 (overlay docs). The react package is fully functional (all features implemented, 1003 tests), but has two structural/hygiene gaps: the useField hook (PRD §1.3.3) is implemented inline in Field.tsx rather than as a separate hook, and useFieldDisabledState is orphaned dead code.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P2.M1",
+          "title": "Hook Architecture Reconciliation",
+          "status": "Planned",
+          "description": "Extract the useField hook from Field.tsx (PRD §1.3.3 requires it as a distinct module) and remove the orphaned useFieldDisabledState hook.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M1.T1",
+              "title": "Extract useField hook from Field.tsx",
+              "status": "Planned",
+              "description": "PRD §1.3.3 specifies a hooks/useField module for RHF Controller integration. Currently this logic (~270 lines) is inline in Field.tsx's Controller render block. Extract it into a useField hook that Field delegates to, improving testability and module reusability.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S1",
+                  "title": "Design useField hook interface and type contract",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": [],
+                  "prd_selectors": ["h2.2", "h4.2", "h3.18", "h4.29", "h4.30", "h4.33", "h4.34", "h4.35"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G6, the useField hook functionality is in Field.tsx lines ~430-702 (Controller render block). This includes: parse/format pipeline (PRD §5.3.5), change handler (§5.3.6), validation integration (§5.3.7), forwardRef delivery (§20.1 at line 605), and template rendering (§5.3.8). The hook uses: Controller and useWatch from react-hook-form; parse/format/runValidator/resolveErrorMessage/mergeFieldProps from core; useFormContext/useConfigContext/useGroupContext for context; useConditions/usePropsEvaluation/useInferredInputs/useSubscriptions for hooks. PRD §1.3.3 says useField uses transform/pipeline and validation/validate.\n2. INPUT: The existing Field.tsx component (702 lines). The hooks it currently composes: useConditions (condition evaluation), usePropsEvaluation (selectProps evaluation), useInferredInputs (dependency inference), useSubscriptions (subscription management). The context hooks: useFormContext, useConfigContext, useGroupContext.\n3. LOGIC: Design the useField hook's input/output contract WITHOUT extracting yet. Define a UseFieldParams interface (name, type, disabled prop, hidden, shouldRegister, rest props, children) and a UseFieldReturn interface (fieldState: ControllerFieldState, renderedField: ReactNode, fieldProps: Record<string, unknown>, watchers: Record<string, boolean>, formState: UseFormStateReturn). Create the file packages/react/src/hooks/useField.ts with just the type definitions and a stub. This is a DESIGN step — the extraction happens in S2. Mock: RHF Controller (the real Controller is used, but we design the hook so it's testable in isolation).\n4. OUTPUT: packages/react/src/hooks/useField.ts with UseFieldParams and UseFieldReturn types defined, exported from the file. No behavioral change yet.\n5. DOCS: [Mode A] Add JSDoc to the useField types explaining they implement PRD §1.3.3's useField module contract."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S2",
+                  "title": "Extract Controller integration logic into useField hook",
+                  "status": "Planned",
+                  "story_points": 2,
+                  "dependencies": ["P2.M1.T1.S1"],
+                  "prd_selectors": ["h3.18", "h4.29", "h4.30", "h4.33", "h4.34", "h4.35", "h4.36", "h2.21", "h3.95"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The Controller render block in Field.tsx (~lines 430-702) contains the core field logic. Key elements: (a) handleChange callback (Field.tsx ~line 540) that parses value via core parse(), calls controller.field.onChange, notifies via changeField, triggers validation if debounce===false; (b) the Controller render function that merges props via mergeFieldProps (8-layer priority), delivers forwardRef: field.ref (line 605, PRD §20.1), resolves template, handles component vs host-element paths (§20.3/§20.4 forwardRef translation), and supports children render-prop. The disabled state resolution is inline (Field.tsx ~329-362) using useConditions result + groupContext. Condition setValue application is via useEffect (Field.tsx ~259-310) using refs for methods.setValue/getValues to prevent infinite loops (PRD §7.1.1).\n2. INPUT: The UseFieldParams/UseFieldReturn types from P2.M1.T1.S1. The existing inline logic in Field.tsx. The hooks Field already composes (useConditions, usePropsEvaluation, useInferredInputs, useSubscriptions).\n3. LOGIC: Move the Controller integration, handleChange, parse/format pipeline, validation wiring, props merge, template resolution, forwardRef delivery, and condition setValue effect from Field.tsx into useField.ts. Field.tsx becomes a thin wrapper that: (a) calls useField(name, type, props), (b) handles registration (registerField/unregisterField via useEffect), (c) renders the returned renderedField or children render-prop. The hook calls useFormContext/useConfigContext/useGroupContext internally. CRITICAL: preserve the exact forwardRef delivery (§20.1/§20.4) — forwardRef: field.ref as top-level prop for components, translate to ref for host elements. CRITICAL: preserve the setValue effect's ref pattern (PRD §7.1.1) to prevent infinite loops. Mock: RHF Controller (the real Controller is used; no mocking needed since tests render through Field/Form).\n4. OUTPUT: packages/react/src/hooks/useField.ts fully implemented. Field.tsx refactored to delegate to useField. All existing Field tests (Field.test.tsx, Field.forwardRef.test.tsx, FieldForwardRef.acceptance.test.tsx, Field.subscriptionStability.test.tsx) pass without modification. Export useField from index.ts.\n5. DOCS: [Mode A] Add JSDoc to useField explaining it owns the RHF Controller integration per PRD §1.3.3. Note the forwardRef delivery contract (§20). This is a new public export."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T1.S3",
+                  "title": "Verify Field behavioral parity after extraction",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S2"],
+                  "prd_selectors": ["h3.18", "h2.21", "h2.19"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: After P2.M1.T1.S2, Field.tsx delegates to useField. All existing Field tests must pass unchanged to prove behavioral parity. The full test suite includes: Field.test.tsx (basic rendering, props merge, conditions), Field.forwardRef.test.tsx + FieldForwardRef.acceptance.test.tsx (§20 ref delivery), Field.subscriptionStability.test.tsx (no re-render churn), render-isolation.test.tsx (render function children don't cause cross-validation), integration/complete-form.test.tsx (end-to-end). The 1003-test suite is the regression gate.\n2. INPUT: The refactored Field.tsx and useField.ts from P2.M1.T1.S2.\n3. LOGIC: Run the full test suite: 'pnpm test' (expect 1003+ passed, 5 skipped). Run 'pnpm typecheck'. Run 'pnpm test:coverage' (expect >90% all metrics). If any test fails, the extraction introduced a behavioral regression — fix by comparing the extracted logic against the original Field.tsx (git diff). Pay special attention to: forwardRef delivery (host-element vs component path), setValue effect ref pattern, and subscription lifecycle cleanup. Add new tests for useField hook in isolation using renderHook if the existing integration tests don't cover edge cases directly.\n4. OUTPUT: Green test suite, green typecheck, green coverage. useField hook is testable in isolation.\n5. DOCS: none — no user-facing/config/API surface change (Field API is unchanged)."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P2.M1.T2",
+              "title": "Remove orphaned useFieldDisabledState hook",
+              "status": "Planned",
+              "description": "packages/react/src/hooks/useFieldDisabledState.ts (197 lines) and its test file are dead code — neither exported from index.ts nor used by Field.tsx. Field resolves disabled state inline via useConditions. Remove the dead code to prevent drift.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M1.T2.S1",
+                  "title": "Remove useFieldDisabledState.ts and its test file",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M1.T1.S3"],
+                  "prd_selectors": ["h2.2", "h4.2"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G7, packages/react/src/hooks/useFieldDisabledState.ts (197 lines) is implemented and has a test file (useFieldDisabledState.test.tsx) but is: (a) NOT exported from packages/react/src/index.ts, (b) NOT imported by Field.tsx (Field resolves disabled inline at lines 329-362 using useConditions result + groupContext.state.isDisabled, PRD §5.3.4). It is a dead-code precursor to the current inline logic. Dependency: this task depends on P2.M1.T1.S3 because if useField extraction (P2.M1.T1) were to use useFieldDisabledState, removal would be wrong — but the extraction delegates disabled resolution to useConditions, confirming this code is dead.\n2. INPUT: The two files to remove: packages/react/src/hooks/useFieldDisabledState.ts and packages/react/src/__tests__/useFieldDisabledState.test.tsx.\n3. LOGIC: Delete both files. Run 'pnpm --filter @formality-ui/react test' and 'pnpm typecheck' to confirm nothing breaks (grep for any remaining import of useFieldDisabledState across packages/react/src/ — expect zero matches). Verify the coverage gate still passes at >90% (removing tested dead code slightly reduces total lines but the remaining code is well-tested). Mock: none.\n4. OUTPUT: Two files deleted. Green tests, green typecheck, green coverage.\n5. DOCS: none — no user-facing/config/API surface change (was never exported)."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P2.M2",
+          "title": "Overlay & JSDoc Cleanup",
+          "status": "Planned",
+          "description": "Fix the stale wording in overlays.ts that still references React's special 'ref' key instead of the forwardRef delivery pattern established by §20.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P2.M2.T1",
+              "title": "Fix stale ref/forwardRef wording in overlays.ts",
+              "status": "Planned",
+              "description": "packages/react/src/overlays.ts lines ~143-145 still describe the coreProps ref member as 'a React-special key — ref'. After §20, Field delivers forwardRef as a regular top-level prop. Update the descriptive paragraph.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P2.M2.T1.S1",
+                  "title": "Update overlays.ts descriptive paragraph for forwardRef",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P2.M1.T1.S3"],
+                  "prd_selectors": ["h2.21", "h3.95", "h3.96", "h3.101"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G8, packages/react/src/overlays.ts has a descriptive paragraph (~lines 143-145) that refers to the coreProps ref member as 'a React-special key — ref'. The §20.7 FormalityFieldComponentProps JSDoc section (overlays.ts ~168-174) was already updated correctly with 'Runtime delivery (important)' wording, but the earlier descriptive paragraph was missed. This is a cosmetic JSDoc fix. PRD §20.7 requires all 'future runtime task' / stale ref-key wording be removed.\n2. INPUT: The current overlays.ts file (194 lines). The FormalityFieldComponentProps type and its JSDoc.\n3. LOGIC: Update the descriptive paragraph at ~lines 143-145 to state that forwardRef is delivered as a regular enumerable top-level prop by Field (not React's special ref key). Ensure NO stale 'ref key' / 'future runtime task' wording remains anywhere in the file. The §20.7-compliant JSDoc at ~168-174 is already correct — verify it's consistent with the updated paragraph. Mock: none.\n4. OUTPUT: overlays.ts has consistent, accurate forwardRef documentation throughout. No behavioral change.\n5. DOCS: [Mode A] This IS the documentation work — the JSDoc update is the deliverable."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Phase",
+      "id": "P3",
+      "title": "v1.0 Release Hardening & Documentation Sync",
+      "status": "Planned",
+      "description": "Final verification that the entire PRD is met, comprehensive spec-compliance audit, changeset-level documentation sync (Mode B per §5 of planning SOW), and release readiness. After P1 and P2 close all gaps, this phase ensures v1.0 is shippable.",
+      "milestones": [
+        {
+          "type": "Milestone",
+          "id": "P3.M1",
+          "title": "Full Spec Compliance Audit",
+          "status": "Planned",
+          "description": "Comprehensive audit verifying every PRD section is implemented. This is the final gate before release — verify all 20 PRD sections plus Appendices A-C.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M1.T1",
+              "title": "Audit core and react modules against full PRD",
+              "status": "Planned",
+              "description": "Systematically verify every PRD section (§1-§20 + Appendices A-C) against the implementation. Create an audit report documenting compliance status for each section.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S1",
+                  "title": "Audit core package against PRD §3-§5, §8-§11, §14-§17",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S2", "P1.M2.T1.S1", "P1.M2.T2.S1", "P1.M3.T1.S1"],
+                  "prd_selectors": ["h2.4", "h3.6", "h3.7", "h2.6", "h3.13", "h3.14", "h3.15", "h2.9", "h3.24", "h2.10", "h2.11", "h2.15", "h2.17"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The core package implements expression engine (§5), conditions (§8), validation (§10), transform pipeline (§11), config merging (§6.1/§7), initial value resolution (§14), field ordering (§15), label resolution (§16). Per gap_analysis.md, after P1 fixes, all gaps are closed. The framework-independence test (14 tests) must still pass.\n2. INPUT: The updated core package after P1 (ordering relocated, validate/mergeConfigs added, deviations documented).\n3. LOGIC: For each PRD section in scope, verify: (a) all required functions exist and are exported, (b) signatures match (or documented deviations are accepted), (c) edge cases from §19 are handled, (d) tests exist covering the behavior. Specifically verify: expression path resolution (§5.4.1 — qualified vs unqualified, dual context mapping), condition matching (§8.7.1-7.7.3 — OR for disabled, AND for visible, last-wins for set), validation layers (§10.9.1-9.6 — RHF rules → field → type → form), transform pipeline (§11.10.1-10.7 — parse/format/submit, parser-formatter inverse contract), initial value resolution (§14.13.1-13.6 — priority order, recordKey mapping). Create or update an audit checklist. Mock: none.\n4. OUTPUT: Audit report (can be inline test additions or a markdown checklist) confirming all core modules are PRD-compliant. Any discovered gaps get fixed (TDD: write failing test → fix → pass).\n5. DOCS: [Mode A] If gaps are found and fixed, update affected JSDoc. Otherwise none."
+                },
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T1.S2",
+                  "title": "Audit react package against PRD §4-§6, §9, §12-§13, §20",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P2.M1.T1.S3", "P2.M1.T2.S1", "P2.M2.T1.S1"],
+                  "prd_selectors": ["h2.5", "h2.7", "h3.17", "h3.18", "h3.19", "h3.20", "h2.10", "h2.13", "h3.48", "h3.49", "h3.50", "h2.14", "h2.21"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The react package implements all 5 components (Form, Field, FieldGroup, FormalityProvider, UnusedFields), all hooks (useConditions, useField [after P2.M1.T1], useSubscriptions, usePropsEvaluation, useFormState, useInferredInputs), context system (FormContext, ConfigContext, GroupContext), auto-save (§12), subscription system (§9), FieldGroup mechanics (§13), and forwardRef delivery (§20). The scout report confirmed all spot-checks pass: forwardRef (Field.tsx:605), executeAutoSave (Form.tsx:559-672), mode prop (Form.tsx:80,198), FieldGroup span wrapper (FieldGroup.tsx:152-158), UnusedFields shouldRegister (UnusedFields.tsx:71,82).\n2. INPUT: The updated react package after P2 (useField extracted, useFieldDisabledState removed, overlays.ts fixed).\n3. LOGIC: For each PRD section in scope, verify: (a) all components/hooks exist with correct APIs, (b) behavioral specs match (FieldGroup nesting OR/AND logic, auto-save scoped validation with execution-version guard, subscription lifecycle with pending queue, proxy state pattern), (c) the type-safety overlay types (Appendix C T1.1-T3.2) are all done and exported. Verify the 90% coverage gate passes on the final codebase. Run 'pnpm test:coverage' and confirm all metrics >90%. Mock: none.\n4. OUTPUT: Audit report confirming all react modules are PRD-compliant. Any discovered behavioral gaps get fixed (TDD).\n5. DOCS: [Mode A] If gaps found, update JSDoc. Otherwise none."
+                }
+              ]
+            },
+            {
+              "type": "Task",
+              "id": "P3.M1.T2",
+              "title": "Verify CI pipeline and coverage gate for v1.0",
+              "status": "Planned",
+              "description": "Run the full CI pipeline locally (lint, format, typecheck, typecheck:examples, test:coverage, build) to verify v1.0 is release-ready. The CI workflow (.github/workflows/ci.yml) runs all these steps.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M1.T2.S1",
+                  "title": "Run full CI verification suite",
+                  "status": "Planned",
+                  "story_points": 0.5,
+                  "dependencies": ["P3.M1.T1.S1", "P3.M1.T1.S2"],
+                  "prd_selectors": ["h4.6", "h3.102"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The CI pipeline (.github/workflows/ci.yml verify job) runs: pnpm lint, pnpm format:check, pnpm typecheck, pnpm typecheck:examples, pnpm test:coverage, pnpm --filter @formality-ui/core --filter @formality-ui/react build. The coverage gate (PRD §1.3.7) requires ≥90% on statements, branches, functions, lines. Current baseline: 97.21% stmts / 94.57% branches / 99.11% funcs / 97.21% lines.\n2. INPUT: The full codebase after P1 + P2 + P3.M1.T1 fixes.\n3. LOGIC: Run each CI step in order: (1) pnpm lint — fix any lint errors introduced by P1/P2 changes, (2) pnpm format:check — run pnpm format if needed, (3) pnpm typecheck — verify tsc --build passes, (4) pnpm typecheck:examples — verify example type-checking still passes (examples use overlay types), (5) pnpm test:coverage — verify all 90% thresholds met, (6) pnpm --filter @formality-ui/core --filter @formality-ui/react build — verify both packages build. If any step fails, fix the root cause (not the gate). Mock: none.\n4. OUTPUT: All CI steps green. v1.0 is release-ready from a quality gate perspective.\n5. DOCS: none — no user-facing/config/API surface change."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M2",
+          "title": "Sync changeset-level documentation",
+          "status": "Planned",
+          "description": "Mode B (changeset-level docs per §5 of planning SOW): update README.md and any overview/architecture docs that summarize the entire v1.0 delta. This task has dependencies on ALL implementing subtasks from P1 and P2 because it summarizes the whole changeset. Also updates the package structure documentation to reflect the config/ordering.ts relocation and useField hook addition.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M2.T1",
+              "title": "Sync changeset-level documentation",
+              "status": "Planned",
+              "description": "Update README.md architecture/package sections, the Project Structure section, and any overview docs to reflect: (1) config/ordering.ts module, (2) validate/mergeConfigs exports, (3) useField hook, (4) removal of useFieldDisabledState, (5) any other v1.0 deltas.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M2.T1.S1",
+                  "title": "Update README.md architecture and package-structure sections",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P1.M1.T1.S2", "P1.M2.T1.S1", "P1.M2.T2.S1", "P1.M3.T1.S1", "P2.M1.T1.S3", "P2.M1.T2.S1", "P2.M2.T1.S1", "P3.M1.T1.S1", "P3.M1.T1.S2", "P3.M1.T2.S1"],
+                  "prd_selectors": ["h2.2", "h4.0", "h2.7", "h3.16", "h3.17", "h3.18", "h3.19", "h3.20", "h2.22"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: README.md (~855 lines) has sections: Architecture (line 684), Project Structure (line 777), Packages (line 202), Type Safety (line 663), Expression Engine (line 711), Development (line 759). These need updating to reflect the v1.0 changes. The changeset-level deltas are: (a) config/ordering.ts is now a distinct module in core (P1.M1), (b) validate() and mergeConfigs() are now exported from core (P1.M2), (c) useField hook is now a distinct module in react (P2.M1.T1), (d) useFieldDisabledState removed (P2.M1.T2), (e) overlays.ts JSDoc reflects forwardRef delivery accurately (P2.M2). The README's Project Structure section should list config/ordering.ts and hooks/useField.ts.\n2. INPUT: The final codebase state after P1 + P2 + P3.M1. The current README.md. The PRD Appendix B implementation checklist as reference.\n3. LOGIC: Update README.md sections: (a) Project Structure — add config/ordering.ts, hooks/useField.ts to the tree diagrams, (b) Packages — note that core exports validate/mergeConfigs headline functions, (c) Architecture — mention useField hook in the component/hook overview, (d) Type Safety — confirm all Appendix C items are complete. Verify the README's code examples still compile (they're type-checked via typecheck:examples). Do NOT change user-facing API documentation beyond reflecting the actual current state. Mock: none.\n4. OUTPUT: README.md accurately reflects v1.0 module structure and exports. Examples still type-check.\n5. DOCS: [Mode B] This IS the changeset-level documentation sync. It covers README.md and any overview docs that span the whole v1.0 delta."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "Milestone",
+          "id": "P3.M3",
+          "title": "v1.0 Release",
+          "status": "Planned",
+          "description": "Final release preparation: version bump to 1.0.0, verify semantic-release configuration, and confirm all quality gates are met.",
+          "tasks": [
+            {
+              "type": "Task",
+              "id": "P3.M3.T1",
+              "title": "Prepare v1.0.0 release",
+              "status": "Planned",
+              "description": "Bump version to 1.0.0, verify the semantic-release configuration handles the major version, and confirm all gates are green for the final release commit.",
+              "subtasks": [
+                {
+                  "type": "Subtask",
+                  "id": "P3.M3.T1.S1",
+                  "title": "Version bump and release verification",
+                  "status": "Planned",
+                  "story_points": 1,
+                  "dependencies": ["P3.M1.T2.S1", "P3.M2.T1.S1"],
+                  "prd_selectors": ["h2.2", "h4.4", "h3.102"],
+                  "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The repo uses semantic-release (Conventional Commits → shared version for core + react, per .github/workflows/release.yml). Current version is 0.2.5. To trigger a 1.0.0 release, the commits since the last tag must contain a feat or breaking change marker. Alternatively, a manual version bump in both packages/core/package.json and packages/react/package.json (version field) + CHANGELOG update may be needed. The root package.json is private (version 0.1.0 — not published). The .releaserc.json config controls release rules.\n2. INPUT: The final codebase after all P1 + P2 + P3 tasks. The semantic-release config (.releaserc.json).\n3. LOGIC: (a) Verify both packages/core/package.json and packages/react/package.json have matching versions, (b) Run 'pnpm release:dry' (semantic-release --dry-run) to see what version it would publish, (c) If semantic-release won't auto-bump to 1.0.0 from Conventional Commits alone, add a BREAKING CHANGE or major-version commit footer, OR manually set version to 1.0.0 and document the release decision, (d) Run the full CI suite one final time (pnpm lint && pnpm format:check && pnpm typecheck && pnpm typecheck:examples && pnpm test:coverage && pnpm --filter @formality-ui/core --filter @formality-ui/react build), (e) Verify the dist/ builds are correct. Mock: none.\n4. OUTPUT: Version 1.0.0 ready to publish. CI green. semantic-release dry-run shows 1.0.0.\n5. DOCS: [Mode A] Update CHANGELOG.md if semantic-release doesn't auto-generate it. Confirm the release notes document the v1.0 milestone."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
