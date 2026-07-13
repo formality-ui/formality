@@ -574,6 +574,90 @@ const inputs = {
 };
 ```
 
+### Composing input types: reuse a component + default props + named transforms
+
+An input type is just an `InputConfig` that bundles a `component` with optional
+defaults. **You do not have to write a new component** to get a specialized
+field — reuse an existing one and stack on:
+
+| Field                                                                                                 | What it does                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `props`                                                                                               | Default props applied to every field of this type (e.g. `placeholder`, `maxLength`, `inputMode`). Per-field props override them. |
+| `parser`                                                                                              | Transform user input → form value. A **string** names an entry in the provider's `parsers`; a function is inline.                |
+| `formatter`                                                                                           | Transform form value → display value. Same string/function rules as `parser`.                                                    |
+| `validator`, `template`, `inputFieldProp`, `valueField`, `getSubmitField`, `debounce`, `defaultValue` | The rest of the bundle (see `InputConfig`).                                                                                      |
+
+The canonical example is a phone-number field that is just a text field with
+default props and a named parser/formatter — no new component required:
+
+```tsx
+// 1. Register the named parser/formatter ONCE at the provider level
+const parsers = {
+  // "(555) 123-4567" -> "5551234567"
+  phone: (value: unknown) => String(value ?? "").replace(/[^\d]/g, ""),
+};
+
+const formatters = {
+  // "5551234567" -> "(555) 123-4567"
+  phone: (value: unknown) => {
+    const d = String(value ?? "").replace(/[^\d]/g, "");
+    const m = d.match(/^(\d{3})(\d{3})(\d{4})$/);
+    return m ? `(${m[1]}) ${m[2]}-${m[3]}` : d;
+  },
+};
+
+const inputs = {
+  textField: { component: TextField, defaultValue: "" },
+
+  // A "phone" type — same component, bundled defaults, NO new component
+  phone: {
+    component: TextField, // reuse the existing text field
+    defaultValue: "",
+    props: {
+      type: "tel", // underlying <input type="tel">
+      inputMode: "tel",
+      placeholder: "(555) 555-5555",
+      maxLength: 14,
+    },
+    parser: "phone", // named parser (looked up above)
+    formatter: "phone", // named formatter (looked up above)
+  },
+};
+
+function App() {
+  return (
+    <FormalityProvider
+      inputs={inputs}
+      parsers={parsers}
+      formatters={formatters}
+    >
+      {/* ... */}
+    </FormalityProvider>
+  );
+}
+
+// 2. In a form config, the type key selects the whole bundle:
+//      { mobile: { type: "phone", label: "Mobile" } }
+//    <Field name="mobile" /> renders the text field with type="tel" and
+//    applies phone formatting automatically — no new component required.
+```
+
+> **`type` gotcha:** Formality's `type` (the input-type key set on
+> `<Field type="…">` or `FieldConfig.type`) is **not** the DOM `type`
+> attribute. The former selects the `InputConfig`; the underlying element's
+> `type` is an ordinary prop that belongs in `InputConfig.props` (or
+> `FieldConfig.props`). They never collide, because `<Field>` consumes its own
+> `type` prop instead of forwarding it to the component.
+
+> **Named lookups must be registered.** A `parser`/`formatter` string is
+> resolved against the provider's `parsers`/`formatters` maps. If the name is
+> missing, Formality logs a warning (in non-production builds) and passes the
+> value through unchanged.
+
+See [`examples/02-input-types.tsx`](./examples/02-input-types.tsx) for the full
+set of `InputConfig` options (named vs inline transforms, default `props`,
+`validator`, `template`, etc.).
+
 ---
 
 ## Type Safety
