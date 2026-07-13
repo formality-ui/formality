@@ -189,15 +189,33 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   }, [providerConfig.inputs, formConfig.inputs]);
 
   // Calculate default values from config
+  //
+  // Comprehensive baseline used for BOTH defaultValues and values.
+  // MUST contain (a) every configured field key — including ones absent from the
+  // record and ones whose input type has no defaultValue — so a rendered
+  // <Field>'s Controller registration can NEVER introduce a key the RHF
+  // baseline lacks (the root cause of the isDirty false-positive when a <Form>
+  // mounts inside a deferred portal/Dialog under StrictMode); and (b) every
+  // record key not in config (passthrough) so they survive into
+  // getValues()/submit.
   const defaultValues = useMemo(() => {
-    return resolveAllInitialValues(config, mergedInputs, record ?? {});
+    const resolved = resolveAllInitialValues(config, mergedInputs, record ?? {});
+    const baseline: Record<string, unknown> = { ...(record ?? {}), ...resolved };
+    // Ensure EVERY configured field is present, even if it resolved to
+    // undefined (field absent from record AND its input type has no
+    // defaultValue). This keeps _formValues and _defaultValues key-sets aligned
+    // regardless of Controller registration timing.
+    for (const fieldName of Object.keys(config)) {
+      if (!(fieldName in baseline)) baseline[fieldName] = undefined;
+    }
+    return baseline;
   }, [config, mergedInputs, record]);
 
   // Initialize React Hook Form
   const methods = useForm<TFieldValues>({
     mode: mode ?? "onChange",
     defaultValues: defaultValues as any,
-    values: record as any,
+    values: defaultValues as any, // was: `record as any` — see baseline comment above
   });
 
   // === REGISTRIES ===
