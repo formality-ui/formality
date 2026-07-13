@@ -303,7 +303,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "v1.0 Release Hardening & Documentation Sync",
-      "status": "Planned",
+      "status": "Researching",
       "description": "Final verification that the entire PRD is met, comprehensive spec-compliance audit, changeset-level documentation sync (Mode B per §5 of planning SOW), and release readiness. After P1 and P2 close all gaps, this phase ensures v1.0 is shippable.",
       "milestones": [
         {
@@ -410,21 +410,21 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Sync changeset-level documentation",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Mode B (changeset-level docs per §5 of planning SOW): update README.md and any overview/architecture docs that summarize the entire v1.0 delta. This task has dependencies on ALL implementing subtasks from P1 and P2 because it summarizes the whole changeset. Also updates the package structure documentation to reflect the config/ordering.ts relocation and useField hook addition.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Sync changeset-level documentation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update README.md architecture/package sections, the Project Structure section, and any overview docs to reflect: (1) config/ordering.ts module, (2) validate/mergeConfigs exports, (3) useField hook, (4) removal of useFieldDisabledState, (5) any other v1.0 deltas.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M2.T1.S1",
                   "title": "Update README.md architecture and package-structure sections",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2",
@@ -459,21 +459,21 @@
           "type": "Milestone",
           "id": "P3.M3",
           "title": "v1.0 Release",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Final release preparation: version bump to 1.0.0, verify semantic-release configuration, and confirm all quality gates are met.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Prepare v1.0.0 release",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Bump version to 1.0.0, verify the semantic-release configuration handles the major version, and confirm all gates are green for the final release commit.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M3.T1.S1",
                   "title": "Version bump and release verification",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M1.T2.S1",

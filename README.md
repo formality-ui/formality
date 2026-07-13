@@ -208,6 +208,17 @@ In practice: use string expressions for standard relationships, reach for functi
 | [@formality-ui/vue](./packages/vue)       | Vue implementation           | Planned |
 | [@formality-ui/svelte](./packages/svelte) | Svelte implementation        | Planned |
 
+> **Headline exports.** `@formality-ui/core` exposes the PRD §1.3.2 entry points
+> [`validate()`](./PRD.md) and [`mergeConfigs()`](./PRD.md) alongside granular helpers
+> (`runValidator`, `composeValidators`, `deepMerge`, `mergeFieldProps`, …). The React
+> adapter consumes them internally; framework-agnostic consumers can import them directly.
+
+<!--
+import { validate, mergeConfigs } from "@formality-ui/core";
+const result = await validate(value, rules, validators, formValues); // async
+const { inputConfig, fieldConfig } = mergeConfigs(provider, form, field);
+-->
+
 ---
 
 ## Quick Start (React)
@@ -708,6 +719,10 @@ For full type signatures and copy-paste examples, see the
 └─────────────────────────────────────────────┘
 ```
 
+The `Field` component is a thin shell: its Controller integration, props-resolution
+pipeline, value transformation, and condition application all live in the `useField`
+hook (`packages/react/src/hooks/useField.tsx`), extracted in v1.0 for reuse and testing.
+
 ### Expression Engine
 
 Evaluate dynamic expressions against form state:
@@ -779,10 +794,27 @@ pnpm typecheck
 ```
 formality/
 ├── packages/
-│   ├── core/        # Framework-agnostic utilities
-│   └── react/       # React implementation
-├── examples/        # Comprehensive examples
-├── PRD.md           # Developer documentation
+│   ├── core/                  # @formality-ui/core — zero framework deps
+│   │   └── src/
+│   │       ├── conditions/    # evaluate field conditions
+│   │       ├── config/        # defaults.ts, merge.ts, config/ordering.ts (P1.M1)
+│   │       ├── expression/    # string-expression engine
+│   │       ├── labels/        # label & ordering resolution
+│   │       ├── transform/     # format/parse pipelines
+│   │       ├── types/         # shared type definitions
+│   │       ├── validation/    # validate.ts → validate() (P1.M2.T1)
+│   │       └── index.ts       # barrel: validate(), mergeConfigs(), ...
+│   ├── react/                 # @formality-ui/react — RHF implementation
+│   │   └── src/
+│   │       ├── components/    # Field.tsx, Form.tsx, FormalityProvider.tsx, ...
+│   │       ├── context/       # Config/Form/Group contexts
+│   │       ├── hooks/         # useField.tsx (P2.M1.T1), useConditions, ...
+│   │       ├── overlays.ts    # React type overlays (forwardRef JSDoc, P2.M2)
+│   │       └── index.ts       # barrel: useField, defineInputs, overlay types
+│   ├── vue/                   # Planned (stubbed)
+│   └── svelte/                # Planned (stubbed)
+├── examples/                  # 01–09 runnable examples + index.ts
+├── PRD.md                     # Complete technical specification
 └── package.json
 ```
 
