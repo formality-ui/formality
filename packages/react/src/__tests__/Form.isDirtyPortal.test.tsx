@@ -127,7 +127,9 @@ function Probe({
               {children}
               <span data-testid="isDirty">{String(formState.isDirty)}</span>
               <span data-testid="fvKeys">{dumpKeys(control._formValues)}</span>
-              <span data-testid="dvKeys">{dumpKeys(control._defaultValues)}</span>
+              <span data-testid="dvKeys">
+                {dumpKeys(control._defaultValues)}
+              </span>
             </div>
           );
         }}
@@ -144,7 +146,10 @@ describe("Form isDirty — deferred-portal + StrictMode regression", () => {
         <DeferredPortal>
           <Probe
             record={{ name: "Original" }}
-            config={{ name: { type: "textField" }, extra: { type: "textField" } }}
+            config={{
+              name: { type: "textField" },
+              extra: { type: "textField" },
+            }}
             inputs={testInputs}
           >
             <Field name="name" />
@@ -200,7 +205,10 @@ describe("Form isDirty — deferred-portal + StrictMode regression", () => {
         <DeferredPortal>
           <Probe
             record={{ name: "Original", passthrough: "keep-me" }}
-            config={{ name: { type: "textField" }, extra: { type: "textField" } }}
+            config={{
+              name: { type: "textField" },
+              extra: { type: "textField" },
+            }}
             inputs={testInputs}
           >
             <Field name="name" />
@@ -227,7 +235,10 @@ describe("Form isDirty — deferred-portal + StrictMode regression", () => {
         <DeferredPortal>
           <Probe
             record={{ name: "Original" }}
-            config={{ name: { type: "textField" }, extra: { type: "textField" } }}
+            config={{
+              name: { type: "textField" },
+              extra: { type: "textField" },
+            }}
             inputs={testInputs}
           >
             <Field name="name" />

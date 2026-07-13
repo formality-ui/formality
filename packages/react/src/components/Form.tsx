@@ -199,8 +199,15 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   // record key not in config (passthrough) so they survive into
   // getValues()/submit.
   const defaultValues = useMemo(() => {
-    const resolved = resolveAllInitialValues(config, mergedInputs, record ?? {});
-    const baseline: Record<string, unknown> = { ...(record ?? {}), ...resolved };
+    const resolved = resolveAllInitialValues(
+      config,
+      mergedInputs,
+      record ?? {},
+    );
+    const baseline: Record<string, unknown> = {
+      ...(record ?? {}),
+      ...resolved,
+    };
     // Ensure EVERY configured field is present, even if it resolved to
     // undefined (field absent from record AND its input type has no
     // defaultValue). This keeps _formValues and _defaultValues key-sets aligned
