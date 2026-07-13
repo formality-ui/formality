@@ -271,7 +271,9 @@ describe("Config Module", () => {
 
     it("merges static field-config props in priority order (override priority)", () => {
       const provider: FormalityProviderConfig = {
-        inputs: { textField: { component: null, defaultValue: "" } as InputConfig },
+        inputs: {
+          textField: { component: null, defaultValue: "" } as InputConfig,
+        },
         defaultFieldProps: { disabled: true, label: "P" },
       };
       const form: FormConfig = {
@@ -289,7 +291,9 @@ describe("Config Module", () => {
 
     it("preserves the field's own config fields (type, label, ...)", () => {
       const provider: FormalityProviderConfig = {
-        inputs: { textField: { component: null, defaultValue: "" } as InputConfig },
+        inputs: {
+          textField: { component: null, defaultValue: "" } as InputConfig,
+        },
       };
       const field: FieldConfig = { type: "switch", label: "On" };
 

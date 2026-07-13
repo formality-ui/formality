@@ -29,7 +29,8 @@ describe("Validation", () => {
     });
 
     it("should run an inline validator function", async () => {
-      const validator = (value: unknown) => value === "valid" || "Must be valid";
+      const validator = (value: unknown) =>
+        value === "valid" || "Must be valid";
 
       expect(await validate("valid", validator)).toBe(true);
       expect(await validate("invalid", validator)).toBe("Must be valid");
@@ -52,9 +53,9 @@ describe("Validation", () => {
           (typeof value === "string" && value.length >= 5) || "Too short",
       };
 
-      expect(
-        await validate("hello", ["notEmpty", "minFive"], validators),
-      ).toBe(true);
+      expect(await validate("hello", ["notEmpty", "minFive"], validators)).toBe(
+        true,
+      );
       expect(await validate("hi", ["notEmpty", "minFive"], validators)).toBe(
         "Too short",
       );
@@ -64,10 +65,8 @@ describe("Validation", () => {
     });
 
     it("should pass formValues (4th arg) for cross-field validation", async () => {
-      const validator = (
-        value: unknown,
-        formValues: Record<string, unknown>,
-      ) => value === formValues.password || "Mismatch";
+      const validator = (value: unknown, formValues: Record<string, unknown>) =>
+        value === formValues.password || "Mismatch";
 
       expect(
         await validate("secret", validator, undefined, { password: "secret" }),

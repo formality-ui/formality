@@ -310,7 +310,7 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Full Spec Compliance Audit",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Comprehensive audit verifying every PRD section is implemented. This is the final gate before release — verify all 20 PRD sections plus Appendices A-C.",
           "tasks": [
             {
@@ -383,14 +383,14 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Verify CI pipeline and coverage gate for v1.0",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Run the full CI pipeline locally (lint, format, typecheck, typecheck:examples, test:coverage, build) to verify v1.0 is release-ready. The CI workflow (.github/workflows/ci.yml) runs all these steps.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M1.T2.S1",
                   "title": "Run full CI verification suite",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M1.T1.S1",
@@ -410,21 +410,21 @@
           "type": "Milestone",
           "id": "P3.M2",
           "title": "Sync changeset-level documentation",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Mode B (changeset-level docs per §5 of planning SOW): update README.md and any overview/architecture docs that summarize the entire v1.0 delta. This task has dependencies on ALL implementing subtasks from P1 and P2 because it summarizes the whole changeset. Also updates the package structure documentation to reflect the config/ordering.ts relocation and useField hook addition.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M2.T1",
               "title": "Sync changeset-level documentation",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update README.md architecture/package sections, the Project Structure section, and any overview docs to reflect: (1) config/ordering.ts module, (2) validate/mergeConfigs exports, (3) useField hook, (4) removal of useFieldDisabledState, (5) any other v1.0 deltas.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M2.T1.S1",
                   "title": "Update README.md architecture and package-structure sections",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2",

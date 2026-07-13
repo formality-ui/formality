@@ -87,10 +87,7 @@ const createWatcherSpies = (): WatcherSpies => {
   >();
   return {
     registerWatcherSetter: vi.fn((name: string, setter) => {
-      watcherSetters.set(
-        name,
-        setter as (w: Record<string, boolean>) => void,
-      );
+      watcherSetters.set(name, setter as (w: Record<string, boolean>) => void);
     }),
     unregisterWatcherSetter: vi.fn((name: string) => {
       watcherSetters.delete(name);
