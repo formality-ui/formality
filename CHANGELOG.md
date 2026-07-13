@@ -1,3 +1,10 @@
+## [0.2.5](https://github.com/formality-ui/formality/compare/v0.2.4...v0.2.5) (2026-07-13)
+
+
+### Bug Fixes
+
+* **react:** make auto-save work under any validation mode ([cdfeb81](https://github.com/formality-ui/formality/commit/cdfeb816976522ed9e2f13770a4856377d3f4de4))
+
 ## [0.2.4](https://github.com/formality-ui/formality/compare/v0.2.3...v0.2.4) (2026-07-12)
 
 
