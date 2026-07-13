@@ -310,14 +310,14 @@
           "type": "Milestone",
           "id": "P3.M1",
           "title": "Full Spec Compliance Audit",
-          "status": "Planned",
+          "status": "Ready",
           "description": "Comprehensive audit verifying every PRD section is implemented. This is the final gate before release — verify all 20 PRD sections plus Appendices A-C.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M1.T1",
               "title": "Audit core and react modules against full PRD",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Systematically verify every PRD section (§1-§20 + Appendices A-C) against the implementation. Create an audit report documenting compliance status for each section.",
               "subtasks": [
                 {
@@ -353,7 +353,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S2",
                   "title": "Audit react package against PRD §4-§6, §9, §12-§13, §20",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S3",
@@ -383,14 +383,14 @@
               "type": "Task",
               "id": "P3.M1.T2",
               "title": "Verify CI pipeline and coverage gate for v1.0",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Run the full CI pipeline locally (lint, format, typecheck, typecheck:examples, test:coverage, build) to verify v1.0 is release-ready. The CI workflow (.github/workflows/ci.yml) runs all these steps.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M1.T2.S1",
                   "title": "Run full CI verification suite",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 0.5,
                   "dependencies": [
                     "P3.M1.T1.S1",

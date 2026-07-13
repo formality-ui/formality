@@ -465,9 +465,16 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         values: Partial<TFieldValues>,
       ) => void | Promise<void>,
     ) => {
-      // Check if any field is validating
-      for (const [, isValidating] of validatingFields.current) {
-        if (isValidating) return;
+      // §8.5 Validation Blocking (subscriber-scoped).
+      // Block submission only while a validating field has subscribers /
+      // dependents in the inverted-subscription index. An in-flight validator
+      // on a field with NO subscribers does NOT block (e.g. an unrelated async
+      // validator must not stall a scoped auto-save of an independent edit).
+      // PRD.md §8.5.
+      for (const [fieldName, isValidating] of validatingFields.current) {
+        if (!isValidating) continue;
+        const subscribers = invertedSubscriptions.current.get(fieldName);
+        if (subscribers && subscribers.size > 0) return;
       }
 
       // Run form-level validation
