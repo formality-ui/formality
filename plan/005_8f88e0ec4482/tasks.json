@@ -167,14 +167,14 @@
           "type": "Milestone",
           "id": "P2.M1",
           "title": "Hook Architecture Reconciliation",
-          "status": "Researching",
+          "status": "Ready",
           "description": "Extract the useField hook from Field.tsx (PRD §1.3.3 requires it as a distinct module) and remove the orphaned useFieldDisabledState hook.",
           "tasks": [
             {
               "type": "Task",
               "id": "P2.M1.T1",
               "title": "Extract useField hook from Field.tsx",
-              "status": "Ready",
+              "status": "Complete",
               "description": "PRD §1.3.3 specifies a hooks/useField module for RHF Controller integration. Currently this logic (~270 lines) is inline in Field.tsx's Controller render block. Extract it into a useField hook that Field delegates to, improving testability and module reusability.",
               "subtasks": [
                 {
@@ -222,7 +222,7 @@
                   "type": "Subtask",
                   "id": "P2.M1.T1.S3",
                   "title": "Verify Field behavioral parity after extraction",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S2"
@@ -240,14 +240,14 @@
               "type": "Task",
               "id": "P2.M1.T2",
               "title": "Remove orphaned useFieldDisabledState hook",
-              "status": "Researching",
+              "status": "Ready",
               "description": "packages/react/src/hooks/useFieldDisabledState.ts (197 lines) and its test file are dead code — neither exported from index.ts nor used by Field.tsx. Field resolves disabled state inline via useConditions. Remove the dead code to prevent drift.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M1.T2.S1",
                   "title": "Remove useFieldDisabledState.ts and its test file",
-                  "status": "Researching",
+                  "status": "Ready",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T1.S3"
