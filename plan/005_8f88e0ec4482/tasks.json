@@ -160,7 +160,7 @@
       "type": "Phase",
       "id": "P2",
       "title": "React Package v1.0 Spec Compliance",
-      "status": "Researching",
+      "status": "Ready",
       "description": "Bring @formality-ui/react to full module-contract compliance with PRD §1.3.3 (hook table) and §20.7 (overlay docs). The react package is fully functional (all features implemented, 1003 tests), but has two structural/hygiene gaps: the useField hook (PRD §1.3.3) is implemented inline in Field.tsx rather than as a separate hook, and useFieldDisabledState is orphaned dead code.",
       "milestones": [
         {
@@ -266,21 +266,21 @@
           "type": "Milestone",
           "id": "P2.M2",
           "title": "Overlay & JSDoc Cleanup",
-          "status": "Researching",
+          "status": "Ready",
           "description": "Fix the stale wording in overlays.ts that still references React's special 'ref' key instead of the forwardRef delivery pattern established by §20.",
           "tasks": [
             {
               "type": "Task",
               "id": "P2.M2.T1",
               "title": "Fix stale ref/forwardRef wording in overlays.ts",
-              "status": "Researching",
+              "status": "Ready",
               "description": "packages/react/src/overlays.ts lines ~143-145 still describe the coreProps ref member as 'a React-special key — ref'. After §20, Field delivers forwardRef as a regular top-level prop. Update the descriptive paragraph.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P2.M2.T1.S1",
                   "title": "Update overlays.ts descriptive paragraph for forwardRef",
-                  "status": "Researching",
+                  "status": "Ready",
                   "story_points": 0.5,
                   "dependencies": [
                     "P2.M1.T1.S3"
@@ -324,7 +324,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S1",
                   "title": "Audit core package against PRD §3-§5, §8-§11, §14-§17",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2",
