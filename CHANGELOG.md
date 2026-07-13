@@ -1,3 +1,18 @@
+# [0.3.0](https://github.com/formality-ui/formality/compare/v0.2.5...v0.3.0) (2026-07-13)
+
+
+### Bug Fixes
+
+* **react:** resolve isDirty false-positive in deferred portals ([62290cb](https://github.com/formality-ui/formality/commit/62290cb8acf5102d0252d34846ceaaee9679d219))
+
+
+### Features
+
+* **core:** add mergeConfigs() headline export ([c835411](https://github.com/formality-ui/formality/commit/c8354117df6a9f91c2a3622bf034d8f6a7544ede))
+* **core:** add validate() headline export ([cd6f41e](https://github.com/formality-ui/formality/commit/cd6f41e7c7b4bbec6eb3cc532c520a2713ef9096))
+* **react:** add useField type contract and stub ([cb5623d](https://github.com/formality-ui/formality/commit/cb5623df32ac4365e8505f84f3a3e85322dfdd12))
+* **react:** implement useField hook via Field extraction ([07f1316](https://github.com/formality-ui/formality/commit/07f1316f6263425e4adae0d679f7e8d2446eceee))
+
 ## [0.2.5](https://github.com/formality-ui/formality/compare/v0.2.4...v0.2.5) (2026-07-13)
 
 
