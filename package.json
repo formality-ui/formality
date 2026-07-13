@@ -8,6 +8,9 @@
     "type": "git",
     "url": "git+https://github.com/formality-ui/formality.git"
   },
+  "lint-staged": {
+    "*.{js,cjs,mjs,jsx,ts,tsx,json,md,css,scss,yml,yaml,html}": "prettier --write"
+  },
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
@@ -21,7 +24,8 @@
     "format:check": "prettier --check .",
     "clean": "pnpm -r exec rm -rf dist",
     "release": "semantic-release",
-    "release:dry": "semantic-release --dry-run"
+    "release:dry": "semantic-release --dry-run",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
@@ -36,6 +40,8 @@
     "eslint-config-prettier": "^9",
     "eslint-plugin-react": "^7",
     "eslint-plugin-react-hooks": "^6",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "prettier": "^3.0.0",
     "semantic-release": "^25.0.5",
     "tsup": "^8.0.0",
