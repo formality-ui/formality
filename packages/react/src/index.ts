@@ -77,6 +77,9 @@ export { usePropsEvaluation } from "./hooks/usePropsEvaluation";
 export { useInferredInputs } from "./hooks/useInferredInputs";
 export { useSubscriptions } from "./hooks/useSubscriptions";
 
+export { useField } from "./hooks/useField";
+export type { UseFieldParams, UseFieldReturn } from "./hooks/useField";
+
 // ============================================================================
 // Types
 // ============================================================================
