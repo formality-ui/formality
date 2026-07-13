@@ -303,7 +303,7 @@
       "type": "Phase",
       "id": "P3",
       "title": "v1.0 Release Hardening & Documentation Sync",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Final verification that the entire PRD is met, comprehensive spec-compliance audit, changeset-level documentation sync (Mode B per §5 of planning SOW), and release readiness. After P1 and P2 close all gaps, this phase ensures v1.0 is shippable.",
       "milestones": [
         {
@@ -459,21 +459,21 @@
           "type": "Milestone",
           "id": "P3.M3",
           "title": "v1.0 Release",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Final release preparation: version bump to 1.0.0, verify semantic-release configuration, and confirm all quality gates are met.",
           "tasks": [
             {
               "type": "Task",
               "id": "P3.M3.T1",
               "title": "Prepare v1.0.0 release",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Bump version to 1.0.0, verify the semantic-release configuration handles the major version, and confirm all gates are green for the final release commit.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M3.T1.S1",
                   "title": "Version bump and release verification",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P3.M1.T2.S1",
