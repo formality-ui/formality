@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Core Package v1.0 Spec Compliance",
-      "status": "Ready",
+      "status": "Complete",
       "description": "Bring @formality-ui/core to full structural and API-surface compliance with PRD §1.3.1 (package structure) and §1.3.2 (module → key-export table). The core package is ~98% complete and framework-independent; the remaining work is reconciling structural deviations (ordering module location) and adding PRD-named headline exports (validate, mergeConfigs) that are currently implemented under different names.",
       "milestones": [
         {
@@ -124,21 +124,21 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "API Signature Documentation",
-          "status": "Ready",
+          "status": "Complete",
           "description": "Document the accepted API signature deviations (G4, G5) where the current implementation is a richer superset of the PRD's simplified signatures. No code changes — documentation only.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Document accepted core API signature deviations",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Add clarifying JSDoc to evaluateConditions, resolveInitialValue, and resolveLabel explaining their actual signatures (which are richer supersets of the PRD's simplified representations) and why the deviations are accepted.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Add deviation documentation to affected core functions",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G4-G5: (a) evaluateConditions(input: EvaluateConditionsInput) takes a single object arg, while PRD §1.3.2 table text says (conditions, state) — but the PRD's own §1.3.2 example code already uses the object-arg form. (b) resolveInitialValue(fieldName, fieldConfig?, inputConfig?, record?, defaultValues?) differs from PRD's (record, config, inputConfig). (c) resolveLabel(fieldName, fieldConfig?, evaluatedSelectProps?, componentProps?) differs from PRD's (config, fieldName). These are richer supersets consumed internally by the react adapter, not by end users.\n2. INPUT: The current function signatures in packages/core/src/conditions/evaluate.ts (evaluateConditions), packages/core/src/config/defaults.ts (resolveInitialValue), packages/core/src/labels/resolve.ts (resolveLabel).\n3. LOGIC: No code logic changes. Add/update JSDoc comments on these three functions explaining: (a) the actual signature, (b) that it is a superset of the PRD simplified form, (c) why the deviation exists (internal API used by react adapter; richer params needed for the priority chain / object-arg pattern). For evaluateConditions specifically, note that the PRD §1.3.2 table text is simplified but the §1.3.2 example code uses the same EvaluateConditionsInput pattern.\n4. OUTPUT: Updated JSDoc on three functions. No behavioral change. All tests still pass.\n5. DOCS: [Mode A] This IS the documentation work — the JSDoc updates are the deliverable.",

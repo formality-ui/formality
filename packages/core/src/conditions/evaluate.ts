@@ -341,8 +341,22 @@ function evaluateConditionMatch(
  * - visible: AND logic (any false = false)
  * - setValue: last matching condition wins
  *
- * @param input - Evaluation input with conditions and state
- * @returns Result with resolved disabled, visible, and setValue states
+ * **Signature — object-arg form.** Takes a single {@link EvaluateConditionsInput}
+ * object (`{ conditions, fieldValues, fieldStates?, record?, props? }`) rather
+ * than positional `(conditions, state)` arguments.
+ *
+ * **PRD deviation note (accepted, gap_analysis G4).** PRD §1.3.2's *table*
+ * summarizes this export as `evaluateConditions(conditions, state)`, but PRD
+ * §1.3.2's own *example code* defines and uses the identical
+ * {@link EvaluateConditionsInput} object-arg form implemented here. The table
+ * text is a simplified representation; the object-arg form is the actual, stable
+ * contract and is the shape every framework adapter passes (see e.g.
+ * `@formality-ui/react`'s `useConditions`). No code change is planned.
+ *
+ * @param input - {@link EvaluateConditionsInput} - Evaluation input with
+ *   conditions and state
+ * @returns {@link ConditionResult} - Result with resolved disabled, visible,
+ *   and setValue states
  *
  * @example
  * const result = evaluateConditions({

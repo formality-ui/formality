@@ -12,6 +12,16 @@ import type { FieldConfig, InputConfig } from "../types";
  * 2. record[recordKey] (using recordKey if specified, else fieldName)
  * 3. inputConfig.defaultValue (from input type definition)
  *
+ * **PRD deviation note (accepted, gap_analysis G5).** PRD §1.3.2's table
+ * summarizes this export as `resolveInitialValue(record, config, inputConfig)`.
+ * The implemented signature is a richer superset —
+ * `(fieldName, fieldConfig?, inputConfig?, record?, defaultValues?)` — because
+ * it drives the full priority chain above (defaultValues → record[recordKey] →
+ * inputConfig.defaultValue) from a single call. This is an internal API
+ * consumed by the framework adapters and by {@link resolveAllInitialValues},
+ * not a simplified end-user entry point; the PRD literal form is a condensed
+ * representation. No code change is planned.
+ *
  * @param fieldName - Field name
  * @param fieldConfig - Field configuration
  * @param inputConfig - Input type configuration

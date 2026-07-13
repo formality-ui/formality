@@ -56,6 +56,18 @@ export function humanizeLabel(fieldName: string): string {
  * 5. Field config title (legacy alias)
  * 6. Auto-generated from field name
  *
+ * **PRD deviation note (accepted, gap_analysis G5).** PRD §1.3.2's table
+ * summarizes this export as `resolveLabel(config, fieldName)`. The implemented
+ * signature is a richer superset —
+ * `(fieldName, fieldConfig?, evaluatedSelectProps?, componentProps?)` — because
+ * it resolves the full 6-source priority chain above in one call, which
+ * requires the pre-evaluated `selectProps` and the JSX `componentProps`. This
+ * is an internal API consumed by the framework adapters (e.g.
+ * `@formality-ui/react`'s `Field` calls
+ * `resolveLabel(name, fieldConfig, fieldSelectProps, restProps)`), not a
+ * simplified end-user entry point; the PRD literal form is a condensed
+ * representation. No code change is planned.
+ *
  * @param fieldName - Field name
  * @param fieldConfig - Field configuration
  * @param evaluatedSelectProps - Pre-evaluated selectProps
