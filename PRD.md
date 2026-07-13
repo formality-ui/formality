@@ -1545,14 +1545,19 @@ interface FormProps<TFieldValues extends FieldValues = FieldValues> {
    * One of `'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all'`.
    * Defaults to `'onChange'`.
    *
-   * Consumers SHOULD be able to choose their own validation timing (e.g.
-   * `'onBlur'` to validate when a field loses focus). It is honored as-is when
-   * `autoSave` is off.
+   * Consumers can choose their own validation timing — e.g. `'onTouched'`
+   * (validate on first blur, then on every change), `'onBlur'`, or `'all'`.
    *
-   * CONSTRAINT (§12): when `autoSave` is enabled, the auto-save validity
-   * gates assume changed fields are validated on change, so a non-`'onChange'`
-   * `mode` is COERCED back to `'onChange'` (with a warning in non-production
-   * builds). See §5.2.2 and §11.1 #5.
+   * Auto-save compatibility (§12): auto-save does NOT depend on `mode`. Its
+   * validity gates trigger validation of the changed + affected fields
+   * themselves via `methods.trigger(...)` (which ignores `mode`), so a save is
+   * always gated on the real validity of the fields it can touch — under
+   * `'onChange'`, `'onBlur'`, `'onTouched'`, `'onSubmit'`, or `'all'`.
+   * Trade-off: because `trigger()` populates field errors, auto-save surfaces
+   * validation errors a little earlier than a pure `'onBlur'`/`'onSubmit'` UI
+   * would (after the debounce, on the edit that triggered the save). For
+   * `'onChange'`/`'onTouched'`/`'all'` this matches the expected change-time
+   * feedback. See §5.2.2 and §11.1 #5.
    */
   mode?: 'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all';
   validate?: (
@@ -1647,26 +1652,11 @@ children({
 3. **Initialize React Hook Form**
 
    ```typescript
-   // Resolve the validation mode. The consumer's `mode` prop (default
-   // 'onChange') is honored as-is — EXCEPT when `autoSave` is on: auto-save's
-   // gates assume changed fields are validated on change (§12), so a
-   // non-'onChange' mode is coerced back to 'onChange' with a dev warning.
-   const resolvedMode =
-     autoSave && mode !== 'onChange' ? 'onChange' : (mode ?? 'onChange');
-   if (
-     process.env.NODE_ENV !== 'production' &&
-     autoSave &&
-     mode !== undefined &&
-     mode !== 'onChange'
-   ) {
-     console.warn(
-       `[Formality] mode "${mode}" is incompatible with autoSave and has ` +
-         `been coerced to "onChange" (see PRD §12).`,
-     );
-   }
-
+   // Forward the consumer's `mode` prop (default 'onChange') to RHF unchanged.
+   // Auto-save needs no specific mode: its gates trigger validation of the
+   // touched fields themselves via `methods.trigger(...)` (see §11.1 #5).
    const methods = useForm({
-     mode: resolvedMode,
+     mode: mode ?? 'onChange',
      defaultValues,
      values: record, // Initial values from record prop
    });
@@ -3484,18 +3474,22 @@ When `autoSave={true}`:
 3. If field has `debounce: false`, submit immediately
 4. Only submits if the changed field and its affected (dependent) fields are valid
    - Validity is scoped to what this save can touch: the changed field (validated
-     by RHF's `onChange` mode) plus any fields that depend on it (via `conditions`,
-     re-validated on demand). An unrelated invalid field does NOT block a valid
-     edit — e.g. editing `notes` while an unrelated required `email` is empty
-     still saves `notes`. Whole-form validity is still enforced on a full
-     manual submit.
-5. **Requires `mode: 'onChange'` (§5.2 `mode` prop).** Auto-save's validity
-   gates (Gate 1 below) assume a changed field has already been validated by
-   the time the debounced save fires, which only holds under RHF `mode:
-   'onChange'`. Therefore enabling `autoSave` COERCES a non-`'onChange'` `mode`
-   back to `'onChange'` (with a warning in non-production builds). With
-   `autoSave` off the consumer's `mode` is honored unchanged — e.g. `'onBlur'`
-   to validate each field when it loses focus.
+     on demand via `methods.trigger()`, so this holds under any `mode` — see #5)
+     plus any fields that depend on it (via `conditions`, also re-validated on
+     demand). An unrelated invalid field does NOT block a valid edit — e.g.
+     editing `notes` while an unrelated required `email` is empty still saves
+     `notes`. Whole-form validity is still enforced on a full manual submit.
+5. **Mode-agnostic (§5.2 `mode` prop).** Auto-save does NOT depend on RHF
+   `mode`. Rather than assume a changed field was already validated (which only
+   holds under `mode: 'onChange'`), Gate 1 below triggers validation of the
+   changed fields itself via `methods.trigger(...)` (which ignores `mode`), and
+   Gate 2 does the same for affected (dependent) fields. So a save is gated on
+   the real validity of exactly the fields it can touch — under `'onChange'`,
+   `'onBlur'`, `'onTouched'`, `'onSubmit'`, or `'all'`. Trade-off: `trigger()`
+   populates field errors, so auto-save surfaces validation errors a little
+   earlier than a pure `'onBlur'`/`'onSubmit'` UI would (after the debounce, on
+   the triggering edit); for `'onChange'`/`'onTouched'`/`'all'` this matches
+   the expected change-time feedback.
 
 ### 11.2 Implementation
 
@@ -3526,14 +3520,14 @@ async function executeAutoSave() {
 
   const affectedFields = getAffectedFields(changedFields); // dependents via conditions
 
-  // Gate 1: a changed field with an onChange error blocks the save.
-  // CORRECTNESS PRECONDITION: this reads a changed field's already-computed
-  // error, which only exists because §5.2 `mode` is 'onChange' while autoSave
-  // is on (the Form component coerces non-'onChange' modes — see §11.1 #5).
-  // Under any other mode a changed field may not be validated yet here, which
-  // is exactly why autoSave forces 'onChange'.
-  for (const name of changedFields) {
-    if (methods.getFieldState(name).error) return;
+  // Gate 1: validate the changed fields; if any has an error, block the save.
+  // We trigger explicitly (NOT read a pre-computed error) so this is correct
+  // under ANY `mode` (§5.2) — e.g. `onTouched`, where a field's first edit
+  // (before it loses focus) is not auto-validated by RHF. `methods.trigger`
+  // ignores `mode` and always validates. See §11.1 #5.
+  if (changedFields.length > 0) {
+    const ok = await methods.trigger(changedFields);
+    if (!ok) return;
   }
 
   // Gate 2: re-validate dependent (affected) fields; if any fails, block.
@@ -5319,7 +5313,7 @@ interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   record?: Partial<TFieldValues>;
   autoSave?: boolean;
   debounce?: number;
-  mode?: 'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all'; // forwarded to useForm; coerced to 'onChange' when autoSave is on (§5.2, §12)
+  mode?: 'onChange' | 'onBlur' | 'onSubmit' | 'onTouched' | 'all'; // forwarded to useForm as-is; auto-save is mode-agnostic (triggers validation itself) — §5.2, §12
   validate?: (
     values: Partial<TFieldValues>,
   ) => ValidationErrors | Promise<ValidationErrors>;

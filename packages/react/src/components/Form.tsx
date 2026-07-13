@@ -70,6 +70,15 @@ export interface FormProps<TFieldValues extends FieldValues = FieldValues> {
    */
   debounce?: number | false;
 
+  /**
+   * React Hook Form validation trigger `mode`, forwarded to `useForm({ mode })`.
+   * One of `'onChange'` (default) | `'onBlur'` | `'onSubmit'` | `'onTouched'` |
+   * `'all'`. Honored as-is — auto-save is mode-agnostic: its validity gates
+   * trigger validation of the touched fields themselves via `methods.trigger`
+   * (which ignores `mode`), so it works under any mode. See PRD §12.
+   */
+  mode?: "onChange" | "onBlur" | "onSubmit" | "onTouched" | "all";
+
   /** Form-level validation */
   validate?: (
     values: Partial<TFieldValues>,
@@ -156,6 +165,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
   record,
   autoSave = false,
   debounce: debounceMs = 1000,
+  mode,
   validate,
 }: FormProps<TFieldValues>): JSX.Element {
   // Get provider configuration
@@ -185,7 +195,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
 
   // Initialize React Hook Form
   const methods = useForm<TFieldValues>({
-    mode: "onChange",
+    mode: mode ?? "onChange",
     defaultValues: defaultValues as any,
     values: record as any,
   });
@@ -562,10 +572,12 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       return;
     }
 
-    // Changed fields: already validated by RHF's onChange mode
-    // Affected fields: may need validation for cross-field validation
+    // Changed fields are validated in Gate 1 below; affected (dependent) fields
+    // in Gate 2. Both are triggered explicitly (via methods.trigger, which
+    // ignores `mode`) so auto-save is correct under ANY validation mode (§5.2),
+    // not just `onChange`.
     const fieldsToWaitFor = [...changedFields, ...affectedFields];
-    const fieldsToTrigger = [...affectedFields]; // Only affected, not changed
+    const fieldsToTrigger = [...affectedFields];
 
     // Wait for any in-flight validations on these fields to complete
     const validationsComplete = await waitForFieldValidation(
@@ -581,16 +593,40 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
       return;
     }
 
-    // Check if changed fields have errors (from onChange validation)
-    for (const fieldName of changedFields) {
-      const fieldState = methods.getFieldState(fieldName as any);
-      if (fieldState.error) {
-        // Changed field has validation error, don't submit
+    // Gate 1: validate the CHANGED fields; if any has an error, block the save.
+    //
+    // We trigger explicitly (rather than reading a pre-computed error) so this
+    // is correct under ANY `mode` (§5.2) — e.g. `onTouched`, where a field's
+    // first edit (before it loses focus) is NOT auto-validated by RHF.
+    // `methods.trigger` ignores `mode` and always validates. (Under `onChange`
+    // this re-runs validation RHF already did on change — a minor, intentional
+    // cost for mode-agnosticism.) See PRD §11.1 #5.
+    const changedArray = [...changedFields];
+    if (changedArray.length > 0) {
+      const changedValid = await methods.trigger(changedArray as any);
+
+      // A newer change superseded this save while we were validating.
+      if (executionVersionRef.current !== executionVersion) {
+        return;
+      }
+      if (!changedValid) {
+        return;
+      }
+
+      // Wait for the just-triggered validators' bookkeeping to settle.
+      const changedValidationsComplete = await waitForFieldValidation(
+        changedArray,
+        executionVersion,
+      );
+      if (
+        !changedValidationsComplete ||
+        executionVersionRef.current !== executionVersion
+      ) {
         return;
       }
     }
 
-    // Only trigger affected fields (changed fields already validated by onChange)
+    // Gate 2: re-validate dependent (affected) fields; if any fails, block.
     if (fieldsToTrigger.length > 0) {
       const isValid = await methods.trigger(fieldsToTrigger as any);
 

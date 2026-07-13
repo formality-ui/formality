@@ -546,6 +546,96 @@ describe("AutoSave Validation Coordination", () => {
     });
   });
 
+  describe("Validation `mode` interplay with autoSave (PRD §11.1 #5)", () => {
+    // Auto-save's Gate 1 triggers validation of changed fields itself (via
+    // methods.trigger, which ignores `mode`), so auto-save is correct under any
+    // mode — not just the default `onChange`. The critical case is `onTouched`:
+    // a field's FIRST edit (before it loses focus) is NOT auto-validated by RHF,
+    // so a naive "read the pre-computed error" gate would wrongly save an
+    // invalid value. These tests lock in the mode-agnostic Gate 1 behavior.
+
+    it("mode=onTouched: does NOT auto-save an invalid FIRST edit of an untouched field", async () => {
+      const requiredValidator = async (value: unknown) =>
+        value ? true : "required";
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField", validator: requiredValidator },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={300}
+            mode="onTouched"
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+      // First edit ends up empty → invalid. fieldA is never blurred, so under
+      // onTouched RHF has NOT auto-validated it — only Gate 1's explicit
+      // trigger() catches the error and blocks the save.
+      await act(async () => {
+        await userEvent.type(fieldA, "x", { delay: null });
+        await userEvent.clear(fieldA);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+
+      expect(submitHandler).not.toHaveBeenCalled();
+    });
+
+    it("mode=onTouched: DOES auto-save a valid FIRST edit of an untouched field", async () => {
+      const requiredValidator = async (value: unknown) =>
+        value ? true : "required";
+
+      render(
+        <FormalityProvider inputs={testInputs}>
+          <Form
+            config={{
+              fieldA: { type: "textField", validator: requiredValidator },
+            }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={300}
+            mode="onTouched"
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      const fieldA = screen.getByTestId("fieldA");
+      await act(async () => {
+        await userEvent.type(fieldA, "hello", { delay: null });
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ fieldA: "hello" }),
+      );
+    });
+  });
+
   describe("Immediate Submission (debounce: false)", () => {
     it("should call submitHandler immediately when inputConfig.debounce is false", async () => {
       render(
