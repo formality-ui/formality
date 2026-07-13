@@ -4,28 +4,28 @@
       "type": "Phase",
       "id": "P1",
       "title": "Core Package v1.0 Spec Compliance",
-      "status": "Planned",
+      "status": "Ready",
       "description": "Bring @formality-ui/core to full structural and API-surface compliance with PRD §1.3.1 (package structure) and §1.3.2 (module → key-export table). The core package is ~98% complete and framework-independent; the remaining work is reconciling structural deviations (ordering module location) and adding PRD-named headline exports (validate, mergeConfigs) that are currently implemented under different names.",
       "milestones": [
         {
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Module Structure Alignment",
-          "status": "Planned",
+          "status": "Complete",
           "description": "Resolve the config/ordering.ts structural deviation. PRD §1.3.1 specifies config/ordering.ts as a distinct module, but ordering functions currently live in labels/resolve.ts. Move them to the PRD-specified location while preserving backwards-compatible barrel re-exports.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Create config/ordering.ts module and relocate ordering functions",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Move sortFieldsByOrder, getUnusedFields, and getOrderedUnusedFields from labels/resolve.ts into a new config/ordering.ts module, update barrel exports, and verify backwards compatibility.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T1.S1",
                   "title": "Create config/ordering.ts and move ordering functions",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per plan/005_8f88e0ec4482/architecture/gap_analysis.md gap G1, the ordering functions sortFieldsByOrder, getUnusedFields, and getOrderedUnusedFields currently live in packages/core/src/labels/resolve.ts (lines ~180-213). PRD §1.3.1 specifies they should be in config/ordering.ts. They are exported from labels/index.ts and the root index.ts barrel under 'Labels & Ordering'. The sole consumer is packages/react/src/components/UnusedFields.tsx which imports from the root @formality-ui/core barrel.\n2. INPUT: The existing functions in packages/core/src/labels/resolve.ts — sortFieldsByOrder(fieldNames: string[], fieldConfigs: Record<string, FieldConfig>): string[] (line ~180), getUnusedFields(declaredFieldNames: string[], config: Record<string, unknown>): string[] (line ~198), getOrderedUnusedFields(declaredFieldNames: string[], config: FormFieldsConfig): string[] (line ~213). These use the FieldConfig.order property (PRD §15.14.1.2).\n3. LOGIC: Create packages/core/src/config/ordering.ts. Move the three ordering function implementations (including their imports of FieldConfig/FormFieldsConfig types) from labels/resolve.ts to config/ordering.ts. In labels/resolve.ts, replace the implementations with re-exports from '../config/ordering' to maintain backwards compatibility for any code importing from labels/. Add ordering exports to packages/core/src/config/index.ts barrel. The root index.ts already exports them — verify the re-export chain still resolves (index.ts → labels/index.ts → labels/resolve.ts re-export → config/ordering.ts). Mock: none needed — pure functions with no external deps.\n4. OUTPUT: config/ordering.ts exports sortFieldsByOrder, getUnusedFields, getOrderedUnusedFields. config/index.ts barrel includes them. labels/index.ts re-exports them (backwards compat). All existing tests (labels.test.ts) and consumers (UnusedFields.tsx) still pass.\n5. DOCS: [Mode A] Update JSDoc on the moved functions to reference config/ordering.ts as canonical location. No user-facing/config/API surface change (same exports from root barrel) — the module path is internal.",
