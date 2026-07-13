@@ -11,6 +11,44 @@ import type {
 } from "../types";
 
 /**
+ * Validate a value against a rule specification.
+ *
+ * PRD §1.3.2 headline export for the `validation/validate` module. This is a
+ * THIN WRAPPER over {@link runValidator}: it reorders the arguments into the
+ * ergonomic `(value, rules, validators, formValues)` shape documented in the
+ * PRD, defaults `formValues` to `{}`, and delegates every semantic (named
+ * lookup, factory detection, array short-circuit, async, throw-as-failure) to
+ * `runValidator` — see that function for details.
+ *
+ * This covers the RULES layer only (PRD §9.1). The field-validator and
+ * type-validator layers are wired by the adapter's `Field` Controller
+ * `rules.validate`; this function does not compose them.
+ *
+ * Returns the raw {@link ValidationResult}. Resolve a user-facing message
+ * with {@link resolveErrorMessage}.
+ *
+ * @param value - The value to validate.
+ * @param rules - ValidatorSpec: a named validator (string), an inline
+ *   ValidatorFunction, or an array of either (run in sequence, short-circuiting
+ *   on first failure).
+ * @param validators - Optional named-validators registry (ValidatorsConfig)
+ *   for resolving string `rules`. When omitted, a string rule warns and passes.
+ * @param formValues - Optional full form values for cross-field validation.
+ *   Defaults to `{}`.
+ * @returns The ValidationResult (`true`/`undefined` = valid; `false`/string/
+ *   `{type,message?}` = invalid).
+ */
+export async function validate(
+  value: unknown,
+  rules: ValidatorSpec,
+  validators?: ValidatorsConfig,
+  formValues?: Record<string, unknown>,
+): Promise<ValidationResult | undefined> {
+  // CRITICAL: pure delegation. Do not reimplement runValidator's dispatch here.
+  return runValidator(rules, value, formValues ?? {}, validators);
+}
+
+/**
  * Run a single validator against a value
  *
  * Handles both sync and async validators uniformly.

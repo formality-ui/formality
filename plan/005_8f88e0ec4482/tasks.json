@@ -62,21 +62,21 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "API Surface Compliance",
-          "status": "Researching",
+          "status": "Ready",
           "description": "Add the PRD §1.3.2 headline named exports that are currently absent: validate(value, rules, validators, formValues) and mergeConfigs(provider, form, field). These are thin wrappers over the existing granular functions (runValidator/composeValidators and resolveInputConfig/mergeFieldProps respectively).",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Add validate() named export to validation/validate.ts",
-              "status": "Ready",
+              "status": "Complete",
               "description": "PRD §1.3.2 lists validate(value, rules, validators, formValues) as the headline export of the validation/validate module. Currently core exports runValidator, runValidatorSync, composeValidators instead. Add a validate() wrapper that composes these.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Implement validate() wrapper over existing validator functions",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G2, no function named 'validate' exists in core. The validation module (packages/core/src/validation/validate.ts) exports runValidator (runs a single ValidatorSpec against a value), runValidatorSync (synchronous variant), isValid, and composeValidators (runs an array of validators sequentially). PRD §10.9.2-9.3 specifies the ValidatorSpec type (string | ValidatorFunction | array) and ValidationResult return values (true/undefined = valid, false/string/object = invalid). The resolveErrorMessage function in validation/messages.ts resolves error messages from ValidationResult.\n2. INPUT: The existing functions in validation/validate.ts: runValidator(validator: ValidatorSpec, value: unknown, formValues?: Record<string, unknown>, validators?: ValidatorsConfig, errorMessages?: ErrorMessagesConfig) and composeValidators. Also the types from types/validation.ts: ValidatorSpec, ValidationResult, ValidatorsConfig, ErrorMessagesConfig.\n3. LOGIC: Implement validate(value: unknown, rules: ValidatorSpec, validators?: ValidatorsConfig, formValues?: Record<string, unknown>): Promise<ValidationResult | undefined> as a thin wrapper that delegates to runValidator/composeValidators. It should: (a) resolve named validators from the validators registry if rules is a string, (b) run the validator(s), (c) return the ValidationResult (the caller resolves error messages via resolveErrorMessage). Follow PRD §9.1 layer order: rules → field validator → type validator (but validate() covers the rules layer only; the field/type layers are handled by Field's Controller rules.validate). Export from validation/index.ts and the root index.ts barrel. Mock: none — pure functions.\n4. OUTPUT: validate() exported from @formality-ui/core. New unit tests in validation.test.ts covering: named validator, inline function, async validator, array of validators, valid/invalid return values. Existing 1003 tests unaffected.\n5. DOCS: [Mode A] Add JSDoc to validate() explaining it is the PRD §1.3.2 headline export and how it relates to runValidator/composeValidators. This is a new public API export.",
@@ -96,14 +96,14 @@
               "type": "Task",
               "id": "P1.M2.T2",
               "title": "Add mergeConfigs() named export to config/merge.ts",
-              "status": "Researching",
+              "status": "Ready",
               "description": "PRD §1.3.2 lists mergeConfigs(provider, form, field) as the headline export of the config/merge module. Currently core exports deepMerge, mergeInputConfigs, resolveInputConfig, mergeFieldProps instead. Add a mergeConfigs() wrapper.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T2.S1",
                   "title": "Implement mergeConfigs() wrapper over existing merge functions",
-                  "status": "Researching",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: Per gap_analysis.md G3, no function named 'mergeConfigs' exists. The config/merge module (packages/core/src/config/merge.ts) exports: deepMerge (generic deep merge), mergeInputConfigs (merges provider/form/field InputConfig overrides), resolveInputConfig (resolves the final InputConfig for a field type), mergeStaticProps (ordered spread merge of 8+ prop layers), mergeFieldProps (the full 8-layer merge used by Field component, PRD §5.3.2/§6.1). createConfigContext builds a ConfigContextValue. PRD §6.1 defines the 8-layer priority order.\n2. INPUT: The existing functions in config/merge.ts and the types from types/config.ts: InputConfig, FieldConfig, FormalityProviderConfig, FormConfig.\n3. LOGIC: Implement mergeConfigs(provider: FormalityProviderConfig, form: FormConfig, field?: FieldConfig): { inputConfig: InputConfig; fieldConfig: FieldConfig } — a high-level wrapper that: (a) merges input type configs via resolveInputConfig using provider.inputs and form.inputs, (b) merges field-level config via mergeFieldProps layers (provider defaultFieldProps → form defaultFieldProps → field config.props). This is a convenience wrapper for the common 3-source merge; the granular functions remain available for advanced use. Export from config/index.ts and root index.ts. Mock: none — pure functions.\n4. OUTPUT: mergeConfigs() exported from @formality-ui/core. New unit tests in config.test.ts covering: provider-only, provider+form, provider+form+field, override priority. Existing tests unaffected.\n5. DOCS: [Mode A] Add JSDoc to mergeConfigs() explaining it is the PRD §1.3.2 headline export and how it relates to resolveInputConfig/mergeFieldProps. New public API export.",

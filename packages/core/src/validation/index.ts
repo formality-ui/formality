@@ -1,6 +1,7 @@
 // @formality-ui/core - Validation Module Barrel Export
 
 export {
+  validate,
   runValidator,
   runValidatorSync,
   isValid,

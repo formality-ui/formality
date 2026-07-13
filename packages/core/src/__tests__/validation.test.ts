@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import type { ValidationResult, ValidatorSpec } from "../../types";
 import {
+  validate,
   runValidator,
   runValidatorSync,
   isValid,
@@ -17,6 +18,86 @@ import {
 } from "../index";
 
 describe("Validation", () => {
+  describe("validate", () => {
+    it("should run a named validator (string) via the validators registry", async () => {
+      const validators = {
+        notEmpty: (value: unknown) => Boolean(value) || "Required",
+      };
+
+      expect(await validate("value", "notEmpty", validators)).toBe(true);
+      expect(await validate("", "notEmpty", validators)).toBe("Required");
+    });
+
+    it("should run an inline validator function", async () => {
+      const validator = (value: unknown) => value === "valid" || "Must be valid";
+
+      expect(await validate("valid", validator)).toBe(true);
+      expect(await validate("invalid", validator)).toBe("Must be valid");
+    });
+
+    it("should run an async validator", async () => {
+      const asyncValidator = async (value: unknown) => {
+        await new Promise((r) => setTimeout(r, 10));
+        return value === "valid" || "Invalid";
+      };
+
+      expect(await validate("valid", asyncValidator)).toBe(true);
+      expect(await validate("invalid", asyncValidator)).toBe("Invalid");
+    });
+
+    it("should run an array of validators and short-circuit on first failure", async () => {
+      const validators = {
+        notEmpty: (value: unknown) => Boolean(value) || "Required",
+        minFive: (value: unknown) =>
+          (typeof value === "string" && value.length >= 5) || "Too short",
+      };
+
+      expect(
+        await validate("hello", ["notEmpty", "minFive"], validators),
+      ).toBe(true);
+      expect(await validate("hi", ["notEmpty", "minFive"], validators)).toBe(
+        "Too short",
+      );
+      expect(await validate("", ["notEmpty", "minFive"], validators)).toBe(
+        "Required",
+      );
+    });
+
+    it("should pass formValues (4th arg) for cross-field validation", async () => {
+      const validator = (
+        value: unknown,
+        formValues: Record<string, unknown>,
+      ) => value === formValues.password || "Mismatch";
+
+      expect(
+        await validate("secret", validator, undefined, { password: "secret" }),
+      ).toBe(true);
+      expect(
+        await validate("wrong", validator, undefined, { password: "secret" }),
+      ).toBe("Mismatch");
+    });
+
+    it("should default formValues to {} when omitted", async () => {
+      // No 4th arg, no throw — proves the formValues ?? {} default.
+      expect(await validate("x", (v: unknown) => true)).toBe(true);
+    });
+
+    it("should return a valid (true) result as-is and an invalid (string/object) result as-is", async () => {
+      // Proves validate() does not transform ValidationResult.
+      const stringValidator = (value: unknown) => value === "valid" || "Bad";
+      expect(await validate("valid", stringValidator)).toBe(true);
+      expect(await validate("invalid", stringValidator)).toBe("Bad");
+
+      const objectValidator = (value: unknown) =>
+        value === "valid" || { type: "custom", message: "Nope" };
+      expect(await validate("valid", objectValidator)).toBe(true);
+      expect(await validate("invalid", objectValidator)).toEqual({
+        type: "custom",
+        message: "Nope",
+      });
+    });
+  });
+
   describe("runValidator", () => {
     it("should run inline validator function", async () => {
       const validator = (value: unknown) =>

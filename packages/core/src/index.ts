@@ -71,6 +71,7 @@ export {
 // Validation
 // ============================================================================
 export {
+  validate,
   runValidator,
   runValidatorSync,
   isValid,
