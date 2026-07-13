@@ -317,14 +317,14 @@
               "type": "Task",
               "id": "P3.M1.T1",
               "title": "Audit core and react modules against full PRD",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Systematically verify every PRD section (§1-§20 + Appendices A-C) against the implementation. Create an audit report documenting compliance status for each section.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P3.M1.T1.S1",
                   "title": "Audit core package against PRD §3-§5, §8-§11, §14-§17",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S2",
@@ -353,7 +353,7 @@
                   "type": "Subtask",
                   "id": "P3.M1.T1.S2",
                   "title": "Audit react package against PRD §4-§6, §9, §12-§13, §20",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P2.M1.T1.S3",
