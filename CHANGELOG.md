@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/formality-ui/formality/compare/v0.3.0...v0.3.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* **react:** remove subscription console logging (zero console noise) ([b7845b0](https://github.com/formality-ui/formality/commit/b7845b05ecf51a82761295c8c512d8afd9732a35))
+
 # [0.3.0](https://github.com/formality-ui/formality/compare/v0.2.5...v0.3.0) (2026-07-13)
 
 
