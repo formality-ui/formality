@@ -182,7 +182,7 @@ The core package contains **pure functions with zero framework dependencies**. T
 | `validation/messages` | Resolve error messages from types                 | `resolveErrorMessage(error, messages)`             |
 | `transform/pipeline`  | Apply parsers and formatters                      | `parse(value, parser)`, `format(value, formatter)` |
 | `config/merge`        | Merge provider + form + field configs             | `mergeConfigs(provider, form, field)`              |
-| `config/defaults`     | Resolve initial/default values                    | `resolveInitialValue(record, config, inputConfig)` |
+| `config/defaults`     | Resolve initial/default values + field-over-type precedence | `resolveInitialValue(...)`, `resolveFieldOverType(fieldVal, typeVal)` (§6.4) |
 | `config/ordering`     | Sort fields by order property                     | `sortFieldsByOrder(fields, config)`                |
 | `labels/resolve`      | Resolve field labels/titles                       | `resolveLabel(config, fieldName)`                  |
 | `types/*`             | All TypeScript interfaces                         | All type definitions                               |
@@ -836,7 +836,16 @@ interface FieldConfig {
   disabled?: boolean;
   hidden?: boolean;
   order?: number; // Display order for config-driven rendering
-  recordKey?: string; // Key to use when reading from record
+  recordKey?: string; // Key to use when reading from record (read-side wire mapping)
+  // ── Field-level overrides for type-level levers (§6.4). ──────────────
+  // All six follow ONE rule: the field value wins over the type value when
+  // !== undefined (override, NOT compose — only `validator` composes; §10).
+  defaultValue?: unknown; // Per-instance default; overrides type default (§6.4.1)
+  debounce?: number | false; // Per-instance debounce; overrides type debounce (§6.4.2)
+  parser?: string | ((value: unknown) => unknown); // Per-instance parser; overrides type parser (§6.4.3)
+  formatter?: string | ((value: unknown) => unknown); // Per-instance formatter; overrides type formatter (§6.4.3)
+  valueField?: string; // Submit-side value extraction; overrides type valueField (§6.4.4)
+  getSubmitField?: (fieldName: string) => string; // Submit-side key mapping; overrides type getSubmitField (§6.4.4)
   rules?: Record<string, unknown>; // RegisterOptions — narrowed by the adapter overlay
   validator?: ValidatorSpec;
   props?: Record<string, unknown>;
@@ -886,6 +895,12 @@ export interface ReactInputConfig<TValue = unknown> extends Omit<
 }
 
 // FieldConfig as seen by React consumers: `rules` is a real RegisterOptions.
+//
+// The §6.4 field-level override fields (defaultValue, debounce, parser,
+// formatter, getSubmitField, valueField) are framework-agnostic, so they pass
+// through this overlay unchanged. `parser`/`formatter` stay
+// `string | ((value: unknown) => unknown)` here (not generified over TValue);
+// per-field TValue inference is a possible future enhancement (§3.2 / §6.4.3).
 export interface ReactFieldConfig<
   V extends FieldValues = FieldValues,
 > extends Omit<FieldConfig, "rules"> {
@@ -1807,16 +1822,20 @@ function transformValuesForSubmit(values: Record<string, unknown>) {
 
   for (const [name, value] of Object.entries(values)) {
     const fieldConfig = config[name];
-    const type = fieldConfig?.type;
+    const type = fieldConfig?.type ?? "textField";
     const inputConfig = inputs[type];
 
-    if (inputConfig?.getSubmitField) {
-      // Use custom submit field name
-      const submitName = inputConfig.getSubmitField(name);
+    // Field-level overrides win over type-level (§6.4.4)
+    const getSubmitField = fieldConfig?.getSubmitField ?? inputConfig?.getSubmitField;
+    const valueField = fieldConfig?.valueField ?? inputConfig?.valueField;
 
-      if (inputConfig.valueField && value && typeof value === "object") {
+    if (getSubmitField) {
+      // Use custom submit field name
+      const submitName = getSubmitField(name);
+
+      if (valueField && value && typeof value === "object") {
         // Extract specific field from object
-        result[submitName] = (value as any)[inputConfig.valueField];
+        result[submitName] = (value as any)[valueField];
       } else {
         result[submitName] = value;
       }
@@ -2107,49 +2126,55 @@ const isDisabled =
 
 #### 5.3.5 Value Transformation
 
+**Effective spec (§6.4.3).** The parser/formatter applied below is the
+*effective* one — `fieldConfig.parser ?? inputConfig.parser` and
+`fieldConfig.formatter ?? inputConfig.formatter` — resolved once where both
+`fieldConfig` and `inputConfig` are in scope, then threaded into `parse` /
+`format`.
+
 **Parse pipeline** (from user input to form value):
 
 ```typescript
-function parseValue(rawValue: unknown, inputConfig: InputConfig): unknown {
-  if (!inputConfig.parser) {
+function parseValue(rawValue: unknown, parser?: string | ((value: unknown) => unknown)): unknown {
+  if (!parser) {
     return rawValue;
   }
 
   // Named parser
-  if (typeof inputConfig.parser === "string") {
-    const parser = parsers[inputConfig.parser];
-    if (!parser) {
-      console.warn(`Parser "${inputConfig.parser}" not found`);
+  if (typeof parser === "string") {
+    const fn = parsers[parser];
+    if (!fn) {
+      console.warn(`Parser "${parser}" not found`);
       return rawValue;
     }
-    return parser(rawValue);
+    return fn(rawValue);
   }
 
   // Inline parser function
-  return inputConfig.parser(rawValue);
+  return parser(rawValue);
 }
 ```
 
 **Format pipeline** (from form value to display value):
 
 ```typescript
-function formatValue(formValue: unknown, inputConfig: InputConfig): unknown {
-  if (!inputConfig.formatter) {
+function formatValue(formValue: unknown, formatter?: string | ((value: unknown) => unknown)): unknown {
+  if (!formatter) {
     return formValue;
   }
 
   // Named formatter
-  if (typeof inputConfig.formatter === "string") {
-    const formatter = formatters[inputConfig.formatter];
-    if (!formatter) {
-      console.warn(`Formatter "${inputConfig.formatter}" not found`);
+  if (typeof formatter === "string") {
+    const fn = formatters[formatter];
+    if (!fn) {
+      console.warn(`Formatter "${formatter}" not found`);
       return formValue;
     }
-    return formatter(formValue);
+    return fn(formValue);
   }
 
   // Inline formatter function
-  return inputConfig.formatter(formValue);
+  return formatter(formValue);
 }
 ```
 
@@ -2160,8 +2185,12 @@ function formatValue(formValue: unknown, inputConfig: InputConfig): unknown {
 ```typescript
 const handleChange = useCallback(
   (newValue: unknown) => {
+    // Field-level parser/formatter/debounce override the type's (§6.4)
+    const effectiveParser = fieldConfig.parser ?? inputConfig.parser;
+    const effectiveDebounce = fieldConfig.debounce ?? inputConfig.debounce;
+
     // 1. Parse value
-    const parsedValue = parseValue(newValue, inputConfig);
+    const parsedValue = parseValue(newValue, effectiveParser);
 
     // 2. Update form value
     controller.field.onChange(parsedValue);
@@ -2170,11 +2199,11 @@ const handleChange = useCallback(
     changeField(name, parsedValue);
 
     // 4. Trigger validation if debounce is false
-    if (inputConfig.debounce === false) {
+    if (effectiveDebounce === false) {
       methods.trigger(name);
     }
   },
-  [name, inputConfig, controller.field.onChange],
+  [name, inputConfig, fieldConfig, controller.field.onChange],
 );
 ```
 
@@ -2447,6 +2476,10 @@ debounce?: number | false
 - `number`: Milliseconds to debounce before validation/auto-save
 - Default: Provider-level setting or `1000`
 
+**Three-tier precedence:** a field-level `debounce` (§6.4.2) wins when set;
+otherwise this type-level value; otherwise the Form-level `debounce` prop
+(default `1000`). All three share the single field-over-type rule from §6.4.0.
+
 #### 6.3.4 inputFieldProp (Optional)
 
 ```typescript
@@ -2568,6 +2601,217 @@ template?: ComponentType<InputTemplateProps>;
 
 Wrapper component for error display, labels, etc. Loose in core (§1.3.2);
 narrowed to `ComponentType<InputTemplateProps>` by the React overlay.
+
+### 6.4 Field-Level Overrides for Type-Level Levers
+
+Formality's configuration is layered by specificity:
+
+```
+FormalityProviderConfig   (global: inputs, formatters, parsers, validators, templates, defaultFieldProps)
+        ↓
+InputConfig<TValue>       (per TYPE: component, defaultValue, debounce, parser, formatter,
+                           getSubmitField, valueField, validator, props, template)
+        ↓
+FormConfig                (per FORM: inputs overrides, groups, defaultFieldProps, selectDefaultFieldProps)
+        ↓
+FieldConfig               (per FIELD INSTANCE: type, label, disabled, hidden, order, recordKey,
+                           rules, validator, props, selectProps, conditions, …
+                           PLUS the field-level overrides below)
+```
+
+A field instance is strictly more specific than its input *type*, so every
+behavioral lever on `InputConfig` is overridable per-field. `FieldConfig` now
+mirrors the four levers that previously had no field-level counterpart
+(`defaultValue`, `debounce`, `parser`/`formatter`, `getSubmitField`/
+`valueField`):
+
+| Lever (on `InputConfig`)        | Field-level counterpart                          | Resolution                                                                                  | See            |
+| ------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------- | -------------- |
+| `defaultValue`                  | `fieldConfig.defaultValue`                       | New priority tier *below* `record`/`defaultValues` prop, *above* the type default           | §6.4.1, §13.1  |
+| `debounce`                      | `fieldConfig.debounce`                           | Field → type → Form-level `debounce` prop                                                   | §6.4.2, §11.1  |
+| `parser` / `formatter`          | `fieldConfig.parser` / `.formatter`              | Field spec `??` type spec; named registries stay global                                     | §6.4.3, §10    |
+| `getSubmitField` / `valueField` | `fieldConfig.getSubmitField` / `.valueField`     | Field `??` type                                                                             | §6.4.4, §5.2.5 |
+
+Already-cascading (not new): `props` (`type.props` → `field.props` via the
+§16 merge), and `validator` (field **composes** with type — see below).
+
+#### 6.4.0 The precedence rule (single rule for all six)
+
+All six field-level levers implement **one** identical rule:
+
+> The field-level value wins over the type-level value when it is **not
+> `undefined`** — so `null`, `false`, `0`, and `""` are *meaningful*
+> overrides/defaults (not treated as "unset"). This mirrors the existing
+> `inputConfig?.defaultValue !== undefined` check.
+
+This is implemented by a single core helper so the rule lives in one place
+(and is reused identically by the React adapter and future Svelte/Vue
+adapters):
+
+```typescript
+// @formality-ui/core — config/defaults.ts (or config/merge.ts)
+/**
+ * Resolve a field-level override against its type-level default.
+ * Returns the field value when it is not undefined (so null/false/0/"" are
+ * meaningful overrides); otherwise the type value. This is the single
+ * precedence rule shared by defaultValue, debounce, parser, formatter,
+ * getSubmitField, and valueField.
+ */
+export function resolveFieldOverType<T>(
+  fieldVal: T | undefined,
+  typeVal: T | undefined,
+): T | undefined {
+  return fieldVal !== undefined ? fieldVal : typeVal;
+}
+```
+
+Every adapter calls this helper at each field-vs-type resolution site,
+guaranteeing identical semantics and one place to audit.
+
+#### Override vs. compose (intentional asymmetry)
+
+The six levers above are each **a single value**, so composition is
+meaningless — they **override**. `validator` is the exception: validation is
+cumulative, so a field validator **composes** with the type validator (field
+runs, then type runs; see §10). This asymmetry is intentional, not accidental.
+
+| Lever            | Field ↔ Type  | Why                                                       |
+| ---------------- | ------------- | --------------------------------------------------------- |
+| `defaultValue`   | override      | single value; field wins when set                         |
+| `debounce`       | override      | single value; field wins when set                         |
+| `parser`         | override      | single transform spec; field wins when set                |
+| `formatter`      | override      | single transform spec; field wins when set                |
+| `getSubmitField` | override      | single function; field wins when set                      |
+| `valueField`     | override      | single string; field wins when set                        |
+| `validator`      | **compose**   | validation is cumulative (field, then type)               |
+| `props`          | merge         | layered spread (§16)                                      |
+
+> Note for `defaultValue` specifically: the field-level default sits *below*
+> `record` and the `defaultValues` Form prop in the chain (§13.1), so it is a
+> new priority tier — **not** a bare `??` of the type default.
+> `resolveFieldOverType` applies to the *field-vs-type* step only.
+
+#### 6.4.1 defaultValue
+
+```typescript
+// FieldConfig
+defaultValue?: unknown;
+```
+
+Per-instance default value. Overrides the input type's `defaultValue`; is
+superseded by an explicit `defaultValues` Form prop or a real `record` value.
+Honored for any value `!== undefined`, so `null` / `false` / `0` / `""` are
+meaningful defaults. Mirrors `InputConfig.defaultValue` but scoped to one
+field.
+
+**Initial-value precedence (§13.1), highest to lowest:**
+
+1. `defaultValues[fieldName]` (Form prop)
+2. `record[recordKey]`
+3. **`fieldConfig.defaultValue`** ← NEW
+4. `inputConfig.defaultValue`
+
+Rationale: a field default is a per-instance fallback; actual data (`record`)
+and explicit per-call overrides (`defaultValues` prop) are authoritative.
+
+**Use cases:** a `switch` that defaults **on** (e.g. an "active" toggle)
+without making *every* switch default on; a `select` defaulting to a specific
+option per form; a `textField` seeded with a computed/constant value for one
+field only.
+
+#### 6.4.2 debounce
+
+```typescript
+// FieldConfig
+debounce?: number | false;
+```
+
+Per-instance auto-save debounce. Same semantics as `InputConfig.debounce`:
+`false` = submit immediately, `number` = ms delay. Overrides the input type's
+debounce; when unset, falls back to `inputConfig.debounce`, then the Form-level
+`debounce` prop (default `1000`). Governs auto-save timing only — the value is
+still committed to form state on every change.
+
+**Precedence:** `fieldConfig.debounce` → `inputConfig.debounce` → Form-level
+`debounce` prop (default `1000`).
+
+**Use cases:** one autocomplete needing a longer debounce than its siblings
+(heavy remote search); one switch that should fire immediately
+(`debounce: false`) even though its type debounces; a "notes" textarea on a
+different cadence than other `textField`s.
+
+#### 6.4.3 parser / formatter
+
+```typescript
+// FieldConfig
+parser?:    string | ((value: unknown) => unknown);
+formatter?: string | ((value: unknown) => unknown);
+```
+
+Per-instance value transforms. Override the input type's `parser` / `formatter`.
+String = named transform (resolved against the provider `parsers` / `formatters`
+registry — registries stay global); function = inline. The inline signature is
+`(unknown) => unknown` because `FieldConfig` is not generic over `TValue` (a
+per-field `TValue` overlay is a future enhancement, §3.2.1).
+
+**Resolution:**
+
+```
+effectiveParser    = fieldConfig.parser    ?? inputConfig.parser
+effectiveFormatter = fieldConfig.formatter ?? inputConfig.formatter
+```
+
+Applied at both transform sites in the React adapter (change-handler parse and
+Controller-render format; §5.3.5).
+
+**Use cases:** one `textField` that uppercases-on-parse; one `decimal` needing
+different display precision than its type siblings; one field whose submitted
+value is a derived/coerced form of what the user typed.
+
+#### 6.4.4 getSubmitField / valueField (read/submit symmetry)
+
+```typescript
+// FieldConfig
+getSubmitField?: (fieldName: string) => string;
+valueField?: string;
+```
+
+Per-instance submit-shape mapping. `getSubmitField` transforms this field's
+name for submission (e.g. `'client' → 'clientId'`); `valueField` selects which
+property of a complex value contains the actual value to submit. Each overrides
+the input type's counterpart.
+
+**Resolution:**
+
+```
+getSubmitField = fieldConfig.getSubmitField ?? inputConfig.getSubmitField
+valueField      = fieldConfig.valueField      ?? inputConfig.valueField
+```
+
+This restores **read/write symmetry** with `recordKey` (read-side key mapping):
+a field can now fully describe its own wire shape on both read and submit.
+
+**Use cases:** one reference field whose submit key differs from its type's
+convention (most `expandingAuto` fields submit `clientId`, but one submits
+`officeId`); one field whose complex value is extracted from a different nested
+property at submit than its type default.
+
+#### 6.4.5 Edge cases & semantics
+
+- **`undefined` = "not specified".** A field-level value is honored when
+  `!== undefined`. This makes `null`, `false`, `0`, and `""` meaningful
+  overrides/defaults.
+- **Create vs. update.** No mode gating. On update, `record[recordKey]`
+  (Priority 2 in §13.1) supersedes a field-level `defaultValue` naturally; a
+  field default only fills in when the fetched record omits the key.
+  `debounce` / `parser` / `formatter` / `getSubmitField` apply identically in
+  both modes.
+- **`recordKey` independence.** A field-level `defaultValue` is a static
+  fallback, independent of `recordKey` (which only affects record lookups).
+- **Interaction with `FormConfig.inputs` overrides.** `FormConfig.inputs`
+  already deep-merges partial `InputConfig`s per type. The new field-level
+  fields are orthogonal: form-level `inputs` adjusts the *type*; field-level
+  adjusts one *instance*. Field still wins over type-after-form-merge.
 
 ---
 
@@ -3224,6 +3468,13 @@ const validateField = async (value: unknown) => {
 
 ## 11. Value Transformation Pipeline
 
+> **Field-level parsers/formatters (§6.4.3).** The spec applied at each site
+> below is the *effective* one: `fieldConfig.parser ?? inputConfig.parser` and
+> `fieldConfig.formatter ?? inputConfig.formatter`. Named registries
+> (`providerConfig.parsers` / `.formatters`) stay global. Submit-side
+> `getSubmitField` / `valueField` likewise resolve field-over-type (§6.4.4,
+> §10.3).
+
 ### 10.1 Parse Pipeline (Input → Form Value)
 
 ```
@@ -3484,8 +3735,8 @@ const reparsed = parseFloat(formatted); // 42.69 ✗ (lost .001)
 When `autoSave={true}`:
 
 1. Any field change triggers a debounced submit
-2. Debounce duration from field's `inputConfig.debounce`
-3. If field has `debounce: false`, submit immediately
+2. Debounce duration from the field's effective debounce: `fieldConfig.debounce` → `inputConfig.debounce` → Form-level `debounce` prop (§6.4.2)
+3. If the effective debounce is `false`, submit immediately
 4. Only submits if the changed field and its affected (dependent) fields are valid
    - Validity is scoped to what this save can touch: the changed field (validated
      on demand via `methods.trigger()`, so this holds under any `mode` — see #5)
@@ -3567,7 +3818,7 @@ function changeField(name: string, value: unknown) {
   if (autoSave) {
     pendingChangedFields.add(name);
 
-    const debounce = inputConfig.debounce; // false | number | undefined
+    const debounce = fieldConfig.debounce ?? inputConfig.debounce; // false | number | undefined (§6.4.2)
     if (debounce === false) {
       // No debounce - submit immediately
       executeAutoSave();
@@ -3583,6 +3834,10 @@ function changeField(name: string, value: unknown) {
 ```
 
 ### 11.3 Debounce Behavior
+
+Effective debounce resolves as `fieldConfig.debounce` → `inputConfig.debounce`
+→ Form-level `debounce` prop (default `1000`); see §6.4.2. A numeric value at
+any tier schedules at that interval; `false` at any tier submits immediately.
 
 ```typescript
 // Example 1: Debounced field
@@ -3913,8 +4168,15 @@ function useConditions({
 **Priority order** (later overrides earlier):
 
 1. **Input type default**: `inputConfig.defaultValue`
-2. **Record prop**: `record[fieldName]`
-3. **Default values prop**: `defaultValues[fieldName]`
+2. **Field-level default**: `fieldConfig.defaultValue` (overrides the type default; §6.4.1)
+3. **Record prop**: `record[recordKey]`
+4. **Default values prop**: `defaultValues[fieldName]`
+
+> The field-level default (§6.4.1) sits *between* the type default and the
+> record: it is a per-instance fallback that is more specific than the type
+> default, but real data (`record`) and explicit per-call overrides
+> (`defaultValues`) are authoritative and still win. Honored when
+> `!== undefined`, so `null` / `false` / `0` / `""` are meaningful defaults.
 
 ### 13.2 Record Value Extraction
 
@@ -3967,13 +4229,44 @@ But NOT for:
 
 ### 13.3 Initial Value Pipeline
 
+Initial values are resolved per field by the core helper `resolveInitialValue`
+(`@formality-ui/core` → `config/defaults.ts`), which applies the §13.1 priority
+order. The field-level default (§6.4.1) is a priority tier between the record
+and the type default:
+
 ```typescript
-// 1. Build default values
+// resolveInitialValue(name, record, defaultValues, fieldConfig, inputConfig)
+function resolveInitialValue(name, record, defaultValues, fieldConfig, inputConfig) {
+  const recordKey = fieldConfig?.recordKey ?? name;
+
+  // Priority 1: Default values prop (highest)
+  if (defaultValues && name in defaultValues) {
+    return defaultValues[name];
+  }
+
+  // Priority 2: Record value (read via recordKey)
+  if (record && recordKey in record) {
+    return record[recordKey];
+  }
+
+  // Priority 3: Field-level default value (per-instance; overrides type default)
+  if (fieldConfig?.defaultValue !== undefined) {
+    return fieldConfig.defaultValue;
+  }
+
+  // Priority 4: Input type default value (lowest)
+  return inputConfig?.defaultValue;
+}
+
+// 1. Build default values from config (field default overrides type default §6.4.1)
 const defaultValues: Record<string, unknown> = {};
 for (const [name, fieldConfig] of Object.entries(config)) {
   const type = fieldConfig.type;
   const inputConfig = inputs[type];
-  defaultValues[name] = inputConfig?.defaultValue;
+  defaultValues[name] = resolveFieldOverType(
+    fieldConfig.defaultValue,
+    inputConfig?.defaultValue,
+  );
 }
 
 // 2. Initialize RHF
@@ -5165,6 +5458,14 @@ interface FieldConfig {
   type?: string;
   disabled?: boolean;
   hidden?: boolean;
+  // Field-level overrides for type-level levers (§6.4). Single rule:
+  // field value wins over type value when !== undefined (override, not compose).
+  defaultValue?: unknown; // §6.4.1
+  debounce?: number | false; // §6.4.2
+  parser?: string | ((value: unknown) => unknown); // §6.4.3
+  formatter?: string | ((value: unknown) => unknown); // §6.4.3
+  valueField?: string; // §6.4.4
+  getSubmitField?: (fieldName: string) => string; // §6.4.4
   rules?: Record<string, unknown>; // RegisterOptions via overlay
   validator?: ValidatorSpec;
   props?: Record<string, unknown>;
@@ -5523,6 +5824,28 @@ Use this checklist to ensure every aspect is implemented:
 - [ ] Inline parser/formatter support
 - [ ] ValueField extraction on submit
 - [ ] getSubmitField renaming
+
+### Field-Level Overrides (§6.4)
+
+- [ ] `FieldConfig` declares `defaultValue`, `debounce`, `parser`, `formatter`,
+      `getSubmitField`, `valueField`
+- [ ] Core helper `resolveFieldOverType` exported and used at every field-vs-type
+      resolution site (defaultValue, debounce, parser, formatter, getSubmitField,
+      valueField)
+- [ ] `resolveInitialValue` honors `fieldConfig.defaultValue` at Priority 3
+      (below `record`/`defaultValues`, above type default); docstring + example
+      updated (§6.4.1, §13.1)
+- [ ] `changeField` honors `fieldConfig.debounce ?? inputConfig.debounce`;
+      `InputConfig.debounce` JSDoc states the three-tier precedence (§6.4.2, §11)
+- [ ] `useField` honors `fieldConfig.parser ?? inputConfig.parser` and
+      `fieldConfig.formatter ?? inputConfig.formatter` (§6.4.3, §5.3.5)
+- [ ] `transformValuesForSubmit` honors `fieldConfig.getSubmitField ??
+      inputConfig.getSubmitField` and `valueField` (§6.4.4, §5.2.5)
+- [ ] Unit tests in `core/src/__tests__/config.test.ts` (resolveInitialValue
+      priority tiers; `null`/`false`/`0`/`""` honored via `!== undefined`)
+- [ ] Integration tests in `react/src/__tests__/` (priority order, autosave
+      field-debounce, parser/formatter, submit transform)
+- [ ] Svelte/Vue adapters updated to match (or tracked as follow-ups)
 
 ### Conditions System
 
