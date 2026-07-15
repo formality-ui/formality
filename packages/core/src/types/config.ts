@@ -61,7 +61,16 @@ export interface InputConfig<TValue = unknown> {
   /** The component to render (typed `unknown` for framework agnosticism; React consumers see `ComponentType<any>` via `ReactInputConfig`) */
   component: unknown;
 
-  /** Default value for this input type (e.g., '' for text, false for switch) */
+  /**
+   * Default value for this input type (e.g., `''` for text, `false` for switch).
+   *
+   * Per-field override via `FieldConfig.defaultValue` (§6.4.1); the
+   * field-level value wins when `!== undefined` (resolved via
+   * `resolveFieldOverType`, §6.4.0 — so null/false/0/"" are meaningful
+   * defaults). A field-level default is a new priority tier *below*
+   * `record`/`defaultValues` and *above* this type default (§6.4.1,
+   * §13.1) — not a bare `??` of this value.
+   */
   defaultValue: TValue;
 
   /**

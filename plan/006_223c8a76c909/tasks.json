@@ -249,14 +249,14 @@
           "type": "Milestone",
           "id": "P1.M4",
           "title": "Documentation Sync",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Final changeset-level documentation sweep: update README.md to surface the new field-level override capability, and verify JSDoc consistency across all affected exported symbols.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M4.T1",
               "title": "Sync changeset-level documentation",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update README.md and any overview docs to document the new §6.4 field-level override capability. Verify JSDoc consistency across all core and react exports touched by this changeset.",
               "subtasks": [
                 {
@@ -292,7 +292,7 @@
                   "type": "Subtask",
                   "id": "P1.M4.T1.S2",
                   "title": "Verify JSDoc consistency across all affected core and react exports",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S1",
