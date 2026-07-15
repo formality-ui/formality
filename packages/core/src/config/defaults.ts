@@ -40,20 +40,23 @@ export function resolveFieldOverType<T>(
  * Priority order (highest to lowest):
  * 1. defaultValues[fieldName] (from Form props)
  * 2. record[recordKey] (using recordKey if specified, else fieldName)
- * 3. inputConfig.defaultValue (from input type definition)
+ * 3. fieldConfig.defaultValue (per-instance default; §6.4.1, §13.1)
+ * 4. inputConfig.defaultValue (from input type definition)
  *
  * **PRD deviation note (accepted, gap_analysis G5).** PRD §1.3.2's table
  * summarizes this export as `resolveInitialValue(record, config, inputConfig)`.
  * The implemented signature is a richer superset —
  * `(fieldName, fieldConfig?, inputConfig?, record?, defaultValues?)` — because
  * it drives the full priority chain above (defaultValues → record[recordKey] →
- * inputConfig.defaultValue) from a single call. This is an internal API
- * consumed by the framework adapters and by {@link resolveAllInitialValues},
- * not a simplified end-user entry point; the PRD literal form is a condensed
- * representation. No code change is planned.
+ * fieldConfig.defaultValue → inputConfig.defaultValue) from a single call. This
+ * is an internal API consumed by the framework adapters and by
+ * {@link resolveAllInitialValues}, not a simplified end-user entry point; the
+ * PRD literal form is a condensed representation. No code change is planned.
  *
  * @param fieldName - Field name
- * @param fieldConfig - Field configuration
+ * @param fieldConfig - Field configuration; `defaultValue` (when set) is the
+ *   Priority-3 per-instance default (§6.4.1), honored for any value
+ *   `!== undefined` (so null/false/0/"" are meaningful).
  * @param inputConfig - Input type configuration
  * @param record - Record data passed to form
  * @param defaultValues - Default values passed to form
@@ -79,6 +82,16 @@ export function resolveFieldOverType<T>(
  *   { status: 'active' }
  * )
  * // → 'active' (defaultValues takes precedence)
+ *
+ * // Field-level default wins over the type default (§6.4.1)
+ * resolveInitialValue(
+ *   'active',
+ *   { type: 'switch', defaultValue: true }, // field default: true
+ *   { defaultValue: false }, // type default: false
+ *   undefined,
+ *   undefined,
+ * )
+ * // → true (field-level default honored; null/false/0/"" would also win)
  */
 export function resolveInitialValue(
   fieldName: string,
@@ -98,9 +111,13 @@ export function resolveInitialValue(
     return record[recordKey];
   }
 
-  // Priority 3: Input type default value
-  if (inputConfig?.defaultValue !== undefined) {
-    return inputConfig.defaultValue;
+  // Priority 3+4: Field-level default overrides type-level (§6.4.1, §6.4.0)
+  const resolvedDefault = resolveFieldOverType(
+    fieldConfig?.defaultValue,
+    inputConfig?.defaultValue,
+  );
+  if (resolvedDefault !== undefined) {
+    return resolvedDefault;
   }
 
   // No default - return undefined

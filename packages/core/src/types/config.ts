@@ -89,10 +89,26 @@ export interface InputConfig<TValue = unknown> {
   /** Transform field name for submission (e.g., 'client' → 'clientId') */
   getSubmitField?: (fieldName: string) => string;
 
-  /** Transform user input to form value. String = named parser, function = inline */
+  /**
+   * Transform user input to form value. String = named parser, function = inline.
+   *
+   * Three-tier precedence (§6.4.3): field → type → none. Per-field override
+   * via `FieldConfig.parser`; the field-level value wins when `!== undefined`
+   * (resolved via `resolveFieldOverType`, §6.4.0 — so null/false/0/"" are
+   * meaningful overrides). Named (string) specs resolve against the
+   * provider's global `parsers` registry.
+   */
   parser?: string | ((value: unknown) => TValue);
 
-  /** Transform form value to display value. String = named formatter, function = inline */
+  /**
+   * Transform form value to display value. String = named formatter, function = inline.
+   *
+   * Three-tier precedence (§6.4.3): field → type → none. Per-field override
+   * via `FieldConfig.formatter`; the field-level value wins when `!== undefined`
+   * (resolved via `resolveFieldOverType`, §6.4.0 — so null/false/0/"" are
+   * meaningful overrides). Named (string) specs resolve against the
+   * provider's global `formatters` registry.
+   */
   formatter?: string | ((value: TValue) => unknown);
 
   /** Type-level validation (runs after field-level validator) */

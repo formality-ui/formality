@@ -26,6 +26,7 @@ import {
   format,
   runValidator,
   resolveErrorMessage,
+  resolveFieldOverType,
 } from "@formality-ui/core";
 import type { FieldConfig, InputConfig } from "@formality-ui/core";
 import type { FormalityFieldComponentProps } from "../overlays";
@@ -555,6 +556,22 @@ export function useField<TName extends string = string>({
     setFieldValidating,
   ]);
 
+  // === FIELD-LEVEL PARSER/FORMATTER OVERRIDES (§6.4.3, §6.4.0) ===
+  //
+  // Effective parser/formatter = field-level spec ?? type-level spec, resolved
+  // through the single shared `resolveFieldOverType` helper (`!== undefined`,
+  // NOT `??` — so null/false/0/"" are meaningful overrides; §6.4.5). Named
+  // registries (providerConfig.parsers/.formatters) stay global and are passed
+  // unchanged to `parse`/`format`.
+  const effectiveParser = useMemo(
+    () => resolveFieldOverType(fieldConfig.parser, inputConfig.parser),
+    [fieldConfig.parser, inputConfig.parser],
+  );
+  const effectiveFormatter = useMemo(
+    () => resolveFieldOverType(fieldConfig.formatter, inputConfig.formatter),
+    [fieldConfig.formatter, inputConfig.formatter],
+  );
+
   // === CHANGE HANDLER ===
 
   const handleChange = useCallback(
@@ -562,7 +579,7 @@ export function useField<TName extends string = string>({
       // Parse value
       const parsedValue = parse(
         newValue,
-        inputConfig.parser,
+        effectiveParser,
         providerConfig.parsers,
       );
 
@@ -572,13 +589,7 @@ export function useField<TName extends string = string>({
       // Notify subscribers
       changeField(name, parsedValue, inputConfig);
     },
-    [
-      inputConfig.parser,
-      providerConfig.parsers,
-      changeField,
-      name,
-      inputConfig,
-    ],
+    [effectiveParser, providerConfig.parsers, changeField, name, inputConfig],
   );
 
   // === CONTRACT REFS ===
@@ -614,7 +625,7 @@ export function useField<TName extends string = string>({
         // Format value for display
         const formattedValue = format(
           field.value,
-          inputConfig.formatter,
+          effectiveFormatter,
           providerConfig.formatters,
         );
 

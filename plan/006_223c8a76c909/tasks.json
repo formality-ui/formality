@@ -151,14 +151,14 @@
               "type": "Task",
               "id": "P1.M3.T1",
               "title": "Field-level parser/formatter resolution in useField",
-              "status": "Planned",
+              "status": "Complete",
               "description": "Update useField.tsx to resolve effective parser and formatter using resolveFieldOverType(fieldConfig.parser/formatter, inputConfig.parser/formatter) at both the parse site (handleChange) and the format site (Controller render callback).",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T1.S1",
                   "title": "Wire effective parser/formatter via resolveFieldOverType in useField",
-                  "status": "Planned",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",
@@ -184,14 +184,14 @@
               "type": "Task",
               "id": "P1.M3.T2",
               "title": "Field-level debounce resolution in changeField",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Update Form.tsx changeField to resolve field-level debounce via resolveFieldOverType(config[name]?.debounce, inputConfig?.debounce), enabling per-field auto-save cadence overrides.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T2.S1",
                   "title": "Wire field-level debounce via resolveFieldOverType in changeField",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",

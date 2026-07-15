@@ -481,6 +481,73 @@ describe("Config Module", () => {
       it("should return undefined when no value found", () => {
         expect(resolveInitialValue("client", {}, undefined)).toBeUndefined();
       });
+
+      it("uses field-level defaultValue over the input-type default (Priority 3)", () => {
+        expect(
+          resolveInitialValue(
+            "active",
+            { type: "switch", defaultValue: true },
+            { defaultValue: false } as InputConfig,
+          ),
+        ).toBe(true);
+      });
+
+      it("honors a null field-level default over the type default (§6.4.5)", () => {
+        expect(
+          resolveInitialValue(
+            "note",
+            { type: "textField", defaultValue: null },
+            { defaultValue: "fallback" } as InputConfig,
+          ),
+        ).toBeNull();
+      });
+
+      it("honors a false field-level default (§6.4.5)", () => {
+        expect(
+          resolveInitialValue("flag", { type: "switch", defaultValue: false }, {
+            defaultValue: true,
+          } as InputConfig),
+        ).toBe(false);
+      });
+
+      it('honors a "" field-level default (§6.4.5)', () => {
+        expect(
+          resolveInitialValue("code", { type: "textField", defaultValue: "" }, {
+            defaultValue: "typeDefault",
+          } as InputConfig),
+        ).toBe("");
+      });
+
+      it("falls through to the input-type default when fieldConfig.defaultValue is undefined", () => {
+        expect(
+          resolveInitialValue("name", { type: "textField" }, {
+            defaultValue: "typeDefault",
+          } as InputConfig),
+        ).toBe("typeDefault");
+      });
+
+      it("still lets the record beat the field-level default (Priority 2 > 3)", () => {
+        expect(
+          resolveInitialValue(
+            "active",
+            { type: "switch", defaultValue: true },
+            { defaultValue: false } as InputConfig,
+            { active: false },
+          ),
+        ).toBe(false);
+      });
+
+      it("still lets defaultValues prop beat the field-level default (Priority 1 > 3)", () => {
+        expect(
+          resolveInitialValue(
+            "active",
+            { type: "switch", defaultValue: true },
+            { defaultValue: false } as InputConfig,
+            undefined,
+            { active: "fromProp" },
+          ),
+        ).toBe("fromProp");
+      });
     });
 
     describe("resolveAllInitialValues", () => {
@@ -514,6 +581,19 @@ describe("Config Module", () => {
         );
 
         expect(values.extra).toBe("value");
+      });
+
+      it("picks up field-level defaultValue via resolveInitialValue delegation", () => {
+        const inputs = {
+          switch: { component: null, defaultValue: false } as InputConfig,
+        };
+        const fieldConfigs = {
+          active: { type: "switch", defaultValue: true },
+          paused: { type: "switch" },
+        };
+        const values = resolveAllInitialValues(fieldConfigs, inputs);
+        expect(values.active).toBe(true); // field-level default
+        expect(values.paused).toBe(false); // type-level default
       });
     });
 

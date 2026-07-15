@@ -377,6 +377,148 @@ describe("Field", () => {
       // Value should be formatted for display
       expect(screen.getByTestId("name")).toHaveValue("hello");
     });
+
+    it("should apply the field-level parser over the type-level parser on change (§6.4.3)", async () => {
+      const typeParser = vi.fn((v: unknown) => `TYPE:${String(v)}`);
+      const fieldParser = vi.fn((v: unknown) => `FIELD:${String(v)}`);
+
+      const inputs: Record<string, InputConfig> = {
+        textField: {
+          component: TestInput,
+          defaultValue: "",
+          parser: typeParser,
+        },
+      };
+      const config: FormFieldsConfig = {
+        name: { type: "textField", parser: fieldParser }, // field-level override
+      };
+
+      render(
+        <FormalityProvider inputs={inputs}>
+          <Form config={config}>
+            {({ methods }) => (
+              <>
+                <Field name="name" />
+                <span data-testid="value">{methods.watch("name")}</span>
+              </>
+            )}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const user = userEvent.setup();
+      await user.type(screen.getByTestId("name"), "hi");
+
+      await waitFor(() => {
+        expect(screen.getByTestId("value")).toHaveTextContent("FIELD:hi");
+      });
+      // Field-level parser ran; type-level parser did NOT (field wins).
+      expect(fieldParser).toHaveBeenCalled();
+      expect(typeParser).not.toHaveBeenCalled();
+    });
+
+    it("should fall back to the type-level parser when the field has no parser (regression)", async () => {
+      const typeParser = vi.fn((v: unknown) => `TYPE:${String(v)}`);
+
+      const inputs: Record<string, InputConfig> = {
+        textField: {
+          component: TestInput,
+          defaultValue: "",
+          parser: typeParser,
+        },
+      };
+      const config: FormFieldsConfig = {
+        name: { type: "textField" }, // no field-level parser → type applies
+      };
+
+      render(
+        <FormalityProvider inputs={inputs}>
+          <Form config={config}>
+            {({ methods }) => (
+              <>
+                <Field name="name" />
+                <span data-testid="value">{methods.watch("name")}</span>
+              </>
+            )}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const user = userEvent.setup();
+      await user.type(screen.getByTestId("name"), "hi");
+
+      await waitFor(() => {
+        expect(screen.getByTestId("value")).toHaveTextContent("TYPE:hi");
+      });
+      expect(typeParser).toHaveBeenCalled();
+    });
+
+    it("should apply the field-level formatter over the type-level formatter for display (§6.4.3)", async () => {
+      const typeFormatter = vi.fn((v: unknown) =>
+        typeof v === "string" ? v.toLowerCase() : v,
+      );
+      const fieldFormatter = vi.fn((v: unknown) =>
+        typeof v === "string" ? v.toUpperCase() : v,
+      );
+
+      const inputs: Record<string, InputConfig> = {
+        textField: {
+          component: TestInput,
+          defaultValue: "",
+          formatter: typeFormatter,
+        },
+      };
+      const config: FormFieldsConfig = {
+        name: { type: "textField", formatter: fieldFormatter }, // field-level override
+      };
+
+      render(
+        <FormalityProvider inputs={inputs}>
+          <Form config={config} record={{ name: "hello" }}>
+            <Field name="name" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      // Field-level formatter wins → display is uppercased.
+      await waitFor(() => {
+        expect(screen.getByTestId("name")).toHaveValue("HELLO");
+      });
+      expect(fieldFormatter).toHaveBeenCalled();
+      expect(typeFormatter).not.toHaveBeenCalled();
+    });
+
+    it("should resolve a named field-level parser against the provider registry (registries stay global)", async () => {
+      const namedParser = vi.fn((v: unknown) => `NAMED:${String(v)}`);
+
+      const inputs: Record<string, InputConfig> = {
+        textField: { component: TestInput, defaultValue: "" },
+      };
+      const config: FormFieldsConfig = {
+        name: { type: "textField", parser: "namedTest" }, // string → registry lookup
+      };
+
+      render(
+        <FormalityProvider inputs={inputs} parsers={{ namedTest: namedParser }}>
+          <Form config={config}>
+            {({ methods }) => (
+              <>
+                <Field name="name" />
+                <span data-testid="value">{methods.watch("name")}</span>
+              </>
+            )}
+          </Form>
+        </FormalityProvider>,
+      );
+
+      const user = userEvent.setup();
+      await user.type(screen.getByTestId("name"), "x");
+
+      await waitFor(() => {
+        expect(screen.getByTestId("value")).toHaveTextContent("NAMED:x");
+      });
+      expect(namedParser).toHaveBeenCalled();
+    });
   });
 
   describe("validation", () => {
