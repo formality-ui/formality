@@ -139,6 +139,49 @@ export interface FieldConfig {
   /** Key to use when reading initial value from record (defaults to field name) */
   recordKey?: string;
 
+  // ── Field-level overrides for type-level levers (PRD §6.4). ──────────
+  // All six follow ONE rule: the field value wins over the type value when
+  // !== undefined (override, NOT compose — only `validator` composes; §10).
+  // See resolveFieldOverType (core helper, added in P1.M1.T1.S2).
+
+  /**
+   * Per-instance default value. Overrides the input type's defaultValue;
+   * superseded by record/defaultValues prop. Honored when !== undefined, so
+   * null/false/0/"" are meaningful. See §6.4.1, §13.1.
+   */
+  defaultValue?: unknown;
+
+  /**
+   * Per-instance auto-save debounce. Overrides the input type's debounce;
+   * falls back to Form-level debounce prop (default 1000). false = submit
+   * immediately. See §6.4.2.
+   */
+  debounce?: number | false;
+
+  /**
+   * Per-instance value transform (input→form). Overrides the input type's
+   * parser. String = named parser; function = inline. See §6.4.3.
+   */
+  parser?: string | ((value: unknown) => unknown);
+
+  /**
+   * Per-instance value transform (form→display). Overrides the input type's
+   * formatter. String = named formatter; function = inline. See §6.4.3.
+   */
+  formatter?: string | ((value: unknown) => unknown);
+
+  /**
+   * Submit-side value extraction from complex objects. Overrides the input
+   * type's valueField. See §6.4.4.
+   */
+  valueField?: string;
+
+  /**
+   * Submit-side field name transformation. Overrides the input type's
+   * getSubmitField. See §6.4.4.
+   */
+  getSubmitField?: (fieldName: string) => string;
+
   /** Register options forwarded to the framework's field register call (typed loose for framework agnosticism; React consumers see react-hook-form's `RegisterOptions` via `ReactFieldConfig`) */
   rules?: Record<string, unknown>;
 
