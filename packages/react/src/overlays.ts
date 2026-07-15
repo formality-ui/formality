@@ -61,6 +61,15 @@ export interface ReactInputConfig<TValue = unknown> extends Omit<
  *
  * The generic `V` defaults to `FieldValues`; pass your form's values type for
  * slightly tighter checking on path-based rules.
+ *
+ * The §6.4 field-level override fields (`defaultValue`, `debounce`,
+ * `parser`, `formatter`, `valueField`, `getSubmitField`) are inherited
+ * from core `FieldConfig` unchanged. They override their `InputConfig`
+ * counterparts when `!== undefined`, using the single
+ * `resolveFieldOverType` rule (§6.4.0). The field-level
+ * `parser`/`formatter` stay `string | ((value: unknown) => unknown)` —
+ * NOT generified over `TValue` (per-field `TValue` is a future
+ * enhancement, §3.2.1).
  */
 export interface ReactFieldConfig<
   V extends FieldValues = FieldValues,
