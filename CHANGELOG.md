@@ -1,3 +1,21 @@
+# [0.4.0](https://github.com/formality-ui/formality/compare/v0.3.0...v0.4.0) (2026-07-15)
+
+
+### Bug Fixes
+
+* **react:** remove subscription console logging (zero console noise) ([b7845b0](https://github.com/formality-ui/formality/commit/b7845b05ecf51a82761295c8c512d8afd9732a35))
+
+
+### Features
+
+* **core, react:** flatten render props and honor global labels ([96b5fc5](https://github.com/formality-ui/formality/commit/96b5fc553528eebf66464e1024fb240d0f5effa6))
+* **core, react:** wire field-level override runtime ([b308040](https://github.com/formality-ui/formality/commit/b308040246ea6c977de9f48de214956cc755997e))
+* **core:** add resolveFieldOverType helper ([96fbc19](https://github.com/formality-ui/formality/commit/96fbc19ba3a090010b2adaf20eb2215d5c8ee578))
+* **core:** add type surface for field-level overrides ([d7bb96b](https://github.com/formality-ui/formality/commit/d7bb96b4436f03e3f11f25609e9570d78fe2f101))
+* **core:** export resolveFieldOverType helper ([c660cc0](https://github.com/formality-ui/formality/commit/c660cc055492068a31dd1322fbde723d496e6063))
+* **react, docs:** wire submit overrides and document ([fafaed0](https://github.com/formality-ui/formality/commit/fafaed0d16a49e7deca2d031581e6f7fb4aa8dba))
+* **react:** resolve field-level debounce ([587cae6](https://github.com/formality-ui/formality/commit/587cae674efbb4b9e9e3886a36c0ab2813e816e7))
+
 # [0.3.0](https://github.com/formality-ui/formality/compare/v0.2.5...v0.3.0) (2026-07-13)
 
 
