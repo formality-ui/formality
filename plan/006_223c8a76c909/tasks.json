@@ -144,7 +144,7 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "React Adapter — Runtime Override Resolution",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Wire field-level overrides into the three React adapter resolution sites: useField (parser/formatter), Form.changeField (debounce), and Form.transformValuesForSubmit (getSubmitField/valueField). Each site uses resolveFieldOverType for the field-vs-type step.",
           "tasks": [
             {
@@ -184,14 +184,14 @@
               "type": "Task",
               "id": "P1.M3.T2",
               "title": "Field-level debounce resolution in changeField",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Update Form.tsx changeField to resolve field-level debounce via resolveFieldOverType(config[name]?.debounce, inputConfig?.debounce), enabling per-field auto-save cadence overrides.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T2.S1",
                   "title": "Wire field-level debounce via resolveFieldOverType in changeField",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",
@@ -216,14 +216,14 @@
               "type": "Task",
               "id": "P1.M3.T3",
               "title": "Field-level getSubmitField/valueField in transformValuesForSubmit",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update Form.tsx transformValuesForSubmit to resolve effective getSubmitField/valueField via resolveFieldOverType(fieldConfig value, inputConfig value), enabling per-field submit-shape overrides.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T3.S1",
                   "title": "Wire field-level getSubmitField/valueField via resolveFieldOverType in transformValuesForSubmit",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",

@@ -23,6 +23,7 @@ import {
   buildFormContext,
   extractValueField,
   transformFieldName,
+  resolveFieldOverType,
 } from "@formality-ui/core";
 import type {
   FormFieldsConfig,
@@ -383,7 +384,16 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         //   inputConfig.debounce === <number>   → per-field debounced timer at that ms
         //   inputConfig.debounce === undefined  → fall back to the Form-level debounce
         //     (debouncedSubmitRef already encodes debounceMs, including its false → immediate case)
-        const fieldDebounce = inputConfig?.debounce;
+        // Resolve the effective debounce via the single field-over-type rule
+        // (§6.4.2 precedence: field → type → Form-level; §6.4.0 helper so the
+        // `!== undefined` semantics live in one place). The three-way branch
+        // below then dispatches exactly as before (false→immediate,
+        // number→per-field timer, undefined→Form-level debounce prop).
+        const fieldConfig = config[name];
+        const fieldDebounce = resolveFieldOverType(
+          fieldConfig?.debounce,
+          inputConfig?.debounce,
+        );
         if (fieldDebounce === false) {
           // Immediate submission: bypass debounce entirely (field-level override)
           executeAutoSaveRef.current?.();
@@ -398,7 +408,7 @@ export function Form<TFieldValues extends FieldValues = FieldValues>({
         }
       }
     },
-    [autoSave, getAffectedFields],
+    [autoSave, getAffectedFields, config],
   );
 
   const setFieldValidating = useCallback(

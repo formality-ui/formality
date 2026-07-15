@@ -600,4 +600,178 @@ describe("AutoSave Per-Field Numeric Debounce (Issue 1)", () => {
       );
     });
   });
+
+  describe("FieldConfig.debounce (config prop) overrides type + Form-level", () => {
+    it("should honor a numeric debounce set via config[name] over the type-level debounce (§6.4.2)", async () => {
+      // The type says 2000; the FIELD (config prop) says 1500 → 1500 wins.
+      render(
+        <FormalityProvider inputs={inputsWithFieldDebounce}>
+          <Form
+            config={{ fieldA: { type: "textField", debounce: 1500 } }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500} // Form-level fallback (must NOT be used)
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      await act(async () => {
+        await userEvent.type(screen.getByTestId("fieldA"), "hi", {
+          delay: null,
+        });
+      });
+
+      // 500ms (Form-level) — no submit.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+      expect(submitHandler).not.toHaveBeenCalled();
+      // 1500ms (FIELD) — NOT 2000ms (type). Submit now.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ fieldA: "hi" }),
+      );
+
+      // Sanity: the type-level 2000 was NOT the cadence (it would still be pending here).
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it("should submit immediately when config[name] sets debounce:false, even if the type debounces (§6.4.2)", async () => {
+      // Type debounces (2000); FIELD says false → immediate.
+      render(
+        <FormalityProvider inputs={inputsWithFieldDebounce}>
+          <Form
+            config={{ fieldA: { type: "textField", debounce: false } }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      await act(async () => {
+        await userEvent.type(screen.getByTestId("fieldA"), "x", {
+          delay: null,
+        });
+      });
+
+      // Immediate — well under the type's 2000ms.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ fieldA: "x" }),
+      );
+    });
+
+    it("should fall back to the type-level debounce when config[name] omits debounce (regression)", async () => {
+      // No field-level debounce → type's 2000 applies (existing behavior; proves resolveFieldOverType(undefined, 2000) === 2000).
+      render(
+        <FormalityProvider inputs={inputsWithFieldDebounce}>
+          <Form
+            config={{ fieldA: { type: "textField" } }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      await act(async () => {
+        await userEvent.type(screen.getByTestId("fieldA"), "hi", {
+          delay: null,
+        });
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      // Type-level 2000ms cadence.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1500);
+      });
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ fieldA: "hi" }),
+      );
+    });
+
+    it("should fall back to the Form-level debounce when both config[name] and type omit debounce (regression)", async () => {
+      // baseInputs.textField has NO debounce; config omits it too → Form-level 500.
+      render(
+        <FormalityProvider inputs={baseInputs}>
+          <Form
+            config={{ fieldA: { type: "textField" } }}
+            onSubmit={submitHandler}
+            autoSave
+            debounce={500}
+          >
+            <Field name="fieldA" />
+          </Form>
+        </FormalityProvider>,
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      submitHandler.mockClear();
+
+      await act(async () => {
+        await userEvent.type(screen.getByTestId("fieldA"), "x", {
+          delay: null,
+        });
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      expect(submitHandler).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+      await waitFor(() => {
+        expect(submitHandler).toHaveBeenCalledTimes(1);
+      });
+      expect(submitHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ fieldA: "x" }),
+      );
+    });
+  });
 });

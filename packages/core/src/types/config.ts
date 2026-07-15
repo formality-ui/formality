@@ -75,6 +75,12 @@ export interface InputConfig<TValue = unknown> {
    *   debounces fire on their own cadence. When unset, the field falls back
    *   to the Form-level `debounce` prop (default 1000ms).
    *
+   * Three-tier precedence (§6.4.2): a field-level `FieldConfig.debounce`
+   * wins when set; otherwise this type-level value; otherwise the
+   * Form-level `debounce` prop (default 1000). All three share the single
+   * field-over-type rule from §6.4.0 (resolved via `resolveFieldOverType`,
+   * so a field-level `false`/`number` is honored when `!== undefined`).
+   *
    * This governs *auto-save timing only*. The field value is still committed
    * to the form state on every change (it does not throttle re-renders).
    */
