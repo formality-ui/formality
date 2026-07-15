@@ -1357,3 +1357,169 @@ describe("selectDefaultFieldProps - Form Level - Priority Ordering", () => {
     expect(screen.getByTestId("field")).not.toHaveClass("provider-result");
   });
 });
+
+// ============================================================================
+// TEST SUITE: selectDefaultFieldProps.label (PRD §16.1 regression — F1)
+// ============================================================================
+//
+// PRD §16.1 documents that a global label convention set via
+// `selectDefaultFieldProps: { label: "props.name" }` works at BOTH provider
+// and form level. Previously the evaluated label was silently clobbered by the
+// auto-generated `humanizeLabel(name)` core prop. These tests guard the fix.
+describe("selectDefaultFieldProps.label (PRD §16.1)", () => {
+  it("provider selectDefaultFieldProps.label is honored (props.name)", () => {
+    const config: FormFieldsConfig = {
+      clientContact: { type: "textField" },
+    };
+
+    render(
+      <FormalityProvider
+        inputs={testInputs}
+        selectDefaultFieldProps={{ label: "props.name" }}
+      >
+        <Form config={config}>
+          <Field name="clientContact" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    // The evaluated label ("clientContact") must win over the humanized
+    // auto-generated label ("Client Contact").
+    expect(screen.getByTestId("clientContact-label")).toHaveTextContent(
+      "clientContact",
+    );
+  });
+
+  it("form selectDefaultFieldProps.label is honored (props.name)", () => {
+    const config: FormFieldsConfig = {
+      firstName: { type: "textField" },
+    };
+
+    render(
+      <FormalityProvider inputs={testInputs}>
+        <Form
+          config={config}
+          formConfig={{ selectDefaultFieldProps: { label: "props.name" } }}
+        >
+          <Field name="firstName" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    expect(screen.getByTestId("firstName-label")).toHaveTextContent(
+      "firstName",
+    );
+  });
+
+  it("form selectDefaultFieldProps.label overrides provider selectDefaultFieldProps.label", () => {
+    const config: FormFieldsConfig = {
+      field: { type: "textField" },
+    };
+
+    render(
+      <FormalityProvider
+        inputs={testInputs}
+        selectDefaultFieldProps={{ label: '"provider-label"' }}
+      >
+        <Form
+          config={config}
+          formConfig={{ selectDefaultFieldProps: { label: '"form-label"' } }}
+        >
+          <Field name="field" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    expect(screen.getByTestId("field-label")).toHaveTextContent("form-label");
+  });
+
+  it("fieldConfig.label overrides provider/form selectDefaultFieldProps.label", () => {
+    const config: FormFieldsConfig = {
+      field: { type: "textField", label: "Explicit Field Label" },
+    };
+
+    render(
+      <FormalityProvider
+        inputs={testInputs}
+        selectDefaultFieldProps={{ label: '"provider-label"' }}
+      >
+        <Form
+          config={config}
+          formConfig={{ selectDefaultFieldProps: { label: '"form-label"' } }}
+        >
+          <Field name="field" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    expect(screen.getByTestId("field-label")).toHaveTextContent(
+      "Explicit Field Label",
+    );
+  });
+
+  it("field selectProps.label overrides provider/form selectDefaultFieldProps.label", () => {
+    const config: FormFieldsConfig = {
+      field: {
+        type: "textField",
+        selectProps: { label: '"field-select-label"' },
+      },
+    };
+
+    render(
+      <FormalityProvider
+        inputs={testInputs}
+        selectDefaultFieldProps={{ label: '"provider-label"' }}
+      >
+        <Form
+          config={config}
+          formConfig={{ selectDefaultFieldProps: { label: '"form-label"' } }}
+        >
+          <Field name="field" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    expect(screen.getByTestId("field-label")).toHaveTextContent(
+      "field-select-label",
+    );
+  });
+
+  it("falls back to humanized label when no layer sets label", () => {
+    const config: FormFieldsConfig = {
+      clientContact: { type: "textField" },
+    };
+
+    render(
+      <FormalityProvider inputs={testInputs}>
+        <Form config={config}>
+          <Field name="clientContact" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    expect(screen.getByTestId("clientContact-label")).toHaveTextContent(
+      "Client Contact",
+    );
+  });
+
+  it("component prop label overrides selectDefaultFieldProps.label", () => {
+    const config: FormFieldsConfig = {
+      field: { type: "textField" },
+    };
+
+    render(
+      <FormalityProvider
+        inputs={testInputs}
+        selectDefaultFieldProps={{ label: '"provider-label"' }}
+      >
+        <Form config={config}>
+          <Field name="field" label="Component Label" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    expect(screen.getByTestId("field-label")).toHaveTextContent(
+      "Component Label",
+    );
+  });
+});

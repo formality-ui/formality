@@ -112,16 +112,16 @@ const config: ReactFormFieldsConfig = {
 // =============================================================================
 
 export function BasicForm() {
-  const handleSubmit = (values: Record<string, unknown>) => {
+  const onSubmit = (values: Record<string, unknown>) => {
     console.log("Form submitted:", values);
     // Output: { firstName: "John", lastName: "Doe", email: "john@example.com", age: 30 }
   };
 
   return (
     <FormalityProvider inputs={inputs}>
-      <Form config={config} onSubmit={handleSubmit}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(handleSubmit)}>
+      <Form config={config} onSubmit={onSubmit}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(onSubmit)}>
             <h2>Contact Information</h2>
 
             {/* Fields render in the order they appear in JSX */}
@@ -151,15 +151,15 @@ export function BasicFormWithData() {
     age: 28,
   };
 
-  const handleSubmit = (values: Record<string, unknown>) => {
+  const onSubmit = (values: Record<string, unknown>) => {
     console.log("Updated values:", values);
   };
 
   return (
     <FormalityProvider inputs={inputs}>
-      <Form config={config} record={record} onSubmit={handleSubmit}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(handleSubmit)}>
+      <Form config={config} record={record} onSubmit={onSubmit}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(onSubmit)}>
             <h2>Edit Contact</h2>
 
             <Field name="firstName" />

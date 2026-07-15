@@ -226,8 +226,8 @@ export function CascadingSelectsExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={cascadingConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Cascading Selects</h3>
             <p>Each dropdown depends on the previous selection</p>
             <Field name="country" />
@@ -275,8 +275,8 @@ export function ExpressionSyntaxExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={expressionConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Expression Syntax</h3>
             <p>Total = base * quantity * (1 - discount%)</p>
             <Field name="basePrice" />
@@ -341,8 +341,8 @@ export function QualifiedPathsExample() {
         record={recordForExample}
         onSubmit={console.log}
       >
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Qualified Paths in Expressions</h3>
             <pre>{`
 Available prefixes:
@@ -407,8 +407,8 @@ export function SelectDefaultFieldPropsExample() {
         formConfig={defaultPropsFormConfig}
         onSubmit={console.log}
       >
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>selectDefaultFieldProps</h3>
             <p>Toggle enables/disables all fields at once</p>
             <Field name="enableAll" />
@@ -450,8 +450,8 @@ export function DynamicLabelsExample() {
         formConfig={dynamicLabelFormConfig}
         onSubmit={console.log}
       >
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Dynamic Labels from Field Names</h3>
             <p>Labels auto-generated from field names</p>
             <Field name="firstName" />
@@ -511,8 +511,8 @@ export function FunctionSelectPropsExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={functionSelectPropsConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Function-Based selectProps</h3>
             <p>Complex calculations with explicit subscriptions</p>
             <Field name="items" />
@@ -586,8 +586,8 @@ export function NestedObjectExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={nestedObjectConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Nested Object Access</h3>
             <p>Access deep properties with dot notation</p>
             <Field name="client" />

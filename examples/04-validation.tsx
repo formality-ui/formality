@@ -230,8 +230,8 @@ export function BasicValidationExample() {
       errorMessages={errorMessages}
     >
       <Form config={basicConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ methods, handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Basic Validation</h3>
             <Field name="name" />
             <Field name="email" />
@@ -286,8 +286,8 @@ export function InlineValidationExample() {
       errorMessages={errorMessages}
     >
       <Form config={inlineConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ methods, handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Inline Validators</h3>
             <Field name="username" />
             <Field name="bio" />
@@ -359,8 +359,8 @@ export function AsyncValidationExample() {
       errorMessages={errorMessages}
     >
       <Form config={asyncConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ methods, handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Async Validation (Check Availability)</h3>
             <p>Try: admin, test@example.com (already taken)</p>
             <Field name="username" />
@@ -415,8 +415,8 @@ export function CrossFieldValidationExample() {
       errorMessages={errorMessages}
     >
       <Form config={crossFieldConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ methods, handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Cross-Field Validation</h3>
             <Field name="password" />
             <Field name="confirmPassword" />
@@ -485,8 +485,8 @@ export function ConditionalValidationExample() {
       errorMessages={errorMessages}
     >
       <Form config={conditionalValidationConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ methods, handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Conditional Validation</h3>
             <p>Type "yes" to show business fields</p>
             <Field name="hasCompany" />
@@ -546,8 +546,8 @@ export function ValidatorReturnTypesExample() {
       errorMessages={errorMessages}
     >
       <Form config={allReturnTypesConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ methods, handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Validator Return Types</h3>
             <p>Type the trigger word to see each error type</p>
             <Field name="returnTrue" />

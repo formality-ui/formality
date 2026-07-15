@@ -67,8 +67,8 @@ function App() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={config} onSubmit={(values) => console.log(values)}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <Field name="name" />
             <Field name="email" />
             <Field name="subscribed" />

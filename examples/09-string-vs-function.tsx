@@ -155,8 +155,8 @@ export function SelectPropsComparisonExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={selectPropsConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>selectProps: String vs Function</h3>
 
             <div className="input-section">
@@ -260,8 +260,8 @@ export function ConditionWhenComparisonExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={conditionWhenConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Conditions: when vs selectWhen (String vs Function)</h3>
 
             <div className="input-section">
@@ -374,8 +374,8 @@ export function SetValueComparisonExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={setValueConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Setting Values: set vs selectSet (String vs Function)</h3>
 
             <div className="input-section">
@@ -464,8 +464,8 @@ export function DefaultFieldPropsComparisonExample() {
             formConfig={stringFormConfig}
             onSubmit={console.log}
           >
-            {({ methods }) => (
-              <form onSubmit={methods.handleSubmit(console.log)}>
+            {({ handleSubmit }) => (
+              <form onSubmit={handleSubmit(console.log)}>
                 <Field name="globalToggle" />
                 <Field name="field1" />
                 <Field name="field2" />
@@ -483,8 +483,8 @@ export function DefaultFieldPropsComparisonExample() {
             formConfig={functionFormConfig}
             onSubmit={console.log}
           >
-            {({ methods }) => (
-              <form onSubmit={methods.handleSubmit(console.log)}>
+            {({ handleSubmit }) => (
+              <form onSubmit={handleSubmit(console.log)}>
                 <Field name="globalToggle" />
                 <Field name="field1" />
                 <Field name="field2" />

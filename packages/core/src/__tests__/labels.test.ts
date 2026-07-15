@@ -88,6 +88,70 @@ describe("Labels Module", () => {
       expect(resolveLabel("clientContact")).toBe("Client Contact");
       expect(resolveLabel("firstName", {})).toBe("First Name");
     });
+
+    // PRD §16.1 — provider/form selectDefaultFieldProps.label must be honored.
+    // These layers sit below the field-level sources but above the humanized
+    // fallback so a global label convention applies unless the field overrides.
+    describe("provider/form selectDefaultFieldProps.label (PRD §16.1)", () => {
+      it("uses provider selectDefaultFieldProps.label above humanize", () => {
+        expect(
+          resolveLabel("clientContact", {}, {}, {}, { label: "props.name" }),
+        ).toBe("props.name");
+      });
+
+      it("uses form selectDefaultFieldProps.label above humanize", () => {
+        expect(
+          resolveLabel("clientContact", {}, {}, {}, undefined, {
+            label: "props.name",
+          }),
+        ).toBe("props.name");
+      });
+
+      it("form selectDefaultFieldProps.label beats provider selectDefaultFieldProps.label", () => {
+        expect(
+          resolveLabel(
+            "clientContact",
+            {},
+            {},
+            {},
+            { label: "provider" },
+            { label: "form" },
+          ),
+        ).toBe("form");
+      });
+
+      it("provider/form selectDefaultFieldProps.label is below fieldConfig.label", () => {
+        expect(
+          resolveLabel(
+            "clientContact",
+            { label: "Field Label" },
+            {},
+            {},
+            { label: "provider" },
+            { label: "form" },
+          ),
+        ).toBe("Field Label");
+      });
+
+      it("provider/form selectDefaultFieldProps.label is below field selectProps.label", () => {
+        expect(
+          resolveLabel(
+            "clientContact",
+            {},
+            { label: "Select Label" },
+            {},
+            { label: "provider" },
+            { label: "form" },
+          ),
+        ).toBe("Select Label");
+      });
+
+      it("falls back to humanize when no layer sets label", () => {
+        expect(resolveLabel("clientContact", {}, {}, {}, {}, {})).toBe(
+          "Client Contact",
+        );
+      });
+    });
   });
 
   describe("resolveFormTitle", () => {

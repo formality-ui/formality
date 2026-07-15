@@ -4,7 +4,7 @@
       "type": "Phase",
       "id": "P1",
       "title": "Field-Level Type Overrides (§6.4)",
-      "status": "Researching",
+      "status": "Complete",
       "description": "Implement PRD §6.4: Field-Level Overrides for Type-Level Levers. This adds six optional override fields to FieldConfig (defaultValue, debounce, parser, formatter, valueField, getSubmitField) so a single field instance can override its input TYPE's behavior without affecting other fields of the same type. The codebase is otherwise mature — this is the sole remaining unimplemented PRD feature. All six levers share one precedence rule via a single core helper (resolveFieldOverType): the field-level value wins over the type-level value when !== undefined (so null/false/0/\"\" are meaningful). Validator composes (already implemented); these six override.",
       "milestones": [
         {
@@ -144,7 +144,7 @@
           "type": "Milestone",
           "id": "P1.M3",
           "title": "React Adapter — Runtime Override Resolution",
-          "status": "Researching",
+          "status": "Complete",
           "description": "Wire field-level overrides into the three React adapter resolution sites: useField (parser/formatter), Form.changeField (debounce), and Form.transformValuesForSubmit (getSubmitField/valueField). Each site uses resolveFieldOverType for the field-vs-type step.",
           "tasks": [
             {
@@ -216,14 +216,14 @@
               "type": "Task",
               "id": "P1.M3.T3",
               "title": "Field-level getSubmitField/valueField in transformValuesForSubmit",
-              "status": "Researching",
+              "status": "Complete",
               "description": "Update Form.tsx transformValuesForSubmit to resolve effective getSubmitField/valueField via resolveFieldOverType(fieldConfig value, inputConfig value), enabling per-field submit-shape overrides.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M3.T3.S1",
                   "title": "Wire field-level getSubmitField/valueField via resolveFieldOverType in transformValuesForSubmit",
-                  "status": "Researching",
+                  "status": "Complete",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",

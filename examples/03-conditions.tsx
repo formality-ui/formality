@@ -126,8 +126,8 @@ export function VisibilityExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={visibilityConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Toggle Visibility</h3>
             <Field name="showDetails" />
             <Field name="additionalDetails" />
@@ -166,8 +166,8 @@ export function DisabledExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={disabledConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Disable Field</h3>
             <Field name="isLocked" />
             <Field name="editableField" />
@@ -222,8 +222,8 @@ export function ExactMatchExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={exactMatchConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Payment Method (Exact Match)</h3>
             <Field name="paymentMethod" />
             <Field name="cardNumber" />
@@ -265,8 +265,8 @@ export function SetValueExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={setValueConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Set Value from Condition</h3>
             <Field name="useDefaultAddress" />
             <Field name="shippingAddress" />
@@ -320,8 +320,8 @@ export function SelectSetExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={selectSetConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Dynamic Calculated Value</h3>
             <Field name="basePrice" />
             <Field name="quantity" />
@@ -375,8 +375,8 @@ export function ComplexConditionExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={complexConditionConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Complex Conditions (selectWhen)</h3>
             <Field name="age" />
             <Field name="hasLicense" />
@@ -443,8 +443,8 @@ export function FieldGroupExample() {
         formConfig={fieldGroupFormConfig}
         onSubmit={console.log}
       >
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>FieldGroup Conditions</h3>
             <Field name="accountType" />
 
@@ -526,8 +526,8 @@ export function NestedFieldGroupExample() {
         formConfig={nestedGroupFormConfig}
         onSubmit={console.log}
       >
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Nested FieldGroups</h3>
             <p>Expert options require BOTH toggles to be enabled</p>
 
@@ -591,8 +591,8 @@ export function FunctionConditionExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={functionConditionConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Function-Based Conditions</h3>
             <Field name="firstName" />
             <Field name="lastName" />

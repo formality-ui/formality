@@ -536,7 +536,7 @@ export function QuoteForm({
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const handleSubmit = useCallback(
+  const handleSave = useCallback(
     async (values: Record<string, unknown>) => {
       setIsSaving(true);
       try {
@@ -561,15 +561,12 @@ export function QuoteForm({
         config={quoteConfig}
         formConfig={quoteFormConfig}
         record={record}
-        onSubmit={handleSubmit}
+        onSubmit={handleSave}
         autoSave={autoSave}
         debounce={2000}
       >
-        {({ methods, resolvedTitle }) => (
-          <form
-            onSubmit={methods.handleSubmit(handleSubmit)}
-            className="quote-form"
-          >
+        {({ methods, handleSubmit, resolvedTitle }) => (
+          <form onSubmit={handleSubmit(handleSave)} className="quote-form">
             <header className="form-header">
               <h2>{resolvedTitle}</h2>
               {autoSave && (
@@ -655,7 +652,7 @@ export function QuoteForm({
 // =============================================================================
 
 export function NewQuoteDemo() {
-  const handleSubmit = async (values: Record<string, unknown>) => {
+  const onSubmit = async (values: Record<string, unknown>) => {
     console.log("Creating quote:", values);
     await new Promise((r) => setTimeout(r, 500));
   };
@@ -663,7 +660,7 @@ export function NewQuoteDemo() {
   return (
     <div className="demo">
       <h1>New Quote Demo</h1>
-      <QuoteForm onSubmit={handleSubmit} />
+      <QuoteForm onSubmit={onSubmit} />
     </div>
   );
 }
@@ -688,7 +685,7 @@ export function EditQuoteDemo() {
     operatingAgreement: true,
   };
 
-  const handleSubmit = async (values: Record<string, unknown>) => {
+  const onSubmit = async (values: Record<string, unknown>) => {
     console.log("Updating quote:", values);
     await new Promise((r) => setTimeout(r, 500));
   };
@@ -696,11 +693,7 @@ export function EditQuoteDemo() {
   return (
     <div className="demo">
       <h1>Edit Quote Demo (Auto-Save)</h1>
-      <QuoteForm
-        record={existingQuote}
-        onSubmit={handleSubmit}
-        autoSave={true}
-      />
+      <QuoteForm record={existingQuote} onSubmit={onSubmit} autoSave={true} />
     </div>
   );
 }

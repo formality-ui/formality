@@ -145,7 +145,7 @@ export function BasicAutoSaveExample() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
+  const onSubmit = useCallback(async (values: Record<string, unknown>) => {
     setIsSaving(true);
     await saveToAPI(values);
     setLastSaved(new Date().toLocaleTimeString());
@@ -156,10 +156,10 @@ export function BasicAutoSaveExample() {
     <FormalityProvider inputs={inputs}>
       <Form
         config={basicAutoSaveConfig}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         autoSave={true} // Enable auto-save
       >
-        {({ methods }) => (
+        {({ methods, handleSubmit }) => (
           <div>
             <h3>Basic Auto-Save</h3>
             <div className="save-status">
@@ -204,7 +204,7 @@ const customDebounceConfig: ReactFormFieldsConfig = {
 export function CustomDebounceExample() {
   const [saveLog, setSaveLog] = useState<string[]>([]);
 
-  const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
+  const onSubmit = useCallback(async (values: Record<string, unknown>) => {
     const timestamp = new Date().toLocaleTimeString();
     setSaveLog((prev) => [
       ...prev.slice(-4),
@@ -217,11 +217,11 @@ export function CustomDebounceExample() {
     <FormalityProvider inputs={inputs}>
       <Form
         config={customDebounceConfig}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         autoSave={true}
         debounce={5000} // Form-level debounce: 5 seconds
       >
-        {({ methods }) => (
+        {({ methods, handleSubmit }) => (
           <div>
             <h3>Custom Debounce (5 seconds)</h3>
             <p>Form-level debounce overrides input defaults</p>
@@ -275,7 +275,7 @@ const mixedDebounceConfig: ReactFormFieldsConfig = {
 export function MixedDebounceExample() {
   const [events, setEvents] = useState<string[]>([]);
 
-  const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
+  const onSubmit = useCallback(async (values: Record<string, unknown>) => {
     const time = new Date().toLocaleTimeString();
     setEvents((prev) => [...prev.slice(-9), `${time}: Auto-saved`]);
     await saveToAPI(values);
@@ -283,12 +283,8 @@ export function MixedDebounceExample() {
 
   return (
     <FormalityProvider inputs={inputs}>
-      <Form
-        config={mixedDebounceConfig}
-        onSubmit={handleSubmit}
-        autoSave={true}
-      >
-        {({ methods }) => (
+      <Form config={mixedDebounceConfig} onSubmit={onSubmit} autoSave={true}>
+        {({ methods, handleSubmit }) => (
           <div>
             <h3>Mixed Debounce Behaviors</h3>
             <p>Different input types have different debounce timings</p>
@@ -350,7 +346,7 @@ export function ValidatedAutoSaveExample() {
     "idle",
   );
 
-  const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
+  const onSubmit = useCallback(async (values: Record<string, unknown>) => {
     setStatus("saving");
     await saveToAPI(values);
     setStatus("saved");
@@ -361,10 +357,10 @@ export function ValidatedAutoSaveExample() {
     <FormalityProvider inputs={inputs}>
       <Form
         config={validatedAutoSaveConfig}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         autoSave={true}
       >
-        {({ methods }) => (
+        {({ methods, handleSubmit }) => (
           <div>
             <h3>Auto-Save with Validation</h3>
             <p>
@@ -416,7 +412,7 @@ export function ConditionalAutoSaveExample() {
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [saveCount, setSaveCount] = useState(0);
 
-  const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
+  const onSubmit = useCallback(async (values: Record<string, unknown>) => {
     // Check if auto-save is enabled via form value
     if (!values.autoSaveEnabled) {
       console.log("Auto-save disabled, skipping...");
@@ -430,11 +426,11 @@ export function ConditionalAutoSaveExample() {
     <FormalityProvider inputs={inputs}>
       <Form
         config={conditionalAutoSaveConfig}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         autoSave={true}
         record={{ autoSaveEnabled: true }}
       >
-        {({ methods }) => (
+        {({ methods, handleSubmit }) => (
           <div>
             <h3>Conditional Auto-Save</h3>
             <p>Toggle auto-save on/off while editing</p>
@@ -480,7 +476,7 @@ export function HybridSaveExample() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = useCallback(async (values: Record<string, unknown>) => {
+  const onSubmit = useCallback(async (values: Record<string, unknown>) => {
     setIsSaving(true);
     await saveToAPI(values);
     setLastSaved(new Date());
@@ -491,12 +487,12 @@ export function HybridSaveExample() {
     <FormalityProvider inputs={inputs}>
       <Form
         config={hybridSaveConfig}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmit}
         autoSave={true}
         debounce={3000}
       >
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(handleSubmit)}>
+        {({ methods, handleSubmit }) => (
+          <form onSubmit={handleSubmit(onSubmit)}>
             <h3>Hybrid: Auto-Save + Manual</h3>
             <p>Changes auto-save after 3 seconds, or click Save Now</p>
 

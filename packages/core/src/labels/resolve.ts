@@ -51,27 +51,43 @@ export function humanizeLabel(fieldName: string): string {
  * Priority order (highest to lowest):
  * 1. Component prop (label from JSX props)
  * 2. Field config props.label
- * 3. Evaluated selectProps.label
+ * 3. Evaluated selectProps.label (field-level selectProps)
  * 4. Field config label
  * 5. Field config title (legacy alias)
- * 6. Auto-generated from field name
+ * 6. Evaluated form-level selectDefaultFieldProps.label
+ * 7. Evaluated provider-level selectDefaultFieldProps.label
+ * 8. Auto-generated from field name
+ *
+ * The provider/form `selectDefaultFieldProps` layers are documented as label
+ * sources in PRD §16.1 (`providerConfig.selectDefaultFieldProps: { label:
+ * "props.name" }` works; same for `formConfig`). They sit below the field-level
+ * sources (matching their lower precedence in the 8-layer `mergeFieldProps`
+ * pipeline — layers 5 and 7 vs. the field-level layers 2/3) but above the
+ * humanized fallback, so a global label convention applies unless the field
+ * itself overrides it.
  *
  * **PRD deviation note (accepted, gap_analysis G5).** PRD §1.3.2's table
  * summarizes this export as `resolveLabel(config, fieldName)`. The implemented
  * signature is a richer superset —
- * `(fieldName, fieldConfig?, evaluatedSelectProps?, componentProps?)` — because
- * it resolves the full 6-source priority chain above in one call, which
- * requires the pre-evaluated `selectProps` and the JSX `componentProps`. This
+ * `(fieldName, fieldConfig?, evaluatedSelectProps?, componentProps?,
+ * providerSelectProps?, formSelectProps?)` — because it resolves the full
+ * priority chain above in one call, which requires the pre-evaluated
+ * `selectProps`/`selectDefaultFieldProps` and the JSX `componentProps`. This
  * is an internal API consumed by the framework adapters (e.g.
  * `@formality-ui/react`'s `Field` calls
- * `resolveLabel(name, fieldConfig, fieldSelectProps, restProps)`), not a
- * simplified end-user entry point; the PRD literal form is a condensed
- * representation. No code change is planned.
+ * `resolveLabel(name, fieldConfig, fieldSelectProps, restProps,
+ * providerSelectProps, formSelectProps)`), not a simplified end-user entry
+ * point; the PRD literal form is a condensed representation. No code change is
+ * planned.
  *
  * @param fieldName - Field name
  * @param fieldConfig - Field configuration
- * @param evaluatedSelectProps - Pre-evaluated selectProps
+ * @param evaluatedSelectProps - Pre-evaluated field-level selectProps
  * @param componentProps - Props from JSX
+ * @param providerSelectProps - Pre-evaluated provider-level
+ *   selectDefaultFieldProps (PRD §16.1)
+ * @param formSelectProps - Pre-evaluated form-level selectDefaultFieldProps
+ *   (PRD §16.1)
  * @returns Resolved label string
  */
 export function resolveLabel(
@@ -79,6 +95,8 @@ export function resolveLabel(
   fieldConfig?: FieldConfig,
   evaluatedSelectProps?: Record<string, unknown>,
   componentProps?: Record<string, unknown>,
+  providerSelectProps?: Record<string, unknown>,
+  formSelectProps?: Record<string, unknown>,
 ): string {
   // Priority 1: Component prop
   if (componentProps?.label !== undefined) {
@@ -105,7 +123,17 @@ export function resolveLabel(
     return fieldConfig.title;
   }
 
-  // Priority 6: Auto-generate from field name
+  // Priority 6: Evaluated form-level selectDefaultFieldProps.label (PRD §16.1)
+  if (formSelectProps?.label !== undefined) {
+    return String(formSelectProps.label);
+  }
+
+  // Priority 7: Evaluated provider-level selectDefaultFieldProps.label (§16.1)
+  if (providerSelectProps?.label !== undefined) {
+    return String(providerSelectProps.label);
+  }
+
+  // Priority 8: Auto-generate from field name
   return humanizeLabel(fieldName);
 }
 

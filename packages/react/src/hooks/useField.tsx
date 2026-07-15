@@ -443,9 +443,29 @@ export function useField<TName extends string = string>({
   ]);
 
   // Resolve label
+  //
+  // The evaluated provider/form `selectDefaultFieldProps` layers are threaded
+  // in so a global label convention (e.g. `selectDefaultFieldProps: { label:
+  // "props.name" }`) is honored per PRD §16.1. They sit below the field-level
+  // sources in `resolveLabel`'s priority chain, so explicit field config still
+  // wins. See `resolveLabel` for the full priority order.
   const label = useMemo(() => {
-    return resolveLabel(name, fieldConfig, fieldSelectProps, restProps);
-  }, [name, fieldConfig, fieldSelectProps, restProps]);
+    return resolveLabel(
+      name,
+      fieldConfig,
+      fieldSelectProps,
+      restProps,
+      providerSelectProps,
+      formSelectProps,
+    );
+  }, [
+    name,
+    fieldConfig,
+    fieldSelectProps,
+    restProps,
+    providerSelectProps,
+    formSelectProps,
+  ]);
 
   // === STATE INJECTION (provideState / passSubscriptions) ===
   //

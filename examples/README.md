@@ -46,8 +46,8 @@ function MyForm() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={config} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <Field name="name" />
             <Field name="email" />
             <button type="submit">Submit</button>

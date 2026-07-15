@@ -140,8 +140,8 @@ export function UnusedFieldsExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={unusedFieldsConfig} onSubmit={console.log}>
-        {({ methods, unusedFields }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit, unusedFields }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>UnusedFields Component</h3>
             <p>
               Only first/last name are explicit. Rest rendered by UnusedFields.
@@ -188,8 +188,8 @@ export function FieldOrderingExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={orderedFieldsConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Field Ordering</h3>
             <p>
               Fields sorted by `order` property (negative first, then ascending)
@@ -241,8 +241,8 @@ export function RecordKeyExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={recordKeyConfig} record={apiRecord} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>recordKey: API Field Mapping</h3>
             <p>API fields have different names than form fields</p>
 
@@ -299,8 +299,8 @@ export function FormTitleExample() {
         record={existingUser}
         onSubmit={console.log}
       >
-        {({ methods, resolvedTitle }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit, resolvedTitle }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>{resolvedTitle}</h3>
             <Field name="firstName" />
             <Field name="lastName" />
@@ -318,8 +318,8 @@ export function FormTitleExample() {
         formConfig={formTitleFormConfig}
         onSubmit={console.log}
       >
-        {({ methods, resolvedTitle }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit, resolvedTitle }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>{resolvedTitle}</h3>
             <Field name="firstName" />
             <Field name="lastName" />
@@ -362,8 +362,8 @@ export function ProvideStateExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={provideStateConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>provideState: Field State Access</h3>
             <p>Components receive isTouched, isDirty, isValid metadata</p>
 
@@ -405,8 +405,8 @@ export function PassSubscriptionsExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={passSubscriptionsConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>passSubscriptions: Watch Other Fields</h3>
             <p>Result field can see baseValue and multiplier states</p>
 
@@ -437,8 +437,8 @@ export function FieldRenderFunctionExample() {
   return (
     <FormalityProvider inputs={inputs}>
       <Form config={renderFunctionConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Field Render Function</h3>
             <p>Access field internals for custom rendering</p>
 
@@ -529,8 +529,8 @@ export function CustomTemplateExample() {
   return (
     <FormalityProvider inputs={templateInputs}>
       <Form config={templateConfig} onSubmit={console.log}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(console.log)}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(console.log)}>
             <h3>Custom Input Templates</h3>
             <p>
               Templates wrap inputs with consistent error display and styling

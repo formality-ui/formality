@@ -303,7 +303,7 @@ const config = {
 };
 
 export function InputTypesDemo() {
-  const handleSubmit = (values: Record<string, unknown>) => {
+  const onSubmit = (values: Record<string, unknown>) => {
     console.log("Submitted:", values);
     // Output: { clientId: 1, isActive: true, billRate: 125.50, ... }
     // Note: 'client' became 'clientId' due to getSubmitField
@@ -315,9 +315,9 @@ export function InputTypesDemo() {
       parsers={parsers}
       formatters={formatters}
     >
-      <Form config={config} onSubmit={handleSubmit}>
-        {({ methods }) => (
-          <form onSubmit={methods.handleSubmit(handleSubmit)}>
+      <Form config={config} onSubmit={onSubmit}>
+        {({ handleSubmit }) => (
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Field name="client" />
             <Field name="isActive" />
             <Field name="billRate" />
