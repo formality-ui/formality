@@ -959,17 +959,28 @@ function transformValuesForSubmit<T extends FieldValues>(
     const type = fieldConfig?.type ?? "textField";
     const inputConfig = inputs[type];
 
-    if (inputConfig) {
-      // Get the submit field name (may be transformed)
-      const submitName = transformFieldName(name, inputConfig.getSubmitField);
+    // Resolve the effective submit specs: a field-level override
+    // (FieldConfig.getSubmitField/valueField, §6.4.4) wins when !== undefined,
+    // otherwise the type-level spec. Routed through resolveFieldOverType so the
+    // single field-over-type rule lives in one place (§6.4.0). This applies
+    // even when inputConfig is undefined: a field with its own submit mapping
+    // transforms independently of its type.
+    const effectiveGetSubmitField = resolveFieldOverType(
+      fieldConfig?.getSubmitField,
+      inputConfig?.getSubmitField,
+    );
+    const effectiveValueField = resolveFieldOverType(
+      fieldConfig?.valueField,
+      inputConfig?.valueField,
+    );
 
-      // Extract value from complex object if valueField is specified
-      const submitValue = extractValueField(value, inputConfig.valueField);
+    // transformFieldName / extractValueField are no-ops when their spec is
+    // undefined, so when BOTH field- and type-level are unset this naturally
+    // yields result[name] = value (the former else-branch pass-through).
+    const submitName = transformFieldName(name, effectiveGetSubmitField);
+    const submitValue = extractValueField(value, effectiveValueField);
 
-      result[submitName] = submitValue;
-    } else {
-      result[name] = value;
-    }
+    result[submitName] = submitValue;
   }
 
   return result as Partial<T>;

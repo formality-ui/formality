@@ -665,6 +665,53 @@ function App() {
 > missing, Formality logs a warning (in non-production builds) and passes the
 > value through unchanged.
 
+### Per-field overrides for type-level levers
+
+The six type-level levers — `defaultValue`, `debounce`, `parser`,
+`formatter`, `valueField`, `getSubmitField` — are also available **per field**
+on `config[name]`. Setting one on a single `FieldConfig` overrides the input
+type's value for that field only, leaving every other field of the same type
+untouched — no new input type required.
+
+The canonical case is one `switch` that defaults **on** while the rest keep
+the type default:
+
+```tsx
+// Type-level default: every switch starts OFF.
+const inputs = {
+  switch: { component: Switch, defaultValue: false },
+};
+
+// Per-field override: ONE switch ("active") starts ON; siblings keep the
+// type default.
+const config = {
+  active: { type: "switch", defaultValue: true }, // overrides the type default
+  paused: { type: "switch" }, // no override → starts OFF (type default)
+};
+
+// <Field name="active" /> → starts ON
+// <Field name="paused" /> → starts OFF
+```
+
+**One rule for all six.** A field-level value wins over the type-level value
+whenever it is **not `undefined`** — so `null`, `false`, `0`, and `""` are
+meaningful overrides, not treated as "unset".
+
+Only these six levers override; the rest of `config[name]` behaves
+differently:
+
+| Lever set per-field                                                               | Field ↔ Type                                                     |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `defaultValue`, `debounce`, `parser`, `formatter`, `valueField`, `getSubmitField` | **override** — the field value wins when it is not `undefined`.  |
+| `validator`                                                                       | **compose** — the field validator runs, then the type validator. |
+| `props`                                                                           | **merge** — type props spread underneath the field's own props.  |
+
+> **`defaultValue` is a new priority tier, not a fallback.** A field-level
+> `defaultValue` sits _below_ the `record` value and an explicit
+> `defaultValues` Form prop, and _above_ the type's `defaultValue`. So on an
+> edit form a real record value still wins; the field default only fills in
+> when the record omits the key. It is **not** a bare `??` of the type default.
+
 See [`examples/02-input-types.tsx`](./examples/02-input-types.tsx) for the full
 set of `InputConfig` options (named vs inline transforms, default `props`,
 `validator`, `template`, etc.).

@@ -738,3 +738,166 @@ describe("Form coverage (P1.M2.T1.S2) — removeSubscription is silent", () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 });
+
+// ============================================================================
+// P1.M3.T3.S1: field-level getSubmitField/valueField override in
+// transformValuesForSubmit (resolves field ?? type via resolveFieldOverType).
+// ============================================================================
+
+describe("Form coverage (P1.M3.T3.S1) — field-level getSubmitField/valueField override", () => {
+  let submitHandler: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    submitHandler = vi.fn();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("should let a field-level override win over the type-level spec (§6.4.4)", async () => {
+    render(
+      <FormalityProvider inputs={inputsWithAutocomplete}>
+        <Form
+          config={{
+            client: {
+              type: "autocomplete",
+              valueField: "code",
+              getSubmitField: (k: string) => `${k}Code`,
+            },
+            signed: { type: "switch" },
+          }}
+          autoSave
+          debounce={300}
+          onSubmit={submitHandler}
+          record={{ client: { id: 5, code: "ACME" }, signed: true }}
+        >
+          <Field name="signed" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    // Drive a change on `signed` to trigger autoSave → handleSubmit → transform.
+    const toggle = screen.getByTestId("signed");
+    await act(async () => {
+      await userEvent.click(toggle);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    await waitFor(() => {
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+    });
+
+    // FIELD-level override wins: valueField "code" + getSubmitField
+    // (k)=>`${k}Code` → { clientCode: "ACME" }. NOT the type-level
+    // { clientId: 5 } from inputsWithAutocomplete.
+    expect(submitHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientCode: "ACME",
+        signed: false,
+      }),
+    );
+  });
+
+  it("should apply a field-level override even when inputConfig is undefined (guard-relaxation, prd_gaps §6)", async () => {
+    // testInputs has NO "refPicker" entry → inputConfig is undefined for
+    // `client`. Previously this hit the else branch and passed the value
+    // through untransformed; now the field-level override must still apply.
+    render(
+      <FormalityProvider inputs={testInputs}>
+        <Form
+          config={{
+            client: {
+              type: "refPicker",
+              valueField: "id",
+              getSubmitField: (k: string) => `${k}Id`,
+            },
+            signed: { type: "switch" },
+          }}
+          autoSave
+          debounce={300}
+          onSubmit={submitHandler}
+          record={{ client: { id: 7 }, signed: true }}
+        >
+          <Field name="signed" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    const toggle = screen.getByTestId("signed");
+    await act(async () => {
+      await userEvent.click(toggle);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    await waitFor(() => {
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+    });
+
+    // Field-level transform applied even though inputConfig is undefined:
+    // { clientId: 7 }. NOT { client: { id: 7 } } (the old else-branch).
+    expect(submitHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientId: 7,
+        signed: false,
+      }),
+    );
+  });
+
+  it("should fall back to the type-level spec when no field-level override is set (regression)", async () => {
+    render(
+      <FormalityProvider inputs={inputsWithAutocomplete}>
+        <Form
+          config={{
+            client: { type: "autocomplete" },
+            signed: { type: "switch" },
+          }}
+          autoSave
+          debounce={300}
+          onSubmit={submitHandler}
+          record={{ client: { id: 5, name: "Acme" }, signed: true }}
+        >
+          <Field name="signed" />
+        </Form>
+      </FormalityProvider>,
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    const toggle = screen.getByTestId("signed");
+    await act(async () => {
+      await userEvent.click(toggle);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    await waitFor(() => {
+      expect(submitHandler).toHaveBeenCalledTimes(1);
+    });
+
+    // No field-level override → TYPE-level transform applies:
+    // { clientId: 5 }.
+    expect(submitHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientId: 5,
+        signed: false,
+      }),
+    );
+  });
+});

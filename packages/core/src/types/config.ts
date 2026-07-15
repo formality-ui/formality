@@ -89,10 +89,24 @@ export interface InputConfig<TValue = unknown> {
   /** Prop name for passing value to component (default: 'value') */
   inputFieldProp?: string;
 
-  /** For complex values (objects), which property contains the actual value */
+  /**
+   * For complex values (objects), which property contains the actual value to submit.
+   *
+   * Per-field override via `FieldConfig.valueField` (§6.4.4); the field-level
+   * value wins when `!== undefined`, otherwise this type-level value applies.
+   * Resolved via `resolveFieldOverType` (§6.4.0), restoring read/write symmetry
+   * with `recordKey`.
+   */
   valueField?: string;
 
-  /** Transform field name for submission (e.g., 'client' → 'clientId') */
+  /**
+   * Transform the field name for submission (e.g. `'client' → 'clientId'`).
+   *
+   * Per-field override via `FieldConfig.getSubmitField` (§6.4.4); the
+   * field-level value wins when `!== undefined`, otherwise this type-level
+   * value applies. Resolved via `resolveFieldOverType` (§6.4.0), restoring
+   * read/write symmetry with `recordKey`.
+   */
   getSubmitField?: (fieldName: string) => string;
 
   /**
