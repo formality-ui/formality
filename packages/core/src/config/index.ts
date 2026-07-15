@@ -12,6 +12,7 @@ export {
 } from "./merge";
 
 export {
+  resolveFieldOverType,
   resolveInitialValue,
   resolveAllInitialValues,
   isEmptyValue,

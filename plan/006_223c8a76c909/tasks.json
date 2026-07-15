@@ -11,14 +11,14 @@
           "type": "Milestone",
           "id": "P1.M1",
           "title": "Core Foundation — Types & Precedence Helper",
-          "status": "Planned",
+          "status": "Ready",
           "description": "Add the six field-level override fields to FieldConfig in @formality-ui/core, implement the single resolveFieldOverType helper, export it, and update the React overlay JSDoc. Everything downstream depends on these type changes.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Extend FieldConfig and implement resolveFieldOverType",
-              "status": "Ready",
+              "status": "Complete",
               "description": "Add six optional field-level override fields to the FieldConfig interface in core/types/config.ts, implement resolveFieldOverType<T> in core/config/defaults.ts, and export it from core/src/index.ts.",
               "subtasks": [
                 {
@@ -60,7 +60,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S3",
                   "title": "Export resolveFieldOverType from core index",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S2"
@@ -78,14 +78,14 @@
               "type": "Task",
               "id": "P1.M1.T2",
               "title": "Update React overlay type documentation for field-level overrides",
-              "status": "Planned",
+              "status": "Ready",
               "description": "Update the JSDoc on ReactFieldConfig in packages/react/src/overlays.ts to document that the six §6.4 field-level override fields are inherited from the updated FieldConfig.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M1.T2.S1",
                   "title": "Update ReactFieldConfig JSDoc to reference §6.4 field-level overrides",
-                  "status": "Planned",
+                  "status": "Ready",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S1"
@@ -106,21 +106,21 @@
           "type": "Milestone",
           "id": "P1.M2",
           "title": "Core Logic — Initial Value Resolution",
-          "status": "Planned",
+          "status": "Researching",
           "description": "Update resolveInitialValue in @formality-ui/core/config/defaults.ts to insert fieldConfig.defaultValue as a new priority tier (Priority 3) between record and type default, using resolveFieldOverType for the field-vs-type step.",
           "tasks": [
             {
               "type": "Task",
               "id": "P1.M2.T1",
               "title": "Add field-level default as Priority 3 in resolveInitialValue",
-              "status": "Planned",
+              "status": "Researching",
               "description": "Update resolveInitialValue to check fieldConfig.defaultValue (Priority 3) before inputConfig.defaultValue (Priority 4, was Priority 3). Use resolveFieldOverType for the field-vs-type resolution step.",
               "subtasks": [
                 {
                   "type": "Subtask",
                   "id": "P1.M2.T1.S1",
                   "title": "Insert field-level default tier in resolveInitialValue priority chain",
-                  "status": "Planned",
+                  "status": "Researching",
                   "story_points": 1,
                   "dependencies": [
                     "P1.M1.T1.S1",

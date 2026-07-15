@@ -88,6 +88,7 @@ describe("PRD §1.3.2 API surface (check a — exports exist & are functions)", 
     // config/merge + defaults
     "mergeConfigs",
     "resolveInputConfig",
+    "resolveFieldOverType",
     "resolveInitialValue",
     "resolveAllInitialValues",
     // ordering

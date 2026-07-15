@@ -124,6 +124,7 @@ export {
   mergeStaticProps,
   mergeFieldProps,
   createConfigContext,
+  resolveFieldOverType,
   resolveInitialValue,
   resolveAllInitialValues,
   isEmptyValue,
