@@ -5,6 +5,36 @@
 import type { FieldConfig, InputConfig } from "../types";
 
 /**
+ * Resolve a field-level override against its type-level default. Returns the
+ * field value when it is not undefined (so null/false/0/"" are meaningful
+ * overrides); otherwise the type value. This is the single precedence rule
+ * shared by defaultValue, debounce, parser, formatter, getSubmitField, and
+ * valueField (§6.4.0). Every adapter MUST call this helper at each
+ * field-vs-type resolution site.
+ *
+ * @param fieldVal - The field-level (instance) value; `undefined` means "not specified".
+ * @param typeVal  - The type-level (InputConfig) default; `undefined` means "not specified".
+ * @returns `fieldVal` when it is not `undefined`, else `typeVal`.
+ *
+ * @example
+ * // Field override wins (even when falsy):
+ * resolveFieldOverType(false, true);   // → false
+ * resolveFieldOverType(null, "x");     // → null
+ * resolveFieldOverType(0, 100);        // → 0
+ * resolveFieldOverType("", "fallback");// → ""
+ *
+ * // Field unset → type default:
+ * resolveFieldOverType(undefined, "type"); // → "type"
+ * resolveFieldOverType(undefined, undefined); // → undefined
+ */
+export function resolveFieldOverType<T>(
+  fieldVal: T | undefined,
+  typeVal: T | undefined,
+): T | undefined {
+  return fieldVal !== undefined ? fieldVal : typeVal;
+}
+
+/**
  * Resolve the initial value for a field
  *
  * Priority order (highest to lowest):

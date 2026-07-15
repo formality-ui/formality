@@ -14,6 +14,7 @@ import {
   getInputDefaultValue,
   mergeRecordWithDefaults,
 } from "../index";
+import { resolveFieldOverType } from "../config/defaults";
 import type {
   InputConfig,
   FieldConfig,
@@ -22,6 +23,46 @@ import type {
 } from "../index";
 
 describe("Config Module", () => {
+  describe("resolveFieldOverType", () => {
+    it("returns the field value when it is not undefined (override wins)", () => {
+      expect(resolveFieldOverType("field", "type")).toBe("field");
+    });
+
+    it("returns the type value when field is undefined (fallback)", () => {
+      expect(resolveFieldOverType(undefined, "type")).toBe("type");
+    });
+
+    it("returns undefined when both are undefined", () => {
+      expect(resolveFieldOverType(undefined, undefined)).toBeUndefined();
+    });
+
+    it("treats null as a meaningful override (§6.4.5)", () => {
+      expect(resolveFieldOverType(null, "type")).toBeNull();
+    });
+
+    it("treats false as a meaningful override (§6.4.5)", () => {
+      expect(resolveFieldOverType(false, true)).toBe(false);
+    });
+
+    it("treats 0 as a meaningful override (§6.4.5)", () => {
+      expect(resolveFieldOverType(0, 100)).toBe(0);
+    });
+
+    it('treats "" as a meaningful override (§6.4.5)', () => {
+      expect(resolveFieldOverType("", "fallback")).toBe("");
+    });
+
+    it("passes through a type-level null when field is undefined", () => {
+      expect(resolveFieldOverType(undefined, null)).toBeNull();
+    });
+
+    it("preserves type inference over the generic (number | false)", () => {
+      // Mirrors a debounce-shaped call site (§6.4.0): field false wins over type 500.
+      const d: number | false | undefined = resolveFieldOverType(false, 500);
+      expect(d).toBe(false);
+    });
+  });
+
   describe("deepMerge", () => {
     it("should merge flat objects", () => {
       const base = { a: 1, b: 2 };

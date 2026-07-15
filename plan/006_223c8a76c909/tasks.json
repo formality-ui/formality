@@ -18,7 +18,7 @@
               "type": "Task",
               "id": "P1.M1.T1",
               "title": "Extend FieldConfig and implement resolveFieldOverType",
-              "status": "Researching",
+              "status": "Ready",
               "description": "Add six optional field-level override fields to the FieldConfig interface in core/types/config.ts, implement resolveFieldOverType<T> in core/config/defaults.ts, and export it from core/src/index.ts.",
               "subtasks": [
                 {
@@ -46,7 +46,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S2",
                   "title": "Implement resolveFieldOverType helper",
-                  "status": "Ready",
+                  "status": "Complete",
                   "story_points": 0.5,
                   "dependencies": [],
                   "context_scope": "CONTRACT DEFINITION:\n1. RESEARCH NOTE: The helper does NOT exist yet. `packages/core/src/config/defaults.ts` currently exports resolveInitialValue, resolveAllInitialValues, isEmptyValue, getInputDefaultValue, mergeRecordWithDefaults. PRD §6.4.0 specifies this as a single core helper used by ALL six override resolution sites across every adapter. It must use `!== undefined` (not `??` or truthiness) so null/false/0/\"\" are meaningful overrides.\n2. INPUT: None (new pure function).\n3. LOGIC: Add to `packages/core/src/config/defaults.ts`:\n```typescript\nexport function resolveFieldOverType<T>(\n  fieldVal: T | undefined,\n  typeVal: T | undefined,\n): T | undefined {\n  return fieldVal !== undefined ? fieldVal : typeVal;\n}\n```\nJSDoc: 'Resolve a field-level override against its type-level default. Returns the field value when it is not undefined (so null/false/0/\"\" are meaningful overrides); otherwise the type value. This is the single precedence rule shared by defaultValue, debounce, parser, formatter, getSubmitField, and valueField (§6.4.0). Every adapter MUST call this helper at each field-vs-type resolution site.'\n4. OUTPUT: Exported function `resolveFieldOverType` in config/defaults.ts. Consumed by P1.M1.T1.S3 (export), P1.M2.T1.S1 (resolveInitialValue), P1.M3.T1.S1 (useField parser/formatter), P1.M3.T2.S1 (changeField debounce), P1.M3.T3.S1 (transformValuesForSubmit).\n5. DOCS: [Mode A] JSDoc on the function itself. This rides WITH the work.",
@@ -60,7 +60,7 @@
                   "type": "Subtask",
                   "id": "P1.M1.T1.S3",
                   "title": "Export resolveFieldOverType from core index",
-                  "status": "Researching",
+                  "status": "Ready",
                   "story_points": 0.5,
                   "dependencies": [
                     "P1.M1.T1.S2"
